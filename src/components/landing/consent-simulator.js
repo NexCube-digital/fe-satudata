@@ -145,7 +145,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
     <section id="simulator" className="scroll-mt-24 py-8">
       {/* Header section */}
       <div className="max-w-3xl mb-8">
-        <p className="text-xs font-bold uppercase tracking-[0.35em] text-rose-600">Demo Interaktif</p>
+        <p className="text-xs font-bold uppercase tracking-[0.35em] text-pink-600">Demo Interaktif</p>
         <h2 className="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl leading-tight">
           Consent Simulator Live
         </h2>
@@ -161,7 +161,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
             {/* Header Portal Dokter */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-50 text-pink-600 border border-pink-100 shadow-sm">
                   <Stethoscope className="h-5 w-5" />
                 </span>
                 <div>
@@ -207,7 +207,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   className={`rounded-xl px-5 py-2.5 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                     simulatorState !== "idle" || !walletConnected
                       ? "bg-slate-300 cursor-not-allowed text-slate-500"
-                      : "bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 hover:scale-[1.02]"
+                      : "bg-linear-to-r from-pink-500 to-fuchsia-500 hover:from-pink-400 hover:to-fuchsia-400 hover:scale-[1.02]"
                   }`}
                 >
                   <Send className="h-3.5 w-3.5" />
@@ -413,7 +413,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
 
                 <button
                   onClick={handleRevokeAccess}
-                  className="w-full rounded-xl bg-rose-600/90 hover:bg-rose-500 py-2.5 text-center text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-rose-950/20"
+                  className="w-full rounded-xl bg-linear-to-r from-pink-500 to-fuchsia-500 py-2.5 text-center text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-pink-200/40 hover:from-pink-400 hover:to-fuchsia-400"
                 >
                   Cabut Izin Akses (revokeAccess)
                 </button>
@@ -442,7 +442,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
       {/* Ledger Audit Trail Section */}
       <div className="mt-8">
         <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-          <Database className="h-4.5 w-4.5 text-rose-600" />
+          <Database className="h-4.5 w-4.5 text-pink-600" />
           Audit Trail Ledger Blockchain (Real-time Logs)
         </p>
         <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 shadow-inner-sm max-h-40 overflow-y-auto space-y-2">
@@ -454,7 +454,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   log.type === "warning" ? "bg-amber-500" :
                   log.type === "error" ? "bg-rose-500" : "bg-blue-500"
                 }`} />
-                <span className="text-rose-600 font-semibold">{log.hash}</span>
+                <span className="text-pink-600 font-semibold">{log.hash}</span>
                 <span className="text-slate-700">{log.action}</span>
               </div>
               <span className="text-[10px] text-slate-400 self-end sm:self-center shrink-0">{log.timestamp}</span>

@@ -98,7 +98,7 @@ export default function AudienceSwitcher() {
     <section id="panel" className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start py-8">
       {/* Left Column: Switcher Controls */}
       <div className="glass-panel rounded-3xl p-6 shadow-[0_12px_40px_rgba(225,29,72,0.03)] sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.35em] text-rose-600">Pilih Konteks Pengguna</p>
+        <p className="text-xs font-bold uppercase tracking-[0.35em] text-pink-600">Pilih Konteks Pengguna</p>
         <h2 className="mt-3 text-3xl font-extrabold text-slate-900 leading-tight">Dasbor Demo SatuData</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-500">
           Uji coba secara langsung bagaimana sistem kami mengisolasi data rekam medis demi kepatuhan hukum dan keamanan informasi pasien.
@@ -116,7 +116,7 @@ export default function AudienceSwitcher() {
             }`}
           >
             <div className="flex items-center gap-2">
-              <Stethoscope className={`h-4.5 w-4.5 ${activeAudience === "patient" ? "text-rose-600" : "text-slate-500"}`} />
+              <Stethoscope className={`h-4.5 w-4.5 ${activeAudience === "patient" ? "text-pink-600" : "text-slate-500"}`} />
               <span className="text-sm font-bold text-slate-900">Portal Pasien</span>
             </div>
             <p className="mt-1.5 text-xs text-slate-500">Kendalikan persetujuan akses & lihat EHR.</p>
@@ -132,7 +132,7 @@ export default function AudienceSwitcher() {
             }`}
           >
             <div className="flex items-center gap-2">
-              <Building2 className={`h-4.5 w-4.5 ${activeAudience === "hospital" ? "text-rose-600" : "text-slate-500"}`} />
+              <Building2 className={`h-4.5 w-4.5 ${activeAudience === "hospital" ? "text-pink-600" : "text-slate-500"}`} />
               <span className="text-sm font-bold text-slate-900">Portal RS / Faskes</span>
             </div>
             <p className="mt-1.5 text-xs text-slate-500">Ajukan permohonan data & billing kasir.</p>
@@ -152,15 +152,15 @@ export default function AudienceSwitcher() {
       </div>
 
       {/* Right Column: Live Simulator Screen */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-rose-950/10 bg-slate-900 p-5 text-white shadow-2xl sm:p-7">
+      <div className="relative overflow-hidden rounded-[2.5rem] border border-pink-100 bg-white p-5 text-slate-900 shadow-[0_24px_70px_rgba(244,114,182,0.10)] sm:p-7">
         <div className={`absolute inset-x-0 top-0 h-1.5 bg-linear-to-r ${current.accent}`} />
 
-        <div className="flex items-start justify-between gap-4 border-b border-white/5 pb-4">
+        <div className="flex items-start justify-between gap-4 border-b border-pink-100 pb-4">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-rose-400">Simulator Aktif</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-pink-500">Simulator Aktif</span>
             <h3 className="text-xl font-bold">{current.label}</h3>
           </div>
-          <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[10px] font-bold text-slate-300">
+          <span className="rounded-full bg-pink-50 border border-pink-100 px-3 py-1 text-[10px] font-bold text-pink-600">
             Preview Mode
           </span>
         </div>
@@ -170,23 +170,23 @@ export default function AudienceSwitcher() {
           <div className="mt-5 space-y-6">
             {/* Consent Controls */}
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-pink-500" />
                 Izin Akses Rumah Sakit (Granular Consent)
               </p>
               <div className="space-y-2.5">
                 {/* RSCM */}
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-pink-50 border border-pink-100 px-4 py-3">
                   <div>
-                    <h5 className="text-xs font-bold">RS Cipto Mangunkusumo</h5>
-                    <p className="text-[10px] text-slate-400">Akses: Diagnosis & Alergi Obat</p>
+                    <h5 className="text-xs font-bold text-slate-900">RS Cipto Mangunkusumo</h5>
+                    <p className="text-[10px] text-slate-500">Akses: Diagnosis & Alergi Obat</p>
                   </div>
                   <button
                     onClick={() => toggleConsent("rscm")}
                     className={`rounded-full px-3 py-1 text-[10px] font-bold transition-all ${
                       consents.rscm
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                        ? "bg-pink-100 text-pink-700 border border-pink-200"
+                        : "bg-rose-100 text-rose-600 border border-rose-200"
                     }`}
                   >
                     {consents.rscm ? "Izinkan Akses" : "Akses Dicabut"}
@@ -194,17 +194,17 @@ export default function AudienceSwitcher() {
                 </div>
 
                 {/* RS Harapan Kita */}
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-pink-50 border border-pink-100 px-4 py-3">
                   <div>
-                    <h5 className="text-xs font-bold">RS Harapan Kita (Jantung)</h5>
-                    <p className="text-[10px] text-slate-400">Akses: Rekam Medis Jantung, Hasil Laboratorium</p>
+                    <h5 className="text-xs font-bold text-slate-900">RS Harapan Kita (Jantung)</h5>
+                    <p className="text-[10px] text-slate-500">Akses: Rekam Medis Jantung, Hasil Laboratorium</p>
                   </div>
                   <button
                     onClick={() => toggleConsent("harapanKita")}
                     className={`rounded-full px-3 py-1 text-[10px] font-bold transition-all ${
                       consents.harapanKita
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                        ? "bg-pink-100 text-pink-700 border border-pink-200"
+                        : "bg-rose-100 text-rose-600 border border-rose-200"
                     }`}
                   >
                     {consents.harapanKita ? "Izinkan Akses" : "Akses Dicabut"}
@@ -212,17 +212,17 @@ export default function AudienceSwitcher() {
                 </div>
 
                 {/* Kimia Farma */}
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-pink-50 border border-pink-100 px-4 py-3">
                   <div>
-                    <h5 className="text-xs font-bold">Laboratorium Kimia Farma</h5>
-                    <p className="text-[10px] text-slate-400">Akses: Hasil Swab PCR & Booster Vaksin</p>
+                    <h5 className="text-xs font-bold text-slate-900">Laboratorium Kimia Farma</h5>
+                    <p className="text-[10px] text-slate-500">Akses: Hasil Swab PCR & Booster Vaksin</p>
                   </div>
                   <button
                     onClick={() => toggleConsent("kimiaFarma")}
                     className={`rounded-full px-3 py-1 text-[10px] font-bold transition-all ${
                       consents.kimiaFarma
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                        ? "bg-pink-100 text-pink-700 border border-pink-200"
+                        : "bg-rose-100 text-rose-600 border border-rose-200"
                     }`}
                   >
                     {consents.kimiaFarma ? "Izinkan Akses" : "Akses Dicabut"}
@@ -233,26 +233,26 @@ export default function AudienceSwitcher() {
 
             {/* EHR Timeline */}
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-rose-400" />
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-pink-500" />
                 Linimasa Medis Pasien Terpadu (Encrypted EHR)
               </p>
-              <div className="relative border-l border-white/10 ml-2.5 pl-4 space-y-4">
+              <div className="relative border-l border-pink-100 ml-2.5 pl-4 space-y-4">
                 {/* Item 1 */}
                 <div className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-slate-900 ${consents.rscm ? "bg-emerald-400" : "bg-rose-400"}`} />
-                  <div className="rounded-lg bg-white/[0.01] border border-white/5 p-3">
-                    <div className="flex items-center justify-between text-[9px] text-slate-400">
-                      <span className="font-semibold text-rose-400">RS Cipto Mangunkusumo</span>
+                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.rscm ? "bg-pink-400" : "bg-rose-400"}`} />
+                  <div className="rounded-lg bg-white border border-pink-100 p-3">
+                    <div className="flex items-center justify-between text-[9px] text-slate-500">
+                      <span className="font-semibold text-pink-600">RS Cipto Mangunkusumo</span>
                       <span>12 Juli 2026</span>
                     </div>
                     {consents.rscm ? (
                       <div className="mt-1">
-                        <h6 className="text-xs font-bold">Diagnosa: Infeksi Saluran Pernapasan (ISPA)</h6>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Dokter: dr. Amanda Sp.PD | Terapi: Amoxicillin 500mg, Paracetamol 500mg</p>
+                        <h6 className="text-xs font-bold text-slate-900">Diagnosa: Infeksi Saluran Pernapasan (ISPA)</h6>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Dokter: dr. Amanda Sp.PD | Terapi: Amoxicillin 500mg, Paracetamol 500mg</p>
                       </div>
                     ) : (
-                      <div className="mt-1 flex items-center gap-1.5 text-rose-400/80 text-[10px] font-bold">
+                      <div className="mt-1 flex items-center gap-1.5 text-rose-500 text-[10px] font-bold">
                         <ShieldAlert className="h-3.5 w-3.5" />
                         <span>Akses Diblokir oleh Pasien</span>
                       </div>
@@ -262,19 +262,19 @@ export default function AudienceSwitcher() {
 
                 {/* Item 2 */}
                 <div className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-slate-900 ${consents.kimiaFarma ? "bg-emerald-400" : "bg-rose-400"}`} />
-                  <div className="rounded-lg bg-white/[0.01] border border-white/5 p-3">
-                    <div className="flex items-center justify-between text-[9px] text-slate-400">
-                      <span className="font-semibold text-rose-400">Laboratorium Kimia Farma</span>
+                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.kimiaFarma ? "bg-pink-400" : "bg-rose-400"}`} />
+                  <div className="rounded-lg bg-white border border-pink-100 p-3">
+                    <div className="flex items-center justify-between text-[9px] text-slate-500">
+                      <span className="font-semibold text-pink-600">Laboratorium Kimia Farma</span>
                       <span>28 Juni 2026</span>
                     </div>
                     {consents.kimiaFarma ? (
                       <div className="mt-1">
-                        <h6 className="text-xs font-bold">Laporan Lab: Tes Kolesterol & Gula Darah</h6>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Hasil: Kolesterol 190 mg/dL (Normal), Gula Darah Puasa 95 mg/dL (Normal)</p>
+                        <h6 className="text-xs font-bold text-slate-900">Laporan Lab: Tes Kolesterol & Gula Darah</h6>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Hasil: Kolesterol 190 mg/dL (Normal), Gula Darah Puasa 95 mg/dL (Normal)</p>
                       </div>
                     ) : (
-                      <div className="mt-1 flex items-center gap-1.5 text-rose-400/80 text-[10px] font-bold">
+                      <div className="mt-1 flex items-center gap-1.5 text-rose-500 text-[10px] font-bold">
                         <ShieldAlert className="h-3.5 w-3.5" />
                         <span>Akses Diblokir oleh Pasien</span>
                       </div>
@@ -290,30 +290,30 @@ export default function AudienceSwitcher() {
         {activeAudience === "hospital" && (
           <div className="mt-5 space-y-6">
             {/* Split layout: Request and POS */}
-            <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2">
               {/* Request Form */}
-              <div className="rounded-xl border border-white/5 bg-white/[0.01] p-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-3 flex items-center gap-1.5">
+              <div className="rounded-xl border border-pink-100 bg-pink-50 p-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-pink-500 mb-3 flex items-center gap-1.5">
                   <Send className="h-3.5 w-3.5" />
                   Minta Akses Eksternal
                 </h4>
                 <form onSubmit={handleRequestAccess} className="space-y-3">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-slate-400 mb-1">NIK Pasien</label>
+                    <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">NIK Pasien</label>
                     <input
                       type="text"
                       value={nikInput}
                       onChange={(e) => setNikInput(e.target.value)}
-                      className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-rose-500 font-mono"
+                      className="w-full rounded-lg bg-white border border-pink-100 px-3 py-1.5 text-xs text-slate-900 focus:outline-hidden focus:border-pink-500 font-mono"
                       placeholder="Masukkan 16 digit NIK"
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold uppercase text-slate-400 mb-1">Unit / Poli Dokter</label>
+                    <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Unit / Poli Dokter</label>
                     <select
                       value={clinicInput}
                       onChange={(e) => setClinicInput(e.target.value)}
-                      className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-rose-500"
+                      className="w-full rounded-lg bg-white border border-pink-100 px-3 py-1.5 text-xs text-slate-900 focus:outline-hidden focus:border-pink-500"
                     >
                       <option value="Klinik Jantung">Klinik Jantung (Kardiologi)</option>
                       <option value="Klinik Penyakit Dalam">Klinik Penyakit Dalam</option>
@@ -324,7 +324,7 @@ export default function AudienceSwitcher() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full rounded-lg bg-rose-600 py-2 text-center text-xs font-bold text-white transition hover:bg-rose-500 disabled:opacity-50"
+                    className="w-full rounded-lg bg-linear-to-r from-pink-500 to-fuchsia-500 py-2 text-center text-xs font-bold text-white transition hover:from-pink-400 hover:to-fuchsia-400 disabled:opacity-50"
                   >
                     {isSubmitting ? "Mengirim Permintaan..." : "Kirim Permintaan"}
                   </button>
@@ -335,9 +335,9 @@ export default function AudienceSwitcher() {
                   <p className="text-[9px] font-bold uppercase text-slate-500">Riwayat Permintaan Akses</p>
                   <div className="max-h-24 overflow-y-auto space-y-1.5 pr-1">
                     {requests.map((req) => (
-                      <div key={req.id} className="flex items-center justify-between rounded-lg bg-slate-800/40 border border-white/5 p-2 text-[9px]">
+                      <div key={req.id} className="flex items-center justify-between rounded-lg bg-white border border-pink-100 p-2 text-[9px]">
                         <div>
-                          <p className="font-bold text-slate-200">{req.clinic}</p>
+                          <p className="font-bold text-slate-900">{req.clinic}</p>
                           <p className="text-slate-500">{req.hospital}</p>
                         </div>
                         <span
@@ -427,4 +427,4 @@ export default function AudienceSwitcher() {
       </div>
     </section>
   );
-}
+}

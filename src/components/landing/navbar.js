@@ -12,11 +12,11 @@ const links = [
 export default function Navbar({ walletConnected, setWalletConnected }) {
   return (
     <header className="fixed left-0 right-0 top-4 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="glass-panel rounded-3xl shadow-[0_8px_32px_rgba(225,29,72,0.04)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(225,29,72,0.08)]">
+      <div className="glass-panel rounded-3xl shadow-[0_8px_32px_rgba(244,114,182,0.06)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(244,114,182,0.12)]">
         <div className="flex flex-col gap-4 px-6 py-3.5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
           {/* Logo Section */}
           <a href="#top" className="group flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-200 bg-white shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:border-rose-300">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-pink-200 bg-white shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:border-pink-300">
               <Image
                 src="/images/logo.png"
                 alt="Satu Data logo"
@@ -27,7 +27,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               />
             </span>
             <div>
-              <span className="block text-sm font-bold uppercase tracking-[0.25em] text-rose-600 transition-colors duration-300 group-hover:text-rose-700">
+              <span className="block text-sm font-bold uppercase tracking-[0.25em] text-pink-600 transition-colors duration-300 group-hover:text-pink-700">
                 Satu Data
               </span>
               <span className="block text-xs font-medium text-slate-500">
@@ -42,7 +42,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-full px-4 py-2 transition-all duration-200 hover:bg-rose-50 hover:text-rose-600"
+                className="rounded-full px-4 py-2 transition-all duration-200 hover:bg-pink-50 hover:text-pink-600"
               >
                 {link.label}
               </a>
@@ -53,7 +53,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold shadow-sm transition-all duration-200 cursor-pointer ${
                 walletConnected
                   ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
-                  : "bg-linear-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500 hover:shadow-md hover:shadow-rose-100"
+                  : "bg-linear-to-r from-pink-500 to-fuchsia-500 text-white hover:from-pink-400 hover:to-fuchsia-400 hover:shadow-md hover:shadow-pink-100"
               }`}
             >
               <Wallet className="h-3.5 w-3.5" />

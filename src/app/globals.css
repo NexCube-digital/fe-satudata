@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffafa;
+  --background: #fdfdff;
   --foreground: #0f172a;
 }
 
@@ -20,9 +20,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(244, 63, 94, 0.08), transparent 30%),
-    radial-gradient(circle at top right, rgba(225, 29, 72, 0.06), transparent 25%),
-    radial-gradient(circle at 50% 50%, rgba(190, 18, 60, 0.02), transparent 40%),
+    radial-gradient(circle at top left, rgba(244, 114, 182, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.08), transparent 25%),
+    radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.04), transparent 40%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
@@ -33,8 +33,8 @@ body {
 }
 
 ::selection {
-  background: rgba(225, 29, 72, 0.15);
-  color: #be123c;
+  background: rgba(244, 114, 182, 0.2);
+  color: #be185d;
 }
 
 /* Custom utilities for modern premium feel */
@@ -47,13 +47,13 @@ body {
 }
 
 @utility text-gradient-red {
-  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #9f1239 100%);
+  background: linear-gradient(135deg, #fb7185 0%, #ec4899 50%, #db2777 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 @utility bg-radial-glow {
-  background: radial-gradient(circle at center, rgba(225, 29, 72, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.18) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 75%);
 }
 
 @keyframes float {
@@ -81,7 +81,7 @@ body {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(225, 29, 72, 0.12);
+  border: 1px solid rgba(244, 114, 182, 0.14);
 }
 
 .glass-panel-dark {
