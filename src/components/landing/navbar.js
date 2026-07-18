@@ -11,7 +11,7 @@ const links = [
 
 export default function Navbar({ walletConnected, setWalletConnected }) {
   return (
-    <header className="sticky top-4 z-40 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header className="fixed left-0 right-0 top-4 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="glass-panel rounded-3xl shadow-[0_8px_32px_rgba(225,29,72,0.04)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(225,29,72,0.08)]">
         <div className="flex flex-col gap-4 px-6 py-3.5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
           {/* Logo Section */}
