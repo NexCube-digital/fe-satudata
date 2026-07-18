@@ -1,10 +1,11 @@
-import { BadgeCheck, ShieldCheck, Workflow } from "lucide-react";
+import { BadgeCheck, Database, ShieldCheck, Wallet } from "lucide-react";
 import { capabilities } from "./landing-data";
 
 const iconMap = {
-  shield: ShieldCheck,
-  workflow: Workflow,
-  audit: BadgeCheck,
+  kontrol: ShieldCheck,
+  enkripsi: Database,
+  gas: Wallet,
+  revoke: BadgeCheck,
 };
 
 export default function FeatureGrid() {
@@ -37,4 +38,4 @@ export default function FeatureGrid() {
       })}
     </section>
   );
-}
+}

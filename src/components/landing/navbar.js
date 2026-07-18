@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Wallet } from "lucide-react";
 
@@ -7,7 +9,7 @@ const links = [
   { href: "#alur", label: "Alur Sistem" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ walletConnected, setWalletConnected }) {
   return (
     <header className="sticky top-4 z-40 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="glass-panel rounded-3xl shadow-[0_8px_32px_rgba(225,29,72,0.04)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(225,29,72,0.08)]">
@@ -46,16 +48,20 @@ export default function Navbar() {
               </a>
             ))}
             <span className="hidden h-5 w-px bg-slate-200 lg:block" />
-            <a
-              href="#panel"
-              className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-red-600 to-rose-600 px-5 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:from-red-500 hover:to-rose-500 hover:shadow-md hover:shadow-rose-100"
+            <button
+              onClick={() => setWalletConnected(!walletConnected)}
+              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold shadow-sm transition-all duration-200 cursor-pointer ${
+                walletConnected
+                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "bg-linear-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500 hover:shadow-md hover:shadow-rose-100"
+              }`}
             >
               <Wallet className="h-3.5 w-3.5" />
-              Hubungkan Wallet
-            </a>
+              {walletConnected ? "0xPasien...89AB" : "Hubungkan Wallet"}
+            </button>
           </nav>
         </div>
       </div>
     </header>
   );
-}
+}

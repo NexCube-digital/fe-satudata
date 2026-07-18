@@ -1,111 +1,91 @@
 export const heroMetrics = [
-  { value: "100% Aman", label: "Terenskripsi & Audit Trail Blockchain" },
+  { value: "100% Aman", label: "Terdekripsi & Audit Trail Blockchain" },
   { value: "Sub-Detik", label: "Waktu Akses & Verifikasi Izin" },
   { value: "Satu Identitas", label: "Koneksi NIK & Wallet Address" },
 ];
 
 export const capabilities = [
   {
-    icon: "shield",
-    title: "Granular Patient Consent",
-    text: "Pasien memegang kendali penuh atas siapa yang boleh melihat rekam medis mereka. Berikan atau cabut izin akses dalam satu ketukan secara real-time.",
+    icon: "kontrol",
+    title: "Kontrol Penuh (Sovereign Consent)",
+    text: "Pasien memegang kendali mutlak atas siapa yang berhak melihat rekam medis mereka. Berikan izin akses secara granular secara real-time.",
   },
   {
-    icon: "workflow",
-    title: "Satu Rekam Medis (EHR)",
-    text: "Satukan riwayat diagnosis, hasil laboratorium, resep obat, dan kunjungan antar-rumah sakit dalam satu linimasa terpadu tanpa fragmentasi data.",
+    icon: "enkripsi",
+    title: "Enkripsi Off-chain AES-256",
+    text: "Rekam medis asli dienkripsi kuat secara off-chain di database MySQL. Hanya pihak terotorisasi yang dapat membaca datanya.",
   },
   {
-    icon: "audit",
-    title: "Kepatuhan & Keamanan Hukum",
-    text: "Semua riwayat pengajuan, persetujuan, dan pengunggahan dokumen kesehatan dicatat permanen dalam ledger blockchain untuk audit hukum yang sah.",
+    icon: "gas",
+    title: "Sharing Gas Fee",
+    text: "Biaya gas transaksi blockchain disubsidi penuh oleh Rumah Sakit via Meta-Transaction. Pasien melakukan approval 100% gratis.",
+  },
+  {
+    icon: "revoke",
+    title: "Mekanisme Revoke Instan",
+    text: "Cabut izin akses dokter seketika dari dashboard Anda. Sekali dicabut, data otomatis kembali terkunci dan terenkripsi.",
   },
 ];
 
 export const workflowSteps = [
   {
     step: "01",
-    title: "Pasien Menghubungkan NIK & Dompet",
-    text: "Pasien mengautentikasi identitas resmi mereka menggunakan platform SatuData terdesentralisasi.",
+    title: "Registrasi Pasien",
+    text: "Hubungkan identitas NIK resmi Anda dan tautkan dengan MetaMask Wallet secara aman.",
   },
   {
     step: "02",
-    title: "Rumah Sakit Meminta Akses Medis",
-    text: "Saat pasien berobat, dokter/petugas medis mengajukan permintaan akses rekam medis melalui sistem HIS terintegrasi.",
+    title: "Request Akses Medis",
+    text: "Dokter atau Faskes mengajukan permintaan izin rekam medis digital melalui sistem HIS terintegrasi.",
   },
   {
     step: "03",
-    title: "Verifikasi Consent Instan",
-    text: "Pasien mendapatkan notifikasi pop-up dan menandatangani izin akses secara instan melalui panel dasbor mereka.",
+    title: "Approve Transaksi",
+    text: "Pasien menerima notifikasi real-time di dompet MetaMask dan menandatangani izin akses secara digital.",
   },
   {
     step: "04",
-    title: "Pertukaran Data Aman & Audit Trail",
-    text: "Sistem membuka dekripsi data EHR pasien untuk dokter, lalu mencatat tanda waktu transaksi ke dalam log blockchain.",
+    title: "Dekripsi Data Medis",
+    text: "Sistem membaca persetujuan blockchain dan mendekripsi data rekam medis terstruktur untuk dokter.",
   },
 ];
 
 export const audienceData = {
   patient: {
-    label: "Portal Pasien Digital",
-    title: "Akses riwayat medis dan kelola izin dokter Anda kapan saja, di mana saja.",
-    description:
-      "Panel yang didesain intuitif untuk pasien. Tinjau riwayat penyakit, unduh hasil laboratorium, serta berikan persetujuan akses darurat secara real-time.",
-    accent: "from-rose-500 via-red-500 to-rose-700",
-    stats: [
-      { value: "Aktif", label: "Status Consent Anda" },
-      { value: "03 Faskes", label: "Tautan Faskes Aktif" },
-      { value: "100%", label: "Kontrol Kepemilikan" },
-    ],
-    cards: [
-      {
-        title: "Riwayat Kesehatan Kronologis",
-        text: "Semua riwayat alergi, diagnosis dokter, dan resep dirangkum dalam bentuk linimasa interaktif yang mudah dibaca.",
-      },
-      {
-        title: "Manajemen Izin (Consent)",
-        text: "Lihat daftar rumah sakit atau dokter yang sedang memiliki hak akses aktif, dan cabut izin mereka secara instan jika sudah selesai.",
-      },
-      {
-        title: "Notifikasi Akses Instan",
-        text: "Dapatkan pemberitahuan langsung ke perangkat Anda setiap kali ada faskes yang mencoba mengajukan permintaan baca rekam medis.",
-      },
-    ],
+    label: "Portal Pasien",
+    accent: "from-rose-500 via-pink-500 to-amber-400",
     checklist: [
-      "Kontrol consent satu ketukan",
-      "Linimasa rekam medis kronologis terpadu",
-      "Unduh dokumen medis terenkripsi PDF",
+      "Kelola izin akses per rumah sakit secara granular",
+      "Pantau riwayat akses rekam medis secara real-time",
+      "Cabut izin dengan revoke instan dari dashboard",
     ],
   },
   hospital: {
-    label: "Portal Manajemen Rumah Sakit",
-    title: "Integrasi HIS modern dengan penagihan layanan (POS) dan request rekam medis.",
-    description:
-      "Memudahkan administrasi rumah sakit dan klinisi untuk mengajukan permohonan rekam medis pasien eksternal secara legal serta mencatat billing kasir secara langsung.",
-    accent: "from-red-600 via-rose-600 to-red-800",
-    stats: [
-      { value: "Sub-Detik", label: "Kecepatan Tarik Data" },
-      { value: "99.99%", label: "Ketersediaan Server API" },
-      { value: "Terintegrasi", label: "Sesuai Standar SATUSEHAT" },
-    ],
-    cards: [
-      {
-        title: "Request Rekam Medis Eksternal",
-        text: "Ajukan permohonan akses data pasien secara formal dengan tujuan medis yang terklasifikasi demi perlindungan data pribadi.",
-      },
-      {
-        title: "Kasir Medis & POS Kas",
-        text: "Kelola pendaftaran kunjungan pasien, tagihan obat, dan tindakan operasional harian dalam satu alur kerja front desk.",
-      },
-      {
-        title: "Log Audit Kepatuhan",
-        text: "Setiap data medis yang diunduh atau diubah secara otomatis tercatat dengan tanda tangan digital dokter penanggung jawab.",
-      },
-    ],
+    label: "Portal RS / Faskes",
+    accent: "from-sky-500 via-cyan-500 to-emerald-400",
     checklist: [
-      "Sistem Kasir (Point of Sale) Terpadu",
-      "Form Pengajuan Izin Akses Rekam Medis",
-      "Integrasi API SATUSEHAT & HL7 FHIR",
+      "Ajukan permintaan akses data pasien dengan NIK",
+      "Pantau status persetujuan pasien secara langsung",
+      "Kelola billing dan simulasi transaksi layanan",
     ],
   },
-};
+};
+
+export const faqQuestions = [
+  {
+    question: "Apakah data rekam medis saya disimpan secara langsung di dalam blockchain?",
+    answer: "Tidak. Blockchain (Hardhat/Solidity) hanya menyimpan metadata akses (Access Control List) dan log audit trail. Rekam medis asli yang terenkripsi AES-256 disimpan secara off-chain di database MySQL aman (Express.js/XAMPP) untuk menghemat biaya gas dan menjamin kerahasiaan sesuai standar privasi medis global."
+  },
+  {
+    question: "Bagaimana mekanisme gas fee bekerja? Apakah pasien harus membayar setiap kali memberikan izin?",
+    answer: "Tidak. Platform kami menerapkan pola Meta-Transactions (EIP-2771 / Gasless Transactions). Pasien hanya perlu menandatangani pesan (cryptographic signature) secara gratis di MetaMask. Biaya gas fee (gas-sharing) akan ditanggung sepenuhnya oleh Rumah Sakit atau Faskes yang mengajukan permohonan akses data."
+  },
+  {
+    question: "Seberapa aman database MySQL lokal (XAMPP) dalam arsitektur hybrid ini?",
+    answer: "Sangat aman. Database MySQL bertindak sebagai cold storage untuk berkas terenkripsi. Tanpa kunci privat pasien dan otorisasi dari smart contract blockchain, data di MySQL hanyalah sandi acak (ciphertext) AES-256 yang tidak dapat dibaca oleh administrator database sekalipun."
+  },
+  {
+    question: "Apa yang terjadi jika saya secara tidak sengaja memberikan hak akses ke faskes yang salah?",
+    answer: "Anda dapat menggunakan fitur Revoke Instan kapan saja. Dengan memanggil fungsi revokeAccess(), MetaMask Anda akan mengirimkan transaksi untuk membatalkan hak akses faskes tersebut seketika. Sistem off-chain akan menolak pengiriman kunci dekripsi ke faskes tersebut mulai detik itu juga."
+  }
+];
