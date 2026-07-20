@@ -64,9 +64,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex overflow-hidden">
       {/* Left Side - Description Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-pink-600 via-pink-500 to-fuchsia-600 p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#7F1D1D] via-[#A61B2D] to-[#4C0B14] p-12 flex-col justify-between relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-white blur-3xl" />
@@ -149,15 +149,15 @@ export default function RegisterPage() {
       <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <Link href="/login" className="text-pink-600 hover:text-pink-700">
+            <Link href="/login" className="text-[#7F1D1D] hover:text-[#A61B2D]">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <span className="text-sm font-medium text-slate-600">Kembali ke Login</span>
           </div>
 
-          <div className="bg-pink-600 rounded-t-3xl px-8 py-8 text-white">
+          <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
             <h2 className="text-2xl font-bold">Daftar Akun Baru</h2>
-            <p className="text-pink-100 mt-2 text-sm">Pilih tipe akun dan isi data Anda</p>
+            <p className="text-rose-100 mt-2 text-sm">Pilih tipe akun dan isi data Anda</p>
           </div>
 
           <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
@@ -184,7 +184,7 @@ export default function RegisterPage() {
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   disabled={loading}
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm"
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                 >
                   <option value="pasien">👤 Pasien / Individu</option>
                   <option value="rumah_sakit">🏥 Rumah Sakit / Klinik</option>
@@ -202,7 +202,7 @@ export default function RegisterPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={role === "pasien" ? "Budi Santoso" : "Rumah Sakit Cipto"}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     required
                     disabled={loading}
                   />
@@ -220,7 +220,7 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="contoh@email.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     required
                     disabled={loading}
                   />
@@ -238,7 +238,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     required
                     disabled={loading}
                   />
@@ -256,7 +256,7 @@ export default function RegisterPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+62 812 3456 7890"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     disabled={loading}
                   />
                 </div>
@@ -273,7 +273,7 @@ export default function RegisterPage() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Jl. Contoh No. 123"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     disabled={loading}
                   />
                 </div>
@@ -282,7 +282,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               >
                 {loading ? (
                   <>
@@ -299,7 +299,7 @@ export default function RegisterPage() {
 
               <p className="text-center text-sm text-slate-600 mt-6">
                 Sudah punya akun?{" "}
-                <Link href="/login" className="text-pink-600 hover:text-pink-700 font-semibold transition">
+                <Link href="/login" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
                   Masuk di sini
                 </Link>
               </p>

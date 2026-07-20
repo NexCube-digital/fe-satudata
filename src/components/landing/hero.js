@@ -7,11 +7,11 @@ export default function Hero({ walletConnected, setWalletConnected }) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden rounded-[2.5rem] border border-pink-100/80 bg-linear-to-br from-white via-pink-50/70 to-rose-100/70 px-6 py-10 text-slate-900 shadow-[0_30px_100px_rgba(244,114,182,0.12)] sm:px-10 lg:h-[calc(100vh-9.5rem)] lg:min-h-160 lg:px-14 lg:py-8"
+      className="relative overflow-hidden rounded-[2.5rem] border border-pink-100/80 bg-white px-6 py-10 text-slate-900 shadow-[0_30px_100px_rgba(244,114,182,0.08)] sm:px-10 lg:h-[calc(100vh-9.5rem)] lg:min-h-160 lg:px-14 lg:py-8"
     >
       {/* Background glowing gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(244,114,182,0.14),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(236,72,153,0.08),transparent_30%),linear-gradient(135deg,rgba(14,165,233,0.05),transparent_50%)]" />
-      <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-pink-400/15 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(127,29,29,0.12),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(166,27,45,0.08),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.95),transparent_50%)]" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-rose-800/10 blur-[120px]" />
 
       <div className="relative grid h-full gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
         {/* Left Column: Heading and Info */}
@@ -27,7 +27,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
             </p>
             <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl/tight">
               Data Kesehatan Anda, <br />
-              <span className="bg-linear-to-r from-pink-500 via-fuchsia-500 to-sky-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-[#7F1D1D] via-[#A61B2D] to-[#4C0B14] bg-clip-text text-transparent">
                 Sepenuhnya Milik Anda.
               </span>
             </h1>
@@ -40,7 +40,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           <div className="flex flex-col gap-3.5 sm:flex-row">
             <a
               href="/login"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-pink-500 to-fuchsia-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-pink-200/50 transition-all duration-200 hover:from-pink-400 hover:to-fuchsia-400 hover:scale-[1.02] hover:shadow-xl hover:shadow-pink-200/60"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#7F1D1D] to-[#A61B2D] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-200/50 transition-all duration-200 hover:from-[#8E2A3B] hover:to-[#7A1526] hover:scale-[1.02] hover:shadow-xl hover:shadow-rose-200/60"
             >
               Mulai Sekarang
               <ArrowRight className="h-4 w-4" />
@@ -63,7 +63,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           <div className="absolute inset-0 bg-radial-glow blur-2xl pointer-events-none" />
 
           {/* Base Mockup Container */}
-          <div className="glass-panel relative rounded-4xl border border-pink-100 bg-white/80 p-5 shadow-[0_20px_60px_rgba(244,114,182,0.10)]">
+          <div className="glass-panel relative rounded-4xl border border-pink-100 bg-white/80 p-5 shadow-[0_24px_70px_rgba(244,114,182,0.14)]">
             {/* Header elements */}
             <div className="mb-4 flex items-center justify-between border-b border-pink-100 pb-3.5">
               <div className="flex items-center gap-2.5">
@@ -99,7 +99,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                   </p>
                   <button
                     onClick={() => setWalletConnected(true)}
-                    className="mt-4 rounded-full bg-linear-to-r from-pink-500 to-fuchsia-500 px-5 py-2 text-xs font-bold text-white hover:from-pink-400 hover:to-fuchsia-400 transition cursor-pointer"
+                    className="mt-4 rounded-full bg-linear-to-r from-[#7F1D1D] to-[#A61B2D] px-5 py-2 text-xs font-bold text-white hover:from-[#8E2A3B] hover:to-[#7A1526] transition cursor-pointer"
                   >
                     Hubungkan MetaMask
                   </button>
@@ -108,7 +108,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
 
               <div className={!walletConnected ? "filter blur-xs select-none pointer-events-none transition duration-300" : "transition duration-300"}>
                 {/* Patient Info Card */}
-                <div className="mb-4 rounded-2xl bg-white p-4 border border-pink-100">
+                <div className="mb-4 rounded-2xl bg-white p-4 border border-pink-100 shadow-[0_8px_20px_rgba(244,114,182,0.08)]">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] uppercase font-bold tracking-wider text-pink-500">Pasien Utama</p>
                     <span className="text-[10px] bg-pink-50 text-pink-600 px-2 py-0.5 rounded-md border border-pink-100">NIK Terverifikasi</span>
@@ -131,7 +131,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                 </div>
 
                 {/* Simulated Access Request Modal (FOCAL POINT) */}
-                <div className="relative overflow-hidden rounded-2xl border border-pink-200 bg-pink-50 p-4 shadow-[0_0_20px_rgba(244,114,182,0.12)]">
+                <div className="relative overflow-hidden rounded-2xl border border-pink-200 bg-pink-50 p-4 shadow-[0_10px_28px_rgba(244,114,182,0.14)]">
                   <div className="absolute top-0 right-0 h-16 w-16 bg-radial-glow blur-md" />
                   <div className="flex items-start justify-between">
                     <div className="flex gap-2">

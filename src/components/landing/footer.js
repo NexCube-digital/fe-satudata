@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <a href="#top" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-pink-500 to-fuchsia-500 text-white shadow-xs">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-[#7F1D1D] to-[#A61B2D] text-white shadow-xs">
                 <Activity className="h-4 w-4" />
               </span>
               <span className="text-sm font-bold uppercase tracking-wider text-slate-900">Satu Data</span>

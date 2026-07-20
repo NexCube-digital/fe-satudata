@@ -55,9 +55,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex overflow-hidden">
       {/* Left Side - Description Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-pink-600 via-pink-500 to-fuchsia-600 p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#7F1D1D] via-[#A61B2D] to-[#4C0B14] p-12 flex-col justify-between relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-white blur-3xl" />
@@ -139,9 +139,9 @@ export default function LoginPage() {
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md">
-          <div className="bg-pink-600 rounded-t-3xl px-8 py-8 text-white">
+          <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
             <h2 className="text-2xl font-bold">Masuk ke Akun Anda</h2>
-            <p className="text-pink-100 mt-2 text-sm">Silakan masuk untuk mengakses dashboard</p>
+            <p className="text-rose-100 mt-2 text-sm">Silakan masuk untuk mengakses dashboard</p>
           </div>
 
           <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
@@ -164,7 +164,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="contoh@email.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     required
                     disabled={loading}
                   />
@@ -178,7 +178,7 @@ export default function LoginPage() {
                   </label>
                   <Link
                     href="#"
-                    className="text-xs text-pink-600 hover:text-pink-700 font-medium transition"
+                    className="text-xs text-[#7F1D1D] hover:text-[#A61B2D] font-medium transition"
                   >
                     Lupa password?
                   </Link>
@@ -190,7 +190,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
                     required
                     disabled={loading}
                   />
@@ -200,7 +200,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -226,7 +226,7 @@ export default function LoginPage() {
 
               <p className="text-center text-sm text-slate-600">
                 Belum punya akun?{" "}
-                <Link href="/register" className="text-pink-600 hover:text-pink-700 font-semibold transition">
+                <Link href="/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
                   Daftar di sini
                   <ArrowRight className="inline-block ml-1 h-3 w-3" />
                 </Link>

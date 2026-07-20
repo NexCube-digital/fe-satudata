@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <main className="relative overflow-hidden pt-20 sm:pt-24">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(225,29,72,0.08),transparent_30%),radial-gradient(circle_at_top_right,rgba(190,18,60,0.06),transparent_28%),linear-gradient(180deg,rgba(127,29,29,0.03),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.06),transparent_30%),radial-gradient(circle_at_top_right,rgba(244,114,182,0.04),transparent_28%),linear-gradient(180deg,rgba(255,255,255,1),rgba(255,255,255,1))]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <Navbar walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
 

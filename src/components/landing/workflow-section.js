@@ -18,7 +18,7 @@ export default function WorkflowSection() {
       {/* Horizontal Steps Grid */}
       <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {workflowSteps.map((step, index) => (
-          <div key={step.step} className="group relative flex flex-col items-start rounded-3xl border border-pink-100 bg-pink-50/20 p-6 transition-all duration-350 hover:bg-pink-50/50 hover:border-pink-200">
+          <div key={step.step} className="group relative flex flex-col items-start rounded-3xl border border-pink-100 bg-pink-50/20 p-6 shadow-[0_12px_32px_rgba(244,114,182,0.08)] transition-all duration-350 hover:bg-pink-50/50 hover:border-pink-200 hover:shadow-[0_18px_42px_rgba(244,114,182,0.14)]">
             {/* Step Bubble Indicator */}
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-pink-200 bg-white text-sm font-extrabold text-pink-600 shadow-xs shadow-pink-100 transition-transform duration-300 group-hover:scale-105">
               {step.step}

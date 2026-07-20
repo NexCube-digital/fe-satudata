@@ -97,7 +97,7 @@ export default function AudienceSwitcher() {
   return (
     <section id="panel" className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start py-8">
       {/* Left Column: Switcher Controls */}
-      <div className="glass-panel rounded-3xl p-6 shadow-[0_12px_40px_rgba(225,29,72,0.03)] sm:p-8">
+      <div className="glass-panel rounded-3xl border border-pink-100/70 p-6 shadow-[0_18px_48px_rgba(244,114,182,0.10)] sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.35em] text-pink-600">Pilih Konteks Pengguna</p>
         <h2 className="mt-3 text-3xl font-extrabold text-slate-900 leading-tight">Dasbor Demo SatuData</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-500">
@@ -152,7 +152,7 @@ export default function AudienceSwitcher() {
       </div>
 
       {/* Right Column: Live Simulator Screen */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-pink-100 bg-white p-5 text-slate-900 shadow-[0_24px_70px_rgba(244,114,182,0.10)] sm:p-7">
+      <div className="relative overflow-hidden rounded-[2.5rem] border border-pink-100 bg-white p-5 text-slate-900 shadow-[0_28px_80px_rgba(244,114,182,0.14)] sm:p-7">
         <div className={`absolute inset-x-0 top-0 h-1.5 bg-linear-to-r ${current.accent}`} />
 
         <div className="flex items-start justify-between gap-4 border-b border-pink-100 pb-4">
@@ -240,7 +240,7 @@ export default function AudienceSwitcher() {
               <div className="relative border-l border-pink-100 ml-2.5 pl-4 space-y-4">
                 {/* Item 1 */}
                 <div className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.rscm ? "bg-pink-400" : "bg-rose-400"}`} />
+                  <span className={`absolute -left-5.25 top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.rscm ? "bg-pink-400" : "bg-rose-400"}`} />
                   <div className="rounded-lg bg-white border border-pink-100 p-3">
                     <div className="flex items-center justify-between text-[9px] text-slate-500">
                       <span className="font-semibold text-pink-600">RS Cipto Mangunkusumo</span>
@@ -262,7 +262,7 @@ export default function AudienceSwitcher() {
 
                 {/* Item 2 */}
                 <div className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.kimiaFarma ? "bg-pink-400" : "bg-rose-400"}`} />
+                  <span className={`absolute -left-5.25 top-1 h-2.5 w-2.5 rounded-full border border-pink-100 ${consents.kimiaFarma ? "bg-pink-400" : "bg-rose-400"}`} />
                   <div className="rounded-lg bg-white border border-pink-100 p-3">
                     <div className="flex items-center justify-between text-[9px] text-slate-500">
                       <span className="font-semibold text-pink-600">Laboratorium Kimia Farma</span>
@@ -356,7 +356,7 @@ export default function AudienceSwitcher() {
               </div>
 
               {/* Point of Sale / Kasir Medis */}
-              <div className="rounded-xl border border-white/5 bg-white/[0.01] p-4 flex flex-col justify-between">
+              <div className="rounded-xl border border-white/5 bg-white/1 p-4 flex flex-col justify-between">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-3 flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5" />
