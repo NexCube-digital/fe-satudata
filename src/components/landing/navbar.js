@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Wallet } from "lucide-react";
+import Link from "next/link";
+import { Wallet, LogIn, UserPlus } from "lucide-react";
 
 const links = [
   { href: "#fitur", label: "Fitur Unggulan" },
@@ -10,6 +12,19 @@ const links = [
 ];
 
 export default function Navbar({ walletConnected, setWalletConnected }) {
+  const [user, setUser] = useState(null);
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse stored user:", e);
+      }
+    }
+  }, []);
   return (
     <header className="fixed left-0 right-0 top-4 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="glass-panel rounded-3xl shadow-[0_8px_32px_rgba(244,114,182,0.06)] transition-all duration-300 hover:shadow-[0_12px_40px_rgba(244,114,182,0.12)]">
@@ -48,17 +63,35 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               </a>
             ))}
             <span className="hidden h-5 w-px bg-slate-200 lg:block" />
-            <button
-              onClick={() => setWalletConnected(!walletConnected)}
-              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold shadow-sm transition-all duration-200 cursor-pointer ${
-                walletConnected
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
-                  : "bg-linear-to-r from-pink-500 to-fuchsia-500 text-white hover:from-pink-400 hover:to-fuchsia-400 hover:shadow-md hover:shadow-pink-100"
-              }`}
-            >
-              <Wallet className="h-3.5 w-3.5" />
-              {walletConnected ? "0xPasien...89AB" : "Hubungkan Wallet"}
-            </button>
+
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-600 font-medium">
+                  {user.email}
+                </span>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("user");
+                    setUser(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-600 px-4 py-2 text-xs font-bold hover:bg-red-100 transition"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-pink-500 to-fuchsia-500 text-white px-4 py-2 text-xs font-bold hover:from-pink-400 hover:to-fuchsia-400 transition"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  Login
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </div>

@@ -39,19 +39,12 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           {/* Call to Actions */}
           <div className="flex flex-col gap-3.5 sm:flex-row">
             <a
-              href="#simulator"
+              href="/login"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-pink-500 to-fuchsia-500 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-pink-200/50 transition-all duration-200 hover:from-pink-400 hover:to-fuchsia-400 hover:scale-[1.02] hover:shadow-xl hover:shadow-pink-200/60"
             >
-              Mulai Simulasi
+              Mulai Sekarang
               <ArrowRight className="h-4 w-4" />
             </a>
-            <button
-              onClick={() => setWalletConnected(!walletConnected)}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white px-7 py-3.5 text-sm font-bold text-slate-700 transition-all duration-200 hover:border-pink-300 hover:bg-pink-50 hover:text-slate-900 cursor-pointer"
-            >
-              <Wallet className="h-4 w-4 text-pink-500" />
-              {walletConnected ? "Wallet Terhubung (0xPasien...)" : "Hubungkan MetaMask"}
-            </button>
           </div>
 
           {/* Hero Metrics */}
