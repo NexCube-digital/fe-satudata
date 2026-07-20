@@ -1,16 +1,17 @@
 import Image from "next/image";
-import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, Lock, Radio, Server, FileText, Activity } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-pink-100 bg-slate-50/50 pt-16 pb-8 text-xs text-slate-500">
+    <footer className="border-t border-rose-100 bg-linear-to-b from-slate-50 to-slate-100/80 pt-16 pb-10 text-xs text-slate-500">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Grid */}
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5 mb-12">
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <a href="#top" className="flex items-center gap-2">
-              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+            <a href="#top" className="flex items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-2xs ring-1 ring-slate-200">
                 <Image
                   src="/images/logo.png"
                   alt="Satu Data logo"
@@ -19,56 +20,93 @@ export default function Footer() {
                   className="h-full w-full object-contain"
                 />
               </span>
-              <span className="text-sm font-bold uppercase tracking-wider text-slate-900">Satu Data</span>
+              <div>
+                <span className="text-sm font-extrabold uppercase tracking-widest text-slate-900 block">Satu Data</span>
+                <span className="text-[10px] font-bold text-rose-800">Sovereign Health Infrastructure</span>
+              </div>
             </a>
+
             <p className="text-slate-500 leading-relaxed max-w-sm">
-              SatuData adalah platform infrastruktur pertukaran rekam medis terdesentralisasi berbasis patient-consent. Membantu rumah sakit meningkatkan efisiensi operasional dan menjamin hak privasi pasien.
+              SatuData adalah platform pertukaran rekam medis elektronik (RME) terdesentralisasi berstandar 2026 berbasis *patient-consent*. Menjamin kedaulatan data medis pasien dan efisiensi operasional fasilitas kesehatan.
             </p>
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-2.5 py-1.5 w-fit font-semibold text-emerald-700">
-              <ShieldCheck className="h-4 w-4" />
-              Sesuai UU Perlindungan Data Pribadi (PDP)
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-800">
+                <ShieldCheck className="h-4 w-4 text-rose-700" />
+                Sesuai UU PDP No. 27/2022
+              </div>
+              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-800">
+                <Radio className="h-3.5 w-3.5 text-emerald-600 animate-pulse" />
+                SATUSEHAT v2.5 Ready
+              </div>
             </div>
           </div>
 
-          {/* Column 1: Services */}
+          {/* Column 1: Fitur & Portal */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-3.5">Layanan Utama</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#panel" className="hover:text-pink-600 transition">Portal Pasien Digital</a></li>
-              <li><a href="#panel" className="hover:text-pink-600 transition">Portal Rumah Sakit</a></li>
-              <li><a href="#fitur" className="hover:text-pink-600 transition">Manajemen Consent (Persetujuan)</a></li>
-              <li><a href="#fitur" className="hover:text-pink-600 transition">Audit Trail Blockchain</a></li>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Portal & Fitur</h4>
+            <ul className="space-y-2.5 font-medium">
+              <li>
+                <Link href="/dashboard/pasien" className="hover:text-rose-800 transition">Portal Pasien Digital</Link>
+              </li>
+              <li>
+                <Link href="/dashboard/faskes" className="hover:text-rose-800 transition">Portal Faskes & Kasir POS</Link>
+              </li>
+              <li>
+                <Link href="/dashboard/admin" className="hover:text-rose-800 transition">Admin Command Center</Link>
+              </li>
+              <li>
+                <Link href="/records" className="hover:text-rose-800 transition">Linimasa Rekam Medis (EHR)</Link>
+              </li>
+              <li>
+                <Link href="/consent" className="hover:text-rose-800 transition">Kelola Izin (Consent Manager)</Link>
+              </li>
             </ul>
           </div>
 
-          {/* Column 2: Resources */}
+          {/* Column 2: Akun & Akses */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-3.5">Dokumentasi</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#" className="hover:text-pink-600 transition">API Integrasi HIS</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">SDK SATUSEHAT</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">Keamanan Enkripsi</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">Audit Keamanan Siber</a></li>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Akun & Otentikasi</h4>
+            <ul className="space-y-2.5 font-medium">
+              <li>
+                <Link href="/auth/login" className="hover:text-rose-800 transition">Masuk Akun (Login)</Link>
+              </li>
+              <li>
+                <Link href="/auth/register" className="hover:text-rose-800 transition">Pendaftaran Pasien Baru</Link>
+              </li>
+              <li>
+                <Link href="/settings" className="hover:text-rose-800 transition">Pengaturan Akun & Wallet</Link>
+              </li>
+              <li>
+                <a href="#simulator" className="hover:text-rose-800 transition">Simulasi Live Consent</a>
+              </li>
             </ul>
           </div>
 
-          {/* Column 3: Legal */}
+          {/* Column 3: Keamanan & Teknologi */}
           <div>
-            <h4 className="font-bold text-slate-900 mb-3.5">Kebijakan & Hukum</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#" className="hover:text-pink-600 transition">Kebijakan Privasi</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">Syarat & Ketentuan</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">Kepatuhan Hukum Medis</a></li>
-              <li><a href="#" className="hover:text-pink-600 transition">SLA Server API</a></li>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Keamanan & Web3</h4>
+            <ul className="space-y-2.5 font-medium">
+              <li><span className="text-slate-600">Smart Contract EIP-2771</span></li>
+              <li><span className="text-slate-600">Off-chain Enkripsi AES-256</span></li>
+              <li><span className="text-slate-600">Hardhat Local Node Relay</span></li>
+              <li><span className="text-slate-600">Standardized Access Control</span></li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Line */}
-        <div className="border-t border-slate-200/60 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px]">
-          <p>
-            © {new Date().getFullYear()} Satu Data. Hak Cipta Dilindungi Undang-Undang.
+        <div className="border-t border-slate-200/80 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px]">
+          <p className="text-slate-500 font-medium">
+            © {new Date().getFullYear()} <strong className="font-bold text-slate-800">Satu Data</strong>. Kedaulatan Rekam Medis Indonesia.
           </p>
+          <div className="flex items-center gap-4 text-slate-400 font-mono text-[10px]">
+            <span>Build v2.5.0</span>
+            <span>•</span>
+            <span>Next.js 16 App Router</span>
+            <span>•</span>
+            <span className="text-rose-800 font-bold">SATUSEHAT Integrated</span>
+          </div>
         </div>
       </div>
     </footer>
