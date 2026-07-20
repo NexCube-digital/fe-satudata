@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Home, Users, FileText, Settings, BarChart3 } from "lucide-react";
+import { Users, Settings, BarChart3, Home } from "lucide-react";
+import Navbar from "../layout/Navbar";
+import Sidebar from "../layout/Sidebar";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -48,33 +50,14 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-blue-600 to-cyan-600 text-white font-bold">
-                S
-              </div>
-              <div>
-                <div className="text-lg font-bold text-slate-800">Satu Data</div>
-                <div className="text-xs text-slate-500">Admin</div>
-              </div>
-            </Link>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition font-medium text-sm"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex flex-col pb-16 md:pb-0">
+      <Navbar user={user} roleLabel="Admin" onLogout={handleLogout} />
+      
+      <div className="flex flex-1">
+        <Sidebar role="admin" />
+        
+        {/* Main Content */}
+        <main className="flex-1 max-w-7xl mx-auto px-6 py-12 w-full">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">Selamat Datang, {user.name}!</h1>
           <p className="text-slate-600">Dashboard Admin - Kelola sistem SatuData</p>
@@ -157,6 +140,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
+        </main>
       </div>
     </div>
   );

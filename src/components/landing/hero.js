@@ -32,7 +32,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
               </span>
             </h1>
             <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
-              Kedaulatan data medis mutlak di tangan pasien. Hubungkan identitas medis (NIK) dengan dompet MetaMask untuk mengontrol, mengizinkan, atau mencabut hak akses rekam medis Anda secara instan dalam 3 detik.
+              Satu Data adalah platform manajemen rekam medis berbasis blockchain yang memberikan hak kontrol penuh kepada pasien atas data kesehatan mereka. Rumah sakit atau tenaga medis harus mendapatkan izin eksplisit dari pasien untuk mengakses data tersebut.
             </p>
           </div>
 
