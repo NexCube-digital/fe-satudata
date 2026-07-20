@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [role, setRole] = useState("pasien");
   const [name, setName] = useState("");
+  const [nik, setNik] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,6 +33,10 @@ export default function RegisterPage() {
         phone: phone || null,
         address: address || null,
       };
+
+      if (role === "pasien") {
+        payload.nik = nik || null;
+      }
 
       if (role === "rumah_sakit") {
         payload.hospital_name = name;
@@ -213,6 +218,27 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
+
+              {role === "pasien" && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    NIK (Nomor Induk Kependudukan)
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                    <input
+                      type="text"
+                      maxLength={16}
+                      value={nik}
+                      onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Masukkan 16 digit NIK"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm font-mono"
+                      required={role === "pasien"}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
