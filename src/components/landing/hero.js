@@ -7,7 +7,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden rounded-[2.5rem] border border-pink-100/80 bg-linear-to-br from-white via-pink-50/70 to-rose-100/70 px-6 py-10 text-slate-900 shadow-[0_30px_100px_rgba(244,114,182,0.12)] sm:px-10 lg:h-[calc(100vh-9.5rem)] lg:min-h-[640px] lg:px-14 lg:py-8"
+      className="relative overflow-hidden rounded-[2.5rem] border border-pink-100/80 bg-linear-to-br from-white via-pink-50/70 to-rose-100/70 px-6 py-10 text-slate-900 shadow-[0_30px_100px_rgba(244,114,182,0.12)] sm:px-10 lg:h-[calc(100vh-9.5rem)] lg:min-h-160 lg:px-14 lg:py-8"
     >
       {/* Background glowing gradients */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(244,114,182,0.14),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(236,72,153,0.08),transparent_30%),linear-gradient(135deg,rgba(14,165,233,0.05),transparent_50%)]" />
@@ -63,7 +63,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           <div className="absolute inset-0 bg-radial-glow blur-2xl pointer-events-none" />
 
           {/* Base Mockup Container */}
-          <div className="glass-panel relative rounded-[2rem] border border-pink-100 bg-white/80 p-5 shadow-[0_20px_60px_rgba(244,114,182,0.10)]">
+          <div className="glass-panel relative rounded-4xl border border-pink-100 bg-white/80 p-5 shadow-[0_20px_60px_rgba(244,114,182,0.10)]">
             {/* Header elements */}
             <div className="mb-4 flex items-center justify-between border-b border-pink-100 pb-3.5">
               <div className="flex items-center gap-2.5">
@@ -94,7 +94,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-2xl bg-white/90 p-6 text-center backdrop-blur-xs border border-pink-100 shadow-lg shadow-pink-100/60">
                   <Wallet className="h-10 w-10 text-pink-500 mb-3 animate-bounce" />
                   <h5 className="text-sm font-bold text-slate-900">Hubungkan Wallet Anda</h5>
-                  <p className="text-[10px] text-slate-500 mt-1 max-w-[220px]">
+                  <p className="text-[10px] text-slate-500 mt-1 max-w-55">
                     SatuData memerlukan MetaMask untuk mengesahkan persetujuan rekam medis Anda.
                   </p>
                   <button

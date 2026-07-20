@@ -27,7 +27,7 @@ export default function PasienDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100">
         <div className="text-slate-600">Loading...</div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function PasienDashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-800 mb-4">Akses Ditolak</h1>
           <p className="text-slate-600 mb-6">Silakan login terlebih dahulu.</p>
@@ -48,13 +48,13 @@ export default function PasienDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
       {/* Navbar */}
       <nav className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-pink-600 to-fuchsia-600 text-white font-bold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-pink-600 to-fuchsia-600 text-white font-bold">
                 S
               </div>
               <div>
@@ -143,7 +143,7 @@ export default function PasienDashboard() {
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-pink-50 to-fuchsia-50 rounded-xl border border-pink-200 p-8">
+          <div className="bg-linear-to-br from-pink-50 to-fuchsia-50 rounded-xl border border-pink-200 p-8">
             <h2 className="text-xl font-bold text-slate-800 mb-4">Informasi Penting</h2>
             <p className="text-slate-700 mb-4">
               Dashboard Pasien Anda sedang dalam pengembangan. Fitur-fitur lengkap akan segera tersedia untuk memberikan pengalaman terbaik dalam mengelola data kesehatan Anda.

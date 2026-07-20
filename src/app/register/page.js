@@ -66,7 +66,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Description Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-pink-600 via-pink-500 to-fuchsia-600 p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-pink-600 via-pink-500 to-fuchsia-600 p-12 flex-col justify-between relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-white blur-3xl" />
@@ -103,7 +103,7 @@ export default function RegisterPage() {
 
           <div className="space-y-4">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/20 backdrop-blur-md">
                   <span className="text-white text-lg">✓</span>
                 </div>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
             </div>
             
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/20 backdrop-blur-md">
                   <span className="text-white text-lg">✓</span>
                 </div>
@@ -127,7 +127,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/20 backdrop-blur-md">
                   <span className="text-white text-lg">✓</span>
                 </div>
@@ -164,14 +164,14 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <div className="flex items-center gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {success && (
                 <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                  <CheckCircle className="h-5 w-5 shrink-0" />
                   <span>{success}</span>
                 </div>
               )}
