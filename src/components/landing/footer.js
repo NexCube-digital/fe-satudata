@@ -1,4 +1,5 @@
-import { Activity, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { ShieldCheck } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -9,8 +10,14 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <a href="#top" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-[#7F1D1D] to-[#A61B2D] text-white shadow-xs">
-                <Activity className="h-4 w-4" />
+              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                <Image
+                  src="/images/logo.png"
+                  alt="Satu Data logo"
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-contain"
+                />
               </span>
               <span className="text-sm font-bold uppercase tracking-wider text-slate-900">Satu Data</span>
             </a>
@@ -59,9 +66,8 @@ export default function Footer() {
 
         {/* Bottom Line */}
         <div className="border-t border-slate-200/60 pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px]">
-          <p>© {new Date().getFullYear()} Satu Data. Hak Cipta Dilindungi Undang-Undang.</p>
-          <p className="font-medium text-slate-400">
-            Dibuat menggunakan Next.js App Router, Tailwind CSS v4, Wagmi & Viem.
+          <p>
+            © {new Date().getFullYear()} Satu Data. Hak Cipta Dilindungi Undang-Undang.
           </p>
         </div>
       </div>

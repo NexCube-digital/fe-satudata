@@ -24,7 +24,7 @@ export default function CTASection() {
         {/* Buttons */}
         <div className="flex flex-col gap-3.5 sm:flex-row pt-4">
           <a
-            href="#panel"
+            href="/auth/register"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-pink-600 shadow-lg shadow-pink-200/40 transition-all duration-200 hover:bg-pink-50 hover:scale-[1.02] hover:shadow-xl"
           >
             <Building className="h-4.5 w-4.5" />

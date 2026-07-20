@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
       setSuccess("Registrasi berhasil! Silakan login dengan akun Anda.");
       setTimeout(() => {
-        router.push("/login");
+        router.push("/auth/login");
       }, 2000);
     } catch (err) {
       setError(err.message);
@@ -84,10 +84,7 @@ export default function RegisterPage() {
                 <div className="text-xs text-white/80">Healthcare Hub</div>
               </div>
             </Link>
-            <Link href="/" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition">
-              <Home className="h-5 w-5" />
-              <span className="text-sm font-medium">Home</span>
-            </Link>
+
           </div>
         </div>
 
@@ -148,11 +145,19 @@ export default function RegisterPage() {
       {/* Right Side - Register Form */}
       <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <Link href="/login" className="text-[#7F1D1D] hover:text-[#A61B2D]">
+          <div className="mb-4 flex items-center justify-between lg:hidden">
+            <Link href="/auth/login" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <span className="text-sm font-medium text-slate-600">Kembali ke Login</span>
+            <Link href="/" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
+              <Home className="h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="hidden lg:flex justify-end mb-4">
+            <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
+              <Home className="h-5 w-5" />
+            </Link>
           </div>
 
           <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
@@ -299,7 +304,7 @@ export default function RegisterPage() {
 
               <p className="text-center text-sm text-slate-600 mt-6">
                 Sudah punya akun?{" "}
-                <Link href="/login" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                <Link href="/auth/login" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
                   Masuk di sini
                 </Link>
               </p>

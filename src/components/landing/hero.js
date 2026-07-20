@@ -39,7 +39,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           {/* Call to Actions */}
           <div className="flex flex-col gap-3.5 sm:flex-row">
             <a
-              href="/login"
+              href="/auth/login"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#7F1D1D] to-[#A61B2D] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-200/50 transition-all duration-200 hover:from-[#8E2A3B] hover:to-[#7A1526] hover:scale-[1.02] hover:shadow-xl hover:shadow-rose-200/60"
             >
               Mulai Sekarang

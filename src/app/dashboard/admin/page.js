@@ -22,7 +22,7 @@ export default function AdminDashboard() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   if (loading) {
@@ -39,7 +39,7 @@ export default function AdminDashboard() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-800 mb-4">Akses Ditolak</h1>
           <p className="text-slate-600 mb-6">Silakan login terlebih dahulu.</p>
-          <Link href="/login" className="text-pink-600 hover:text-pink-700 font-semibold">
+          <Link href="/auth/login" className="text-pink-600 hover:text-pink-700 font-semibold">
             Kembali ke Login
           </Link>
         </div>

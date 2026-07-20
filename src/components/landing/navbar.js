@@ -84,7 +84,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-[#7F1D1D] to-[#A61B2D] text-white px-4 py-2 text-xs font-bold hover:from-[#8E2A3B] hover:to-[#7A1526] transition"
                 >
                   <LogIn className="h-3.5 w-3.5" />

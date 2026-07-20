@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Mail, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home } from "lucide-react";
 
 export default function LoginPage() {
@@ -68,17 +69,22 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="group flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
-                <span className="text-lg font-bold">S</span>
+                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <Image
+                        src="/images/logo.png"
+                        alt="Satu Data logo"
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-contain"
+                    />
+                </span>
               </span>
               <div>
                 <div className="text-lg font-bold text-white tracking-wider">Satu Data</div>
                 <div className="text-xs text-white/80">Healthcare Hub</div>
               </div>
             </Link>
-            <Link href="/" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition">
-              <Home className="h-5 w-5" />
-              <span className="text-sm font-medium">Home</span>
-            </Link>
+
           </div>
         </div>
 
@@ -139,6 +145,12 @@ export default function LoginPage() {
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md">
+          <div className="mb-4 flex justify-end">
+            <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
+              <Home className="h-5 w-5" />
+            </Link>
+          </div>
+
           <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
             <h2 className="text-2xl font-bold">Masuk ke Akun Anda</h2>
             <p className="text-rose-100 mt-2 text-sm">Silakan masuk untuk mengakses dashboard</p>
@@ -226,7 +238,7 @@ export default function LoginPage() {
 
               <p className="text-center text-sm text-slate-600">
                 Belum punya akun?{" "}
-                <Link href="/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
                   Daftar di sini
                   <ArrowRight className="inline-block ml-1 h-3 w-3" />
                 </Link>
