@@ -269,7 +269,7 @@ export default function SettingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <Loader className="h-8 w-8 animate-spin text-pink-600" />
       </div>
     );
@@ -283,7 +283,7 @@ export default function SettingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel={roleLabelMap[user?.role] || "Dashboard"} onLogout={handleLogout} />
 
       <div className="flex flex-1">

@@ -214,14 +214,14 @@ export default function PatientConsentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-rose-50/20 to-slate-100 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Pasien Terdaftar" onLogout={handleLogout} />
 
       <div className="flex flex-1">

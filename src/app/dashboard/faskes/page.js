@@ -151,7 +151,7 @@ export default function FaskesDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <RefreshCw className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
@@ -159,7 +159,7 @@ export default function FaskesDashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
           <Building2 className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
@@ -173,7 +173,7 @@ export default function FaskesDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-emerald-50/20 to-slate-100 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">

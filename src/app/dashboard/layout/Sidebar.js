@@ -12,8 +12,7 @@ import {
   Activity, 
   User, 
   ShieldCheck,
-  Zap,
-  Radio
+  Zap
 } from "lucide-react";
 
 export default function Sidebar({ role }) {
@@ -58,14 +57,44 @@ export default function Sidebar({ role }) {
     }
   };
 
+  const getAccountStatus = () => {
+    switch (role) {
+      case "admin":
+        return { 
+          title: "Administrator", 
+          badge: "Aktif", 
+          subtext: "Hak Akses System Admin",
+          iconColor: "text-rose-600 bg-rose-50 border-rose-200" 
+        };
+      case "faskes":
+      case "rumah_sakit":
+        return { 
+          title: "Fasilitas Kesehatan", 
+          badge: "Terverifikasi", 
+          subtext: "Hak Akses Faskes & RS",
+          iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200" 
+        };
+      case "pasien":
+      default:
+        return { 
+          title: "Pasien", 
+          badge: "Aktif", 
+          subtext: "Hak Akses Rekam Medis",
+          iconColor: "text-rose-600 bg-rose-50 border-rose-200" 
+        };
+    }
+  };
+
   const menuItems = getMenuItems();
   const roleHeader = getRoleHeader();
+  const accountStatus = getAccountStatus();
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sticky top-[65px] h-[calc(100vh-65px)] w-64 border-r border-slate-200/80 bg-white/90 backdrop-blur-md hidden md:flex flex-col justify-between shrink-0 shadow-xs overflow-y-auto">
-        <div className="p-5 space-y-6">
+      <aside className="sticky top-[65px] self-start h-[calc(100vh-65px)] w-64 border-r border-slate-200/80 bg-white/90 backdrop-blur-md hidden md:flex flex-col shrink-0 shadow-xs">
+        {/* Scrollable Nav Content */}
+        <div className="flex-1 p-5 space-y-6 overflow-y-auto min-h-0">
           {/* Role Chip Header */}
           <div className={`rounded-2xl border bg-gradient-to-r p-3.5 ${roleHeader.bg}`}>
             <div className="flex items-center gap-2">
@@ -116,17 +145,25 @@ export default function Sidebar({ role }) {
           </div>
         </div>
 
-        {/* Footer Status Widget */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="rounded-xl border border-slate-200/60 bg-white p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <Radio className="h-3 w-3 text-emerald-500 animate-pulse" />
-                Node Hardhat
+        {/* Footer Account Status Widget - Fixed at bottom */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/60 shrink-0">
+          <div className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-2xs">
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-2">
+              <span className="uppercase tracking-wider text-[9px] text-slate-400 font-extrabold">Status Akun</span>
+              <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-[10px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                {accountStatus.badge}
               </span>
-              <span className="text-emerald-600 font-mono">Connected</span>
             </div>
-            <p className="text-[9px] text-slate-400 mt-1 font-mono">SATUSEHAT API v2.5</p>
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-lg border ${accountStatus.iconColor}`}>
+                <User className="h-4 w-4" />
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-xs font-extrabold text-slate-800 truncate">{accountStatus.title}</p>
+                <p className="text-[9px] text-slate-400 font-mono truncate">{accountStatus.subtext}</p>
+              </div>
+            </div>
           </div>
         </div>
       </aside>

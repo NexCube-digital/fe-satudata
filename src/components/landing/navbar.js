@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
   LogIn, 
   Menu, 
@@ -20,13 +21,15 @@ const links = [
   { href: "#fitur", label: "Fitur Unggulan" },
   { href: "#panel", label: "Dasbor Interaktif" },
   { href: "#alur", label: "Alur Sistem" },
-  { href: "#faq", label: "FAQ & Bantuan" },
+  { href: "/faq", label: "FAQ & Bantuan" },
 ];
 
 export default function Navbar({ walletConnected, setWalletConnected }) {
+  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
   const profileRef = useRef(null);
 
@@ -40,6 +43,33 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
         console.error("Failed to parse stored user:", e);
       }
     }
+  }, []);
+
+  // Track active scroll section for navbar indicator
+  useEffect(() => {
+    const handleScroll = () => {
+      const sectionIds = ["fitur", "panel", "alur", "faq"];
+      const scrollPosition = window.scrollY + 250;
+
+      for (const id of sectionIds) {
+        const element = document.getElementById(id);
+        if (element) {
+          const top = element.offsetTop;
+          const height = element.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveSection(`#${id}`);
+            return;
+          }
+        }
+      }
+      if (window.scrollY < 200) {
+        setActiveSection("");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Close profile dropdown when clicking outside
@@ -102,13 +132,22 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
     }
   };
 
+  const getNavLink = (linkHref) => {
+    if (linkHref.startsWith("/")) {
+      return { targetHref: linkHref, isRoute: true, isActive: pathname === linkHref };
+    }
+    const isActive = pathname === "/" && activeSection === linkHref;
+    const targetHref = pathname === "/" ? linkHref : `/${linkHref}`;
+    return { targetHref, isRoute: pathname !== "/", isActive };
+  };
+
   return (
     <header className="fixed left-0 right-0 top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-md shadow-rose-950/5 transition-all duration-300">
         <div className="flex items-center justify-between px-5 py-3 sm:px-8">
           
           {/* Logo Section */}
-          <a href="#top" className="group flex items-center gap-3">
+          <Link href="/" className="group flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-200 bg-white shadow-2xs transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/images/logo.png"
@@ -120,26 +159,43 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               />
             </span>
             <div>
-              <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-rose-800 transition-colors duration-300">
-                Satu Data
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-rose-800 transition-colors duration-300">
+                  Satu Data
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200/60">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Live Web3 & SATUSEHAT
+                </span>
+              </div>
               <span className="block text-[10px] font-medium text-slate-500">
-                Hub Rekam Medis Modern
+                Hub Rekam Medis Berbasis Sovereign Blockchain
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-600">
-            {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="rounded-xl px-4 py-2 transition-all duration-200 hover:bg-rose-50 hover:text-rose-800"
-              >
-                {link.label}
-              </a>
-            ))}
+          <nav className="hidden lg:flex items-center gap-1 text-xs">
+            {links.map((link) => {
+              const { targetHref, isRoute, isActive } = getNavLink(link.href);
+              const Component = isRoute ? Link : "a";
+
+              return (
+                <Component
+                  key={link.href}
+                  href={targetHref}
+                  onClick={() => !isRoute && setActiveSection(link.href)}
+                  className={`group relative px-4 py-2 transition-colors duration-200 ${
+                    isActive ? "text-rose-900 font-extrabold" : "text-slate-600 hover:text-rose-900 font-bold"
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  <span className={`absolute bottom-0 left-4 right-4 h-[2px] rounded-full bg-gradient-to-r from-rose-800 to-red-600 transition-transform duration-300 ease-out origin-left ${
+                    isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`} />
+                </Component>
+              );
+            })}
           </nav>
 
           {/* Desktop Right CTA / Logged In User Profile Dropdown */}
@@ -260,16 +316,29 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
         {mobileMenuOpen && (
           <div className="border-t border-slate-100 p-4 lg:hidden animate-in fade-in slide-in-from-top-2 duration-200">
             <nav className="flex flex-col space-y-1 mb-4">
-              {links.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-rose-50 hover:text-rose-800"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {links.map((link) => {
+                const { targetHref, isRoute, isActive } = getNavLink(link.href);
+                const Component = isRoute ? Link : "a";
+
+                return (
+                  <Component
+                    key={link.href}
+                    href={targetHref}
+                    onClick={() => {
+                      if (!isRoute) setActiveSection(link.href);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`rounded-xl px-4 py-2.5 text-xs font-bold transition flex items-center justify-between ${
+                      isActive
+                        ? "bg-rose-50 text-rose-900 border border-rose-200/60"
+                        : "text-slate-700 hover:bg-rose-50/50 hover:text-rose-800"
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-rose-700" />}
+                  </Component>
+                );
+              })}
             </nav>
 
             <div className="pt-3 border-t border-slate-100">

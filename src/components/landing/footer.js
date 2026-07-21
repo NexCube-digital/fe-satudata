@@ -90,7 +90,9 @@ export default function Footer() {
               <li><span className="text-slate-600">Smart Contract EIP-2771</span></li>
               <li><span className="text-slate-600">Off-chain Enkripsi AES-256</span></li>
               <li><span className="text-slate-600">Hardhat Local Node Relay</span></li>
-              <li><span className="text-slate-600">Standardized Access Control</span></li>
+              <li>
+                <Link href="/faq" className="text-rose-800 font-bold hover:underline transition">Pusat Bantuan & FAQ (/faq)</Link>
+              </li>
             </ul>
           </div>
         </div>
