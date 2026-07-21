@@ -17,8 +17,12 @@ import {
   Phone,
   MapPin,
   Calendar,
-  Users
+  Users,
+  Camera,
+  Edit3,
+  Unlock
 } from "lucide-react";
+import { getAvatarUrl } from "@/lib/api";
 
 export default function SettingPage() {
   const router = useRouter();
@@ -34,8 +38,56 @@ export default function SettingPage() {
   const [address, setAddress] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [sex, setSex] = useState("L");
+  const [statusAccount, setStatusAccount] = useState("active");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState({ type: "", text: "" });
+
+  const handleResendVerification = async () => {
+    if (!email) return;
+    setResendLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/resend-activation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setProfileMsg({ type: "success", text: result.message || "Email verifikasi / aktivasi berhasil dikirim ulang!" });
+      } else {
+        throw new Error(result.message || "Gagal mengirim email verifikasi");
+      }
+    } catch (err) {
+      setProfileMsg({ type: "error", text: err.message });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  // State Profile Edit Toggles (Locked by default, except Email which is permanent)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editableFields, setEditableFields] = useState({
+    name: false,
+    nik: false,
+    phone: false,
+    dateOfBirth: false,
+    sex: false,
+    address: false,
+  });
+
+  const toggleFieldEdit = (field) => {
+    setEditableFields((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const isFieldEditable = (field) => {
+    return isEditMode || Boolean(editableFields[field]);
+  };
 
   // State Security (Update Password)
   const [oldPassword, setOldPassword] = useState("");
@@ -74,30 +126,45 @@ export default function SettingPage() {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    if (currentUser?.role === "pasien") {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        const result = await res.json();
-        if (res.ok && result.data) {
-          const u = result.data;
-          setName(u.name || "");
-          setEmail(u.email || "");
-          setNik(u.nik || "");
-          setWalletAddress(u.wallet_address || "");
-          if (u.profil) {
-            setPhone(u.profil.phone || "");
-            setAddress(u.profil.address || "");
-            setDateOfBirth(u.profil.date_of_birth ? u.profil.date_of_birth.substring(0, 10) : "");
-            setSex(u.profil.sex || "L");
-          }
+    const isHospital = currentUser?.role === "rumah_sakit" || currentUser?.role === "faskes";
+    const endpoint = isHospital
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`;
+
+    try {
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const u = result.data;
+        setName(u.name || "");
+        setEmail(u.email || "");
+        setNik(u.nik || "");
+        setStatusAccount(u.status_account || currentUser?.status_account || "active");
+        setWalletAddress(u.wallet_address || "");
+
+        if (u.profil) {
+          setPhone(u.profil.phone || "");
+          setAddress(u.profil.address || "");
+          setDateOfBirth(u.profil.date_of_birth ? u.profil.date_of_birth.substring(0, 10) : "");
+          setSex(u.profil.sex || "L");
+        } else if (u.hospitalProfile) {
+          setPhone(u.hospitalProfile.phone || "");
+          setAddress(u.hospitalProfile.address || "");
         }
-      } catch (err) {
-        console.log("Could not fetch detailed profile from BE", err);
+
+        const computedAvatar = getAvatarUrl(u);
+        const updatedUser = {
+          ...(currentUser || {}),
+          ...u,
+          avatarUrl: computedAvatar || getAvatarUrl(currentUser),
+        };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
+    } catch (err) {
+      console.log("Could not fetch detailed profile from BE", err);
     }
   };
 
@@ -116,22 +183,47 @@ export default function SettingPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const payload = {
-        name,
-        nik,
-        phone,
-        address,
-        sex,
-        date_of_birth: dateOfBirth || null
-      };
+      const isHospital = user?.role === "rumah_sakit" || user?.role === "faskes";
+      const endpoint = isHospital
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`;
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`, {
+      let bodyData;
+      let headers = { Authorization: `Bearer ${token}` };
+
+      if (profilePictureFile) {
+        const formData = new FormData();
+        formData.append("name", name);
+        if (nik) formData.append("nik", nik);
+        if (phone) formData.append("phone", phone);
+        if (address) formData.append("address", address);
+        if (sex && !isHospital) formData.append("sex", sex);
+        if (dateOfBirth && !isHospital) formData.append("date_of_birth", dateOfBirth);
+
+        if (isHospital) {
+          formData.append("logo", profilePictureFile);
+        } else {
+          formData.append("profile_picture", profilePictureFile);
+        }
+
+        bodyData = formData;
+      } else {
+        headers["Content-Type"] = "application/json";
+        const payload = {
+          name,
+          nik,
+          phone,
+          address,
+          sex,
+          date_of_birth: dateOfBirth || null
+        };
+        bodyData = JSON.stringify(payload);
+      }
+
+      const res = await fetch(endpoint, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        headers,
+        body: bodyData
       });
 
       const result = await res.json();
@@ -140,10 +232,30 @@ export default function SettingPage() {
         throw new Error(result.message || "Gagal memperbarui profil");
       }
 
-      // Update local storage user state
-      const updatedUser = { ...user, name, nik };
+      const updatedProfileData = result.data || {};
+      const computedAvatar = getAvatarUrl(updatedProfileData) || profilePicturePreview;
+
+      const updatedUser = {
+        ...user,
+        ...updatedProfileData,
+        name,
+        nik,
+        avatarUrl: computedAvatar || user?.avatarUrl,
+      };
+
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("userUpdated"));
+      setProfilePictureFile(null);
+      setIsEditMode(false);
+      setEditableFields({
+        name: false,
+        nik: false,
+        phone: false,
+        dateOfBirth: false,
+        sex: false,
+        address: false,
+      });
 
       setProfileMsg({ type: "success", text: result.message || "Profil berhasil diperbarui!" });
     } catch (err) {
@@ -340,10 +452,40 @@ export default function SettingPage() {
           {/* TAB 1: PROFIL PENGGUNA */}
           {activeTab === "profile" && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <User className="h-5 w-5 text-pink-600" />
-                Informasi Profil
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <User className="h-5 w-5 text-pink-600" />
+                  Informasi Profil
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextMode = !isEditMode;
+                    setIsEditMode(nextMode);
+                    setEditableFields({
+                      name: nextMode,
+                      nik: nextMode,
+                      phone: nextMode,
+                      dateOfBirth: nextMode,
+                      sex: nextMode,
+                      address: nextMode,
+                    });
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold transition cursor-pointer shadow-2xs"
+                >
+                  {isEditMode ? (
+                    <>
+                      <Lock className="h-3.5 w-3.5 text-rose-800" />
+                      <span>Kunci Semua Field</span>
+                    </>
+                  ) : (
+                    <>
+                      <Edit3 className="h-3.5 w-3.5 text-rose-800" />
+                      <span>Ubah Semua Data</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               {profileMsg.text && (
                 <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
@@ -357,78 +499,285 @@ export default function SettingPage() {
               )}
 
               <form onSubmit={handleUpdateProfile} className="space-y-6">
+                {/* Profile Picture Upload Box */}
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
+                  <div className="relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-4 ring-rose-500/20 shrink-0 shadow-md">
+                    {profilePicturePreview || getAvatarUrl(user) ? (
+                      <img
+                        src={profilePicturePreview || getAvatarUrl(user)}
+                        alt="Foto Profil"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">
+                        {name ? name.charAt(0).toUpperCase() : <User className="h-8 w-8" />}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-sm font-bold text-slate-800">Foto Profil Akun</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Format file: JPG, PNG, WEBP, GIF (Maks. 2MB)</p>
+                    <label className="inline-flex items-center gap-2 mt-2.5 px-4 py-2 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold transition cursor-pointer shadow-xs">
+                      <Camera className="h-3.5 w-3.5" />
+                      <span>{profilePictureFile ? profilePictureFile.name : "Unggah Foto Baru"}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setProfilePictureFile(file);
+                            setProfilePicturePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Nama Lengkap */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Nama Lengkap</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Nama Lengkap {isFieldEditable("name") ? "(Dapat Diubah)" : "(Terkunci)"}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => toggleFieldEdit("name")}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                      >
+                        {isFieldEditable("name") ? (
+                          <>
+                            <Lock className="h-3.5 w-3.5" />
+                            <span>Kunci</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit3 className="h-3.5 w-3.5" />
+                            <span>Ubah</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <div className="relative">
                       <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                        disabled={!isFieldEditable("name")}
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                          isFieldEditable("name")
+                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        }`}
                         required
                       />
                     </div>
                   </div>
 
+                  {/* Email (Kecuali - Permanen dengan Status Verifikasi & Aktif) */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Alamat Email (Akun)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Alamat Email (Akun)
+                      </label>
+                      
+                      {statusAccount === "active" ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80 shadow-2xs">
+                          <CheckCircle className="h-3 w-3 text-emerald-600" />
+                          Terverifikasi & Aktif
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
+                            <AlertCircle className="h-3 w-3 text-amber-600" />
+                            Belum Terverifikasi
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resendLoading}
+                            className="text-[10px] font-bold text-pink-600 hover:text-pink-700 underline transition cursor-pointer disabled:opacity-50"
+                          >
+                            {resendLoading ? "Mengirim..." : "Kirim Ulang Link"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <input
                       type="email"
                       value={email}
                       disabled
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 cursor-not-allowed"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium cursor-not-allowed"
                     />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Identitas utama akun. (Permanen / Tidak dapat diubah)
+                    </p>
                   </div>
 
+                  {/* NIK */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">NIK (16 Digit)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        NIK {isFieldEditable("nik") ? "(Dapat Diubah)" : "(Terkunci)"}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => toggleFieldEdit("nik")}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                      >
+                        {isFieldEditable("nik") ? (
+                          <>
+                            <Lock className="h-3.5 w-3.5" />
+                            <span>Kunci</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit3 className="h-3.5 w-3.5" />
+                            <span>Ubah</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <input
                       type="text"
                       maxLength={16}
                       value={nik}
                       onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-pink-600 focus:outline-hidden"
+                      disabled={!isFieldEditable("nik")}
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono transition ${
+                        isFieldEditable("nik")
+                          ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                          : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                      }`}
                       placeholder="3171010509840002"
                     />
                   </div>
 
+                  {/* Nomor Telepon */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Nomor Telepon</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Nomor Telepon {isFieldEditable("phone") ? "(Dapat Diubah)" : "(Terkunci)"}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => toggleFieldEdit("phone")}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                      >
+                        {isFieldEditable("phone") ? (
+                          <>
+                            <Lock className="h-3.5 w-3.5" />
+                            <span>Kunci</span>
+                          </>
+                        ) : (
+                          <>
+                            <Edit3 className="h-3.5 w-3.5" />
+                            <span>Ubah</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        disabled={!isFieldEditable("phone")}
                         placeholder="+62 812 3456 7890"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                          isFieldEditable("phone")
+                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        }`}
                       />
                     </div>
                   </div>
 
+                  {/* Pasien Specific Fields */}
                   {user?.role === "pasien" && (
                     <>
+                      {/* Tanggal Lahir */}
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Tanggal Lahir</label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Tanggal Lahir {isFieldEditable("dateOfBirth") ? "(Dapat Diubah)" : "(Terkunci)"}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => toggleFieldEdit("dateOfBirth")}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                          >
+                            {isFieldEditable("dateOfBirth") ? (
+                              <>
+                                <Lock className="h-3.5 w-3.5" />
+                                <span>Kunci</span>
+                              </>
+                            ) : (
+                              <>
+                                <Edit3 className="h-3.5 w-3.5" />
+                                <span>Ubah</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                         <div className="relative">
                           <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                           <input
                             type="date"
                             value={dateOfBirth}
                             onChange={(e) => setDateOfBirth(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                            disabled={!isFieldEditable("dateOfBirth")}
+                            className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                              isFieldEditable("dateOfBirth")
+                                ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                                : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                            }`}
                           />
                         </div>
                       </div>
 
+                      {/* Jenis Kelamin */}
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Jenis Kelamin</label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Jenis Kelamin {isFieldEditable("sex") ? "(Dapat Diubah)" : "(Terkunci)"}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => toggleFieldEdit("sex")}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                          >
+                            {isFieldEditable("sex") ? (
+                              <>
+                                <Lock className="h-3.5 w-3.5" />
+                                <span>Kunci</span>
+                              </>
+                            ) : (
+                              <>
+                                <Edit3 className="h-3.5 w-3.5" />
+                                <span>Ubah</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                         <select
                           value={sex}
                           onChange={(e) => setSex(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                          disabled={!isFieldEditable("sex")}
+                          className={`w-full px-4 py-2.5 rounded-xl border text-sm transition ${
+                            isFieldEditable("sex")
+                              ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                              : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                          }`}
                         >
                           <option value="L">Laki-laki</option>
                           <option value="P">Perempuan</option>
@@ -438,16 +787,43 @@ export default function SettingPage() {
                   )}
                 </div>
 
+                {/* Alamat Tempat Tinggal */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Alamat Tempat Tinggal</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Alamat Tempat Tinggal {isFieldEditable("address") ? "(Dapat Diubah)" : "(Terkunci)"}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => toggleFieldEdit("address")}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
+                    >
+                      {isFieldEditable("address") ? (
+                        <>
+                          <Lock className="h-3.5 w-3.5" />
+                          <span>Kunci</span>
+                        </>
+                      ) : (
+                        <>
+                          <Edit3 className="h-3.5 w-3.5" />
+                          <span>Ubah</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <input
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
+                      disabled={!isFieldEditable("address")}
                       placeholder="Jl. Raya Kebon Jeruk No. 12"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                        isFieldEditable("address")
+                          ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                          : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                      }`}
                     />
                   </div>
                 </div>

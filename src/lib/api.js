@@ -42,6 +42,37 @@ export const setUser = (user) => {
   }
 };
 
+/**
+ * Helper to construct full avatar / profile picture / logo URL from backend user object
+ */
+export const getAvatarUrl = (user) => {
+  if (!user) return null;
+
+  if (user.avatarUrl && typeof user.avatarUrl === "string" && user.avatarUrl.trim() !== "") {
+    if (user.avatarUrl.startsWith("http://") || user.avatarUrl.startsWith("https://") || user.avatarUrl.startsWith("/")) {
+      return user.avatarUrl;
+    }
+  }
+
+  const profilePic = user.profil?.profile_picture || user.profile_picture;
+  if (profilePic && typeof profilePic === "string" && profilePic.trim() !== "") {
+    if (profilePic.startsWith("http://") || profilePic.startsWith("https://") || profilePic.startsWith("/")) {
+      return profilePic;
+    }
+    return `${API_BASE_URL}/public/upload/profile-picture/${profilePic}`;
+  }
+
+  const hospitalLogo = user.hospitalProfile?.logo || user.logo;
+  if (hospitalLogo && typeof hospitalLogo === "string" && hospitalLogo.trim() !== "") {
+    if (hospitalLogo.startsWith("http://") || hospitalLogo.startsWith("https://") || hospitalLogo.startsWith("/")) {
+      return hospitalLogo;
+    }
+    return `${API_BASE_URL}/public/upload/hospital/${hospitalLogo}`;
+  }
+
+  return null;
+};
+
 export const clearAuth = () => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("accessToken");
@@ -141,6 +172,7 @@ export default {
   setTokens,
   getUser,
   setUser,
+  getAvatarUrl,
   clearAuth,
   refreshAuthToken,
   apiFetch,

@@ -18,8 +18,10 @@ import {
   Building2,
   Clock
 } from "lucide-react";
+import { getAvatarUrl } from "@/lib/api";
 
-export default function Navbar({ user, roleLabel, onLogout }) {
+export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
+  const [currentUser, setCurrentUser] = useState(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
@@ -27,6 +29,30 @@ export default function Navbar({ user, roleLabel, onLogout }) {
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
+
+  useEffect(() => {
+    if (initialUser) {
+      setCurrentUser(initialUser);
+    }
+  }, [initialUser]);
+
+  useEffect(() => {
+    const handleSync = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try { setCurrentUser(JSON.parse(stored)); } catch (e) {}
+      }
+    };
+    handleSync();
+    window.addEventListener("userUpdated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("userUpdated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
+  const user = currentUser;
 
   // User Interaction & Notification History Data
   const [notifications, setNotifications] = useState([
@@ -284,17 +310,19 @@ export default function Navbar({ user, roleLabel, onLogout }) {
               aria-expanded={isDropdownOpen}
             >
               {/* Foto Profil / Avatar Placeholder */}
-              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20">
-                {user?.avatarUrl ? (
-                  <Image
-                    src={user.avatarUrl}
-                    alt={user?.name || "Foto Profil"}
-                    fill
-                    className="object-cover"
+              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                {getAvatarUrl(currentUser) ? (
+                  <img
+                    src={getAvatarUrl(currentUser)}
+                    alt={currentUser?.name || "Foto Profil"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="h-5 w-5" />}
+                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <UserIcon className="h-5 w-5" />}
                   </div>
                 )}
               </div>
@@ -302,7 +330,7 @@ export default function Navbar({ user, roleLabel, onLogout }) {
               {/* Nama & Role Info */}
               <div className="hidden text-left sm:block">
                 <div className="text-xs font-extrabold text-slate-900">
-                  {user?.name || "Pengguna"}
+                  {currentUser?.name || "Pengguna"}
                 </div>
                 <div className="text-[10px] font-bold text-rose-800">{displayRoleLabel}</div>
               </div>
@@ -320,8 +348,8 @@ export default function Navbar({ user, roleLabel, onLogout }) {
                 
                 {/* Header ringkasan profil khusus tampilan mobile */}
                 <div className="border-b border-slate-100 px-3 py-2.5 sm:hidden">
-                  <p className="text-xs font-bold text-slate-900">{user?.name || "Pengguna"}</p>
-                  <p className="text-[10px] font-semibold text-rose-800">{user?.email || displayRoleLabel}</p>
+                  <p className="text-xs font-bold text-slate-900">{currentUser?.name || "Pengguna"}</p>
+                  <p className="text-[10px] font-semibold text-rose-800">{currentUser?.email || displayRoleLabel}</p>
                 </div>
 
                 {/* Tombol Settings */}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -14,9 +15,83 @@ import {
   ShieldCheck,
   Zap
 } from "lucide-react";
+import { apiGet, getAvatarUrl } from "@/lib/api";
 
 export default function Sidebar({ role }) {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [badgeCounts, setBadgeCounts] = useState({
+    users: null,
+    logs: null,
+    patients: null,
+    requests: null,
+    records: null,
+    consent: null
+  });
+
+  useEffect(() => {
+    const loadUserData = () => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        try { setCurrentUser(JSON.parse(userData)); } catch (e) {}
+      }
+    };
+
+    loadUserData();
+    window.addEventListener("userUpdated", loadUserData);
+    window.addEventListener("storage", loadUserData);
+    return () => {
+      window.removeEventListener("userUpdated", loadUserData);
+      window.removeEventListener("storage", loadUserData);
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchBadgeData = async () => {
+      const userData = localStorage.getItem("user");
+      let currentUser = null;
+      if (userData) {
+        try { currentUser = JSON.parse(userData); } catch (e) {}
+      }
+
+      if (role === "admin") {
+        try {
+          const res = await apiGet("/api/admin/stats");
+          if (res.success && res.data) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              users: `${res.data.totalUsers || 0}`,
+              logs: `${res.data.totalLogs || 0}`
+            }));
+          }
+        } catch (e) {}
+      } else if (role === "faskes" || role === "rumah_sakit") {
+        try {
+          const res = await apiGet("/api/dashboard/hospital/stats");
+          if (res.success && res.data) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              patients: `${res.data.totalPatients || res.data.patientsCount || 0} Pasien`,
+              requests: `${res.data.pendingRequests || res.data.consentRequestsCount || 0} Baru`
+            }));
+          }
+        } catch (e) {}
+      } else if (currentUser?.id) {
+        try {
+          const res = await apiGet(`/api/dashboard/patient/${currentUser.id}/stats`);
+          if (res.success && res.data) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              records: `${res.data.totalMedicalRecords || res.data.recordsCount || 0} EHR`,
+              consent: `${res.data.activeConsents || res.data.consentCount || 0} Aktif`
+            }));
+          }
+        } catch (e) {}
+      }
+    };
+
+    fetchBadgeData();
+  }, [role]);
 
   // Define menu items based on role
   const getMenuItems = () => {
@@ -24,22 +99,22 @@ export default function Sidebar({ role }) {
       case "admin":
         return [
           { href: "/dashboard/admin", label: "Overview", icon: Home, badge: null },
-          { href: "/dashboard/admin/users", label: "Kelola Pengguna", icon: Users, badge: "1,334" },
-          { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: "Live" },
+          { href: "/dashboard/admin/users", label: "Kelola Pengguna", icon: Users, badge: badgeCounts.users || "Aktif" },
+          { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: badgeCounts.logs || "Live" },
         ];
       case "faskes":
       case "rumah_sakit":
         return [
           { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: null },
-          { href: "/dashboard/faskes/patients", label: "Data Pasien", icon: Stethoscope, badge: "48 Hari Ini" },
-          { href: "/dashboard/faskes/requests", label: "Request Akses", icon: Activity, badge: "3 New" },
+          { href: "/dashboard/faskes/patients", label: "Data Pasien", icon: Stethoscope, badge: badgeCounts.patients || "Aktif" },
+          { href: "/dashboard/faskes/requests", label: "Request Akses", icon: Activity, badge: badgeCounts.requests || "Live" },
         ];
       case "pasien":
       default:
         return [
           { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
-          { href: "/dashboard/pasien/records", label: "Rekam Medis", icon: FileText, badge: "14 EHR" },
-          { href: "/dashboard/pasien/consent", label: "Kelola Izin", icon: ShieldCheck, badge: "3 Aktif" },
+          { href: "/dashboard/pasien/records", label: "Rekam Medis", icon: FileText, badge: badgeCounts.records || "EHR" },
+          { href: "/dashboard/pasien/consent", label: "Kelola Izin", icon: ShieldCheck, badge: badgeCounts.consent || "Aktif" },
         ];
     }
   };
@@ -156,12 +231,25 @@ export default function Sidebar({ role }) {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className={`p-2 rounded-lg border ${accountStatus.iconColor}`}>
-                <User className="h-4 w-4" />
+              <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                {getAvatarUrl(currentUser) ? (
+                  <img
+                    src={getAvatarUrl(currentUser)}
+                    alt={currentUser?.name || "Foto Profil"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
+                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-4 w-4 text-white" />}
+                  </div>
+                )}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-extrabold text-slate-800 truncate">{accountStatus.title}</p>
-                <p className="text-[9px] text-slate-400 font-mono truncate">{accountStatus.subtext}</p>
+                <p className="text-xs font-extrabold text-slate-800 truncate">{currentUser?.name || accountStatus.title}</p>
+                <p className="text-[9px] text-slate-400 font-mono truncate">{currentUser?.email || accountStatus.subtext}</p>
               </div>
             </div>
           </div>

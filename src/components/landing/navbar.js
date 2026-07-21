@@ -16,6 +16,12 @@ import {
   Settings, 
   LayoutDashboard 
 } from "lucide-react";
+import { 
+  RiLoginCircleLine, 
+  RiUserAddLine, 
+  RiArrowRightSLine 
+} from "react-icons/ri";
+import { apiGet, getAvatarUrl } from "@/lib/api";
 
 const links = [
   { href: "#fitur", label: "Fitur Unggulan" },
@@ -33,16 +39,58 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
 
   const profileRef = useRef(null);
 
-  // Load user from localStorage on mount
+  // Load user from localStorage & sync profile picture from BE on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const storedUserStr = localStorage.getItem("user");
+    let storedUser = null;
+    if (storedUserStr) {
       try {
-        setUser(JSON.parse(storedUser));
+        storedUser = JSON.parse(storedUserStr);
+        setUser(storedUser);
       } catch (e) {
         console.error("Failed to parse stored user:", e);
       }
     }
+
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      const endpoint = (storedUser?.role === "rumah_sakit" || storedUser?.role === "faskes")
+        ? "/api/hospital/profile"
+        : "/api/patient/profile";
+
+      apiGet(endpoint)
+        .then((res) => {
+          if (res.success && res.data) {
+            const u = res.data;
+            const computedAvatar = getAvatarUrl(u);
+            const updatedUser = {
+              ...(storedUser || {}),
+              ...u,
+              avatarUrl: computedAvatar || getAvatarUrl(storedUser),
+            };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+          }
+        })
+        .catch((err) => {
+          // Ignore profile sync errors
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleSync = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try { setUser(JSON.parse(stored)); } catch (e) {}
+      }
+    };
+    window.addEventListener("userUpdated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("userUpdated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, []);
 
   // Track active scroll section for navbar indicator
@@ -207,14 +255,16 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 pr-3 transition hover:bg-rose-50/60 hover:border-rose-200"
                   aria-expanded={isDropdownOpen}
                 >
-                  {/* Avatar Placeholder */}
-                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20">
-                    {user?.avatarUrl ? (
-                      <Image
-                        src={user.avatarUrl}
+                  {/* Avatar Photo / Placeholder */}
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                    {getAvatarUrl(user) ? (
+                      <img
+                        src={getAvatarUrl(user)}
                         alt={user?.name || "Foto Profil"}
-                        fill
-                        className="object-cover"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
@@ -284,13 +334,25 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <Link
+                  href="/auth/register"
+                  className="group hidden sm:inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-rose-900 hover:bg-rose-50/80 transition-all duration-200"
+                >
+                  <RiUserAddLine className="h-4 w-4 text-slate-400 group-hover:text-rose-800 group-hover:scale-110 transition-all duration-200" />
+                  <span>Daftar</span>
+                </Link>
+
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-linear-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
+                  className="group relative inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 via-rose-700 to-red-800 px-4.5 py-2 text-xs font-bold text-white shadow-md shadow-rose-900/25 hover:shadow-xl hover:shadow-rose-700/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 border border-rose-500/30 overflow-hidden"
                 >
-                  <LogIn className="h-3.5 w-3.5 text-slate-500" />
-                  Masuk
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/20 text-white shadow-xs group-hover:bg-white group-hover:text-rose-900 group-hover:rotate-6 transition-all duration-300">
+                    <RiLoginCircleLine className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="tracking-wide">Masuk</span>
+                  <RiArrowRightSLine className="h-3.5 w-3.5 -ml-1 text-rose-200 group-hover:translate-x-0.5 transition-transform duration-300" />
                 </Link>
               </div>
             )}
@@ -364,20 +426,24 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <Link
                     href="/auth/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 py-2.5 text-xs font-bold text-slate-700"
+                    className="group relative flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 via-rose-700 to-red-800 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-900/20 active:scale-[0.98] transition-all overflow-hidden"
                   >
-                    <LogIn className="h-3.5 w-3.5" /> Masuk
+                    <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/20 text-white">
+                      <RiLoginCircleLine className="h-3.5 w-3.5" />
+                    </span>
+                    <span>Masuk</span>
                   </Link>
                   <Link
                     href="/auth/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 py-2.5 text-xs font-bold text-white shadow-sm"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2.5 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-900 transition-colors"
                   >
-                    Daftar <ArrowRight className="h-3.5 w-3.5" />
+                    <RiUserAddLine className="h-3.5 w-3.5 text-slate-500" />
+                    <span>Daftar</span>
                   </Link>
                 </div>
               )}
