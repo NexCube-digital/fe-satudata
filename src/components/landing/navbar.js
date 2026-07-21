@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LogIn, Menu, X, ArrowRight, ShieldCheck, User as UserIcon, LogOut } from "lucide-react";
+import { 
+  LogIn, 
+  Menu, 
+  X, 
+  ArrowRight, 
+  ShieldCheck, 
+  User as UserIcon, 
+  LogOut, 
+  ChevronDown, 
+  Settings, 
+  LayoutDashboard 
+} from "lucide-react";
 
 const links = [
   { href: "#fitur", label: "Fitur Unggulan" },
@@ -15,6 +26,9 @@ const links = [
 export default function Navbar({ walletConnected, setWalletConnected }) {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const profileRef = useRef(null);
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -28,11 +42,23 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
     }
   }, []);
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     setUser(null);
+    setIsDropdownOpen(false);
     setMobileMenuOpen(false);
   };
 
@@ -46,6 +72,33 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
       case "pasien":
       default:
         return "/dashboard/pasien";
+    }
+  };
+
+  const getSettingsHref = () => {
+    switch (user?.role) {
+      case "admin":
+        return "/dashboard/admin/settings";
+      case "rumah_sakit":
+      case "faskes":
+      case "dokter":
+        return "/dashboard/faskes/settings";
+      case "pasien":
+      default:
+        return "/dashboard/pasien/settings";
+    }
+  };
+
+  const getRoleLabel = () => {
+    switch (user?.role) {
+      case "admin":
+        return "Administrator";
+      case "rumah_sakit":
+      case "faskes":
+        return "Fasilitas Kesehatan";
+      case "pasien":
+      default:
+        return "Pasien Terdaftar";
     }
   };
 
@@ -89,23 +142,90 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
             ))}
           </nav>
 
-          {/* Desktop Right CTA / User State */}
+          {/* Desktop Right CTA / Logged In User Profile Dropdown */}
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  href={getDashboardHref()}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  Buka Dashboard ({user.name ? user.name.split(" ")[0] : "Akun"})
-                </Link>
+              <div className="relative" ref={profileRef}>
                 <button
-                  onClick={handleLogout}
-                  className="rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 pr-3 transition hover:bg-rose-50/60 hover:border-rose-200"
+                  aria-expanded={isDropdownOpen}
                 >
-                  Logout
+                  {/* Avatar Placeholder */}
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20">
+                    {user?.avatarUrl ? (
+                      <Image
+                        src={user.avatarUrl}
+                        alt={user?.name || "Foto Profil"}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="h-5 w-5" />}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* User Name & Role */}
+                  <div className="text-left">
+                    <div className="text-xs font-extrabold text-slate-900">
+                      {user?.name || "Pengguna"}
+                    </div>
+                    <div className="text-[10px] font-bold text-rose-800">{getRoleLabel()}</div>
+                  </div>
+
+                  <ChevronDown
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
+
+                {/* Profile Dropdown Popup */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-60 rounded-3xl border border-slate-200 bg-white p-2.5 shadow-2xl ring-1 ring-slate-900/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                    {/* Header Ringkasan Profil */}
+                    <div className="border-b border-slate-100 px-3 py-2.5">
+                      <p className="text-xs font-extrabold text-slate-900">{user?.name || "Pengguna"}</p>
+                      <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email}</p>
+                    </div>
+
+                    <div className="pt-1.5 space-y-1">
+                      {/* Tombol Dashboard */}
+                      <Link
+                        href={getDashboardHref()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 transition hover:bg-rose-50 hover:text-rose-900"
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-rose-800" />
+                        Buka Dashboard
+                      </Link>
+
+                      {/* Tombol Settings */}
+                      <Link
+                        href={getSettingsHref()}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-rose-50 hover:text-rose-900"
+                      >
+                        <Settings className="h-4 w-4 text-slate-500" />
+                        Setting Akun & Wallet
+                      </Link>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="my-1.5 border-t border-slate-100" />
+
+                    {/* Tombol Logout */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-rose-600 transition hover:bg-rose-50"
+                    >
+                      <LogOut className="h-4 w-4 text-rose-600" />
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -164,7 +284,14 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 py-2.5 text-xs font-bold text-white shadow-sm"
                   >
-                    <ShieldCheck className="h-4 w-4" /> Buka Dashboard
+                    <LayoutDashboard className="h-4 w-4" /> Buka Dashboard
+                  </Link>
+                  <Link
+                    href={getSettingsHref()}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 py-2.5 text-xs font-bold text-slate-700"
+                  >
+                    <Settings className="h-4 w-4" /> Setting Akun & Wallet
                   </Link>
                   <button
                     onClick={handleLogout}
