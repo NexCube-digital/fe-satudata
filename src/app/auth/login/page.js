@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home } from "lucide-react";
+import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home, Mail, CheckCircle } from "lucide-react";
+import { apiPost, setTokens, setUser } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,46 +13,59 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isInactive, setIsInactive] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setResendMsg("");
+    setIsInactive(false);
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ identifier, password }),
-        credentials: "include",
-      });
+      const result = await apiPost("/api/auth/login", { identifier, password });
 
-      const result = await response.json();
+      if (result.success && result.data) {
+        setTokens(result.data.accessToken, result.data.refreshToken);
+        setUser(result.data.user);
 
-      if (!response.ok) {
-        throw new Error(result.message || "Login gagal");
-      }
-
-      localStorage.setItem("accessToken", result.data.accessToken);
-      localStorage.setItem("refreshToken", result.data.refreshToken);
-      localStorage.setItem("user", JSON.stringify(result.data.user));
-
-      // Redirect berdasarkan role user
-      const userRole = result.data.user.role;
-      if (userRole === "admin") {
-        router.push("/dashboard/admin");
-      } else if (userRole === "rumah_sakit" || userRole === "dokter") {
-        router.push("/dashboard/faskes");
-      } else {
-        // default to pasien dashboard
-        router.push("/dashboard/pasien");
+        // Redirect berdasarkan role user
+        const userRole = result.data.user.role;
+        if (userRole === "admin") {
+          router.push("/dashboard/admin");
+        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes") {
+          router.push("/dashboard/faskes");
+        } else {
+          router.push("/dashboard/pasien");
+        }
       }
     } catch (err) {
-      setError(err.message);
+      const msg = err.message || "Login gagal, silakan periksa kredensial Anda.";
+      setError(msg);
+      if (err.status === 403 || msg.toLowerCase().includes("aktif")) {
+        setIsInactive(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendActivation = async () => {
+    if (!identifier) {
+      setError("Masukkan alamat email Anda terlebih dahulu.");
+      return;
+    }
+    setResendLoading(true);
+    setResendMsg("");
+    try {
+      const result = await apiPost("/api/auth/resend-activation", { email: identifier });
+      setResendMsg(result.message || "Email aktivasi berhasil dikirim ulang.");
+    } catch (err) {
+      setError(err.message || "Gagal mengirim ulang email aktivasi.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -159,9 +173,32 @@ export default function LoginPage() {
           <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="flex items-center gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  <span>{error}</span>
+                <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 space-y-2">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                  {isInactive && (
+                    <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
+                      <span>Akun belum diaktivasi via email?</span>
+                      <button
+                        type="button"
+                        onClick={handleResendActivation}
+                        disabled={resendLoading}
+                        className="inline-flex items-center gap-1 font-bold text-rose-900 underline hover:text-red-950 cursor-pointer disabled:opacity-50"
+                      >
+                        {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                        Kirim Ulang Email Aktivasi
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {resendMsg && (
+                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700 font-semibold">
+                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+                  <span>{resendMsg}</span>
                 </div>
               )}
 
@@ -189,7 +226,7 @@ export default function LoginPage() {
                     Password
                   </label>
                   <Link
-                    href="#"
+                    href="/auth/forgot-password"
                     className="text-xs text-[#7F1D1D] hover:text-[#A61B2D] font-medium transition"
                   >
                     Lupa password?
