@@ -287,16 +287,10 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
                 >
                   <LogIn className="h-3.5 w-3.5 text-slate-500" />
                   Masuk
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
-                >
-                  Daftar Akun <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             )}
