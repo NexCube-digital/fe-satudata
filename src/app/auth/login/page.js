@@ -72,12 +72,25 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* Left Side - Description Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#7F1D1D] via-[#A61B2D] to-[#4C0B14] p-12 flex-col justify-between relative overflow-hidden">
+      {/* Left Side - Description Panel with Background Image & Maroon Highlight */}
+      <div className="hidden lg:flex lg:w-1/2 relative p-12 flex-col justify-between overflow-hidden">
+        {/* Background Image */}
+        <Image
+          src="/images/login.jpg"
+          alt="Login Background"
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover object-center"
+        />
+
+        {/* Gradient Maroon Overlay & Highlight - Thinner Transparency */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#7F1D1D]/60 via-[#A61B2D]/45 to-[#4C0B14]/70" />
+
         {/* Decorative elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-white blur-3xl" />
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-rose-500 blur-3xl" />
+          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-red-600 blur-3xl" />
         </div>
 
         <div className="relative z-10">
@@ -212,9 +225,12 @@ export default function LoginPage() {
                   <input
                     type="text"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => setIdentifier(e.target.value.toLowerCase().trim())}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
                     placeholder="contoh@email.com atau NIK 16 digit"
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm lowercase"
                     required
                     disabled={loading}
                   />

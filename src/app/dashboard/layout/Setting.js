@@ -570,7 +570,7 @@ export default function SettingPage() {
                       <input
                         type="text"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9\s.,'()\-]/g, ""))}
                         disabled={!isFieldEditable("name")}
                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                           isFieldEditable("name")
