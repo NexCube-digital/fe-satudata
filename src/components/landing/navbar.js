@@ -287,7 +287,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-linear-to-r from-rose-800 to-red-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
                 >
                   <LogIn className="h-3.5 w-3.5 text-slate-500" />
                   Masuk

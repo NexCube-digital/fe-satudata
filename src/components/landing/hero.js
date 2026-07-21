@@ -63,12 +63,6 @@ export default function Hero({ walletConnected, setWalletConnected }) {
               Mulai Sekarang
               <ArrowRight className="h-4 w-4" />
             </a>
-            <a
-              href="#panel"
-              className="inline-flex items-center justify-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50/80 px-6 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
-            >
-              Coba Live Simulator
-            </a>
           </div>
         </div>
 
