@@ -126,7 +126,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-slate-50">
+    <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col lg:flex-row bg-slate-50">
       {/* Left Side - Hero Description Panel with Background Image */}
       <div className="hidden lg:flex lg:w-1/2 h-full relative p-12 flex-col justify-between overflow-hidden text-white shrink-0">
         {/* Background Image */}
@@ -218,8 +218,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Form Container */}
-      <div className="w-full lg:w-1/2 h-full flex flex-col justify-between p-4 sm:p-6 lg:p-10 overflow-hidden bg-slate-50">
-        <div className="w-full max-w-xl mx-auto flex flex-col h-full space-y-4">
+      <div className="w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col justify-between p-4 sm:p-6 lg:p-10 overflow-y-auto lg:overflow-hidden bg-slate-50">
+        <div className="w-full max-w-xl mx-auto flex flex-col flex-1 lg:h-full justify-center space-y-4 py-4 lg:py-0">
           
           {/* Fixed Top Header & Navigation */}
           <div className="shrink-0 flex items-center justify-between">
@@ -234,7 +234,7 @@ export default function RegisterPage() {
 
           {/* STEP 1: ROLE SELECTION SCREEN */}
           {step === 1 && (
-            <div className="flex-1 min-h-0 flex flex-col justify-between bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex-1 lg:min-h-0 flex flex-col justify-between bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Background ambient lighting */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -333,7 +333,7 @@ export default function RegisterPage() {
 
           {/* STEP 2: STREAMLINED FORM INPUT */}
           {step === 2 && (
-            <div className="flex-1 min-h-0 flex flex-col bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex-1 lg:min-h-0 flex flex-col bg-white rounded-3xl border border-slate-200/90 shadow-xl lg:overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Form Title Header (Fixed) */}
               <div className="shrink-0 p-5 sm:px-7 sm:pt-6 sm:pb-4 border-b border-slate-100 bg-white">
@@ -363,7 +363,7 @@ export default function RegisterPage() {
               </div>
 
               {/* Inner Scrollable Form Body */}
-              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:px-7 space-y-4 min-h-0">
+              <form onSubmit={handleSubmit} className="flex-1 lg:overflow-y-auto p-5 sm:px-7 space-y-4 lg:min-h-0">
                 {error && (
                   <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3.5 text-xs text-red-700 font-semibold animate-in fade-in duration-150">
                     <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
