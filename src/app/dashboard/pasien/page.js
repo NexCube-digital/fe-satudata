@@ -257,7 +257,7 @@ export default function PasienDashboard() {
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">NIK Pasien</p>
-                  <p className="font-bold text-rose-300 mt-0.5">{user.nik || "3171010509840002"}</p>
+                  <p className="font-bold text-rose-300 mt-0.5">{user.nik || "Belum Dilengkapi"}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Address</p>
@@ -270,6 +270,23 @@ export default function PasienDashboard() {
               </div>
             </div>
           </div>
+
+          {!user.nik && (
+            <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                <span className="font-medium">
+                  <strong>Profil Belum Lengkap!</strong> Silakan lengkapi NIK Anda di menu Pengaturan agar Rumah Sakit dapat mencocokkan rekam medis Anda.
+                </span>
+              </div>
+              <Link
+                href="/dashboard/pasien/settings"
+                className="rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs"
+              >
+                Lengkapi Profil
+              </Link>
+            </div>
+          )}
 
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">

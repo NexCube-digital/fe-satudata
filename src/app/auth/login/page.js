@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [role, setRole] = useState("pasien"); // "pasien", "rumah_sakit"
   const [identifier, setIdentifier] = useState("");
   const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [selectedGoogleRole, setSelectedGoogleRole] = useState(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function LoginPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: response.credential, role })
+        body: JSON.stringify({ idToken: response.credential, role: selectedGoogleRole })
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Login Google gagal");
@@ -36,6 +37,7 @@ export default function LoginPage() {
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
+        setShowGoogleModal(false);
 
         // Redirect berdasarkan role
         const userRole = result.data.user.role;
@@ -49,6 +51,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       setError(err.message || "Gagal masuk menggunakan Google");
+      setShowGoogleModal(false);
     } finally {
       setLoading(false);
     }
@@ -61,21 +64,24 @@ export default function LoginPage() {
         callback: handleGoogleLoginSuccess,
       });
       
-      const container = document.getElementById("google-signin-btn");
+      const container = document.getElementById("google-signin-btn-modal");
       if (container) {
         window.google.accounts.id.renderButton(
           container,
-          { theme: "outline", size: "large", width: "382", text: "signin_with" }
+          { theme: "outline", size: "large", width: "320", text: "signin_with" }
         );
       }
     }
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.google) {
-      handleScriptLoad();
+    if (showGoogleModal && selectedGoogleRole) {
+      const timer = setTimeout(() => {
+        handleScriptLoad();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [role, loading]);
+  }, [showGoogleModal, selectedGoogleRole]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -397,9 +403,23 @@ export default function LoginPage() {
               </div>
 
               {/* Google Login Button */}
-              <div className="w-full flex justify-center mt-4">
-                <div id="google-signin-btn" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGoogleModal(true);
+                  setSelectedGoogleRole(null);
+                }}
+                className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow cursor-pointer text-xs"
+              >
+                {/* SVG Google Logo */}
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
+                  <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
+                  <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
+                  <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
+                </svg>
+                <span>Masuk dengan Google</span>
+              </button>
 
               <p className="text-center text-sm text-slate-600">
                 Belum punya akun?{" "}
@@ -418,6 +438,104 @@ export default function LoginPage() {
         strategy="afterInteractive"
         onLoad={handleScriptLoad}
       />
+
+      {/* Google Login Role Selection Modal */}
+      {showGoogleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 sm:p-8 animate-in zoom-in-95 duration-200">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
+              <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <svg className="h-5 w-5 text-rose-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
+                  <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
+                  <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
+                  <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
+                </svg>
+                Masuk dengan Google
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {selectedGoogleRole === null ? (
+              <>
+                <p className="text-xs text-slate-500 mb-6 leading-relaxed font-medium">
+                  Untuk meminimalkan kesalahan, silakan pilih peran Anda terlebih dahulu sebelum masuk menggunakan akun Google Anda.
+                </p>
+
+                <div className="space-y-4">
+                  {/* Option 1: Pasien */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGoogleRole("pasien")}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-slate-50 text-left transition cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition">
+                        <User className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Saya adalah Pasien</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Akses rekam medis, kelola riwayat kesehatan</p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Option 2: Faskes */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGoogleRole("rumah_sakit")}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-slate-50 text-left transition cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition">
+                        <Building2 className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Saya adalah Faskes / RS</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Kelola data pasien, unggah EHR & rekam medis</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 text-center">
+                  <p className="text-xs text-slate-500">
+                    Anda memilih masuk / mendaftar sebagai:
+                  </p>
+                  <p className="text-base font-extrabold text-rose-900 mt-1 uppercase tracking-wider">
+                    {selectedGoogleRole === "pasien" ? "Pasien" : "Fasilitas Kesehatan"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGoogleRole(null)}
+                    className="text-[11px] font-bold text-pink-600 hover:text-pink-700 underline mt-2.5 transition cursor-pointer"
+                  >
+                    Ganti Peran
+                  </button>
+                </div>
+
+                <div className="w-full flex flex-col items-center justify-center pt-2">
+                  <div id="google-signin-btn-modal" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
+                  <p className="text-[10px] text-slate-400 mt-3 text-center">
+                    Klik tombol di atas untuk melanjutkan autentikasi Google Anda.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
