@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Script from "next/script";
 import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
 
@@ -19,6 +20,62 @@ export default function LoginPage() {
   const [isInactive, setIsInactive] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
+
+  const handleGoogleLoginSuccess = async (response) => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: response.credential, role })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Login Google gagal");
+
+      if (result.success && result.data) {
+        setTokens(result.data.accessToken, result.data.refreshToken);
+        setUser(result.data.user);
+
+        // Redirect berdasarkan role
+        const userRole = result.data.user.role;
+        if (userRole === "admin") {
+          router.push("/dashboard/admin");
+        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes") {
+          router.push("/dashboard/faskes");
+        } else {
+          router.push("/dashboard/pasien");
+        }
+      }
+    } catch (err) {
+      setError(err.message || "Gagal masuk menggunakan Google");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleScriptLoad = () => {
+    if (typeof window !== "undefined" && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "334057868037-jld7g0612qecor6vjtfvbgdme5sglh92.apps.googleusercontent.com",
+        callback: handleGoogleLoginSuccess,
+      });
+      
+      const container = document.getElementById("google-signin-btn");
+      if (container) {
+        window.google.accounts.id.renderButton(
+          container,
+          { theme: "outline", size: "large", width: "382", text: "signin_with" }
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.google) {
+      handleScriptLoad();
+    }
+  }, [role, loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -340,22 +397,9 @@ export default function LoginPage() {
               </div>
 
               {/* Google Login Button */}
-              <button
-                type="button"
-                onClick={() => setShowGoogleModal(true)}
-                className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow cursor-pointer text-xs"
-              >
-                {/* SVG Google Logo */}
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
-                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
-                    <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
-                    <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
-                    <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
-                  </g>
-                </svg>
-                <span>Masuk dengan Google</span>
-              </button>
+              <div className="w-full flex justify-center mt-4">
+                <div id="google-signin-btn" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
+              </div>
 
               <p className="text-center text-sm text-slate-600">
                 Belum punya akun?{" "}
@@ -369,39 +413,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Google Login Placeholder Modal */}
-      {showGoogleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 text-center animate-in zoom-in-95 duration-200">
-            {/* Ambient Glow */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-            
-            {/* Google Icon Circle */}
-            <div className="relative mx-auto h-16 w-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4 shadow-sm border border-amber-100 animate-pulse">
-              <svg className="h-8 w-8 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
-                <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
-                <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
-                <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-extrabold text-slate-900 mb-2">Google Login Belum Tersedia</h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium mb-6">
-              Fitur masuk menggunakan akun Google sedang dalam tahap pengembangan dan akan segera dirilis pada versi berikutnya. Silakan masuk menggunakan Email/NIK dan Password Anda untuk saat ini.
-            </p>
-
-            {/* Action button */}
-            <button
-              type="button"
-              onClick={() => setShowGoogleModal(false)}
-              className="w-full bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs"
-            >
-              Saya Mengerti
-            </button>
-          </div>
-        </div>
-      )}
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+        onLoad={handleScriptLoad}
+      />
     </div>
   );
 }
