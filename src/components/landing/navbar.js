@@ -211,10 +211,6 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                 <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-rose-800 transition-colors duration-300">
                   Satu Data
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200/60">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Live Web3 & SATUSEHAT
-                </span>
               </div>
               <span className="block text-[10px] font-medium text-slate-500">
                 Hub Rekam Medis Berbasis Sovereign Blockchain

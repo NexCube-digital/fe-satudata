@@ -4,19 +4,19 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "./api";
 
 export const getDoctors = async () => {
-  return await apiGet("/api/patient/doctor");
+  return await apiGet("/api/doctor");
 };
 
 export const createDoctor = async (doctorData) => {
-  return await apiPost("/api/patient/doctor", doctorData);
+  return await apiPost("/api/doctor", doctorData);
 };
 
 export const updateDoctor = async (doctorData) => {
-  return await apiPut("/api/patient/doctor", doctorData);
+  return await apiPut(`/api/doctor/${doctorData.id}`, doctorData);
 };
 
 export const deleteDoctor = async (doctorId) => {
-  return await apiDelete(`/api/patient/doctor?id=${doctorId}`);
+  return await apiDelete(`/api/doctor/${doctorId}`);
 };
 
 export default {

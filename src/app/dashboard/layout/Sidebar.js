@@ -13,7 +13,11 @@ import {
   Activity, 
   User, 
   ShieldCheck,
-  Zap
+  Zap,
+  ChevronDown,
+  Database,
+  UserPlus,
+  History
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -27,6 +31,10 @@ export default function Sidebar({ role }) {
     requests: null,
     records: null,
     consent: null
+  });
+
+  const [openDropdowns, setOpenDropdowns] = useState({
+    patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests")
   });
 
   useEffect(() => {
@@ -106,8 +114,16 @@ export default function Sidebar({ role }) {
       case "rumah_sakit":
         return [
           { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: null },
-          { href: "/dashboard/faskes/patients", label: "Data Pasien", icon: Stethoscope, badge: badgeCounts.patients || "Aktif" },
-          { href: "/dashboard/faskes/requests", label: "Request Akses", icon: Activity, badge: badgeCounts.requests || "Live" },
+          { 
+            label: "Data Pasien", 
+            icon: Stethoscope,
+            children: [
+              { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
+              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus },
+              { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History }
+            ]
+          },
+          { href: "/dashboard/faskes/doctor", label: "Kelola Dokter", icon: Users, badge: null },
         ];
       case "pasien":
       default:
@@ -125,7 +141,7 @@ export default function Sidebar({ role }) {
         return { title: "Admin Center", subtitle: "System Governance", bg: "from-rose-500/10 to-red-500/10 border-rose-200 text-rose-700" };
       case "faskes":
       case "rumah_sakit":
-        return { title: "Hospital Portal", subtitle: "HIS & Medical POS", bg: "from-emerald-500/10 to-teal-500/10 border-emerald-200 text-emerald-700" };
+        return { title: "Hospital Portal", subtitle: "HIS & Medical POS", bg: "from-rose-800/10 to-red-900/10 border-rose-900/20 text-rose-900" };
       case "pasien":
       default:
         return { title: "Patient Hub", subtitle: "Sovereign Health", bg: "from-pink-500/10 to-fuchsia-500/10 border-pink-200 text-pink-700" };
@@ -147,7 +163,7 @@ export default function Sidebar({ role }) {
           title: "Fasilitas Kesehatan", 
           badge: "Terverifikasi", 
           subtext: "Hak Akses Faskes & RS",
-          iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200" 
+          iconColor: "text-rose-900 bg-rose-50 border-rose-200" 
         };
       case "pasien":
       default:
@@ -186,6 +202,64 @@ export default function Sidebar({ role }) {
             <nav className="space-y-1.5">
               {menuItems.map((item) => {
                 const Icon = item.icon;
+                if (item.children) {
+                  const isChildActive = item.children.some((child) => pathname === child.href);
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <button
+                        onClick={() => setOpenDropdowns((prev) => ({ ...prev, patients: !prev.patients }))}
+                        className={`group relative flex items-center justify-between w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          isChildActive
+                            ? "bg-rose-50/80 text-rose-900 border border-rose-900/10"
+                            : "text-slate-600 hover:bg-rose-50/90 hover:text-rose-800"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={`h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110 ${
+                            isChildActive ? "text-rose-800" : "text-slate-400 group-hover:text-slate-700"
+                          }`} />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDropdowns.patients ? "rotate-180" : ""}`} />
+                      </button>
+                      
+                      {openDropdowns.patients && (
+                        <div className="pl-9 space-y-1">
+                          {item.children.map((child) => {
+                            const isChildActive = pathname === child.href;
+                            const ChildIcon = child.icon;
+                            return (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                                  isChildActive
+                                    ? "bg-gradient-to-r from-rose-800 to-red-900 text-white shadow-md shadow-rose-900/10"
+                                    : "text-slate-600 hover:bg-rose-50/90 hover:text-rose-800"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {ChildIcon && <ChildIcon className={`h-3.5 w-3.5 ${isChildActive ? "text-rose-300" : "text-slate-400 group-hover:text-rose-800"}`} />}
+                                  <span>{child.label}</span>
+                                </div>
+                                {child.badge && (
+                                  <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
+                                    isChildActive
+                                      ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                                  }`}>
+                                    {child.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 const isActive = pathname === item.href;
                 return (
                   <Link
@@ -260,11 +334,12 @@ export default function Sidebar({ role }) {
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 flex items-center justify-around md:hidden shadow-lg">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.children && item.children.some((c) => pathname === c.href));
+          const href = item.href || (item.children ? item.children[0].href : "#");
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.label}
+              href={href}
               className={`flex flex-col items-center gap-1 text-[10px] font-bold transition ${
                 isActive ? "text-rose-600 scale-105" : "text-slate-400 hover:text-slate-600"
               }`}

@@ -133,9 +133,10 @@ export default function SettingPage() {
         setName(parsed.name || "");
         setInitialName(parsed.name || "");
         setEmail(parsed.email || "");
-        setNik(parsed.nik || "");
-        setInitialNik(parsed.nik || "");
-        if (parsed.nik) {
+        const localNik = parsed.nik || parsed.medical_license || "";
+        setNik(localNik);
+        setInitialNik(localNik);
+        if (localNik) {
           setIsNikFilledOnLoad(true);
         }
         setWalletAddress(parsed.wallet_address || "");
@@ -177,7 +178,7 @@ export default function SettingPage() {
         setName(u.name || "");
         setInitialName(u.name || "");
         setEmail(u.email || "");
-        const finalNik = u.nik || u.profil?.nik || "";
+        const finalNik = u.nik || u.profil?.nik || u.hospitalProfile?.medical_license || "";
         setNik(finalNik);
         setInitialNik(finalNik);
         if (finalNik) {
@@ -252,7 +253,13 @@ export default function SettingPage() {
       if (profilePictureFile) {
         const formData = new FormData();
         formData.append("name", name);
-        if (nik) formData.append("nik", nik);
+        if (nik) {
+          if (isHospital) {
+            formData.append("medical_license", nik);
+          } else {
+            formData.append("nik", nik);
+          }
+        }
         if (phone) formData.append("phone", phone);
         if (address) formData.append("address", address);
         if (sex && !isHospital) formData.append("sex", sex);
@@ -269,12 +276,16 @@ export default function SettingPage() {
         headers["Content-Type"] = "application/json";
         const payload = {
           name,
-          nik,
           phone,
           address,
-          sex,
-          date_of_birth: dateOfBirth || null
         };
+        if (isHospital) {
+          payload.medical_license = nik;
+        } else {
+          payload.nik = nik;
+          payload.sex = sex;
+          payload.date_of_birth = dateOfBirth || null;
+        }
         bodyData = JSON.stringify(payload);
       }
 
@@ -298,6 +309,7 @@ export default function SettingPage() {
         ...updatedProfileData,
         name,
         nik,
+        medical_license: isHospital ? nik : undefined,
         avatarUrl: computedAvatar || user?.avatarUrl,
       };
 
@@ -576,7 +588,7 @@ export default function SettingPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Nama Lengkap
+                        {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Nama Instansi / Faskes" : "Nama Lengkap"}
                       </label>
                     </div>
                     <div className="relative">
@@ -636,9 +648,9 @@ export default function SettingPage() {
                    {/* NIK */}
                    <div>
                      <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                         NIK
-                       </label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Nomor Izin Operasional (SIP)" : "NIK"}
+                        </label>
                      </div>
                      <div className="relative">
                        <input
@@ -652,7 +664,7 @@ export default function SettingPage() {
                              ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
                              : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                          }`}
-                         placeholder="3171010509840002"
+                         placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Masukkan Nomor Izin Operasional" : "3171010509840002"}
                        />
                        {isNikFilledOnLoad && (
                          <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
@@ -835,9 +847,9 @@ export default function SettingPage() {
                  {/* Alamat Tempat Tinggal */}
                  <div>
                    <div className="flex items-center justify-between mb-2">
-                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                       Alamat Tempat Tinggal
-                     </label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Alamat Instansi / Faskes" : "Alamat Tempat Tinggal"}
+                      </label>
                    </div>
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -846,7 +858,7 @@ export default function SettingPage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       disabled={!isFieldEditable("address")}
-                      placeholder="Jl. Raya Kebon Jeruk No. 12"
+                      placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Jl. Bukit Jarian No. 40, Bandung" : "Jl. Raya Kebon Jeruk No. 12"}
                       className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                         isFieldEditable("address")
                           ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
