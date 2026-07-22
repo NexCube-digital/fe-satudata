@@ -103,6 +103,7 @@ export default function PatientConsentPage() {
       try {
         setUser(JSON.parse(userData));
         fetchRequestsFromBE();
+        fetchAuditLogsFromBE();
       } catch (e) {
         console.error(e);
       }
@@ -118,24 +119,61 @@ export default function PatientConsentPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const result = await res.json();
-      if (res.ok && result.data && result.data.length > 0) {
-        const beRequests = result.data.map((item, idx) => ({
-          id: `be-req-${item.id || idx}`,
-          hospitalName: item.HospitalProfile?.name || "Rumah Sakit Terdaftar",
-          hospitalCode: `RS-ID-${item.hospital_id || "01"}`,
+      if (res.ok && result.data) {
+        const beRequests = result.data.map((item) => ({
+          id: item.id,
+          hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
+          hospitalCode: item.hospital?.medical_license || "RS-N/A",
           department: "Unit Pelayanan Medis",
           doctorName: "Dokter Penanggung Jawab",
-          accessScope: ["Riwayat Rekam Medis Terenkripsi"],
+          accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],
           duration: "30 Hari",
           status: item.status || "pending",
-          txHash: item.tx_hash || "0x" + Array.from({ length: 10 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
-          grantedAt: new Date(item.created_at || Date.now()).toLocaleDateString("id-ID"),
-          expiresAt: "Auto Expire"
+          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Otorisasi",
+          grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
+          expiresAt: item.expire_time ? new Date(item.expire_time).toLocaleDateString("id-ID") : "-"
         }));
-        setRequests(beRequests);
+
+        if (beRequests.length > 0) {
+          setRequests(beRequests);
+        }
       }
     } catch (err) {
-      console.log("Using interactive presentation requests data", err);
+      console.log("Error loading requests", err);
+    }
+  };
+
+  const fetchAuditLogsFromBE = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/audit`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const mapped = result.data.map((item) => {
+          let actionText = item.action;
+          if (item.action === "approve_akses") actionText = "grantAccess() Approved";
+          if (item.action === "reject_akses") actionText = "Request Rejected";
+          if (item.action === "revoke_akses") actionText = "revokeAccess() Executed";
+          if (item.action === "lihat_detail_rekam_medis") actionText = "decryptEHR() Accessed";
+
+          return {
+            id: item.id,
+            action: actionText,
+            hospital: item.information || "SatuData Core",
+            txHash: item.tx_hash ? `${item.tx_hash.substring(0, 6)}...${item.tx_hash.substring(item.tx_hash.length - 4)}` : "0x0000...0000",
+            timestamp: new Date(item.created_at || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long" }),
+            status: item.status === "success" ? "success" : "error"
+          };
+        });
+        if (mapped.length > 0) {
+          setAuditLogs(mapped);
+        }
+      }
+    } catch (err) {
+      console.log("Error loading audit logs", err);
     }
   };
 
@@ -150,57 +188,35 @@ export default function PatientConsentPage() {
   const handleAction = async (requestId, targetStatus) => {
     setSubmittingId(requestId);
     const token = localStorage.getItem("accessToken");
-
-    // Generate new txHash
     const generatedHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
     try {
-      if (token) {
-        const endpointMap = {
-          approved: `/api/patient/access-requests/${requestId}/approve`,
-          rejected: `/api/patient/access-requests/${requestId}/reject`,
-          revoked: `/api/patient/access-requests/${requestId}/revoke`
-        };
-        const endpoint = endpointMap[targetStatus];
-        if (endpoint) {
-          await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}${endpoint}`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ txHash: generatedHash })
-          });
+      const endpointMap = {
+        approved: `/api/patient/access-requests/${requestId}/approve`,
+        rejected: `/api/patient/access-requests/${requestId}/reject`,
+        revoked: `/api/patient/access-requests/${requestId}/revoke`
+      };
+      const endpoint = endpointMap[targetStatus];
+      if (endpoint && token) {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}${endpoint}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ txHash: generatedHash })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+          fetchRequestsFromBE();
+          fetchAuditLogsFromBE();
         }
       }
     } catch (err) {
-      console.log("BE action error simulation fallback", err);
-    }
-
-    // Local UI update & Log addition
-    setTimeout(() => {
-      setRequests((prev) =>
-        prev.map((r) => {
-          if (r.id === requestId) {
-            const actionTitle = targetStatus === "approved" ? "grantAccess() Approved" : targetStatus === "revoked" ? "revokeAccess() Executed" : "Request Rejected";
-            setAuditLogs((logs) => [
-              {
-                id: Date.now(),
-                action: actionTitle,
-                hospital: r.hospitalName,
-                txHash: `${generatedHash.substring(0, 6)}...${generatedHash.substring(38)}`,
-                timestamp: "Baru saja",
-                status: targetStatus === "approved" ? "success" : "error"
-              },
-              ...logs
-            ]);
-            return { ...r, status: targetStatus, txHash: generatedHash };
-          }
-          return r;
-        })
-      );
+      console.log("BE action error", err);
+    } finally {
       setSubmittingId(null);
-    }, 600);
+    }
   };
 
   const filteredRequests = requests.filter((r) => {

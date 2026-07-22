@@ -33,51 +33,11 @@ export default function PasienDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Live Consent Manager State
-  const [hospitals, setHospitals] = useState([
-    {
-      id: "rscm",
-      name: "RS Cipto Mangunkusumo",
-      code: "RSCM-JKT-01",
-      dept: "Klinik Penyakit Dalam & Bedah",
-      status: "approved",
-      txHash: "0x9f12...a3bc",
-      grantedAt: "12 Juli 2026",
-      accessTypes: ["Diagnosis", "Resep Obat", "Hasil Laboratorium"]
-    },
-    {
-      id: "harapanKita",
-      name: "RS Harapan Kita",
-      code: "RSHK-JKT-04",
-      dept: "Poli Spesialis Jantung",
-      status: "approved",
-      txHash: "0x5f81...e2c4",
-      grantedAt: "28 Juni 2026",
-      accessTypes: ["Rekam Medis Jantung", "EKG"]
-    },
-    {
-      id: "pertamina",
-      name: "RS Pusat Pertamina",
-      code: "RSPP-JKT-09",
-      dept: "Instalasi Gawat Darurat (UGD)",
-      status: "pending",
-      txHash: "Menunggu Approval",
-      grantedAt: "Baru saja",
-      accessTypes: ["Riwayat Alergi", "Golongan Darah"]
-    }
-  ]);
-
-  // Decryption state for medical records
-  const [decryptedRecords, setDecryptedRecords] = useState({
-    rec1: false,
-    rec2: false
-  });
-
-  // Audit logs state
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, action: "Consent Granted", hospital: "RS Cipto Mangunkusumo", hash: "0x9f12...a3bc", time: "10 menit lalu", type: "success" },
-    { id: 2, action: "EHR Encrypted Upload", hospital: "RS Harapan Kita", hash: "0x5f81...e2c4", time: "2 hari lalu", type: "info" }
-  ]);
+  // Dynamic Dashboard States
+  const [hospitals, setHospitals] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [decryptedRecords, setDecryptedRecords] = useState({});
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -90,6 +50,7 @@ export default function PasienDashboard() {
         console.error(e);
       }
     }
+    fetchDashboardData();
     setLoading(false);
   }, []);
 
@@ -106,14 +67,129 @@ export default function PasienDashboard() {
         const updated = {
           ...currentUser,
           name: u.name || currentUser.name,
-          nik: u.nik || currentUser.nik,
+          nik: u.profil?.nik || u.nik || currentUser.nik,
           wallet_address: u.wallet_address || currentUser.wallet_address
         };
         setUser(updated);
         localStorage.setItem("user", JSON.stringify(updated));
+        window.dispatchEvent(new Event("userUpdated"));
       }
     } catch (err) {
       console.log("Could not sync profile from BE", err);
+    }
+  };
+
+  const fetchDashboardData = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    // 1. Fetch access requests (hospitals list)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/access-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const mapped = result.data.map((item) => ({
+          id: item.id,
+          name: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
+          code: item.hospital?.medical_license || "N/A",
+          dept: "Instalasi / Layanan Medis",
+          status: item.status,
+          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Approval",
+          grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+          accessTypes: item.requested_data ? item.requested_data.split(",") : ["Diagnosis", "Resep Obat"]
+        }));
+        setHospitals(mapped);
+      }
+    } catch (err) {
+      console.log("Error fetching access requests", err);
+    }
+
+    // 2. Fetch history records list
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const mapped = result.data.map((item) => ({
+          id: item.id,
+          hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
+          doctorName: item.doctor?.name || "Dokter Spesialis",
+          category: item.record_type || "Rekam Medis Terverifikasi",
+          date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+          txHash: item.data_hash || "0x9f12...a3bc",
+          diagnosis: item.title || "Konsultasi Medis",
+          details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
+        }));
+        
+        if (mapped.length > 0) {
+          setMedicalRecords(mapped);
+        } else {
+          setMedicalRecords([
+            {
+              id: "rec1",
+              hospitalName: "RS Cipto Mangunkusumo",
+              doctorName: "dr. Amanda Amanda, Sp.PD",
+              category: "Poli Bedah",
+              date: "12 Juli 2026",
+              txHash: "0x9f12...a3bc",
+              diagnosis: "Infeksi Saluran Pernapasan (ISPA)",
+              details: "Resep: Amoxicillin 500mg (3x1 sesudah makan), Paracetamol 500mg (P.R.N). Catatan: Pasien mengeluh batuk berdahak 3 hari. Tanda vital stabil."
+            },
+            {
+              id: "rec2",
+              hospitalName: "Laboratorium Kimia Farma",
+              doctorName: "Analis Lab Rian Hidayat, Amd.AK",
+              category: "Hasil Laboratorium",
+              date: "28 Juni 2026",
+              txHash: "0x5f81...e2c4",
+              diagnosis: "Tes Kolesterol & Gula Darah Puasa (GDP)",
+              details: "Hasil Lab: Kolesterol Total 190 mg/dL (Normal), GDP 95 mg/dL (Normal)."
+            }
+          ]);
+        }
+      }
+    } catch (err) {
+      console.log("Error fetching history", err);
+    }
+
+    // 3. Fetch audit logs list
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/audit`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const mapped = result.data.map((item) => {
+          let actionText = item.action;
+          if (item.action === "approve_akses") actionText = "Consent Granted";
+          if (item.action === "reject_akses") actionText = "Request Rejected";
+          if (item.action === "revoke_akses") actionText = "Consent Revoked";
+          if (item.action === "lihat_detail_rekam_medis") actionText = "EHR Decrypted Access";
+
+          return {
+            id: item.id,
+            action: actionText,
+            hospital: item.information || "SatuData Core",
+            hash: item.tx_hash ? `${item.tx_hash.substring(0, 6)}...${item.tx_hash.substring(item.tx_hash.length - 4)}` : "0x0000...0000",
+            time: new Date(item.created_at || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long" }),
+            type: item.status === "success" ? "success" : "info"
+          };
+        });
+        
+        if (mapped.length > 0) {
+          setAuditLogs(mapped);
+        } else {
+          setAuditLogs([
+            { id: 1, action: "Consent Granted", hospital: "RS Cipto Mangunkusumo", hash: "0x9f12...a3bc", time: "10 menit lalu", type: "success" },
+            { id: 2, action: "EHR Encrypted Upload", hospital: "RS Harapan Kita", hash: "0x5f81...e2c4", time: "2 hari lalu", type: "info" }
+          ]);
+        }
+      }
+    } catch (err) {
+      console.log("Error fetching audit logs", err);
     }
   };
 
@@ -124,32 +200,39 @@ export default function PasienDashboard() {
     router.push("/auth/login");
   };
 
-  // Toggle consent (Approve / Revoke / Reject)
-  const handleToggleConsent = (id, newStatus) => {
-    setHospitals((prev) =>
-      prev.map((h) => {
-        if (h.id === id) {
-          const newHash = "0x" + Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join("") + "..." + Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-          
-          // Log audit action
-          const actionText = newStatus === "approved" ? "Consent Granted" : newStatus === "revoked" ? "Consent Revoked" : "Request Rejected";
-          setAuditLogs((logs) => [
-            {
-              id: Date.now(),
-              action: actionText,
-              hospital: h.name,
-              hash: newHash,
-              time: "Baru saja",
-              type: newStatus === "approved" ? "success" : "error"
-            },
-            ...logs
-          ]);
+  const handleToggleConsent = async (id, newStatus) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
-          return { ...h, status: newStatus, txHash: newHash };
-        }
-        return h;
-      })
-    );
+    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+
+    let endpoint = "";
+    if (newStatus === "approved") {
+      endpoint = `/api/patient/access-requests/${id}/approve`;
+    } else if (newStatus === "rejected") {
+      endpoint = `/api/patient/access-requests/${id}/reject`;
+    } else if (newStatus === "revoked") {
+      endpoint = `/api/patient/access-requests/${id}/revoke`;
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ txHash })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        fetchDashboardData();
+      } else {
+        console.error("Gagal mengubah status izin:", result.message);
+      }
+    } catch (err) {
+      console.error("Error toggling consent:", err);
+    }
   };
 
   const toggleDecrypt = (recId) => {
@@ -247,7 +330,7 @@ export default function PasienDashboard() {
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                14 <span className="text-xs font-normal text-slate-500">Dokumen</span>
+                {medicalRecords.length} <span className="text-xs font-normal text-slate-500">Dokumen</span>
               </p>
               <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
                 <Lock className="h-3 w-3" /> Terenkripsi Off-chain AES-256
@@ -308,95 +391,105 @@ export default function PasienDashboard() {
 
                 {/* List of Hospitals */}
                 <div className="space-y-4">
-                  {hospitals.map((h) => (
-                    <div
-                      key={h.id}
-                      className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                        <div className="flex items-start gap-3">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
-                            {h.name.charAt(0)}{h.name.charAt(3)}
-                          </span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-bold text-slate-900">{h.name}</h4>
-                              <span className="text-[10px] font-mono text-slate-400">({h.code})</span>
+                  {hospitals.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada permintaan akses faskes terdaftar.</p>
+                  ) : (
+                    hospitals.map((h) => (
+                      <div
+                        key={h.id}
+                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                          <div className="flex items-start gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
+                              {h.name.charAt(0)}{h.name.substring(3, 4) || ""}
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-bold text-slate-900">{h.name}</h4>
+                                <span className="text-[10px] font-mono text-slate-400">({h.code})</span>
+                              </div>
+                              <p className="text-xs text-slate-500">{h.dept}</p>
                             </div>
-                            <p className="text-xs text-slate-500">{h.dept}</p>
+                          </div>
+
+                          {/* Status Badges */}
+                          <div>
+                            {h.status === "approved" && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                Akses Disetujui
+                              </span>
+                            )}
+                            {h.status === "pending" && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
+                                <Clock className="h-3 w-3" />
+                                Permintaan Baru
+                              </span>
+                            )}
+                            {h.status === "rejected" && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-500">
+                                <XCircle className="h-3 w-3" />
+                                Akses Ditolak
+                              </span>
+                            )}
+                            {h.status === "revoked" && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-bold text-rose-700">
+                                <Lock className="h-3 w-3" />
+                                Akses Dicabut
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        {/* Status Badges */}
-                        <div>
-                          {h.status === "approved" && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                              Akses Disetujui
-                            </span>
-                          )}
-                          {h.status === "pending" && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
-                              <Clock className="h-3 w-3" />
-                              Permintaan Baru
-                            </span>
-                          )}
-                          {h.status === "revoked" && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-bold text-rose-700">
-                              <Lock className="h-3 w-3" />
-                              Akses Dicabut
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                        {/* Details & Actions */}
+                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                          <div className="space-y-1 font-mono text-[10px] text-slate-500">
+                            <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
+                            <p>Tx Hash: <span className="text-rose-600 font-semibold">{h.txHash}</span></p>
+                          </div>
 
-                      {/* Details & Actions */}
-                      <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <div className="space-y-1 font-mono text-[10px] text-slate-500">
-                          <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
-                          <p>Tx Hash: <span className="text-rose-600 font-semibold">{h.txHash}</span></p>
-                        </div>
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2">
+                            {h.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleToggleConsent(h.id, "approved")}
+                                  className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition shadow-xs cursor-pointer"
+                                >
+                                  Setujui Akses (Approve)
+                                </button>
+                                <button
+                                  onClick={() => handleToggleConsent(h.id, "rejected")}
+                                  className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer"
+                                >
+                                  Tolak
+                                </button>
+                              </>
+                            )}
 
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
-                          {h.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() => handleToggleConsent(h.id, "approved")}
-                                className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition shadow-xs cursor-pointer"
-                              >
-                                Setujui Akses (Approve)
-                              </button>
+                            {h.status === "approved" && (
                               <button
                                 onClick={() => handleToggleConsent(h.id, "revoked")}
-                                className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer"
+                                className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
                               >
-                                Tolak
+                                Cabut Izin Akses (revokeAccess)
                               </button>
-                            </>
-                          )}
+                            )}
 
-                          {h.status === "approved" && (
-                            <button
-                              onClick={() => handleToggleConsent(h.id, "revoked")}
-                              className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
-                            >
-                              Cabut Izin Akses (revokeAccess)
-                            </button>
-                          )}
-
-                          {h.status === "revoked" && (
-                            <button
-                              onClick={() => handleToggleConsent(h.id, "approved")}
-                              className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
-                            >
-                              Izinkan Kembali
-                            </button>
-                          )}
+                            {(h.status === "revoked" || h.status === "rejected") && (
+                              <button
+                                onClick={() => handleToggleConsent(h.id, "approved")}
+                                className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
+                              >
+                                Izinkan Kembali
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -412,87 +505,54 @@ export default function PasienDashboard() {
                       Seluruh riwayat diagnosa dan resep obat antar-rumah sakit tersimpan dalam enkripsi off-chain.
                     </p>
                   </div>
-                  <button className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700">
+                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer">
                     <Download className="h-3.5 w-3.5" /> Unduh Resume PDF
                   </button>
                 </div>
 
                 <div className="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6">
-                  {/* Record Item 1 */}
-                  <div className="relative group">
-                    <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 ring-4 ring-white" />
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-xs">
-                      <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                        <span className="font-bold text-rose-700">RS Cipto Mangunkusumo (Poli Bedah)</span>
-                        <span className="font-mono text-[10px]">12 Juli 2026</span>
+                  {medicalRecords.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada riwayat rekam medis terdaftar.</p>
+                  ) : (
+                    medicalRecords.map((rec) => (
+                      <div key={rec.id} className="relative group">
+                        <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 ring-4 ring-white" />
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-xs">
+                          <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                            <span className="font-bold text-rose-700">{rec.hospitalName} ({rec.category})</span>
+                            <span className="font-mono text-[10px]">{rec.date}</span>
+                          </div>
+
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h4 className="text-sm font-bold text-slate-900">Diagnosa: {rec.diagnosis}</h4>
+                              <p className="text-xs text-slate-500 mt-0.5">Dokter Penanggung Jawab: {rec.doctorName}</p>
+                            </div>
+                            <button
+                              onClick={() => toggleDecrypt(rec.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer shrink-0"
+                            >
+                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
+                              {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi Data"}
+                            </button>
+                          </div>
+
+                          {/* Decrypted / Encrypted Content Preview */}
+                          {decryptedRecords[rec.id] ? (
+                            <div className="mt-3 rounded-xl bg-gradient-to-r from-rose-950/90 to-red-950/90 p-3 text-[11px] font-mono text-rose-100 border border-rose-800/40 shadow-xs animate-fade-in">
+                              <p className="font-bold text-rose-200 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
+                              <p>{rec.details}</p>
+                            </div>
+                          ) : (
+                            <div className="mt-3 rounded-xl bg-rose-950/80 p-3 text-[10px] font-mono text-rose-200/90 border border-rose-800/30 truncate">
+                              <span className="text-rose-400 font-bold mr-2">[CIPHERTEXT AES-256]:</span>
+                              U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash.substring(0, 10)}...
+                            </div>
+                          )}
+                        </div>
                       </div>
-
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-900">Diagnosa: Infeksi Saluran Pernapasan (ISPA)</h4>
-                          <p className="text-xs text-slate-500 mt-0.5">Dokter Penanggung Jawab: dr. Amanda, Sp.PD</p>
-                        </div>
-                        <button
-                          onClick={() => toggleDecrypt("rec1")}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
-                        >
-                          {decryptedRecords.rec1 ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
-                          {decryptedRecords.rec1 ? "Sembunyikan" : "Dekripsi Data"}
-                        </button>
-                      </div>
-
-                      {/* Decrypted / Encrypted Content Preview */}
-                      {decryptedRecords.rec1 ? (
-                        <div className="mt-3 rounded-xl bg-gradient-to-r from-rose-950/90 to-red-950/90 p-3 text-[11px] font-mono text-rose-100 border border-rose-800/40 shadow-xs animate-fade-in">
-                          <p className="font-bold text-rose-200 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
-                          <p>• Resep: Amoxicillin 500mg (3x1 sesudah makan), Paracetamol 500mg (P.R.N)</p>
-                          <p>• Catatan Medis: Pasien mengeluh batuk berdahak 3 hari. Tanda vital stabil.</p>
-                        </div>
-                      ) : (
-                        <div className="mt-3 rounded-xl bg-rose-950/80 p-3 text-[10px] font-mono text-rose-200/90 border border-rose-800/30 truncate">
-                          <span className="text-rose-400 font-bold mr-2">[CIPHERTEXT AES-256]:</span>
-                          U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Record Item 2 */}
-                  <div className="relative group">
-                    <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-4 ring-white" />
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-xs">
-                      <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                        <span className="font-bold text-rose-700">Laboratorium Kimia Farma</span>
-                        <span className="font-mono text-[10px]">28 Juni 2026</span>
-                      </div>
-
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-900">Laporan Lab: Tes Kolesterol & Gula Darah Puasa</h4>
-                          <p className="text-xs text-slate-500 mt-0.5">Petugas: Analis Kesehatan Lab Utama</p>
-                        </div>
-                        <button
-                          onClick={() => toggleDecrypt("rec2")}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
-                        >
-                          {decryptedRecords.rec2 ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
-                          {decryptedRecords.rec2 ? "Sembunyikan" : "Dekripsi Data"}
-                        </button>
-                      </div>
-
-                      {decryptedRecords.rec2 ? (
-                        <div className="mt-3 rounded-xl bg-gradient-to-r from-rose-950/90 to-red-950/90 p-3 text-[11px] font-mono text-rose-100 border border-rose-800/40 shadow-xs animate-fade-in">
-                          <p className="font-bold text-rose-200 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
-                          <p>• Hasil Lab: Kolesterol Total 190 mg/dL (Normal), GDP 95 mg/dL (Normal)</p>
-                        </div>
-                      ) : (
-                        <div className="mt-3 rounded-xl bg-rose-950/80 p-3 text-[10px] font-mono text-rose-200/90 border border-rose-800/30 truncate">
-                          <span className="text-rose-400 font-bold mr-2">[CIPHERTEXT AES-256]:</span>
-                          85MmNlYTkyOQU2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5Y...
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
