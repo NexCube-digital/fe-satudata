@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Mail, ArrowLeft, Loader, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
 import { apiPost } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showUnregisteredModal, setShowUnregisteredModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,9 +23,25 @@ export default function ForgotPasswordPage() {
 
     try {
       const result = await apiPost("/api/auth/forgot-password", { email });
-      setMessage(result.message || "Jika email terdaftar, tautan reset password telah dikirim ke email Anda.");
+      if (result.success) {
+        setMessage(result.message || "Tautan reset password telah dikirim ke email Anda.");
+      } else if (result.message && result.message.toLowerCase().includes("tidak terdaftar")) {
+        setShowUnregisteredModal(true);
+        setTimeout(() => {
+          router.push("/auth/register");
+        }, 4000);
+      } else {
+        setError(result.message || "Gagal memproses permintaan reset password.");
+      }
     } catch (err) {
-      setError(err.message || "Gagal memproses permintaan reset password.");
+      if (err.message && err.message.toLowerCase().includes("tidak terdaftar")) {
+        setShowUnregisteredModal(true);
+        setTimeout(() => {
+          router.push("/auth/register");
+        }, 4000);
+      } else {
+        setError(err.message || "Gagal memproses permintaan reset password.");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,7 +96,7 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
                 placeholder="nama@domain.com"
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
                 required
@@ -102,6 +121,40 @@ export default function ForgotPasswordPage() {
           </button>
         </form>
       </div>
+
+      {/* Unregistered Account Modal */}
+      {showUnregisteredModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 text-center animate-in zoom-in-95 duration-200">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Warning Circle */}
+            <div className="relative mx-auto h-16 w-16 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4 border border-rose-100 animate-bounce">
+              <AlertCircle className="h-8 w-8 text-rose-500" />
+            </div>
+
+            <h3 className="text-lg font-extrabold text-slate-900 mb-2">Akun Belum Terdaftar</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium mb-6">
+              Email <strong className="text-slate-800 break-all">{email}</strong> belum terdaftar di sistem SatuData. <br />
+              Anda akan dialihkan ke halaman pendaftaran dalam beberapa detik...
+            </p>
+
+            {/* Action button redirecting immediately */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowUnregisteredModal(false);
+                router.push("/auth/register");
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs"
+            >
+              <span>Daftar Sekarang</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

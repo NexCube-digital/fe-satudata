@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home, Mail, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [role, setRole] = useState("pasien"); // "pasien", "rumah_sakit"
   const [identifier, setIdentifier] = useState("");
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,9 +73,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col lg:flex-row bg-slate-50">
       {/* Left Side - Description Panel with Background Image & Maroon Highlight */}
-      <div className="hidden lg:flex lg:w-1/2 relative p-12 flex-col justify-between overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 h-full relative p-12 flex-col justify-between overflow-hidden text-white shrink-0">
         {/* Background Image */}
         <Image
           src="/images/login.jpg"
@@ -171,8 +173,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
+        <div className="w-full max-w-md mx-auto my-auto space-y-4 py-4 lg:py-0">
           <div className="mb-4 flex justify-end">
             <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
               <Home className="h-5 w-5" />
@@ -186,6 +188,34 @@ export default function LoginPage() {
 
           <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Role Selector Tabs */}
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl mb-6">
+                <button
+                  type="button"
+                  onClick={() => setRole("pasien")}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "pasien"
+                      ? "bg-[#7F1D1D] text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <User className="h-4 w-4" />
+                  <span>Pasien</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("rumah_sakit")}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "rumah_sakit"
+                      ? "bg-[#7F1D1D] text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span>Faskes / RS</span>
+                </button>
+              </div>
+
               {error && (
                 <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 space-y-2">
                   <div className="flex items-center gap-2 font-semibold">
@@ -218,18 +248,25 @@ export default function LoginPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Email atau NIK Anda
+                  {role === "pasien" ? "Email Pasien / NIK *" : "Email Fasilitas Kesehatan (Faskes) *"}
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                  {role === "pasien" ? (
+                    <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                  ) : (
+                    <Building2 className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                  )}
                   <input
                     type="text"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value.toLowerCase().trim())}
+                    onChange={(e) => {
+                      const val = e.target.value.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
+                      setIdentifier(val);
+                    }}
                     autoCapitalize="none"
                     autoCorrect="off"
                     spellCheck="false"
-                    placeholder="contoh@email.com atau NIK 16 digit"
+                    placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm lowercase"
                     required
                     disabled={loading}
@@ -302,6 +339,24 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {/* Google Login Button */}
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(true)}
+                className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow cursor-pointer text-xs"
+              >
+                {/* SVG Google Logo */}
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
+                    <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
+                    <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
+                    <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
+                  </g>
+                </svg>
+                <span>Masuk dengan Google</span>
+              </button>
+
               <p className="text-center text-sm text-slate-600">
                 Belum punya akun?{" "}
                 <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
@@ -313,6 +368,40 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Google Login Placeholder Modal */}
+      {showGoogleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 text-center animate-in zoom-in-95 duration-200">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Google Icon Circle */}
+            <div className="relative mx-auto h-16 w-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4 shadow-sm border border-amber-100 animate-pulse">
+              <svg className="h-8 w-8 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
+                <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
+                <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
+                <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
+              </svg>
+            </div>
+
+            <h3 className="text-lg font-extrabold text-slate-900 mb-2">Google Login Belum Tersedia</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium mb-6">
+              Fitur masuk menggunakan akun Google sedang dalam tahap pengembangan dan akan segera dirilis pada versi berikutnya. Silakan masuk menggunakan Email/NIK dan Password Anda untuk saat ini.
+            </p>
+
+            {/* Action button */}
+            <button
+              type="button"
+              onClick={() => setShowGoogleModal(false)}
+              className="w-full bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs"
+            >
+              Saya Mengerti
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

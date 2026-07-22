@@ -255,7 +255,7 @@ export default function RegisterPage() {
 
           {/* STEP 1: ROLE SELECTION SCREEN */}
           {step === 1 && (
-            <div className="flex-1 lg:min-h-0 flex flex-col justify-between bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex-1 lg:min-h-0 flex flex-col justify-between bg-white rounded-3xl border border-slate-200/90 shadow-xl p-4 sm:p-8 space-y-4 sm:space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Background ambient lighting */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -266,46 +266,46 @@ export default function RegisterPage() {
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200/80 text-[11px] font-extrabold text-[#7F1D1D] shadow-2xs">
                   <Sparkles className="h-3.5 w-3.5 text-rose-600 animate-pulse" /> Langkah 1 dari 2: Pilih Peran Pengguna
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                   Selamat Datang di SatuData
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto font-medium leading-relaxed">
+                <p className="text-[11px] sm:text-sm text-slate-500 max-w-md mx-auto font-medium leading-relaxed">
                   Pilih kategori pendaftaran akun Anda untuk penyesuaian hak akses & fitur sistem.
                 </p>
               </div>
 
               {/* Selection Cards Grid */}
-              <div className="relative z-10 grid gap-5 sm:grid-cols-2 my-auto">
+              <div className="relative z-10 grid gap-3 sm:grid-cols-2 my-auto">
                 {/* Option 1: Pasien Baru */}
                 <button
                   type="button"
                   onClick={() => handleSelectRole("pasien")}
-                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl border-2 border-rose-100 hover:border-[#7F1D1D] bg-gradient-to-b from-rose-50/40 via-white to-white hover:from-rose-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
+                  className="group relative flex flex-col justify-between p-4 sm:p-7 rounded-3xl border-2 border-rose-100 hover:border-[#7F1D1D] bg-gradient-to-b from-rose-50/40 via-white to-white hover:from-rose-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-[#7F1D1D] text-white flex items-center justify-center shadow-md shadow-rose-900/20 group-hover:scale-110 transition-transform duration-300">
-                        <User className="h-7 w-7" />
+                      <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-[#7F1D1D] text-white flex items-center justify-center shadow-md shadow-rose-900/20 group-hover:scale-110 transition-transform duration-300">
+                        <User className="h-5 w-5 sm:h-7 sm:w-7" />
                       </div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100 px-2.5 py-1 rounded-full">
+                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
                         Personal
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-extrabold text-slate-900 mb-1.5 group-hover:text-[#7F1D1D] transition-colors">
+                      <h3 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1 sm:mb-1.5 group-hover:text-[#7F1D1D] transition-colors">
                         Pasien Baru
                       </h3>
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed font-medium">
                         Dapatkan kontrol penuh, transparansi & kedaulatan atas data rekam medis terenkripsi Anda.
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between pt-4 border-t border-rose-100/80 text-xs font-extrabold text-[#7F1D1D]">
+                  <div className="mt-4 sm:mt-6 flex items-center justify-between pt-3 sm:pt-4 border-t border-rose-100/80 text-[11px] sm:text-xs font-extrabold text-[#7F1D1D]">
                     <span>Daftar Sebagai Pasien</span>
-                    <div className="h-7 w-7 rounded-full bg-rose-100 group-hover:bg-[#7F1D1D] group-hover:text-white flex items-center justify-center transition-colors">
-                      <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-rose-100 group-hover:bg-[#7F1D1D] group-hover:text-white flex items-center justify-center transition-colors">
+                      <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
                 </button>
@@ -314,32 +314,32 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => handleSelectRole("rumah_sakit")}
-                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl border-2 border-emerald-100 hover:border-emerald-600 bg-gradient-to-b from-emerald-50/40 via-white to-white hover:from-emerald-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
+                  className="group relative flex flex-col justify-between p-4 sm:p-7 rounded-3xl border-2 border-emerald-100 hover:border-emerald-600 bg-gradient-to-b from-emerald-50/40 via-white to-white hover:from-emerald-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center shadow-md shadow-emerald-900/20 group-hover:scale-110 transition-transform duration-300">
-                        <Building2 className="h-7 w-7" />
+                      <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center shadow-md shadow-emerald-900/20 group-hover:scale-110 transition-transform duration-300">
+                        <Building2 className="h-5 w-5 sm:h-7 sm:w-7" />
                       </div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">
+                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
                         Instansi / RS
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-extrabold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">
+                      <h3 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1 sm:mb-1.5 group-hover:text-emerald-800 transition-colors">
                         Fasilitas Kesehatan
                       </h3>
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed font-medium">
                         Daftarkan Rumah Sakit, Klinik, atau Faskes Anda untuk terintegrasi dengan SATUSEHAT API.
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between pt-4 border-t border-emerald-100/80 text-xs font-extrabold text-emerald-800">
+                  <div className="mt-4 sm:mt-6 flex items-center justify-between pt-3 sm:pt-4 border-t border-emerald-100/80 text-[11px] sm:text-xs font-extrabold text-emerald-800">
                     <span>Daftar Sebagai Faskes / RS</span>
-                    <div className="h-7 w-7 rounded-full bg-emerald-100 group-hover:bg-emerald-700 group-hover:text-white flex items-center justify-center transition-colors">
-                      <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-emerald-100 group-hover:bg-emerald-700 group-hover:text-white flex items-center justify-center transition-colors">
+                      <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
                 </button>
