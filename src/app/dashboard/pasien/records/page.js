@@ -45,74 +45,19 @@ export default function PatientRecordsPage() {
   const [selectedRecord, setSelectedRecord] = useState(null);
 
   // Initial Mock & Real Data Fetching
-  const initialRecordsData = [
-    {
-      id: "rec-101",
-      hospitalName: "RS Cipto Mangunkusumo",
-      hospitalCode: "RSCM-JKT-01",
-      doctorName: "dr. Amanda Setiadi, Sp.PD",
-      specialty: "Poli Penyakit Dalam",
-      category: "Diagnosa & Resep",
-      date: "12 Juli 2026",
-      time: "10:30 WIB",
-      txHash: "0x9f12a83b4c90e123a456b789c012d345e678f90a",
-      encryptedData: "U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNmFk...",
-      diagnosis: "Infeksi Saluran Pernapasan Akut (ISPA) dengan demam ringan.",
-      prescriptions: [
-        { medicine: "Amoxicillin 500mg", dosage: "3x1 Tablet sesudah makan (5 Hari)" },
-        { medicine: "Paracetamol 500mg", dosage: "3x1 Tablet jika demam (P.R.N)" },
-        { medicine: "Guaifenesin 100mg", dosage: "3x1 Tablet untuk batuk" }
-      ],
-      vitals: { bp: "120/80 mmHg", pulse: "82 bpm", temp: "37.5 °C", weight: "68 kg" },
-      notes: "Pasien disarankan istirahat cukup, banyak minum air hangat, dan kontrol ulang jika demam berlanjut lebih dari 3 hari."
-    },
-    {
-      id: "rec-102",
-      hospitalName: "Laboratorium Kimia Farma",
-      hospitalCode: "KKF-LAB-04",
-      doctorName: "Analis Lab Rian Hidayat, Amd.AK",
-      specialty: "Laboratorium Patologi Klinik",
-      category: "Hasil Laboratorium",
-      date: "28 Juni 2026",
-      time: "08:15 WIB",
-      txHash: "0x5f81e2c4d901a234b567c890d123e456f789a01b",
-      encryptedData: "85MmNlYTkyOQU2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5Y...",
-      diagnosis: "Pemeriksaan Profil Lipid & Gula Darah Puasa (GDP)",
-      prescriptions: [],
-      vitals: { bp: "118/78 mmHg", pulse: "76 bpm", temp: "36.6 °C", weight: "68 kg" },
-      notes: "Hasil Lab: Kolesterol Total 190 mg/dL (Normal < 200), HDL 55 mg/dL, LDL 110 mg/dL, Gula Darah Puasa 95 mg/dL (Normal). Semua indikator dalam batas optimal."
-    },
-    {
-      id: "rec-103",
-      hospitalName: "RS Harapan Kita",
-      hospitalCode: "RSHK-JKT-04",
-      doctorName: "dr. Budi Santoso, Sp.JP(K)",
-      specialty: "Kardiologi & Pembuluh Darah",
-      category: "Pemeriksaan EKG Jantung",
-      date: "14 Mei 2026",
-      time: "14:00 WIB",
-      txHash: "0x3f5be21a4c901a234b567c890d123e456f789a01c",
-      encryptedData: "99AaBbcCcDdEeFf1234567890U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2...",
-      diagnosis: "Sinus Rhythm Normal dengan Ventricular Extrasystole jarang.",
-      prescriptions: [
-        { medicine: "Suplemen Coenzyme Q10 100mg", dosage: "1x1 Kapsul pagi" }
-      ],
-      vitals: { bp: "125/82 mmHg", pulse: "72 bpm", temp: "36.7 °C", weight: "67.5 kg" },
-      notes: "Hasil EKG 12-lead menunjukkan ritme sinus normal. Tidak ditemukan iskemia akut. Disarankan olahraga teratur 30 menit sehari."
-    }
-  ];
-
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsed = JSON.parse(userData);
+        setUser(parsed);
         fetchHistoryFromBE();
       } catch (e) {
         console.error(e);
       }
+    } else {
+      setRecords([]);
     }
-    setRecords(initialRecordsData);
     setLoading(false);
   }, []);
 
@@ -124,7 +69,7 @@ export default function PatientRecordsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const result = await res.json();
-      if (res.ok && result.data && result.data.length > 0) {
+      if (res.ok && result.data) {
         const beRecords = result.data.map((item) => ({
           id: item.id,
           hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
@@ -144,7 +89,7 @@ export default function PatientRecordsPage() {
           vitals: { bp: "120/80 mmHg", pulse: "80 bpm", temp: "36.8 °C", weight: "65 kg" },
           notes: "Telah diverifikasi oleh faskes penanggung jawab."
         }));
-        setRecords([...beRecords, ...initialRecordsData]);
+        setRecords(beRecords);
       }
     } catch (err) {
       console.log("Error fetching history", err);

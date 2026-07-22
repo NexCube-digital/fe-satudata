@@ -34,6 +34,7 @@ export default function SettingPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [nik, setNik] = useState("");
+  const [isNikFilledOnLoad, setIsNikFilledOnLoad] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -44,6 +45,18 @@ export default function SettingPage() {
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState({ type: "", text: "" });
+
+  // Custom Date Picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date());
+
+  // Initial states to track changes
+  const [initialName, setInitialName] = useState("");
+  const [initialPhone, setInitialPhone] = useState("");
+  const [initialAddress, setInitialAddress] = useState("");
+  const [initialDateOfBirth, setInitialDateOfBirth] = useState("");
+  const [initialSex, setInitialSex] = useState("L");
+  const [initialNik, setInitialNik] = useState("");
 
   const handleResendVerification = async () => {
     if (!email) return;
@@ -67,26 +80,35 @@ export default function SettingPage() {
     }
   };
 
-  // State Profile Edit Toggles (Locked by default, except Email which is permanent)
+  // State Profile Edit Mode
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editableFields, setEditableFields] = useState({
-    name: false,
-    nik: false,
-    phone: false,
-    dateOfBirth: false,
-    sex: false,
-    address: false,
-  });
-
-  const toggleFieldEdit = (field) => {
-    setEditableFields((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
-  };
 
   const isFieldEditable = (field) => {
-    return isEditMode || Boolean(editableFields[field]);
+    if (field === "nik" && isNikFilledOnLoad) return false;
+    return isEditMode;
+  };
+
+  const hasChanges = 
+    name !== initialName ||
+    phone !== initialPhone ||
+    address !== initialAddress ||
+    (user?.role === "pasien" && (
+      dateOfBirth !== initialDateOfBirth ||
+      sex !== initialSex ||
+      (!isNikFilledOnLoad && nik !== initialNik)
+    )) ||
+    profilePictureFile !== null;
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setName(initialName);
+    setPhone(initialPhone);
+    setAddress(initialAddress);
+    setDateOfBirth(initialDateOfBirth);
+    setSex(initialSex);
+    setNik(initialNik);
+    setProfilePictureFile(null);
+    setProfilePicturePreview(null);
   };
 
   // State Security (Update Password)
@@ -109,8 +131,13 @@ export default function SettingPage() {
         const parsed = JSON.parse(userData);
         setUser(parsed);
         setName(parsed.name || "");
+        setInitialName(parsed.name || "");
         setEmail(parsed.email || "");
         setNik(parsed.nik || "");
+        setInitialNik(parsed.nik || "");
+        if (parsed.nik) {
+          setIsNikFilledOnLoad(true);
+        }
         setWalletAddress(parsed.wallet_address || "");
 
         // Fetch detailed profile from BE if available
@@ -121,6 +148,15 @@ export default function SettingPage() {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (dateOfBirth) {
+      const parsed = new Date(dateOfBirth);
+      if (!isNaN(parsed.getTime())) {
+        setViewDate(parsed);
+      }
+    }
+  }, [dateOfBirth]);
 
   const fetchProfile = async (currentUser) => {
     const token = localStorage.getItem("accessToken");
@@ -139,19 +175,41 @@ export default function SettingPage() {
       if (res.ok && result.data) {
         const u = result.data;
         setName(u.name || "");
+        setInitialName(u.name || "");
         setEmail(u.email || "");
-        setNik(u.nik || "");
+        const finalNik = u.nik || u.profil?.nik || "";
+        setNik(finalNik);
+        setInitialNik(finalNik);
+        if (finalNik) {
+          setIsNikFilledOnLoad(true);
+        }
         setStatusAccount(u.status_account || currentUser?.status_account || "active");
         setWalletAddress(u.wallet_address || "");
 
         if (u.profil) {
-          setPhone(u.profil.phone || "");
-          setAddress(u.profil.address || "");
-          setDateOfBirth(u.profil.date_of_birth ? u.profil.date_of_birth.substring(0, 10) : "");
-          setSex(u.profil.sex || "L");
+          const pPhone = u.profil.phone || "";
+          setPhone(pPhone);
+          setInitialPhone(pPhone);
+          
+          const pAddress = u.profil.address || "";
+          setAddress(pAddress);
+          setInitialAddress(pAddress);
+          
+          const pDob = u.profil.date_of_birth ? u.profil.date_of_birth.substring(0, 10) : "";
+          setDateOfBirth(pDob);
+          setInitialDateOfBirth(pDob);
+          
+          const pSex = u.profil.sex || "L";
+          setSex(pSex);
+          setInitialSex(pSex);
         } else if (u.hospitalProfile) {
-          setPhone(u.hospitalProfile.phone || "");
-          setAddress(u.hospitalProfile.address || "");
+          const hPhone = u.hospitalProfile.phone || "";
+          setPhone(hPhone);
+          setInitialPhone(hPhone);
+          
+          const hAddress = u.hospitalProfile.address || "";
+          setAddress(hAddress);
+          setInitialAddress(hAddress);
         }
 
         const computedAvatar = getAvatarUrl(u);
@@ -246,16 +304,17 @@ export default function SettingPage() {
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
       window.dispatchEvent(new Event("userUpdated"));
+      setInitialName(name);
+      setInitialPhone(phone);
+      setInitialAddress(address);
+      setInitialDateOfBirth(dateOfBirth);
+      setInitialSex(sex);
+      setInitialNik(nik);
+      if (nik) {
+        setIsNikFilledOnLoad(true);
+      }
       setProfilePictureFile(null);
       setIsEditMode(false);
-      setEditableFields({
-        name: false,
-        nik: false,
-        phone: false,
-        dateOfBirth: false,
-        sex: false,
-        address: false,
-      });
 
       setProfileMsg({ type: "success", text: result.message || "Profil berhasil diperbarui!" });
     } catch (err) {
@@ -457,34 +516,6 @@ export default function SettingPage() {
                   <User className="h-5 w-5 text-pink-600" />
                   Informasi Profil
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextMode = !isEditMode;
-                    setIsEditMode(nextMode);
-                    setEditableFields({
-                      name: nextMode,
-                      nik: nextMode,
-                      phone: nextMode,
-                      dateOfBirth: nextMode,
-                      sex: nextMode,
-                      address: nextMode,
-                    });
-                  }}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold transition cursor-pointer shadow-2xs"
-                >
-                  {isEditMode ? (
-                    <>
-                      <Lock className="h-3.5 w-3.5 text-rose-800" />
-                      <span>Kunci Semua Field</span>
-                    </>
-                  ) : (
-                    <>
-                      <Edit3 className="h-3.5 w-3.5 text-rose-800" />
-                      <span>Ubah Semua Data</span>
-                    </>
-                  )}
-                </button>
               </div>
 
               {profileMsg.text && (
@@ -545,25 +576,8 @@ export default function SettingPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Nama Lengkap {isFieldEditable("name") ? "(Dapat Diubah)" : "(Terkunci)"}
+                        Nama Lengkap
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => toggleFieldEdit("name")}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                      >
-                        {isFieldEditable("name") ? (
-                          <>
-                            <Lock className="h-3.5 w-3.5" />
-                            <span>Kunci</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" />
-                            <span>Ubah</span>
-                          </>
-                        )}
-                      </button>
                     </div>
                     <div className="relative">
                       <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -589,12 +603,7 @@ export default function SettingPage() {
                         Alamat Email (Akun)
                       </label>
                       
-                      {statusAccount === "active" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80 shadow-2xs">
-                          <CheckCircle className="h-3 w-3 text-emerald-600" />
-                          Terverifikasi & Aktif
-                        </span>
-                      ) : (
+                      {statusAccount !== "active" && (
                         <div className="flex items-center gap-1.5">
                           <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
                             <AlertCircle className="h-3 w-3 text-amber-600" />
@@ -611,163 +620,199 @@ export default function SettingPage() {
                         </div>
                       )}
                     </div>
-                    <input
-                      type="email"
-                      value={email}
-                      disabled
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium cursor-not-allowed"
-                    />
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      Identitas utama akun. (Permanen / Tidak dapat diubah)
-                    </p>
-                  </div>
-
-                  {/* NIK */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        NIK {isFieldEditable("nik") ? "(Dapat Diubah)" : "(Terkunci)"}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => toggleFieldEdit("nik")}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                      >
-                        {isFieldEditable("nik") ? (
-                          <>
-                            <Lock className="h-3.5 w-3.5" />
-                            <span>Kunci</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" />
-                            <span>Ubah</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      maxLength={16}
-                      value={nik}
-                      onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
-                      disabled={!isFieldEditable("nik")}
-                      className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono transition ${
-                        isFieldEditable("nik")
-                          ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
-                          : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                      }`}
-                      placeholder="3171010509840002"
-                    />
-                  </div>
-
-                  {/* Nomor Telepon */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Nomor Telepon {isFieldEditable("phone") ? "(Dapat Diubah)" : "(Terkunci)"}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => toggleFieldEdit("phone")}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                      >
-                        {isFieldEditable("phone") ? (
-                          <>
-                            <Lock className="h-3.5 w-3.5" />
-                            <span>Kunci</span>
-                          </>
-                        ) : (
-                          <>
-                            <Edit3 className="h-3.5 w-3.5" />
-                            <span>Ubah</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
                     <div className="relative">
-                      <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                       <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        disabled={!isFieldEditable("phone")}
-                        placeholder="+62 812 3456 7890"
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                          isFieldEditable("phone")
-                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
-                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                        }`}
+                        type="email"
+                        value={email}
+                        disabled
+                        className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium cursor-not-allowed font-mono"
                       />
+                      {statusAccount === "active" && (
+                        <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
+                      )}
                     </div>
                   </div>
+
+                   {/* NIK */}
+                   <div>
+                     <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                         NIK
+                       </label>
+                     </div>
+                     <div className="relative">
+                       <input
+                         type="text"
+                         maxLength={16}
+                         value={nik}
+                         onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
+                         disabled={isNikFilledOnLoad || !isFieldEditable("nik")}
+                         className={`w-full pl-4 pr-10 py-2.5 rounded-xl border text-sm font-mono transition ${
+                           !isNikFilledOnLoad && isFieldEditable("nik")
+                             ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                         }`}
+                         placeholder="3171010509840002"
+                       />
+                       {isNikFilledOnLoad && (
+                         <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
+                       )}
+                     </div>
+                   </div>
+
+                   {/* Nomor Telepon */}
+                   <div>
+                     <div className="flex items-center justify-between mb-2">
+                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                         Nomor Telepon
+                       </label>
+                     </div>
+                     <div className="relative">
+                       <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                       <input
+                         type="tel"
+                         value={phone}
+                         onChange={(e) => setPhone(e.target.value)}
+                         disabled={!isFieldEditable("phone")}
+                         placeholder="+62 812 3456 7890"
+                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                           isFieldEditable("phone")
+                             ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                         }`}
+                       />
+                     </div>
+                   </div>
 
                   {/* Pasien Specific Fields */}
                   {user?.role === "pasien" && (
                     <>
                       {/* Tanggal Lahir */}
-                      <div>
+                      <div className="relative">
                         <div className="flex items-center justify-between mb-2">
                           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Tanggal Lahir {isFieldEditable("dateOfBirth") ? "(Dapat Diubah)" : "(Terkunci)"}
+                            Tanggal Lahir
                           </label>
-                          <button
-                            type="button"
-                            onClick={() => toggleFieldEdit("dateOfBirth")}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                          >
-                            {isFieldEditable("dateOfBirth") ? (
-                              <>
-                                <Lock className="h-3.5 w-3.5" />
-                                <span>Kunci</span>
-                              </>
-                            ) : (
-                              <>
-                                <Edit3 className="h-3.5 w-3.5" />
-                                <span>Ubah</span>
-                              </>
-                            )}
-                          </button>
                         </div>
                         <div className="relative">
                           <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                           <input
-                            type="date"
-                            value={dateOfBirth}
-                            onChange={(e) => setDateOfBirth(e.target.value)}
-                            disabled={!isFieldEditable("dateOfBirth")}
+                            type="text"
+                            readOnly
+                            placeholder="Pilih Tanggal Lahir"
+                            value={
+                              dateOfBirth
+                                ? new Date(dateOfBirth).toLocaleDateString("id-ID", {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                  })
+                                : ""
+                            }
+                            onClick={() => {
+                              if (isFieldEditable("dateOfBirth")) {
+                                setShowDatePicker(!showDatePicker);
+                              }
+                            }}
                             className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                               isFieldEditable("dateOfBirth")
-                                ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                                ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden cursor-pointer"
                                 : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                             }`}
                           />
                         </div>
+
+                        {showDatePicker && isFieldEditable("dateOfBirth") && (
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
+                            <div className="absolute left-0 bottom-full mb-2 p-4 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-100">
+                              <div className="flex items-center justify-between gap-1 mb-3">
+                                <select
+                                  value={viewDate.getMonth()}
+                                  onChange={(e) => {
+                                    const newD = new Date(viewDate);
+                                    newD.setMonth(parseInt(e.target.value));
+                                    setViewDate(newD);
+                                  }}
+                                  className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white outline-hidden cursor-pointer"
+                                >
+                                  {[
+                                    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+                                  ].map((m, idx) => (
+                                    <option key={idx} value={idx}>{m}</option>
+                                  ))}
+                                </select>
+
+                                <select
+                                  value={viewDate.getFullYear()}
+                                  onChange={(e) => {
+                                    const newD = new Date(viewDate);
+                                    newD.setFullYear(parseInt(e.target.value));
+                                    setViewDate(newD);
+                                  }}
+                                  className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white outline-hidden cursor-pointer"
+                                >
+                                  {Array.from(
+                                    { length: new Date().getFullYear() - 1939 },
+                                    (_, i) => new Date().getFullYear() - i
+                                  ).map((y) => (
+                                    <option key={y} value={y}>{y}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-1">
+                                {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                                  <div key={d}>{d}</div>
+                                ))}
+                              </div>
+
+                              <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                {Array.from({
+                                  length: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay(),
+                                }).map((_, idx) => (
+                                  <div key={`empty-${idx}`} />
+                                ))}
+                                {Array.from({
+                                  length: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate(),
+                                }).map((_, idx) => {
+                                  const dayNum = idx + 1;
+                                  const formattedMonth = String(viewDate.getMonth() + 1).padStart(2, "0");
+                                  const formattedDay = String(dayNum).padStart(2, "0");
+                                  const isSelected =
+                                    dateOfBirth === `${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`;
+
+                                  return (
+                                    <button
+                                      key={`day-${dayNum}`}
+                                      type="button"
+                                      onClick={() => {
+                                        setDateOfBirth(`${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`);
+                                        setShowDatePicker(false);
+                                      }}
+                                      className={`py-1.5 rounded-lg font-semibold hover:bg-pink-50 transition cursor-pointer ${
+                                        isSelected
+                                          ? "bg-pink-600 text-white hover:bg-pink-600"
+                                          : "text-slate-700"
+                                      }`}
+                                    >
+                                      {dayNum}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Jenis Kelamin */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                            Jenis Kelamin {isFieldEditable("sex") ? "(Dapat Diubah)" : "(Terkunci)"}
+                            Jenis Kelamin
                           </label>
-                          <button
-                            type="button"
-                            onClick={() => toggleFieldEdit("sex")}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                          >
-                            {isFieldEditable("sex") ? (
-                              <>
-                                <Lock className="h-3.5 w-3.5" />
-                                <span>Kunci</span>
-                              </>
-                            ) : (
-                              <>
-                                <Edit3 className="h-3.5 w-3.5" />
-                                <span>Ubah</span>
-                              </>
-                            )}
-                          </button>
                         </div>
                         <select
                           value={sex}
@@ -787,30 +832,13 @@ export default function SettingPage() {
                   )}
                 </div>
 
-                {/* Alamat Tempat Tinggal */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Alamat Tempat Tinggal {isFieldEditable("address") ? "(Dapat Diubah)" : "(Terkunci)"}
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => toggleFieldEdit("address")}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-pink-600 hover:text-pink-700 transition cursor-pointer"
-                    >
-                      {isFieldEditable("address") ? (
-                        <>
-                          <Lock className="h-3.5 w-3.5" />
-                          <span>Kunci</span>
-                        </>
-                      ) : (
-                        <>
-                          <Edit3 className="h-3.5 w-3.5" />
-                          <span>Ubah</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                 {/* Alamat Tempat Tinggal */}
+                 <div>
+                   <div className="flex items-center justify-between mb-2">
+                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                       Alamat Tempat Tinggal
+                     </label>
+                   </div>
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <input
@@ -828,20 +856,40 @@ export default function SettingPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={profileLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50"
-                  >
-                    {profileLoading ? (
-                      <Loader className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    Simpan Perubahan
-                  </button>
-                </div>
+                 <div className="pt-4 border-t border-slate-100 flex justify-end">
+                   {!isEditMode ? (
+                     <button
+                       type="button"
+                       onClick={() => setIsEditMode(true)}
+                       className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-pink-500 transition cursor-pointer"
+                     >
+                       <Edit3 className="h-4 w-4" />
+                       Ubah Data
+                     </button>
+                   ) : (
+                     <div className="flex gap-3">
+                       <button
+                         type="button"
+                         onClick={handleCancelEdit}
+                         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
+                       >
+                         Batal
+                       </button>
+                       <button
+                         type="submit"
+                         disabled={profileLoading || !hasChanges}
+                         className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                       >
+                         {profileLoading ? (
+                           <Loader className="h-4 w-4 animate-spin" />
+                         ) : (
+                           <Save className="h-4 w-4" />
+                         )}
+                         Simpan Perubahan
+                       </button>
+                     </div>
+                   )}
+                 </div>
               </form>
             </div>
           )}

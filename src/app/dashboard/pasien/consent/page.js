@@ -36,66 +36,10 @@ export default function PatientConsentPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Consent list state
-  const [requests, setRequests] = useState([
-    {
-      id: "req-1",
-      hospitalName: "RS Cipto Mangunkusumo",
-      hospitalCode: "RSCM-JKT-01",
-      department: "Klinik Penyakit Dalam & Bedah Utama",
-      doctorName: "dr. Amanda Setiadi, Sp.PD",
-      accessScope: ["Riwayat Diagnosa", "Resep Obat", "Hasil Laboratorium"],
-      duration: "30 Hari",
-      status: "approved",
-      txHash: "0x9f12a83b4c90e123a456b789c012d345e678f90a",
-      grantedAt: "12 Juli 2026",
-      expiresAt: "11 Agustus 2026"
-    },
-    {
-      id: "req-2",
-      hospitalName: "RS Harapan Kita",
-      hospitalCode: "RSHK-JKT-04",
-      department: "Poli Spesialis Jantung & Kardiologi",
-      doctorName: "dr. Budi Santoso, Sp.JP(K)",
-      accessScope: ["Rekam Medis Jantung", "EKG 12-Lead"],
-      duration: "14 Hari",
-      status: "approved",
-      txHash: "0x5f81e2c4d901a234b567c890d123e456f789a01b",
-      grantedAt: "28 Juni 2026",
-      expiresAt: "12 Juli 2026"
-    },
-    {
-      id: "req-3",
-      hospitalName: "RS Pusat Pertamina",
-      hospitalCode: "RSPP-JKT-09",
-      department: "Instalasi Gawat Darurat (UGD)",
-      doctorName: "dr. Hendra Wijaya, Sp.An",
-      accessScope: ["Golongan Darah", "Riwayat Alergi Obat", "Tanda Vital"],
-      duration: "7 Hari",
-      status: "pending",
-      txHash: "Menunggu Otorisasi Pasien",
-      grantedAt: "Baru saja",
-      expiresAt: "-"
-    },
-    {
-      id: "req-4",
-      hospitalName: "Klinik Kimia Farma Utama",
-      hospitalCode: "KKF-JKT-02",
-      department: "Laboratorium Patologi Klinik",
-      doctorName: "Analis Rian Hidayat, Amd.AK",
-      accessScope: ["Hasil Tes Lab Kolesterol & Gula Darah"],
-      duration: "Permanen (Revokable)",
-      status: "revoked",
-      txHash: "0x2a11c990d123e456f789a01b2c34d567e890f12a",
-      grantedAt: "10 Mei 2026",
-      expiresAt: "Akses Dicabut Pasien"
-    }
-  ]);
+  const [requests, setRequests] = useState([]);
 
   // Audit Log State
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, action: "grantAccess() Approved", hospital: "RS Cipto Mangunkusumo", txHash: "0x9f12...f90a", timestamp: "10 menit lalu", status: "success" },
-    { id: 2, action: "revokeAccess() Executed", hospital: "Klinik Kimia Farma Utama", txHash: "0x2a11...f12a", timestamp: "3 hari lalu", status: "error" }
-  ]);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -134,9 +78,7 @@ export default function PatientConsentPage() {
           expiresAt: item.expire_time ? new Date(item.expire_time).toLocaleDateString("id-ID") : "-"
         }));
 
-        if (beRequests.length > 0) {
-          setRequests(beRequests);
-        }
+        setRequests(beRequests);
       }
     } catch (err) {
       console.log("Error loading requests", err);
@@ -168,9 +110,7 @@ export default function PatientConsentPage() {
             status: item.status === "success" ? "success" : "error"
           };
         });
-        if (mapped.length > 0) {
-          setAuditLogs(mapped);
-        }
+        setAuditLogs(mapped);
       }
     } catch (err) {
       console.log("Error loading audit logs", err);

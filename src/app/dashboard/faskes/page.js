@@ -32,45 +32,14 @@ export default function FaskesDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Form Minta Akses State
-  const [nikInput, setNikInput] = useState("3171010509840002");
+  // Form Minta Akses State (nikInput is the wallet address of the patient in Web3)
+  const [nikInput, setNikInput] = useState("");
   const [poliInput, setPoliInput] = useState("Klinik Penyakit Dalam");
   const [purposeInput, setPurposeInput] = useState("Pemeriksaan Rutin & Resep Obat");
   const [submittingRequest, setSubmittingRequest] = useState(false);
 
   // External Requests Table State
-  const [requestsList, setRequestsList] = useState([
-    {
-      id: 1,
-      patientName: "Budi Santoso, S.Kom",
-      nik: "3171010509840002",
-      poli: "Klinik Penyakit Dalam",
-      status: "Approved",
-      txHash: "0x9f12...a3bc",
-      requestedAt: "10 menit lalu",
-      decryptedData: "Diagnosis: ISPA | Terapi: Amoxicillin 500mg (3x1), Paracetamol 500mg"
-    },
-    {
-      id: 2,
-      patientName: "Siti Rahmawati",
-      nik: "3171024508910004",
-      poli: "Poli Jantung (Kardiologi)",
-      status: "Approved",
-      txHash: "0x5f81...e2c4",
-      requestedAt: "2 jam lalu",
-      decryptedData: "Diagnosis: Arrhythmia Ringan | Terapi: Propranolol 10mg"
-    },
-    {
-      id: 3,
-      patientName: "Ahmad Dahlan",
-      nik: "3171031201780001",
-      poli: "Laboratorium Utama",
-      status: "Pending Pasien",
-      txHash: "Menunggu Signature",
-      requestedAt: "5 menit lalu",
-      decryptedData: null
-    }
-  ]);
+  const [requestsList, setRequestsList] = useState([]);
 
   // Selected Decrypted Record Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -94,8 +63,35 @@ export default function FaskesDashboard() {
         console.error(e);
       }
     }
+    fetchRequestsList();
     setLoading(false);
   }, []);
+
+  const fetchRequestsList = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const mapped = result.data.map((item) => ({
+          id: item.id,
+          patientId: item.patient_id,
+          patientName: item.patient?.name || "Pasien Terdaftar",
+          nik: item.patient?.wallet_address ? `${item.patient.wallet_address.substring(0, 6)}...${item.patient.wallet_address.substring(38)}` : "0x0000...0000",
+          poli: item.requested_data || "Instalasi Medis",
+          status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
+          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Signature",
+          requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
+        }));
+        setRequestsList(mapped);
+      }
+    } catch (err) {
+      console.log("Error loading requests list:", err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -104,26 +100,66 @@ export default function FaskesDashboard() {
     router.push("/auth/login");
   };
 
-  // Submit Request Access
-  const handleSendRequest = (e) => {
+  const handleSendRequest = async (e) => {
     e.preventDefault();
     if (!nikInput) return;
     setSubmittingRequest(true);
 
-    setTimeout(() => {
-      const newReq = {
-        id: Date.now(),
-        patientName: nikInput === "3171010509840002" ? "Budi Santoso, S.Kom" : `Pasien (NIK ${nikInput.substring(0,6)}...)`,
-        nik: nikInput,
-        poli: poliInput,
-        status: "Pending Pasien",
-        txHash: "0x" + Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join("") + "...",
-        requestedAt: "Baru saja",
-        decryptedData: null
-      };
-      setRequestsList([newReq, ...requestsList]);
+    const token = localStorage.getItem("accessToken");
+    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          patientWalletAddress: nikInput,
+          jenisDataDiminta: poliInput,
+          txHash
+        })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        fetchRequestsList();
+        setNikInput("");
+      } else {
+        alert(result.message || "Gagal membuat permohonan akses");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat mengirimkan permohonan");
+    } finally {
       setSubmittingRequest(false);
-    }, 800);
+    }
+  };
+
+  const handleViewPatientRecords = async (req) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    const signature = "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/patient/${req.patientId}?signature=${signature}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const recordsStr = result.data.map(r => `• [${r.record_type.toUpperCase()}] ${r.title} (Visit: ${new Date(r.visit_date).toLocaleDateString("id-ID")})`).join("\n") || "Belum ada rekam medis terdaftar untuk pasien ini.";
+        setSelectedRecord({
+          ...req,
+          decryptedData: recordsStr
+        });
+      } else {
+        alert(result.message || "Gagal memuat rekam medis");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat memproses data medis");
+    }
   };
 
   // Add POS item
@@ -405,7 +441,7 @@ export default function FaskesDashboard() {
                           <td className="py-3.5 px-4 text-right">
                             {req.status === "Approved" ? (
                               <button
-                                onClick={() => setSelectedRecord(req)}
+                                onClick={() => handleViewPatientRecords(req)}
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 font-bold transition cursor-pointer"
                               >
                                 <Eye className="h-3.5 w-3.5" /> Lihat EHR

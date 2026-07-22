@@ -123,33 +123,7 @@ export default function PasienDashboard() {
           diagnosis: item.title || "Konsultasi Medis",
           details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
         }));
-        
-        if (mapped.length > 0) {
-          setMedicalRecords(mapped);
-        } else {
-          setMedicalRecords([
-            {
-              id: "rec1",
-              hospitalName: "RS Cipto Mangunkusumo",
-              doctorName: "dr. Amanda Amanda, Sp.PD",
-              category: "Poli Bedah",
-              date: "12 Juli 2026",
-              txHash: "0x9f12...a3bc",
-              diagnosis: "Infeksi Saluran Pernapasan (ISPA)",
-              details: "Resep: Amoxicillin 500mg (3x1 sesudah makan), Paracetamol 500mg (P.R.N). Catatan: Pasien mengeluh batuk berdahak 3 hari. Tanda vital stabil."
-            },
-            {
-              id: "rec2",
-              hospitalName: "Laboratorium Kimia Farma",
-              doctorName: "Analis Lab Rian Hidayat, Amd.AK",
-              category: "Hasil Laboratorium",
-              date: "28 Juni 2026",
-              txHash: "0x5f81...e2c4",
-              diagnosis: "Tes Kolesterol & Gula Darah Puasa (GDP)",
-              details: "Hasil Lab: Kolesterol Total 190 mg/dL (Normal), GDP 95 mg/dL (Normal)."
-            }
-          ]);
-        }
+        setMedicalRecords(mapped);
       }
     } catch (err) {
       console.log("Error fetching history", err);
@@ -178,15 +152,7 @@ export default function PasienDashboard() {
             type: item.status === "success" ? "success" : "info"
           };
         });
-        
-        if (mapped.length > 0) {
-          setAuditLogs(mapped);
-        } else {
-          setAuditLogs([
-            { id: 1, action: "Consent Granted", hospital: "RS Cipto Mangunkusumo", hash: "0x9f12...a3bc", time: "10 menit lalu", type: "success" },
-            { id: 2, action: "EHR Encrypted Upload", hospital: "RS Harapan Kita", hash: "0x5f81...e2c4", time: "2 hari lalu", type: "info" }
-          ]);
-        }
+        setAuditLogs(mapped);
       }
     } catch (err) {
       console.log("Error fetching audit logs", err);
@@ -567,18 +533,22 @@ export default function PasienDashboard() {
                 </h3>
 
                 <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                  {auditLogs.map((log) => (
-                    <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`font-bold ${log.type === "success" ? "text-emerald-700" : "text-rose-700"}`}>
-                          {log.action}
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-400">{log.time}</span>
+                  {auditLogs.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada log aktivitas blockchain.</p>
+                  ) : (
+                    auditLogs.map((log) => (
+                      <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`font-bold ${log.type === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+                            {log.action}
+                          </span>
+                          <span className="text-[9px] font-mono text-slate-400">{log.time}</span>
+                        </div>
+                        <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
+                        <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: {log.hash}</p>
                       </div>
-                      <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                      <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: {log.hash}</p>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
