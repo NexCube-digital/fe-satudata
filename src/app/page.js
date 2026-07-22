@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AudienceSwitcher from "@/components/landing/audience-switcher";
 import FeatureGrid from "@/components/landing/feature-grid";
 import Footer from "@/components/landing/footer";
@@ -11,6 +11,34 @@ import CTASection from "@/components/landing/cta-section";
 
 export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false);
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.1
+    };
+
+    const callback = (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("revealed");
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(callback, observerOptions);
+    const targets = document.querySelectorAll(
+      ".reveal-on-scroll, .reveal-left, .reveal-right, .reveal-scale"
+    );
+
+    targets.forEach((target) => observer.observe(target));
+
+    return () => {
+      targets.forEach((target) => observer.unobserve(target));
+    };
+  }, []);
 
   return (
     <main className="relative overflow-hidden pt-16 sm:pt-20">

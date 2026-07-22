@@ -5,7 +5,7 @@ export default function WorkflowSection() {
   return (
     <section id="alur" className="glass-panel rounded-3xl border border-slate-200/80 bg-white px-6 py-10 shadow-sm sm:px-10 lg:px-14 lg:py-12">
       {/* Header */}
-      <div className="max-w-3xl mb-10">
+      <div className="max-w-3xl mb-10 reveal-on-scroll">
         <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1 text-xs font-bold text-rose-800 mb-3">
           <ShieldCheck className="h-3.5 w-3.5 text-rose-600" />
           Alur Keamanan Data End-to-End
@@ -21,7 +21,7 @@ export default function WorkflowSection() {
       {/* Horizontal Steps Grid */}
       <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {workflowSteps.map((step, index) => (
-          <div key={step.step} className="group relative flex flex-col items-start rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-2xs transition-all duration-300 hover:bg-white hover:border-rose-300 hover:shadow-md">
+          <div key={step.step} className="group relative flex flex-col items-start rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-2xs transition-all duration-300 hover:bg-white hover:border-rose-300 hover:shadow-md reveal-scale">
             {/* Step Bubble Indicator */}
             <div className="flex items-center justify-between w-full">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-white text-xs font-extrabold text-rose-800 shadow-2xs group-hover:scale-105 transition duration-200">

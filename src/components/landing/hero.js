@@ -33,7 +33,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
 
       <div className="relative grid h-full gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-10">
         {/* Left Column: Heading and Info */}
-        <div className="space-y-6">
+        <div className="space-y-6 reveal-left">
           <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/80 px-3.5 py-1 text-xs font-semibold tracking-wide text-rose-800 shadow-2xs">
             <Sparkles className="h-3.5 w-3.5 text-rose-600 animate-pulse" />
             Integrasi Official SATUSEHAT Kemenkes & Web3 Sovereign
@@ -67,11 +67,11 @@ export default function Hero({ walletConnected, setWalletConnected }) {
         </div>
 
         {/* Right Column: High Fidelity Mockup Dashboard */}
-        <div className="relative lg:ml-4">
+        <div className="relative lg:ml-4 reveal-right">
           <div className="absolute inset-0 bg-radial-glow blur-2xl pointer-events-none" />
 
           {/* Base Mockup Container */}
-          <div className="glass-panel relative rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_24px_70px_rgba(244,114,182,0.14)]">
+          <div className="glass-panel relative rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_24px_70px_rgba(244,114,182,0.14)] animate-float">
             {/* Header elements */}
             <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3.5">
               <div className="flex items-center gap-2.5">

@@ -97,7 +97,7 @@ export default function AudienceSwitcher() {
   return (
     <section id="panel" className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start py-8">
       {/* Left Column: Switcher Controls */}
-      <div className="glass-panel rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+      <div className="glass-panel rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 reveal-left">
         <p className="text-xs font-extrabold uppercase tracking-[0.35em] text-rose-800">Pilih Konteks Pengguna</p>
         <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight tracking-tight">
           Dasbor Demo Interaktif
@@ -154,7 +154,7 @@ export default function AudienceSwitcher() {
       </div>
 
       {/* Right Column: Live Simulator Screen */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 text-slate-900 shadow-md sm:p-7">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 text-slate-900 shadow-md sm:p-7 reveal-right">
         <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${current.accent}`} />
 
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">

@@ -11,7 +11,7 @@ const iconMap = {
 export default function FeatureGrid() {
   return (
     <section id="fitur" className="py-8 space-y-6">
-      <div className="text-center max-w-2xl mx-auto space-y-2 mb-8">
+      <div className="text-center max-w-2xl mx-auto space-y-2 mb-8 reveal-on-scroll">
         <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1 text-xs font-bold text-rose-800">
           <Sparkles className="h-3.5 w-3.5 text-rose-600" />
           Keunggulan Utama Platform
@@ -31,7 +31,7 @@ export default function FeatureGrid() {
           return (
             <article
               key={item.title}
-              className="group relative rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-xl hover:shadow-rose-950/5 flex flex-col justify-between"
+              className="group relative rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-rose-300 hover:shadow-xl hover:shadow-rose-950/5 flex flex-col justify-between reveal-scale"
             >
               {/* Top Glow Accent */}
               <div className="absolute top-0 right-0 h-20 w-20 bg-rose-500/5 blur-xl group-hover:bg-rose-500/10 transition duration-500 pointer-events-none" />

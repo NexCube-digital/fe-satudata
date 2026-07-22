@@ -2,7 +2,7 @@ import { Building, ArrowRight, Activity, ShieldCheck } from "lucide-react";
 
 export default function CTASection() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-950 px-6 py-12 text-white shadow-xl sm:px-10 lg:px-14 lg:py-16">
+    <section className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-950 px-6 py-12 text-white shadow-xl sm:px-10 lg:px-14 lg:py-16 reveal-scale">
       {/* Decorative Background Gradients */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_40%),radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.2),transparent_45%)]" />
       <div className="pointer-events-none absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-rose-500/10 blur-[80px]" />
