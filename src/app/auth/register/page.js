@@ -30,11 +30,17 @@ export default function RegisterPage() {
   const [step, setStep] = useState(1); // 1: Choose Role, 2: Form Input
   const [role, setRole] = useState("pasien");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isContractAccepted, setIsContractAccepted] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [hasReadContract, setHasReadContract] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Essential Form Fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [nik, setNik] = useState("");
 
   // Faskes specific essential fields
@@ -46,46 +52,48 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // OTP / Resend Activation State
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpMsg, setOtpMsg] = useState({ type: "", text: "" });
-  const [countdown, setCountdown] = useState(0);
-
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
     setStep(2);
   };
 
-  const handleSendOtp = async () => {
-    if (!email || !email.includes("@")) {
-      setOtpMsg({ type: "error", text: "Masukkan alamat email yang valid terlebih dahulu" });
-      return;
-    }
-
-    setOtpLoading(true);
-    setOtpMsg({ type: "", text: "" });
-
-    try {
-      const res = await apiPost("/api/auth/resend-activation", { email });
-      if (res.success) {
-        setOtpMsg({ type: "success", text: res.message || "Kode OTP / Tautan aktivasi berhasil dikirim ke email Anda!" });
-        setCountdown(60);
-        const timer = setInterval(() => {
-          setCountdown((prev) => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      } else {
-        setOtpMsg({ type: "error", text: res.message || "Gagal mengirimkan kode verifikasi OTP." });
+  const handleNextStep2 = () => {
+    setError("");
+    if (role === "pasien") {
+      if (!nik || nik.length !== 16) {
+        setError("NIK harus berupa 16 digit angka.");
+        return;
       }
-    } catch (err) {
-      setOtpMsg({ type: "error", text: err.message || "Terjadi kesalahan saat menghubungi server." });
-    } finally {
-      setOtpLoading(false);
+      if (!name.trim()) {
+        setError("Nama lengkap pasien harus diisi.");
+        return;
+      }
+      if (!email || !email.includes("@")) {
+        setError("Masukkan alamat email yang valid.");
+        return;
+      }
+    } else if (role === "rumah_sakit") {
+      if (!name.trim()) {
+        setError("Nama fasilitas kesehatan / RS harus diisi.");
+        return;
+      }
+      if (!email || !email.includes("@")) {
+        setError("Masukkan alamat email yang valid.");
+        return;
+      }
+    }
+    setStep(3);
+  };
+
+  const openContractModal = () => {
+    setHasReadContract(false);
+    setShowContractModal(true);
+  };
+
+  const handleScrollContract = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop - clientHeight <= 8) {
+      setHasReadContract(true);
     }
   };
 
@@ -93,6 +101,22 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!password || password.length < 8) {
+      setError("Password minimal harus 8 karakter.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Konfirmasi password tidak cocok dengan password.");
+      return;
+    }
+
+    if (!isContractAccepted) {
+      setError("Anda harus menyetujui Kontrak Digital SatuData sebelum mendaftar.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -113,10 +137,7 @@ export default function RegisterPage() {
       const result = await apiPost("/api/auth/register", payload);
 
       if (result.success) {
-        setSuccess(result.message || "Registrasi berhasil! Silakan periksa email Anda untuk mengaktifkan akun.");
-        setTimeout(() => {
-          router.push("/auth/login");
-        }, 3000);
+        setShowSuccessModal(true);
       }
     } catch (err) {
       setError(err.message || "Registrasi gagal, periksa kembali kelengkapan data Anda.");
@@ -331,8 +352,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* STEP 2: STREAMLINED FORM INPUT */}
-          {step === 2 && (
+          {/* STEP 2 & 3: STREAMLINED FORM INPUT */}
+          {(step === 2 || step === 3) && (
             <div className="flex-1 lg:min-h-0 flex flex-col bg-white rounded-3xl border border-slate-200/90 shadow-xl lg:overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Form Title Header (Fixed) */}
@@ -340,25 +361,29 @@ export default function RegisterPage() {
                 <div className="flex items-center justify-between mb-2">
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(step - 1)}
                     className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-500 hover:text-[#7F1D1D] cursor-pointer transition"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
-                    <span>Ubah Peran Pendaftaran</span>
+                    <span>{step === 2 ? "Ubah Peran Pendaftaran" : "Ubah Informasi Utama"}</span>
                   </button>
 
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
-                    Role: {role === "pasien" ? "Pasien Baru" : "Fasilitas Kesehatan"}
+                    Langkah {step} dari 3
                   </span>
                 </div>
 
                 <h2 className="text-xl font-extrabold text-slate-900">
-                  {role === "pasien" ? "Formulir Pendaftaran Pasien" : "Formulir Registrasi Faskes / RS"}
+                  {step === 2 
+                    ? (role === "pasien" ? "Formulir Pendaftaran Pasien" : "Formulir Registrasi Faskes / RS")
+                    : (role === "pasien" ? "Buat Kata Sandi Pasien" : "Buat Kata Sandi Faskes")}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                  {role === "pasien" 
-                    ? "Isi data utama Anda di bawah ini. Data pendukung lainnya dapat dilengkapi nanti di Pengaturan." 
-                    : "Isi data utama instansi Anda di bawah ini. Informasi pendukung dapat diperbarui nanti."}
+                  {step === 2 
+                    ? (role === "pasien" 
+                      ? "Isi data utama Anda di bawah ini. Data pendukung lainnya dapat dilengkapi nanti di Pengaturan." 
+                      : "Isi data utama instansi Anda di bawah ini. Informasi pendukung dapat diperbarui nanti.")
+                    : "Tentukan kata sandi yang kuat untuk mengamankan akses akun SatuData Anda."}
                 </p>
               </div>
 
@@ -378,8 +403,8 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* PASIEN STREAMLINED FORM FIELDS */}
-                {role === "pasien" && (
+                {/* PASIEN STREAMLINED FORM FIELDS (STEP 2) */}
+                {role === "pasien" && step === 2 && (
                   <div className="space-y-4">
                     {/* 1. NIK Pasien */}
                     <div>
@@ -415,33 +440,11 @@ export default function RegisterPage() {
                       </div>
                     </div>
 
-                    {/* 3. Email Aktif + Kirim OTP */}
+                    {/* 3. Email Aktif */}
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                          3. Email Aktif *
-                        </label>
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          disabled={otpLoading || countdown > 0 || !email}
-                          className="text-[11px] font-extrabold text-[#7F1D1D] hover:text-[#A61B2D] disabled:text-slate-400 cursor-pointer flex items-center gap-1 transition"
-                        >
-                          {otpLoading ? (
-                            <>
-                              <Loader className="h-3 w-3 animate-spin" />
-                              <span>Mengirim...</span>
-                            </>
-                          ) : countdown > 0 ? (
-                            <span>Kirim Ulang ({countdown}s)</span>
-                          ) : (
-                            <>
-                              <Zap className="h-3 w-3 text-amber-500" />
-                              <span>Kirim Kode OTP</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        3. Email Aktif *
+                      </label>
                       <div className="relative">
                         <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                         <input
@@ -456,50 +459,12 @@ export default function RegisterPage() {
                           required
                         />
                       </div>
-                      {otpMsg.text && (
-                        <p className={`text-[10px] font-semibold mt-1 flex items-center gap-1 ${
-                          otpMsg.type === "success" ? "text-emerald-600" : "text-rose-600"
-                        }`}>
-                          {otpMsg.type === "success" ? <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" /> : <AlertCircle className="h-3 w-3 shrink-0 text-rose-600" />}
-                          <span>{otpMsg.text}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    {/* 4. Password */}
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        4. Password *
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Masukkan kata sandi akun Anda (minimal 8 karakter)"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
-                          aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* RUMAH SAKIT STREAMLINED FORM FIELDS */}
-                {role === "rumah_sakit" && (
+                {/* RUMAH SAKIT STREAMLINED FORM FIELDS (STEP 2) */}
+                {role === "rumah_sakit" && step === 2 && (
                   <div className="space-y-4">
                     {/* 1. Nama Fasilitas Kesehatan */}
                     <div>
@@ -535,33 +500,11 @@ export default function RegisterPage() {
                       </select>
                     </div>
 
-                    {/* 3. Email Aktif + Kirim OTP */}
+                    {/* 3. Email Aktif */}
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                          3. Email Aktif *
-                        </label>
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          disabled={otpLoading || countdown > 0 || !email}
-                          className="text-[11px] font-extrabold text-[#7F1D1D] hover:text-[#A61B2D] disabled:text-slate-400 cursor-pointer flex items-center gap-1 transition"
-                        >
-                          {otpLoading ? (
-                            <>
-                              <Loader className="h-3 w-3 animate-spin" />
-                              <span>Mengirim...</span>
-                            </>
-                          ) : countdown > 0 ? (
-                            <span>Kirim Ulang ({countdown}s)</span>
-                          ) : (
-                            <>
-                              <Zap className="h-3 w-3 text-amber-500" />
-                              <span>Kirim Kode OTP</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        3. Email Aktif *
+                      </label>
                       <div className="relative">
                         <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                         <input
@@ -576,14 +519,6 @@ export default function RegisterPage() {
                           required
                         />
                       </div>
-                      {otpMsg.text && (
-                        <p className={`text-[10px] font-semibold mt-1 flex items-center gap-1 ${
-                          otpMsg.type === "success" ? "text-emerald-600" : "text-rose-600"
-                        }`}>
-                          {otpMsg.type === "success" ? <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" /> : <AlertCircle className="h-3 w-3 shrink-0 text-rose-600" />}
-                          <span>{otpMsg.text}</span>
-                        </p>
-                      )}
                     </div>
 
                     {/* 4. Kepemilikan */}
@@ -601,11 +536,16 @@ export default function RegisterPage() {
                         <option value="bumn">BUMN</option>
                       </select>
                     </div>
+                  </div>
+                )}
 
-                    {/* 5. Password */}
+                {/* PASSWORD & CONFIRM PASSWORD (STEP 3) */}
+                {step === 3 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    {/* Password */}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        5. Password *
+                        Kata Sandi Akun *
                       </label>
                       <div className="relative">
                         <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -613,7 +553,7 @@ export default function RegisterPage() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Masukkan kata sandi akun Anda (minimal 8 karakter)"
+                          placeholder="Masukkan kata sandi (minimal 8 karakter)"
                           className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
                           required
                         />
@@ -631,36 +571,107 @@ export default function RegisterPage() {
                         </button>
                       </div>
                     </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Konfirmasi Kata Sandi *
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Ulangi kata sandi Anda"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                          aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Digital Contract Checkbox */}
+                    <div className="flex items-start gap-2.5 pt-2">
+                      <input
+                        type="checkbox"
+                        id="contract-checkbox"
+                        checked={isContractAccepted}
+                        onChange={(e) => {
+                          if (!isContractAccepted) {
+                            openContractModal();
+                          } else {
+                            setIsContractAccepted(false);
+                          }
+                        }}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#7F1D1D] focus:ring-[#7F1D1D]/20 cursor-pointer"
+                      />
+                      <label htmlFor="contract-checkbox" className="text-xs text-slate-600 font-medium leading-relaxed select-none">
+                        Saya menyetujui ketentuan{" "}
+                        <button
+                          type="button"
+                          onClick={openContractModal}
+                          className="text-[#7F1D1D] hover:underline font-bold focus:outline-none cursor-pointer"
+                        >
+                          Kontrak Digital SatuData
+                        </button>{" "}
+                        mengenai privasi rekam medis & keamanan data blockchain. *
+                      </label>
+                    </div>
                   </div>
                 )}
 
                 {/* Optional Info Banner */}
-                <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3.5 text-xs text-amber-800 flex items-start gap-2.5 mt-4">
-                  <Sparkles className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-                  <p className="leading-relaxed text-[11px] font-semibold">
-                    <strong>Catatan:</strong> Data pendukung lainnya (seperti Tempat/Tanggal Lahir, Alamat, No. Telepon, Lisensi Medis, Website, dll) bersifat <em>opsional</em> dan dapat Anda lengkapi kapan saja pada fitur <strong>Setting Akun</strong> setelah masuk.
-                  </p>
-                </div>
+                {step === 2 && (
+                  <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3.5 text-xs text-amber-800 flex items-start gap-2.5 mt-4">
+                    <Sparkles className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                    <p className="leading-relaxed text-[11px] font-semibold">
+                      <strong>Catatan:</strong> Data pendukung lainnya (seperti Tempat/Tanggal Lahir, Alamat, No. Telepon, Lisensi Medis, Website, dll) bersifat <em>opsional</em> dan dapat Anda lengkapi kapan saja pada fitur <strong>Setting Akun</strong> setelah masuk.
+                    </p>
+                  </div>
+                )}
 
-                {/* Submit Button */}
+                {/* Action Buttons */}
                 <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#7F1D1D] to-[#A61B2D] hover:from-[#A61B2D] hover:to-[#7F1D1D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-50 shadow-md hover:shadow-lg"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader className="h-4 w-4 animate-spin" />
-                        Sedang Mendaftarkan Akun...
-                      </>
-                    ) : (
-                      <>
-                        <span>{role === "pasien" ? "Selesaikan Pendaftaran Pasien" : "Selesaikan Pendaftaran Faskes"}</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
+                  {step === 2 ? (
+                    <button
+                      type="button"
+                      onClick={handleNextStep2}
+                      className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
+                    >
+                      <span>Lanjut</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={loading || !isContractAccepted}
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#7F1D1D] to-[#A61B2D] hover:from-[#A61B2D] hover:to-[#7F1D1D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader className="h-4 w-4 animate-spin" />
+                          Sedang Mendaftarkan Akun...
+                        </>
+                      ) : (
+                        <>
+                          <span>Daftar Akun</span>
+                          <Check className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </form>
 
@@ -676,6 +687,149 @@ export default function RegisterPage() {
 
         </div>
       </div>
+
+      {/* Kontrak Digital Modal */}
+      {showContractModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            {/* Modal Ambient Glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Header */}
+            <div className="relative z-10 shrink-0 p-6 border-b border-slate-100 flex items-center gap-3 bg-white">
+              <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-[#7F1D1D] flex items-center justify-center shadow-xs">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 leading-none">Kontrak Digital & Syarat Ketentuan</h3>
+                <p className="text-xs text-slate-400 mt-1.5 font-medium">SatuData Healthcare Sovereign Hub v2026</p>
+              </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div 
+              onScroll={handleScrollContract}
+              className="relative z-10 flex-1 overflow-y-auto p-6 space-y-4 text-xs text-slate-600 leading-relaxed font-medium"
+            >
+              <p>
+                Selamat datang di platform <strong>SatuData Healthcare Hub</strong>. Sebelum menyelesaikan proses registrasi, Anda wajib membaca, memahami, dan menyetujui poin-poin hukum dan ketentuan teknologi di bawah ini:
+              </p>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-3">
+                <h4 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">1. Kedaulatan Data Pasien (Sovereignty)</h4>
+                <p>
+                  Seluruh data medis terenkripsi Anda di SatuData dikendalikan sepenuhnya oleh Anda sebagai pemilik data (untuk Pasien) atau diproses secara legal oleh Faskes terverifikasi (untuk Faskes). Sistem ini menggunakan mekanisme Web3 Smart Contract (Hardhat) di mana izin akses data (consent) hanya dapat diberikan, diubah, atau dicabut langsung oleh Pasien.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-3">
+                <h4 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">2. Enkripsi Off-Chain AES-256</h4>
+                <p>
+                  Untuk menjamin privasi maksimal, data rekam medis berukuran besar disimpan di tempat penyimpanan terenkripsi yang aman (off-chain) dengan algoritma enkripsi militer AES-256. Hanya hash data dan riwayat audit trails transaksi yang dipublikasikan ke jaringan blockchain.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-3">
+                <h4 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">3. Integrasi SATUSEHAT & Kemenkes RI</h4>
+                <p>
+                  SatuData mematuhi regulasi Kementerian Kesehatan Republik Indonesia dan standar interoperabilitas SATUSEHAT. Faskes wajib menjamin kebenaran dan validitas data rekam medis elektronik yang diunggah ke jaringan.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-3">
+                <h4 className="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">4. Pertanggungjawaban Akun</h4>
+                <p>
+                  Pengguna bertanggung jawab penuh atas kerahasiaan kata sandi dan private key (jika ada) yang diasosiasikan dengan akun terdaftar. Sistem SatuData tidak memiliki akses untuk memulihkan kata sandi yang hilang tanpa metode otentikasi email resmi yang valid.
+                </p>
+              </div>
+
+              <p className="text-[10px] text-slate-400 italic">
+                Dengan mengklik tombol "Setujui & Setuju Ketentuan" di bawah, Anda menyatakan tunduk secara hukum terhadap kontrak digital ini dan mengizinkan pemrosesan data rekam medis Anda sesuai kebijakan privasi SatuData.
+              </p>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="relative z-10 shrink-0 p-5 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsContractAccepted(false);
+                    setShowContractModal(false);
+                  }}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                {!hasReadContract && (
+                  <span className="text-[10px] text-amber-600 font-semibold animate-pulse hidden sm:inline">
+                    * Gulir ke bawah untuk menyetujui
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsContractAccepted(true);
+                  setShowContractModal(false);
+                }}
+                disabled={!hasReadContract}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#7F1D1D] to-[#A61B2D] hover:from-[#A61B2D] hover:to-[#7F1D1D] text-white font-extrabold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center gap-1.5"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Setujui & Setuju Ketentuan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 text-center animate-in zoom-in-95 duration-200">
+            {/* Modal Ambient Glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Animated Check/Mail Icon */}
+            <div className="relative mx-auto h-16 w-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 shadow-sm border border-emerald-100 animate-bounce">
+              <Mail className="h-8 w-8" />
+              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-xs">✓</span>
+            </div>
+
+            <h3 className="text-xl font-extrabold text-slate-900 mb-2">Registrasi Berhasil!</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium mb-4">
+              Akun Anda telah berhasil dibuat. Kami telah mengirimkan tautan aktivasi akun ke email: <br />
+              <strong className="text-slate-800 text-[13px] break-all">{email}</strong>
+            </p>
+
+            {/* Spam Folder Alert */}
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-left text-xs text-amber-800 space-y-1.5 mb-6">
+              <div className="flex items-center gap-1.5 font-extrabold text-[11px] uppercase tracking-wider text-amber-900">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
+                <span>Penting: Periksa Folder Spam</span>
+              </div>
+              <p className="leading-relaxed font-semibold">
+                Jika email tidak ditemukan di Kotak Masuk utama Anda dalam 1-2 menit, harap periksa folder <strong>Spam</strong> atau <strong>Junk</strong>. Pastikan Anda membuka email tersebut dan menekan tombol <strong>"Aktifkan Akun"</strong> sebelum masuk.
+              </p>
+            </div>
+
+            {/* Action button redirecting immediately */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push("/auth/login");
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
+            >
+              <span>Lanjut ke Halaman Login</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
