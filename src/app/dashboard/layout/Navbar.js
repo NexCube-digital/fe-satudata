@@ -16,7 +16,9 @@ import {
   ExternalLink,
   Activity,
   Building2,
-  Clock
+  Clock,
+  XCircle,
+  AlertCircle
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -24,7 +26,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const [currentUser, setCurrentUser] = useState(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(3);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [notifFilter, setNotifFilter] = useState("all");
 
   const dropdownRef = useRef(null);
@@ -54,57 +57,104 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
 
   const user = currentUser;
 
-  // User Interaction & Notification History Data
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Permintaan Akses Rekam Medis",
-      actor: "RS Cipto Mangunkusumo",
-      actorRole: "Rumah Sakit",
-      description: "mengajukan permohonan izin baca rekam medis poli bedah.",
-      timestamp: "10 menit yang lalu",
-      category: "consent",
-      link: "/dashboard/pasien/consent",
-      read: false,
-      icon: Building2
-    },
-    {
-      id: 2,
-      title: "Unggahan Berkas EHR Baru",
-      actor: "dr. Amanda Setiadi, Sp.PD",
-      actorRole: "Dokter Penanggung Jawab",
-      description: "menambahkan hasil diagnosa ISPA terenkripsi AES-256.",
-      timestamp: "2 jam yang lalu",
-      category: "ehr",
-      link: "/dashboard/pasien/records",
-      read: false,
-      icon: FileText
-    },
-    {
-      id: 3,
-      title: "Otorisasi Smart Contract",
-      actor: "Smart Contract SatuData",
-      actorRole: "EIP-2771 Relay",
-      description: "memverifikasi transaksi grantAccess() tanpa potongan gas fee.",
-      timestamp: "Kemarin, 14:30 WIB",
-      category: "security",
-      link: "/dashboard/pasien",
-      read: false,
-      icon: ShieldCheck
-    },
-    {
-      id: 4,
-      title: "Penautan MetaMask Wallet",
-      actor: "Sistem Keamanan Akun",
-      actorRole: "Web3 Auth",
-      description: "berhasil menautkan wallet MetaMask ke identitas pengguna.",
-      timestamp: "3 hari yang lalu",
-      category: "security",
-      link: "/dashboard/pasien/settings",
-      read: true,
-      icon: Lock
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications?limit=20`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data?.items) {
+        const mapped = result.data.items.map((item) => {
+          let title = "Notifikasi";
+          let category = "security";
+          let link = "#";
+          let icon = ShieldCheck;
+
+          if (item.tipe === "permintaan_akses") {
+            title = "Permintaan Akses Rekam Medis";
+            category = "consent";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+            icon = Building2;
+          } else if (item.tipe === "akses_disetujui") {
+            title = "Permintaan Akses Disetujui";
+            category = "consent";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+            icon = CheckCircle;
+          } else if (item.tipe === "akses_ditolak") {
+            title = "Permintaan Akses Ditolak";
+            category = "consent";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+            icon = XCircle;
+          } else if (item.tipe === "akses_dicabut") {
+            title = "Akses Rekam Medis Dicabut";
+            category = "consent";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+            icon = Lock;
+          } else if (item.tipe === "rekam_medis_baru") {
+            title = "Rekam Medis Baru Diunggah";
+            category = "ehr";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
+            icon = FileText;
+          }
+
+          const diffMs = Date.now() - new Date(item.created_at).getTime();
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHrs = Math.floor(diffMins / 60);
+          const diffDays = Math.floor(diffHrs / 24);
+          
+          let timestamp = "Baru saja";
+          if (diffDays > 0) timestamp = `${diffDays} hari yang lalu`;
+          else if (diffHrs > 0) timestamp = `${diffHrs} jam yang lalu`;
+          else if (diffMins > 0) timestamp = `${diffMins} menit yang lalu`;
+
+          return {
+            id: item.id,
+            title,
+            actor: currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien",
+            actorRole: item.tipe.replace("_", " "),
+            description: item.message,
+            timestamp,
+            category,
+            link,
+            read: item.reading,
+            icon
+          };
+        });
+        setNotifications(mapped);
+      }
+    } catch (err) {
+      console.error("Gagal memuat notifikasi", err);
     }
-  ]);
+
+    try {
+      const resCount = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const resCountJson = await resCount.json();
+      if (resCount.ok && resCountJson.data) {
+        setUnreadCount(resCountJson.data.unread_count || 0);
+      }
+    } catch (err) {
+      console.error("Gagal memuat jumlah notifikasi", err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchNotifications();
+    }
+  }, [currentUser]);
+
+  // Polling notifications every 10 seconds to keep it updated
+  useEffect(() => {
+    if (currentUser) {
+      const interval = setInterval(fetchNotifications, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
 
   // Otomatis menutup dropdown & notifikasi ketika pengguna mengklik di luar area
   useEffect(() => {
@@ -134,16 +184,44 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
     }
   };
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    setUnreadCount(0);
+  const markAllRead = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/read-all`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        setUnreadCount(0);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleNotifClick = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount((count) => Math.max(0, count - 1));
+  const handleNotifClick = async (id) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/${id}/read`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ read: true })
+      });
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        );
+        setUnreadCount((count) => Math.max(0, count - 1));
+      }
+    } catch (err) {
+      console.error(err);
+    }
     setIsNotifOpen(false);
   };
 

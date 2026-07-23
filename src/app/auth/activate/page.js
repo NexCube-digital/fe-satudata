@@ -20,6 +20,13 @@ function ActivateContent() {
   const [resendMsg, setResendMsg] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
 
+  // Set password states
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passLoading, setPassLoading] = useState(false);
+  const [passMsg, setPassMsg] = useState("");
+
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -31,10 +38,23 @@ function ActivateContent() {
     async function handleActivate() {
       try {
         const result = await apiGet(`/api/auth/activate?token=${encodeURIComponent(token)}`);
-        if (result.success) {
+        if (result.success && result.data) {
           setStatus("success");
           setMessage(result.message || "Akun berhasil diaktivasi!");
-          setUser(result.data);
+          
+          // Save session tokens for auto-login
+          if (result.data.accessToken) {
+            localStorage.setItem("accessToken", result.data.accessToken);
+            localStorage.setItem("refreshToken", result.data.refreshToken);
+            localStorage.setItem("user", JSON.stringify(result.data.user));
+            window.dispatchEvent(new Event("userUpdated"));
+          }
+          
+          setUser(result.data.user || result.data);
+          
+          if (result.data.needsPassword) {
+            setNeedsPassword(true);
+          }
         } else {
           setStatus("error");
           setMessage(result.message || "Gagal mengaktivasi akun.");
@@ -49,6 +69,47 @@ function ActivateContent() {
 
     handleActivate();
   }, [token]);
+
+  const handleSetPassword = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setPassMsg("Konfirmasi kata sandi tidak cocok");
+      return;
+    }
+    if (password.length < 8) {
+      setPassMsg("Kata sandi minimal 8 karakter");
+      return;
+    }
+
+    setPassLoading(true);
+    setPassMsg("");
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/set-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword: password, confirmPassword })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setPassMsg("Kata sandi berhasil disimpan! Mengalihkan...");
+        setTimeout(() => {
+          router.push("/dashboard/pasien");
+        }, 1500);
+      } else {
+        setPassMsg(result.message || "Gagal mengatur kata sandi");
+      }
+    } catch (err) {
+      console.error(err);
+      setPassMsg("Terjadi kesalahan sistem saat menyimpan password");
+    } finally {
+      setPassLoading(false);
+    }
+  };
 
   const handleResend = async (e) => {
     e.preventDefault();
@@ -108,13 +169,54 @@ function ActivateContent() {
               </div>
             )}
 
-            <Link
-              href="/auth/login"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7F1D1D] hover:bg-[#A61B2D] px-6 py-3 text-xs font-extrabold text-white shadow-md transition"
-            >
-              Masuk Sekarang
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            {needsPassword ? (
+              <form onSubmit={handleSetPassword} className="space-y-4 text-left">
+                <div className="rounded-xl bg-rose-50 border border-rose-100 p-3 text-[11px] text-rose-800 leading-normal font-medium">
+                  Akun Anda belum memiliki kata sandi (dibuat oleh Faskes). Silakan atur kata sandi baru untuk mengamankan akun Anda.
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Kata Sandi Baru</label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Minimal 8 karakter"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-[#7F1D1D] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Konfirmasi Kata Sandi</label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi kata sandi baru"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-[#7F1D1D] outline-none"
+                  />
+                </div>
+                {passMsg && (
+                  <p className={`text-[10px] font-bold ${passMsg.includes("berhasil") ? "text-emerald-700" : "text-rose-700"}`}>{passMsg}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={passLoading}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7F1D1D] hover:bg-[#A61B2D] px-6 py-3 text-xs font-extrabold text-white shadow-md transition cursor-pointer disabled:opacity-50"
+                >
+                  {passLoading ? "Menyimpan..." : "Simpan & Lanjut ke Dasbor"}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7F1D1D] hover:bg-[#A61B2D] px-6 py-3 text-xs font-extrabold text-white shadow-md transition"
+              >
+                Masuk Sekarang
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </div>
         )}
 

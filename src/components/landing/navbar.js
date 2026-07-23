@@ -27,6 +27,7 @@ const links = [
   { href: "#fitur", label: "Fitur Unggulan" },
   { href: "#panel", label: "Dasbor Interaktif" },
   { href: "#alur", label: "Alur Sistem" },
+  { href: "/faskes", label: "Peta & Lokasi Faskes" },
   { href: "/faq", label: "FAQ & Bantuan" },
 ];
 

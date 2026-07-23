@@ -56,6 +56,14 @@ export default function FaskesDashboard() {
   const [newItemPrice, setNewItemPrice] = useState("");
   const [receiptSuccess, setReceiptSuccess] = useState(false);
 
+  // Live dashboard statistics
+  const [stats, setStats] = useState({
+    kunjungan_hari_ini: 0,
+    izin_akses_disetujui: 0,
+    request_pending: 0
+  });
+  const [sessionOmzet, setSessionOmzet] = useState(4850000); // Realistic cashier start amount
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -67,8 +75,30 @@ export default function FaskesDashboard() {
     }
     fetchRequestsList();
     fetchDoctorsList();
+    fetchDashboardStats();
     setLoading(false);
   }, []);
+
+  const fetchDashboardStats = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/dashboard/hospital`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.success && result.data) {
+        const { stats: backendStats } = result.data;
+        setStats({
+          kunjungan_hari_ini: backendStats?.kunjungan_hari_ini || 0,
+          izin_akses_disetujui: backendStats?.izin_akses_disetujui || 0,
+          request_pending: backendStats?.request_pending || 0
+        });
+      }
+    } catch (err) {
+      console.error("Error loading dashboard stats:", err);
+    }
+  };
 
   const fetchDoctorsList = async () => {
     try {
@@ -138,6 +168,7 @@ export default function FaskesDashboard() {
       const result = await res.json();
       if (res.ok && result.success) {
         fetchRequestsList();
+        fetchDashboardStats();
         setNikInput("");
       } else {
         alert(result.message || "Gagal membuat permohonan akses");
@@ -194,9 +225,31 @@ export default function FaskesDashboard() {
 
   const totalBill = billItems.reduce((acc, curr) => acc + curr.price, 0);
 
-  const handleProcessTransaction = () => {
-    setReceiptSuccess(true);
-    setTimeout(() => setReceiptSuccess(false), 4000);
+  const handleProcessTransaction = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/dashboard/hospital/pos-transaction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ items: billItems })
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setSessionOmzet((prev) => prev + totalBill);
+        setReceiptSuccess(true);
+        setBillItems([]);
+        fetchDashboardStats(); // Refresh stats in case visits count changes
+        setTimeout(() => setReceiptSuccess(false), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Gagal memproses transaksi kasir");
+    }
   };
 
   if (loading) {
@@ -271,7 +324,7 @@ export default function FaskesDashboard() {
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                48 <span className="text-xs font-normal text-slate-500">Pasien</span>
+                {stats.kunjungan_hari_ini} <span className="text-xs font-normal text-slate-500">Pasien</span>
               </p>
               <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Antrean Rawat Jalan Operasional
@@ -286,7 +339,7 @@ export default function FaskesDashboard() {
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                12 <span className="text-xs font-normal text-slate-500">Berkas Medis</span>
+                {stats.izin_akses_disetujui} <span className="text-xs font-normal text-slate-500">Berkas Medis</span>
               </p>
               <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
                 <Unlock className="h-3 w-3" /> Dekripsi Diotorisasi Pasien
@@ -301,7 +354,7 @@ export default function FaskesDashboard() {
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requestsList.filter((r) => r.status === "Pending Pasien").length} <span className="text-xs font-normal text-slate-500">Menunggu</span>
+                {stats.request_pending} <span className="text-xs font-normal text-slate-500">Menunggu</span>
               </p>
               <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
                 <Activity className="h-3 w-3" /> Notifikasi Dikirim ke Patient Wallet
@@ -316,7 +369,7 @@ export default function FaskesDashboard() {
                 </span>
               </div>
               <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">
-                Rp 14.5M
+                Rp {sessionOmzet.toLocaleString("id-ID")}
               </p>
               <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
                 <Receipt className="h-3 w-3" /> Kasir Pendaftaran Harian

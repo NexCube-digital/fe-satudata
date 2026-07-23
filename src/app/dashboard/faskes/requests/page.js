@@ -39,6 +39,65 @@ export default function FaskesRequests() {
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [doctors, setDoctors] = useState([]);
 
+  // Search & registration states
+  const [searchStatus, setSearchStatus] = useState("idle"); // "idle", "searching", "found", "not_found", "error"
+  const [patientData, setPatientData] = useState(null);
+
+  const [registerName, setRegisterName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPhone, setRegisterPhone] = useState("");
+  const [registerAddress, setRegisterAddress] = useState("");
+  const [registerPob, setRegisterPob] = useState("");
+  const [registerDob, setRegisterDob] = useState("");
+  const [registerSex, setRegisterSex] = useState("laki-laki");
+  const [registerBloodType, setRegisterBloodType] = useState("");
+  const [registerEmergencyName, setRegisterEmergencyName] = useState("");
+  const [registerEmergencyPhone, setRegisterEmergencyPhone] = useState("");
+
+  const handleCheckNik = async () => {
+    if (!nikInput || !/^\d{16}$/.test(nikInput)) {
+      alert("NIK harus berupa 16 digit angka");
+      return;
+    }
+
+    setSearchStatus("searching");
+    const token = localStorage.getItem("accessToken");
+    
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/search-patient?nik=${nikInput}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        if (result.data?.found) {
+          setSearchStatus("found");
+          setPatientData(result.data.patient);
+        } else {
+          setSearchStatus("not_found");
+          setPatientData(null);
+          // Pre-populate register fields
+          setRegisterName("");
+          setRegisterEmail("");
+          setRegisterPhone("");
+          setRegisterAddress("");
+          setRegisterPob("");
+          setRegisterDob("");
+          setRegisterSex("laki-laki");
+          setRegisterBloodType("");
+          setRegisterEmergencyName("");
+          setRegisterEmergencyPhone("");
+        }
+      } else {
+        setSearchStatus("error");
+        alert(result.message || "Gagal mengecek NIK");
+      }
+    } catch (err) {
+      console.error(err);
+      setSearchStatus("error");
+      alert("Terjadi kesalahan saat memeriksa NIK");
+    }
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -101,32 +160,74 @@ export default function FaskesRequests() {
   const handleSendRequest = async (e) => {
     e.preventDefault();
     if (!nikInput) return;
-    setSubmittingRequest(true);
 
+    if (searchStatus === "idle") {
+      alert("Silakan klik 'Cek NIK' terlebih dahulu");
+      return;
+    }
+
+    setSubmittingRequest(true);
     const token = localStorage.getItem("accessToken");
-    // Generate simulated tx hash
     const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          patientNik: nikInput,
-          jenisDataDiminta: `${poliInput} - ${purposeInput}`,
-          txHash
-        })
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        fetchRequestsList();
-        setNikInput("");
-        alert("Permintaan akses berhasil dikirim ke dompet pasien!");
-      } else {
-        alert(result.message || "Gagal membuat permohonan akses");
+      if (searchStatus === "found") {
+        // Normal Request Access Flow
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            patientNik: nikInput,
+            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            txHash
+          })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+          fetchRequestsList();
+          setNikInput("");
+          setSearchStatus("idle");
+          setPatientData(null);
+          alert("Permintaan akses berhasil dikirim!");
+        } else {
+          alert(result.message || "Gagal membuat permohonan akses");
+        }
+      } else if (searchStatus === "not_found") {
+        // Registration + Request Access Flow
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/create-patient`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nik: nikInput,
+            name: registerName,
+            email: registerEmail,
+            phone: registerPhone,
+            address: registerAddress,
+            place_of_birth: registerPob,
+            date_of_birth: registerDob || null,
+            sex: registerSex,
+            blood_type: registerBloodType || null,
+            emergency_contact_name: registerEmergencyName || null,
+            emergency_contact_phone: registerEmergencyPhone || null,
+            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            txHash
+          })
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+          fetchRequestsList();
+          setNikInput("");
+          setSearchStatus("idle");
+          alert("Pasien baru berhasil didaftarkan! Email aktivasi telah dikirim ke pasien. Status permohonan akses saat ini ditunda (pending) menunggu persetujuan pasien.");
+        } else {
+          alert(result.message || "Gagal mendaftarkan pasien baru");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -206,21 +307,168 @@ export default function FaskesRequests() {
               </div>
 
               <form onSubmit={handleSendRequest} className="space-y-4">
-                <div>
+                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                     NIK Pasien (16 Digit)
                   </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={16}
-                    value={nikInput}
-                    onChange={(e) => setNikInput(e.target.value)}
-                    placeholder="Masukkan NIK Pasien"
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden bg-slate-50 focus:bg-white transition"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      maxLength={16}
+                      value={nikInput}
+                      onChange={(e) => {
+                        setNikInput(e.target.value.replace(/\D/g, ""));
+                        setSearchStatus("idle");
+                        setPatientData(null);
+                      }}
+                      placeholder="Masukkan NIK Pasien"
+                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden bg-slate-50 focus:bg-white transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCheckNik}
+                      disabled={nikInput.length !== 16 || searchStatus === "searching"}
+                      className="rounded-xl border border-rose-800 text-rose-800 hover:bg-rose-50 px-4 py-2.5 text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {searchStatus === "searching" ? "Mengecek..." : "Cek NIK"}
+                    </button>
+                  </div>
                   <p className="text-[9px] text-slate-400 mt-1">Masukkan NIK KTP pasien pemilik rekam medis.</p>
                 </div>
+
+                {searchStatus === "found" && patientData && (
+                  <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-800 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      Pasien Ditemukan di Sistem
+                    </p>
+                    <p>Nama: <strong>{patientData.name}</strong></p>
+                    <p>Status Akun: <strong>{patientData.statusAccount === "active" ? "Aktif" : "Menunggu Verifikasi Email"}</strong></p>
+                  </div>
+                )}
+
+                {searchStatus === "not_found" && (
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800 space-y-3">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      NIK Belum Terdaftar
+                    </p>
+                    <p>Isi data diri pasien di bawah ini untuk membuat akun pasien baru (aktivasi dikirim ke email pasien):</p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nama Lengkap</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerName}
+                          onChange={(e) => setRegisterName(e.target.value)}
+                          placeholder="Nama Lengkap Pasien"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Email Pasien</label>
+                        <input
+                          type="email"
+                          required
+                          value={registerEmail}
+                          onChange={(e) => setRegisterEmail(e.target.value)}
+                          placeholder="emailpasien@example.com"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">No. Telepon</label>
+                        <input
+                          type="tel"
+                          required
+                          value={registerPhone}
+                          onChange={(e) => setRegisterPhone(e.target.value)}
+                          placeholder="0812xxxxxxxx"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Jenis Kelamin</label>
+                        <select
+                          value={registerSex}
+                          onChange={(e) => setRegisterSex(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        >
+                          <option value="laki-laki">Laki-laki</option>
+                          <option value="perempuan">Perempuan</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tempat Lahir</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerPob}
+                          onChange={(e) => setRegisterPob(e.target.value)}
+                          placeholder="Jakarta"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tanggal Lahir</label>
+                        <input
+                          type="date"
+                          required
+                          value={registerDob}
+                          onChange={(e) => setRegisterDob(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Golongan Darah</label>
+                        <input
+                          type="text"
+                          value={registerBloodType}
+                          onChange={(e) => setRegisterBloodType(e.target.value)}
+                          placeholder="AB"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Alamat Lengkap</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerAddress}
+                          onChange={(e) => setRegisterAddress(e.target.value)}
+                          placeholder="Alamat Lengkap KTP"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nama Kontak Darurat</label>
+                        <input
+                          type="text"
+                          value={registerEmergencyName}
+                          onChange={(e) => setRegisterEmergencyName(e.target.value)}
+                          placeholder="Hubungan: Ibu / Ayah"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">No. Kontak Darurat</label>
+                        <input
+                          type="tel"
+                          value={registerEmergencyPhone}
+                          onChange={(e) => setRegisterEmergencyPhone(e.target.value)}
+                          placeholder="No HP Kontak Darurat"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {searchStatus !== "idle" && searchStatus !== "searching" && (
+                  <>
 
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
@@ -276,8 +524,10 @@ export default function FaskesRequests() {
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
-                  Kirim Permintaan Akses
+                  {searchStatus === "not_found" ? "Daftarkan Pasien & Kirim Permintaan Akses" : "Kirim Permintaan Akses"}
                 </button>
+                </>
+                )}
               </form>
             </div>
           </div>

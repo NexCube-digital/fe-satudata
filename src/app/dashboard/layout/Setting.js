@@ -39,6 +39,10 @@ export default function SettingPage() {
   const [address, setAddress] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [sex, setSex] = useState("L");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [initialLatitude, setInitialLatitude] = useState("");
+  const [initialLongitude, setInitialLongitude] = useState("");
   const [statusAccount, setStatusAccount] = useState("active");
   const [resendLoading, setResendLoading] = useState(false);
   const [profilePictureFile, setProfilePictureFile] = useState(null);
@@ -92,6 +96,8 @@ export default function SettingPage() {
     name !== initialName ||
     phone !== initialPhone ||
     address !== initialAddress ||
+    latitude !== initialLatitude ||
+    longitude !== initialLongitude ||
     (user?.role === "pasien" && (
       dateOfBirth !== initialDateOfBirth ||
       sex !== initialSex ||
@@ -107,6 +113,8 @@ export default function SettingPage() {
     setDateOfBirth(initialDateOfBirth);
     setSex(initialSex);
     setNik(initialNik);
+    setLatitude(initialLatitude);
+    setLongitude(initialLongitude);
     setProfilePictureFile(null);
     setProfilePicturePreview(null);
   };
@@ -211,6 +219,14 @@ export default function SettingPage() {
           const hAddress = u.hospitalProfile.address || "";
           setAddress(hAddress);
           setInitialAddress(hAddress);
+
+          const hLat = u.hospitalProfile.latitude || "";
+          setLatitude(hLat);
+          setInitialLatitude(hLat);
+
+          const hLng = u.hospitalProfile.longitude || "";
+          setLongitude(hLng);
+          setInitialLongitude(hLng);
         }
 
         const computedAvatar = getAvatarUrl(u);
@@ -262,6 +278,10 @@ export default function SettingPage() {
         }
         if (phone) formData.append("phone", phone);
         if (address) formData.append("address", address);
+        if (isHospital) {
+          if (latitude) formData.append("latitude", latitude);
+          if (longitude) formData.append("longitude", longitude);
+        }
         if (sex && !isHospital) formData.append("sex", sex);
         if (dateOfBirth && !isHospital) formData.append("date_of_birth", dateOfBirth);
 
@@ -281,6 +301,8 @@ export default function SettingPage() {
         };
         if (isHospital) {
           payload.medical_license = nik;
+          payload.latitude = latitude;
+          payload.longitude = longitude;
         } else {
           payload.nik = nik;
           payload.sex = sex;
@@ -319,6 +341,8 @@ export default function SettingPage() {
       setInitialName(name);
       setInitialPhone(phone);
       setInitialAddress(address);
+      setInitialLatitude(latitude);
+      setInitialLongitude(longitude);
       setInitialDateOfBirth(dateOfBirth);
       setInitialSex(sex);
       setInitialNik(nik);
@@ -867,6 +891,50 @@ export default function SettingPage() {
                     />
                   </div>
                 </div>
+
+                {/* Geotagging coordinates for Hospital/Faskes */}
+                {(user?.role === "rumah_sakit" || user?.role === "faskes") && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Latitude
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        value={latitude}
+                        onChange={(e) => setLatitude(e.target.value)}
+                        disabled={!isFieldEditable("latitude")}
+                        placeholder="-6.8837"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm transition font-mono ${
+                          isFieldEditable("latitude")
+                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Longitude
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        value={longitude}
+                        onChange={(e) => setLongitude(e.target.value)}
+                        disabled={!isFieldEditable("longitude")}
+                        placeholder="107.6049"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm transition font-mono ${
+                          isFieldEditable("longitude")
+                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
 
                  <div className="pt-4 border-t border-slate-100 flex justify-end">
                    {!isEditMode ? (
