@@ -198,7 +198,7 @@ export default function RegisterPage() {
               Platform Integritas Rekam Medis Indonesia
             </div>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 leading-tight text-white tracking-tight">
-              Kedaulatan Rekam Medis Digital
+              Registrasi Akunmu
             </h1>
             <p className="text-sm text-white/90 leading-relaxed max-w-md font-medium">
               Bergabunglah dengan ekosistem kesehatan terintegrasi SATUSEHAT & Web3 Sovereign Blockchain. Pasien sebagai pemilik data sah, Faskes sebagai pemproses terverifikasi.
@@ -255,99 +255,60 @@ export default function RegisterPage() {
 
           {/* STEP 1: ROLE SELECTION SCREEN */}
           {step === 1 && (
-            <div className="flex-1 lg:min-h-0 flex flex-col justify-between bg-white rounded-3xl border border-slate-200/90 shadow-xl p-4 sm:p-8 space-y-4 sm:space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              
-              {/* Background ambient lighting */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Header Info */}
-              <div className="relative z-10 text-center space-y-2">
-                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200/80 text-[11px] font-extrabold text-[#7F1D1D] shadow-2xs">
-                  <Sparkles className="h-3.5 w-3.5 text-rose-600 animate-pulse" /> Langkah 1 dari 2: Pilih Peran Pengguna
-                </span>
-                <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  Selamat Datang di SatuData
-                </h2>
-                <p className="text-[11px] sm:text-sm text-slate-500 max-w-md mx-auto font-medium leading-relaxed">
-                  Pilih kategori pendaftaran akun Anda untuk penyesuaian hak akses & fitur sistem.
-                </p>
+            <div className="flex-1 lg:min-h-0 flex flex-col justify-between rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 bg-white">
+              <div className="bg-[#7F1D1D] px-8 py-8 text-white">
+                <h2 className="text-2xl font-bold">Pilih Kategori Pendaftaran</h2>
+                <p className="text-rose-100 mt-2 text-sm font-medium">Tentukan peran pendaftaran akun SatuData Anda</p>
               </div>
 
-              {/* Selection Cards Grid */}
-              <div className="relative z-10 grid gap-3 sm:grid-cols-2 my-auto">
-                {/* Option 1: Pasien Baru */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectRole("pasien")}
-                  className="group relative flex flex-col justify-between p-4 sm:p-7 rounded-3xl border-2 border-rose-100 hover:border-[#7F1D1D] bg-gradient-to-b from-rose-50/40 via-white to-white hover:from-rose-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
-                >
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-[#7F1D1D] text-white flex items-center justify-center shadow-md shadow-rose-900/20 group-hover:scale-110 transition-transform duration-300">
-                        <User className="h-5 w-5 sm:h-7 sm:w-7" />
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
-                        Personal
+              <div className="bg-slate-50 px-8 py-8 border-t border-slate-200 flex flex-col flex-1 justify-between space-y-6">
+                <div className="space-y-4">
+                  {/* Option 1: Pasien Baru */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectRole("pasien")}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                        <User className="h-6 w-6" />
                       </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1 sm:mb-1.5 group-hover:text-[#7F1D1D] transition-colors">
-                        Pasien Baru
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed font-medium">
-                        Dapatkan kontrol penuh, transparansi & kedaulatan atas data rekam medis terenkripsi Anda.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-6 flex items-center justify-between pt-3 sm:pt-4 border-t border-rose-100/80 text-[11px] sm:text-xs font-extrabold text-[#7F1D1D]">
-                    <span>Daftar Sebagai Pasien</span>
-                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-rose-100 group-hover:bg-[#7F1D1D] group-hover:text-white flex items-center justify-center transition-colors">
-                      <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
-                </button>
-
-                {/* Option 2: Fasilitas Kesehatan (Faskes / RS) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectRole("rumah_sakit")}
-                  className="group relative flex flex-col justify-between p-4 sm:p-7 rounded-3xl border-2 border-emerald-100 hover:border-emerald-600 bg-gradient-to-b from-emerald-50/40 via-white to-white hover:from-emerald-100/50 hover:to-white text-left transition-all duration-300 hover:shadow-xl cursor-pointer hover:-translate-y-1"
-                >
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center shadow-md shadow-emerald-900/20 group-hover:scale-110 transition-transform duration-300">
-                        <Building2 className="h-5 w-5 sm:h-7 sm:w-7" />
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Pasien Baru</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Dapatkan kontrol penuh & kedaulatan data rekam medis terenkripsi</p>
                       </div>
-                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
-                        Instansi / RS
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                  </button>
+
+                  {/* Option 2: Faskes */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectRole("rumah_sakit")}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                        <Building2 className="h-6 w-6" />
                       </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Daftarkan instansi untuk terintegrasi dengan SATUSEHAT API & Blockchain</p>
+                      </div>
                     </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                  </button>
+                </div>
 
-                    <div>
-                      <h3 className="text-base sm:text-xl font-extrabold text-slate-900 mb-1 sm:mb-1.5 group-hover:text-emerald-800 transition-colors">
-                        Fasilitas Kesehatan
-                      </h3>
-                      <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed font-medium">
-                        Daftarkan Rumah Sakit, Klinik, atau Faskes Anda untuk terintegrasi dengan SATUSEHAT API.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-6 flex items-center justify-between pt-3 sm:pt-4 border-t border-emerald-100/80 text-[11px] sm:text-xs font-extrabold text-emerald-800">
-                    <span>Daftar Sebagai Faskes / RS</span>
-                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-emerald-100 group-hover:bg-emerald-700 group-hover:text-white flex items-center justify-center transition-colors">
-                      <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              {/* Footer info */}
-              <div className="relative z-10 text-center text-xs text-slate-400 font-medium">
-                Pilihan peran dapat diubah sewaktu-waktu sebelum form dikirimkan.
+                <div className="text-center text-xs text-slate-500 font-medium pt-4 border-t border-slate-200">
+                  Sudah memiliki akun?{" "}
+                  <Link 
+                    href="/auth/login" 
+                    className="text-[#7F1D1D] hover:text-[#A61B2D] font-bold transition hover:underline"
+                  >
+                    Login di sini
+                  </Link>
+                </div>
               </div>
             </div>
           )}

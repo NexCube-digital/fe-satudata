@@ -56,8 +56,9 @@ export default function LoginPage() {
 
   const handleScriptLoad = () => {
     if (typeof window !== "undefined" && window.google) {
+      const clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "501418475114-g7b5cauv82eh8v1jhakvqggu3et9okrh.apps.googleusercontent.com").trim();
       window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "501418475114-g7b5cauv82eh8v1jhakvqggu3et9okrh.apps.googleusercontent.com",
+        client_id: clientId,
         callback: handleGoogleLoginSuccess,
       });
       
