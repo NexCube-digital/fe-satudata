@@ -5,15 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Script from "next/script";
-import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
+import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState("pasien"); // "pasien", "rumah_sakit"
+  const [loginStep, setLoginStep] = useState("select"); // "select", "form"
   const [identifier, setIdentifier] = useState("");
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [selectedGoogleRole, setSelectedGoogleRole] = useState(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,7 @@ export default function LoginPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: response.credential, role: selectedGoogleRole })
+        body: JSON.stringify({ idToken: response.credential, role: role })
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Login Google gagal");
@@ -37,7 +36,6 @@ export default function LoginPage() {
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
-        setShowGoogleModal(false);
 
         // Redirect berdasarkan role
         const userRole = result.data.user.role;
@@ -51,7 +49,6 @@ export default function LoginPage() {
       }
     } catch (err) {
       setError(err.message || "Gagal masuk menggunakan Google");
-      setShowGoogleModal(false);
     } finally {
       setLoading(false);
     }
@@ -64,7 +61,7 @@ export default function LoginPage() {
         callback: handleGoogleLoginSuccess,
       });
       
-      const container = document.getElementById("google-signin-btn-modal");
+      const container = document.getElementById("google-signin-btn-form");
       if (container) {
         window.google.accounts.id.renderButton(
           container,
@@ -75,13 +72,13 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (showGoogleModal && selectedGoogleRole) {
+    if (loginStep === "form") {
       const timer = setTimeout(() => {
         handleScriptLoad();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [showGoogleModal, selectedGoogleRole]);
+  }, [loginStep, role]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -245,190 +242,223 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
-            <h2 className="text-2xl font-bold">Masuk ke Akun Anda</h2>
-            <p className="text-rose-100 mt-2 text-sm">Silakan masuk untuk mengakses dashboard</p>
+            <h2 className="text-2xl font-bold">
+              {loginStep === "select" ? "Pilih Metode Masuk" : `Masuk sebagai ${role === "pasien" ? "Pasien" : "Fasilitas Kesehatan"}`}
+            </h2>
+            <p className="text-rose-100 mt-2 text-sm">
+              {loginStep === "select" ? "Tentukan peran Anda untuk mengakses sistem" : "Silakan isi kredensial akun Anda"}
+            </p>
           </div>
 
           <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Role Selector Tabs */}
-              <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl mb-6">
+            {loginStep === "select" ? (
+              <div className="space-y-4">
+                {/* Option 1: Pasien */}
                 <button
                   type="button"
-                  onClick={() => setRole("pasien")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    role === "pasien"
-                      ? "bg-[#7F1D1D] text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  onClick={() => {
+                    setRole("pasien");
+                    setLoginStep("form");
+                    setError("");
+                  }}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
                 >
-                  <User className="h-4 w-4" />
-                  <span>Pasien</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("rumah_sakit")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    role === "rumah_sakit"
-                      ? "bg-[#7F1D1D] text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Building2 className="h-4 w-4" />
-                  <span>Faskes / RS</span>
-                </button>
-              </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 space-y-2">
-                  <div className="flex items-center gap-2 font-semibold">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                  {isInactive && (
-                    <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
-                      <span>Akun belum diaktivasi via email?</span>
-                      <button
-                        type="button"
-                        onClick={handleResendActivation}
-                        disabled={resendLoading}
-                        className="inline-flex items-center gap-1 font-bold text-rose-900 underline hover:text-red-950 cursor-pointer disabled:opacity-50"
-                      >
-                        {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                        Kirim Ulang Email Aktivasi
-                      </button>
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                      <User className="h-6 w-6" />
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">Pasien Terdaftar</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Akses berkas EHR, kelola audit log & persetujuan medis</p>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                </button>
 
-              {resendMsg && (
-                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700 font-semibold">
-                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
-                  <span>{resendMsg}</span>
-                </div>
-              )}
+                {/* Option 2: Faskes */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("rumah_sakit");
+                    setLoginStep("form");
+                    setError("");
+                  }}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                      <Building2 className="h-6 w-6" />
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Kelola data medis pasien, ajukan izin akses blockchain</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                </button>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  {role === "pasien" ? "Email Pasien / NIK *" : "Email Fasilitas Kesehatan (Faskes) *"}
-                </label>
-                <div className="relative">
-                  {role === "pasien" ? (
-                    <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                  ) : (
-                    <Building2 className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                  )}
-                  <input
-                    type="text"
-                    value={identifier}
-                    onChange={(e) => {
-                      const val = e.target.value.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
-                      setIdentifier(val);
-                    }}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck="false"
-                    placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm lowercase"
-                    required
-                    disabled={loading}
-                  />
+                <div className="pt-4 border-t border-slate-200 mt-6 text-center">
+                  <p className="text-sm text-slate-600">
+                    Belum punya akun?{" "}
+                    <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                      Daftar di sini
+                      <ArrowRight className="inline-block ml-1 h-3 w-3" />
+                    </Link>
+                  </p>
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+                {/* Back Link */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginStep("select");
+                    setError("");
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#7F1D1D] transition cursor-pointer mb-2"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Kembali ke pilihan metode</span>
+                </button>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Password
-                  </label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-xs text-[#7F1D1D] hover:text-[#A61B2D] font-medium transition"
-                  >
-                    Lupa password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-11 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
-                    required
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
-                    aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
+                {error && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 space-y-2">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                    {isInactive && (
+                      <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
+                        <span>Akun belum diaktivasi via email?</span>
+                        <button
+                          type="button"
+                          onClick={handleResendActivation}
+                          disabled={resendLoading}
+                          className="inline-flex items-center gap-1 font-bold text-rose-900 underline hover:text-red-950 cursor-pointer disabled:opacity-50"
+                        >
+                          {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                          Kirim Ulang Email Aktivasi
+                        </button>
+                      </div>
                     )}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader className="h-5 w-5 animate-spin" />
-                    Sedang memproses...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="h-5 w-5" />
-                    Masuk Sekarang
-                  </>
+                  </div>
                 )}
-              </button>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-300"></div>
+                {resendMsg && (
+                  <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700 font-semibold">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+                    <span>{resendMsg}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    {role === "pasien" ? "Email Pasien / NIK *" : "Email Fasilitas Kesehatan (Faskes) *"}
+                  </label>
+                  <div className="relative">
+                    {role === "pasien" ? (
+                      <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                    ) : (
+                      <Building2 className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                    )}
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => {
+                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
+                        setIdentifier(val);
+                      }}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck="false"
+                      placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm lowercase"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-slate-50 text-slate-500">atau</span>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Password
+                    </label>
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-xs text-[#7F1D1D] hover:text-[#A61B2D] font-medium transition"
+                    >
+                      Lupa password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-11 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
+                      required
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Google Login Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setShowGoogleModal(true);
-                  setSelectedGoogleRole(null);
-                }}
-                className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-xl border border-slate-200 shadow-sm transition hover:shadow cursor-pointer text-xs"
-              >
-                {/* SVG Google Logo */}
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
-                  <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
-                  <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
-                  <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
-                </svg>
-                <span>Masuk dengan Google</span>
-              </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <Loader className="h-5 w-5 animate-spin" />
+                      Sedang memproses...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="h-5 w-5" />
+                      Masuk Sekarang
+                    </>
+                  )}
+                </button>
 
-              <p className="text-center text-sm text-slate-600">
-                Belum punya akun?{" "}
-                <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
-                  Daftar di sini
-                  <ArrowRight className="inline-block ml-1 h-3 w-3" />
-                </Link>
-              </p>
-            </form>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-2 bg-slate-50 text-slate-400 uppercase tracking-wider font-semibold">atau</span>
+                  </div>
+                </div>
+
+                {/* Google Sign-in Button Inline */}
+                <div className="w-full flex flex-col items-center justify-center pt-1">
+                  <div id="google-signin-btn-form" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
+                </div>
+
+                <p className="text-center text-sm text-slate-600 pt-4">
+                  Belum punya akun?{" "}
+                  <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                    Daftar di sini
+                    <ArrowRight className="inline-block ml-1 h-3 w-3" />
+                  </Link>
+                </p>
+              </form>
+            )}
           </div>
         </div>
       </div>
@@ -439,103 +469,6 @@ export default function LoginPage() {
         onLoad={handleScriptLoad}
       />
 
-      {/* Google Login Role Selection Modal */}
-      {showGoogleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 sm:p-8 animate-in zoom-in-95 duration-200">
-            {/* Ambient Glow */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <svg className="h-5 w-5 text-rose-800" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.4C21.68,11.83 21.56,11.43 21.35,11.1z" fill="#4285F4" />
-                  <path d="M12,20.8c2.43,0 4.47,-0.8 5.96,-2.2l-3.3,-2.58c-0.92,0.62 -2.1,0.98 -3.37,0.98 -2.43,0 -4.5,-1.64 -5.24,-3.84H2.61v2.66C4.1,18.78 7.82,20.8 12,20.8z" fill="#34A853" />
-                  <path d="M6.76,13.16c-0.18,-0.56 -0.29,-1.16 -0.29,-1.77c0,-0.61 0.1,-1.21 0.29,-1.77V6.96H2.61C1.96,8.26 1.6,9.73 1.6,11.27c0,1.54 0.36,3.01 1.01,4.31L6.76,13.16z" fill="#FBBC05" />
-                  <path d="M12,5.22c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,2.54 14.43,1.64 12,1.64c-4.18,0 -7.9,2.02 -9.39,4.98l4.15,3.22C7.5,7.03 9.57,5.22 12,5.22z" fill="#EA4335" />
-                </svg>
-                Masuk dengan Google
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowGoogleModal(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {selectedGoogleRole === null ? (
-              <>
-                <p className="text-xs text-slate-500 mb-6 leading-relaxed font-medium">
-                  Untuk meminimalkan kesalahan, silakan pilih peran Anda terlebih dahulu sebelum masuk menggunakan akun Google Anda.
-                </p>
-
-                <div className="space-y-4">
-                  {/* Option 1: Pasien */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGoogleRole("pasien")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-slate-50 text-left transition cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition">
-                        <User className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900">Saya adalah Pasien</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Akses rekam medis, kelola riwayat kesehatan</p>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Option 2: Faskes */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGoogleRole("rumah_sakit")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-slate-50 text-left transition cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition">
-                        <Building2 className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900">Saya adalah Faskes / RS</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Kelola data pasien, unggah EHR & rekam medis</p>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-6">
-                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 text-center">
-                  <p className="text-xs text-slate-500">
-                    Anda memilih masuk / mendaftar sebagai:
-                  </p>
-                  <p className="text-base font-extrabold text-rose-900 mt-1 uppercase tracking-wider">
-                    {selectedGoogleRole === "pasien" ? "Pasien" : "Fasilitas Kesehatan"}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGoogleRole(null)}
-                    className="text-[11px] font-bold text-pink-600 hover:text-pink-700 underline mt-2.5 transition cursor-pointer"
-                  >
-                    Ganti Peran
-                  </button>
-                </div>
-
-                <div className="w-full flex flex-col items-center justify-center pt-2">
-                  <div id="google-signin-btn-modal" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
-                  <p className="text-[10px] text-slate-400 mt-3 text-center">
-                    Klik tombol di atas untuk melanjutkan autentikasi Google Anda.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
