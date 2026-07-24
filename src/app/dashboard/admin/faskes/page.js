@@ -245,7 +245,7 @@ export default function AdminGeotagging() {
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      <Sidebar activePath="/dashboard/admin/faskes" />
+      <Sidebar role="admin" activePath="/dashboard/admin/faskes" />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar user={user} onLogout={handleLogout} title="Manajemen Geotagging Faskes" />
 

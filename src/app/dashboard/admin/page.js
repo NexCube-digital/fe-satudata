@@ -73,7 +73,7 @@ export default function AdminDashboard() {
         apiGet("/api/dashboard/admin/stats"),
         apiGet("/api/dashboard/admin/users"),
         apiGet("/api/dashboard/admin/audit"),
-        apiGet("/api/patient/profile")
+        apiGet("/api/admin/profile")
       ]);
 
       if (profileRes.status === "fulfilled" && profileRes.value?.data) {
