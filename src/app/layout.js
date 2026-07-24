@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import SessionTimeout from "@/components/SessionTimeout";
+import SessionTimeout from "@/components/shared/SessionTimeout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

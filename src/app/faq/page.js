@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/landing/navbar";
-import Footer from "@/components/landing/footer";
+import Navbar from "@/components/layout/LandingNavbar";
+import Footer from "@/components/layout/LandingFooter";
 import { 
   Search, 
   HelpCircle, 

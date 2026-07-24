@@ -1,7 +1,7 @@
 // src/lib/hospitalService.js
 // Hospital / Faskes Dashboard API Services for SatuData
 
-import { apiGet, apiPut } from "./api";
+import { apiGet, apiPut } from "@/lib/api";
 
 export const getHospitalProfile = async () => {
   return await apiGet("/api/hospital/profile");

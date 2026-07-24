@@ -1,4 +1,4 @@
-import SettingPage from "@/app/dashboard/layout/Setting";
+import SettingPage from "@/components/features/SettingPage";
 
 export default function FaskesSettingsPage() {
   return <SettingPage />;

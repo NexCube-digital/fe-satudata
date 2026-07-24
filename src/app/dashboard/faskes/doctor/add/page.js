@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "../../../layout/Navbar";
-import Sidebar from "../../../layout/Sidebar";
-import { createDoctor } from "@/lib/doctorService";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import { createDoctor } from "@/services/doctorService";
 import {
   Users,
   Building2,

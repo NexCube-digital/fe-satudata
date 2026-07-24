@@ -1,7 +1,7 @@
 // src/lib/patientService.js
 // Patient Dashboard API Services for SatuData
 
-import { apiGet, apiPut } from "./api";
+import { apiGet, apiPut } from "@/lib/api";
 
 export const getPatientProfile = async () => {
   return await apiGet("/api/patient/profile");

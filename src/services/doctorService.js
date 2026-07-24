@@ -1,7 +1,7 @@
 // src/lib/doctorService.js
 // Doctor Management API Services for Hospital / Faskes
 
-import { apiGet, apiPost, apiPut, apiDelete } from "./api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 

@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import AudienceSwitcher from "@/components/landing/audience-switcher";
 import FeatureGrid from "@/components/landing/feature-grid";
-import Footer from "@/components/landing/footer";
+import Footer from "@/components/layout/LandingFooter";
+import Navbar from "@/components/layout/LandingNavbar";
 import Hero from "@/components/landing/hero";
-import Navbar from "@/components/landing/navbar";
 import WorkflowSection from "@/components/landing/workflow-section";
 import CTASection from "@/components/landing/cta-section";
 
