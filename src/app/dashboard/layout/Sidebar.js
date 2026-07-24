@@ -18,7 +18,8 @@ import {
   Database,
   UserPlus,
   History,
-  MapPin
+  MapPin,
+  Building2
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -29,13 +30,15 @@ export default function Sidebar({ role }) {
     users: null,
     logs: null,
     patients: null,
+    hospitals: null,
     requests: null,
     records: null,
     consent: null
   });
 
   const [openDropdowns, setOpenDropdowns] = useState({
-    patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests")
+    patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
+    users: pathname.startsWith("/dashboard/admin/users")
   });
 
   useEffect(() => {
@@ -70,7 +73,9 @@ export default function Sidebar({ role }) {
             setBadgeCounts((prev) => ({
               ...prev,
               users: `${res.data.total_users || res.data.totalUsers || 0}`,
-              logs: `${res.data.blockchain_transactions || res.data.totalLogs || 0}`
+              logs: `${res.data.blockchain_transactions || res.data.totalLogs || 0}`,
+              patients: `${res.data.total_patients || res.data.totalPatients || 0}`,
+              hospitals: `${res.data.total_hospitals || res.data.totalHospitals || 0}`
             }));
           }
         } catch (e) {}
@@ -108,7 +113,16 @@ export default function Sidebar({ role }) {
       case "admin":
         return [
           { href: "/dashboard/admin", label: "Overview", icon: Home, badge: null },
-          { href: "/dashboard/admin/users", label: "Kelola Pengguna", icon: Users, badge: badgeCounts.users || "Aktif" },
+          { 
+            label: "Kelola Pengguna", 
+            icon: Users,
+            dropdownKey: "users",
+            badge: badgeCounts.users || "Aktif",
+            children: [
+              { href: "/dashboard/admin/users/pasien", label: "Akun Pasien", icon: User, badge: badgeCounts.patients },
+              { href: "/dashboard/admin/users/faskes", label: "Akun Rumah Sakit", icon: Building2, badge: badgeCounts.hospitals }
+            ]
+          },
           { href: "/dashboard/admin/faskes", label: "Geotagging Faskes", icon: MapPin, badge: null },
           { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: badgeCounts.logs || "Live" },
         ];
@@ -205,11 +219,13 @@ export default function Sidebar({ role }) {
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 if (item.children) {
+                  const dropdownKey = item.dropdownKey || "patients";
+                  const isOpen = openDropdowns[dropdownKey];
                   const isChildActive = item.children.some((child) => pathname === child.href);
                   return (
                     <div key={item.label} className="space-y-1">
                       <button
-                        onClick={() => setOpenDropdowns((prev) => ({ ...prev, patients: !prev.patients }))}
+                        onClick={() => setOpenDropdowns((prev) => ({ ...prev, [dropdownKey]: !prev[dropdownKey] }))}
                         className={`group relative flex items-center justify-between w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isChildActive
                             ? "bg-rose-50/80 text-rose-900 border border-rose-900/10"
@@ -222,10 +238,21 @@ export default function Sidebar({ role }) {
                           }`} />
                           <span>{item.label}</span>
                         </div>
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDropdowns.patients ? "rotate-180" : ""}`} />
+                        <div className="flex items-center gap-2">
+                          {item.badge && (
+                            <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
+                              isChildActive
+                                ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
+                                : "bg-slate-100 text-slate-500 border border-slate-200"
+                            }`}>
+                              {item.badge}
+                            </span>
+                          )}
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                        </div>
                       </button>
                       
-                      {openDropdowns.patients && (
+                      {isOpen && (
                         <div className="pl-9 space-y-1">
                           {item.children.map((child) => {
                             const isChildActive = pathname === child.href;

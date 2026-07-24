@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
-export default function UsersComponent() {
+export default function UsersComponent({ forcedRole }) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,7 @@ export default function UsersComponent() {
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState(forcedRole || "all");
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Detail Modal State
@@ -122,6 +122,13 @@ export default function UsersComponent() {
     }
   };
 
+  const maskNik = (nik) => {
+    if (!nik) return "-";
+    const str = nik.toString();
+    if (str.length < 10) return "******";
+    return str.substring(0, 6) + "******" + str.substring(str.length - 4);
+  };
+
   const copyToClipboard = (text, id) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -173,10 +180,18 @@ export default function UsersComponent() {
                 </span>
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    Manajemen Pengguna (User Directory)
+                    {forcedRole === "pasien"
+                      ? "Manajemen Akun Pasien"
+                      : forcedRole === "rumah_sakit"
+                      ? "Manajemen Akun Rumah Sakit / Faskes"
+                      : "Manajemen Pengguna (User Directory)"}
                   </h1>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Kelola daftar pengguna terdaftar, perbarui status akun, dan tinjau alamat dompet Web3
+                    {forcedRole === "pasien"
+                      ? "Kelola daftar pasien terdaftar, perbarui status akun, dan tinjau alamat dompet Web3"
+                      : forcedRole === "rumah_sakit"
+                      ? "Kelola daftar rumah sakit & faskes terdaftar, perbarui status akun, dan tinjau alamat dompet Web3"
+                      : "Kelola daftar pengguna terdaftar, perbarui status akun, dan tinjau alamat dompet Web3"}
                   </p>
                 </div>
               </div>
@@ -238,19 +253,21 @@ export default function UsersComponent() {
             </div>
 
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
-                <Filter className="h-3.5 w-3.5 text-slate-400" />
-                <span className="font-bold text-slate-600">Role:</span>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
-                >
-                  <option value="all">Semua Role</option>
-                  <option value="pasien">Pasien</option>
-                  <option value="rumah_sakit">Fasilitas Kesehatan</option>
-                </select>
-              </div>
+              {!forcedRole && (
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                  <Filter className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="font-bold text-slate-600">Role:</span>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
+                  >
+                    <option value="all">Semua Role</option>
+                    <option value="pasien">Pasien</option>
+                    <option value="rumah_sakit">Fasilitas Kesehatan</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
                 <span className="font-bold text-slate-600">Status:</span>
@@ -321,7 +338,7 @@ export default function UsersComponent() {
                           <td className="px-5 py-4">
                             <p className="font-semibold text-slate-800">{u.email}</p>
                             <p className="font-mono text-[10px] text-slate-400 mt-0.5">
-                              {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.nik || "-"}
+                              {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.role === "pasien" ? maskNik(u.nik) : (u.nik || "-")}
                             </p>
                           </td>
 

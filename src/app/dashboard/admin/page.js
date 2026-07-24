@@ -144,6 +144,13 @@ export default function AdminDashboard() {
     router.push("/auth/login");
   };
 
+  const maskNik = (nik) => {
+    if (!nik) return "-";
+    const str = nik.toString();
+    if (str.length < 10) return "******";
+    return str.substring(0, 6) + "******" + str.substring(str.length - 4);
+  };
+
   // Toggle user account status with real BE request
   const handleToggleStatus = async (userObj) => {
     setActionLoadingId(userObj.id);
@@ -330,7 +337,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <Link
-                    href="/dashboard/admin/users"
+                    href="/dashboard/admin/users/pasien"
                     className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-800 hover:bg-rose-100 transition cursor-pointer"
                   >
                     Lihat Semua Pengguna →
@@ -403,7 +410,7 @@ export default function AdminDashboard() {
                                 <div>
                                   <p className="font-bold text-slate-900">{u.name}</p>
                                   <p className="text-[10px] text-slate-400 font-mono">
-                                    {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.nik || "-"}
+                                    {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.role === "pasien" ? maskNik(u.nik) : (u.nik || "-")}
                                   </p>
                                 </div>
                               </div>

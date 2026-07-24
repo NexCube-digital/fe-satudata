@@ -1,5 +1,5 @@
-import UsersComponent from "@/components/admin/UsersComponent";
+import { redirect } from "next/navigation";
 
 export default function AdminUsersDashboardPage() {
-  return <UsersComponent />;
+  redirect("/dashboard/admin/users/pasien");
 }
