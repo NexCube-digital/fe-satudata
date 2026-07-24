@@ -38,7 +38,8 @@ export default function Sidebar({ role }) {
 
   const [openDropdowns, setOpenDropdowns] = useState({
     patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
-    users: pathname.startsWith("/dashboard/admin/users")
+    users: pathname.startsWith("/dashboard/admin/users"),
+    doctors: pathname.startsWith("/dashboard/faskes/doctor")
   });
 
   useEffect(() => {
@@ -139,7 +140,15 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History }
             ]
           },
-          { href: "/dashboard/faskes/doctor", label: "Kelola Dokter", icon: Users, badge: null },
+          { 
+            label: "Kelola Dokter", 
+            icon: Users,
+            dropdownKey: "doctors",
+            children: [
+              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
+              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
+            ]
+          },
         ];
       case "pasien":
       default:

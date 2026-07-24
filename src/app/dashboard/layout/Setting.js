@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -20,7 +20,10 @@ import {
   Users,
   Camera,
   Edit3,
-  Unlock
+  Unlock,
+  Upload,
+  X,
+  Move
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -49,6 +52,23 @@ export default function SettingPage() {
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState({ type: "", text: "" });
+
+  // Photo Crop & Camera Modal States
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [sourceImage, setSourceImage] = useState(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [videoStream, setVideoStream] = useState(null);
+
+  // Crop / Drag Adjuster States
+  const [zoom, setZoom] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Refs
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
 
   // Custom Date Picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -166,6 +186,150 @@ export default function SettingPage() {
       }
     }
   }, [dateOfBirth]);
+
+  // Camera stream controllers
+  const startCamera = async () => {
+    setCameraActive(true);
+    setSourceImage(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 400 } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setVideoStream(stream);
+    } catch (err) {
+      console.error("Gagal mengakses kamera:", err);
+      alert("Tidak dapat mengakses kamera. Harap periksa izin browser.");
+      setCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoStream) {
+      videoStream.getTracks().forEach((track) => track.stop());
+      setVideoStream(null);
+    }
+    setCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth || 400;
+      canvas.height = videoRef.current.videoHeight || 400;
+      const ctx = canvas.getContext("2d");
+      
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      
+      const dataUrl = canvas.toDataURL("image/jpeg");
+      setSourceImage(dataUrl);
+      stopCamera();
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSourceImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Drag controllers (pan image)
+  const handleMouseDown = (e) => {
+    if (!sourceImage) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    setPanX(e.clientX - dragStart.x);
+    setPanY(e.clientY - dragStart.y);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e) => {
+    if (!sourceImage) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragStart({ x: touch.clientX - panX, y: touch.clientY - panY });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    setPanX(touch.clientX - dragStart.x);
+    setPanY(touch.clientY - dragStart.y);
+  };
+
+  // Crop & save as File object
+  const handleCropSave = () => {
+    if (!sourceImage) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 300;
+    const ctx = canvas.getContext("2d");
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const containerSize = 240;
+      const canvasScale = 300 / containerSize;
+
+      const imgAspect = img.width / img.height;
+      let renderWidth = containerSize;
+      let renderHeight = containerSize;
+
+      if (imgAspect > 1) {
+        renderHeight = containerSize / imgAspect;
+      } else {
+        renderWidth = containerSize * imgAspect;
+      }
+
+      const x0 = (containerSize - renderWidth) / 2;
+      const y0 = (containerSize - renderHeight) / 2;
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-canvas.width / 2 + (panX * canvasScale), -canvas.height / 2 + (panY * canvasScale));
+
+      ctx.drawImage(
+        img,
+        x0 * canvasScale,
+        y0 * canvasScale,
+        renderWidth * canvasScale,
+        renderHeight * canvasScale
+      );
+      ctx.restore();
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], "cropped-profile-photo.jpg", { type: "image/jpeg" });
+          setProfilePictureFile(file);
+          setProfilePicturePreview(URL.createObjectURL(file));
+          setIsPhotoModalOpen(false);
+          setSourceImage(null);
+          setZoom(1);
+          setPanX(0);
+          setPanY(0);
+        }
+      }, "image/jpeg", 0.95);
+    };
+    img.src = sourceImage;
+  };
 
   const fetchProfile = async (currentUser) => {
     const token = localStorage.getItem("accessToken");
@@ -574,7 +738,17 @@ export default function SettingPage() {
               <form onSubmit={handleUpdateProfile} className="space-y-6">
                 {/* Profile Picture Upload Box */}
                 <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
-                  <div className="relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-4 ring-rose-500/20 shrink-0 shadow-md">
+                  <div 
+                    onClick={() => {
+                      if (isEditMode) {
+                        setIsPhotoModalOpen(true);
+                      }
+                    }}
+                    className={`group relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-4 ring-rose-500/20 shrink-0 shadow-md ${
+                      isEditMode ? "cursor-pointer hover:brightness-95 transition" : ""
+                    }`}
+                    title={isEditMode ? "Klik untuk mengubah foto profil" : undefined}
+                  >
                     {profilePicturePreview || getAvatarUrl(user) ? (
                       <img
                         src={profilePicturePreview || getAvatarUrl(user)}
@@ -589,27 +763,20 @@ export default function SettingPage() {
                         {name ? name.charAt(0).toUpperCase() : <User className="h-8 w-8" />}
                       </div>
                     )}
+                    {isEditMode && (
+                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
+                        <Camera className="h-5 w-5 text-white" />
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-center sm:text-left">
                     <h3 className="text-sm font-bold text-slate-800">Foto Profil Akun</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Format file: JPG, PNG, WEBP, GIF (Maks. 2MB)</p>
-                    <label className="inline-flex items-center gap-2 mt-2.5 px-4 py-2 rounded-xl bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold transition cursor-pointer shadow-xs">
-                      <Camera className="h-3.5 w-3.5" />
-                      <span>{profilePictureFile ? profilePictureFile.name : "Unggah Foto Baru"}</span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setProfilePictureFile(file);
-                            setProfilePicturePreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                    </label>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {isEditMode 
+                        ? "Klik bulatan foto di sebelah kiri untuk mengganti foto lewat file atau kamera."
+                        : "Klik 'Edit Profil' di bawah untuk mulai mengubah foto profil."}
+                    </p>
                   </div>
                 </div>
 
@@ -1122,6 +1289,168 @@ export default function SettingPage() {
           )}
         </main>
       </div>
+
+      {/* Photo Crop & Upload Modal */}
+      {isPhotoModalOpen && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 flex flex-col items-center">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center w-full border-b border-slate-100 pb-3 mb-4">
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <Camera className="h-4 w-4 text-rose-800" />
+                Atur Foto Profil
+              </h3>
+              <button
+                onClick={() => {
+                  setIsPhotoModalOpen(false);
+                  stopCamera();
+                }}
+                className="text-slate-400 hover:text-slate-655 transition cursor-pointer"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            {/* Content Mode Selection */}
+            {!sourceImage && !cameraActive && (
+              <div className="flex flex-col gap-3 w-full py-8">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 text-rose-900 font-bold hover:bg-rose-50 transition text-xs cursor-pointer"
+                >
+                  <Upload className="h-5 w-5 text-rose-800" />
+                  Pilih File Foto
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 transition text-xs cursor-pointer shadow-2xs"
+                >
+                  <Camera className="h-5 w-5 text-slate-550" />
+                  Ambil dengan Kamera
+                </button>
+              </div>
+            )}
+
+            {/* Webcam Stream */}
+            {cameraActive && (
+              <div className="flex flex-col items-center gap-4 w-full">
+                <div className="relative h-60 w-60 rounded-2xl overflow-hidden bg-black border border-slate-200 shadow-inner">
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover scale-x-[-1]"
+                    playsInline
+                    muted
+                  />
+                </div>
+                <div className="flex gap-2 w-full">
+                  <button
+                    type="button"
+                    onClick={capturePhoto}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-850 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer"
+                  >
+                    Ambil Foto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Cropper Adjuster */}
+            {sourceImage && (
+              <div className="flex flex-col items-center gap-4 w-full">
+                <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                  <Move className="h-3.5 w-3.5 text-slate-400 animate-pulse" /> Geser foto dan gunakan slider untuk zoom
+                </p>
+
+                {/* Crop Box Container */}
+                <div 
+                  className="relative h-60 w-60 rounded-full overflow-hidden bg-slate-100 border border-slate-300 shadow-inner cursor-move select-none"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleMouseUp}
+                >
+                  <img
+                    src={sourceImage}
+                    alt="Cropping source"
+                    draggable={false}
+                    className="absolute max-w-none origin-center pointer-events-none"
+                    style={{
+                      transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+                      transition: isDragging ? "none" : "transform 0.15s ease-out",
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain"
+                    }}
+                  />
+                  {/* Circular Crop Overlay Finder */}
+                  <div className="absolute inset-0 border-[20px] border-slate-900/60 pointer-events-none">
+                    <div className="h-full w-full rounded-full border border-white/50 border-dashed" />
+                  </div>
+                </div>
+
+                {/* Zoom Slider */}
+                <div className="w-full space-y-1">
+                  <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span>Zoom Out</span>
+                    <span>Zoom In</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="4"
+                    step="0.05"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-800"
+                  />
+                </div>
+
+                <div className="flex gap-2 w-full pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCropSave}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle className="h-4 w-4" /> Simpan Foto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSourceImage(null);
+                      setZoom(1);
+                      setPanX(0);
+                      setPanY(0);
+                    }}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold transition cursor-pointer"
+                  >
+                    Kembali
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
