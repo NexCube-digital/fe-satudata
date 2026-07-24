@@ -28,7 +28,7 @@ import {
   Loader,
   AlertCircle
 } from "lucide-react";
-import { apiGet, apiPut, getAvatarUrl } from "@/lib/api";
+import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -70,9 +70,9 @@ export default function AdminDashboard() {
     setFetching(true);
     try {
       const [statsRes, usersRes, logsRes, profileRes] = await Promise.allSettled([
-        apiGet("/api/admin/stats"),
-        apiGet("/api/admin/users"),
-        apiGet("/api/admin/logs"),
+        apiGet("/api/dashboard/admin/stats"),
+        apiGet("/api/dashboard/admin/users"),
+        apiGet("/api/dashboard/admin/audit"),
         apiGet("/api/patient/profile")
       ]);
 
@@ -89,12 +89,23 @@ export default function AdminDashboard() {
         window.dispatchEvent(new Event("userUpdated"));
       }
 
-      if (statsRes.status === "fulfilled" && statsRes.value?.success) {
-        setStats(statsRes.value.data);
+      if (statsRes.status === "fulfilled" && statsRes.value?.success && statsRes.value.data) {
+        const d = statsRes.value.data;
+        setStats({
+          totalUsers: d.total_users || 0,
+          totalPatients: d.total_patients || 0,
+          totalHospitals: d.total_hospitals || 0,
+          totalActiveUsers: d.active_users || 0,
+          totalLogs: d.blockchain_transactions || 0,
+        });
       }
 
       if (usersRes.status === "fulfilled" && usersRes.value?.success && Array.isArray(usersRes.value.data)) {
-        setUsersList(usersRes.value.data);
+        const mappedUsers = usersRes.value.data.map(u => ({
+          ...u,
+          nik: u.nik || u.identifier_value || "",
+        }));
+        setUsersList(mappedUsers);
       } else {
         // Fallback sample users
         setUsersList([
@@ -108,7 +119,7 @@ export default function AdminDashboard() {
       if (logsRes.status === "fulfilled" && logsRes.value?.success && Array.isArray(logsRes.value.data)) {
         const formattedLogs = logsRes.value.data.map((l) => {
           const time = l.created_at ? new Date(l.created_at).toLocaleTimeString("id-ID") : "Live";
-          const actor = l.Actor?.name || `User #${l.user_id}`;
+          const actor = l.actor?.name || l.Actor?.name || `User #${l.user_id || l.actor?.id || ""}`;
           return `[${time}] [${l.action || "SYSTEM"}] ${actor} -> ${l.information || l.status || "OK"}`;
         });
         setTerminalLogs(formattedLogs);
@@ -138,7 +149,11 @@ export default function AdminDashboard() {
     setActionLoadingId(userObj.id);
     try {
       const nextStatus = userObj.status_account === "active" ? "inactive" : "active";
-      await apiPut(`/api/admin/users/${userObj.id}/status`, { status_account: nextStatus });
+      if (nextStatus === "active") {
+        await apiPost(`/api/admin/accounts/${userObj.id}/force-activate`);
+      } else {
+        await apiPost(`/api/admin/accounts/${userObj.id}/deactivate`, { reason: "Deactivated by Admin" });
+      }
 
       setUsersList((prev) =>
         prev.map((u) => (u.id === userObj.id ? { ...u, status_account: nextStatus } : u))
@@ -147,6 +162,7 @@ export default function AdminDashboard() {
       const logMsg = `[${new Date().toLocaleTimeString()}] [ADMIN] ${userObj.name} status updated to ${nextStatus.toUpperCase()}`;
       setTerminalLogs((prev) => [logMsg, ...prev]);
     } catch (err) {
+      console.error("Gagal mengubah status akun:", err.message);
       // Local fallback toggle
       const nextStatus = userObj.status_account === "active" ? "inactive" : "active";
       setUsersList((prev) =>

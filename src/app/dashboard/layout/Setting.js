@@ -172,8 +172,11 @@ export default function SettingPage() {
     if (!token) return;
 
     const isHospital = currentUser?.role === "rumah_sakit" || currentUser?.role === "faskes";
+    const isAdmin = currentUser?.role === "admin";
     const endpoint = isHospital
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
+      : isAdmin
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/admin/profile`
       : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`;
 
     try {
@@ -259,8 +262,11 @@ export default function SettingPage() {
     try {
       const token = localStorage.getItem("accessToken");
       const isHospital = user?.role === "rumah_sakit" || user?.role === "faskes";
+      const isAdmin = user?.role === "admin";
       const endpoint = isHospital
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
+        : isAdmin
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/admin/profile`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`;
 
       let bodyData;

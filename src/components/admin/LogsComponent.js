@@ -61,9 +61,14 @@ export default function LogsComponent() {
     setFetchingData(true);
     setErrorMsg("");
     try {
-      const res = await apiGet("/api/admin/logs");
+      const res = await apiGet("/api/dashboard/admin/audit");
       if (res.success && Array.isArray(res.data)) {
-        setLogsList(res.data);
+        const mappedLogs = res.data.map(l => ({
+          ...l,
+          Actor: l.Actor || l.actor || null,
+          TargetHospital: l.TargetHospital || l.target_hospital || null,
+        }));
+        setLogsList(mappedLogs);
       } else {
         throw new Error(res.message || "Gagal memuat data audit log");
       }

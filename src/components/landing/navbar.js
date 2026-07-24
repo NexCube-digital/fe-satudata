@@ -24,11 +24,10 @@ import {
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
 const links = [
-  { href: "#fitur", label: "Fitur Unggulan" },
-  { href: "#panel", label: "Dasbor Interaktif" },
-  { href: "#alur", label: "Alur Sistem" },
-  { href: "/faskes", label: "Peta & Lokasi Faskes" },
-  { href: "/faq", label: "FAQ & Bantuan" },
+  { href: "#fitur", label: "Fitur Sistem" },
+  { href: "#alur", label: "Alur Akses" },
+  { href: "/faskes", label: "Peta Faskes" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export default function Navbar({ walletConnected, setWalletConnected }) {
@@ -97,7 +96,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
   // Track active scroll section for navbar indicator
   useEffect(() => {
     const handleScroll = () => {
-      const sectionIds = ["fitur", "panel", "alur", "faq"];
+      const sectionIds = ["fitur", "alur"];
       const scrollPosition = window.scrollY + 250;
 
       for (const id of sectionIds) {

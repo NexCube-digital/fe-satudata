@@ -23,7 +23,7 @@ import {
   Loader,
   AlertCircle
 } from "lucide-react";
-import { apiGet, apiPut, getAvatarUrl } from "@/lib/api";
+import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
 export default function UsersComponent() {
   const router = useRouter();
@@ -61,9 +61,13 @@ export default function UsersComponent() {
     setFetchingData(true);
     setErrorMsg("");
     try {
-      const res = await apiGet("/api/admin/users");
+      const res = await apiGet("/api/dashboard/admin/users");
       if (res.success && Array.isArray(res.data)) {
-        setUsersList(res.data);
+        const mappedUsers = res.data.map(u => ({
+          ...u,
+          nik: u.nik || u.identifier_value || "",
+        }));
+        setUsersList(mappedUsers);
       } else {
         throw new Error(res.message || "Gagal memuat data pengguna");
       }
@@ -94,13 +98,19 @@ export default function UsersComponent() {
     setErrorMsg("");
     try {
       const nextStatus = userToToggle.status_account === "active" ? "inactive" : "active";
-      const res = await apiPut(`/api/admin/users/${userToToggle.id}/status`, { status_account: nextStatus });
+      let res;
+      if (nextStatus === "active") {
+        res = await apiPost(`/api/admin/accounts/${userToToggle.id}/force-activate`);
+      } else {
+        res = await apiPost(`/api/admin/accounts/${userToToggle.id}/deactivate`, { reason: "Deactivated by Admin" });
+      }
       
       setUsersList((prev) =>
         prev.map((u) => (u.id === userToToggle.id ? { ...u, status_account: nextStatus } : u))
       );
       setSuccessMsg(res.message || `Status ${userToToggle.name} berhasil diubah ke ${nextStatus}`);
     } catch (err) {
+      console.error("Gagal mengubah status akun:", err.message);
       // Local fallback
       const nextStatus = userToToggle.status_account === "active" ? "inactive" : "active";
       setUsersList((prev) =>

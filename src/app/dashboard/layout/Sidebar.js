@@ -64,12 +64,12 @@ export default function Sidebar({ role }) {
 
       if (role === "admin") {
         try {
-          const res = await apiGet("/api/admin/stats");
+          const res = await apiGet("/api/dashboard/admin/stats");
           if (res.success && res.data) {
             setBadgeCounts((prev) => ({
               ...prev,
-              users: `${res.data.totalUsers || 0}`,
-              logs: `${res.data.totalLogs || 0}`
+              users: `${res.data.total_users || res.data.totalUsers || 0}`,
+              logs: `${res.data.blockchain_transactions || res.data.totalLogs || 0}`
             }));
           }
         } catch (e) {}
