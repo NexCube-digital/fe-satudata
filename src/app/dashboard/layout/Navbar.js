@@ -20,7 +20,7 @@ import {
   XCircle,
   AlertCircle
 } from "lucide-react";
-import { getAvatarUrl } from "@/lib/api";
+import { apiGet, getAvatarUrl } from "@/lib/api";
 
 export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const [currentUser, setCurrentUser] = useState(initialUser);
@@ -58,15 +58,9 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const user = currentUser;
 
   const fetchNotifications = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications?limit=20`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data?.items) {
+      const result = await apiGet("/api/notifications?limit=20");
+      if (result.success && result.data?.items) {
         const mapped = result.data.items.map((item) => {
           let title = "Notifikasi";
           let category = "security";
@@ -130,11 +124,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
     }
 
     try {
-      const resCount = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const resCountJson = await resCount.json();
-      if (resCount.ok && resCountJson.data) {
+      const resCountJson = await apiGet("/api/notifications/unread-count");
+      if (resCountJson.success && resCountJson.data) {
         setUnreadCount(resCountJson.data.unread_count || 0);
       }
     } catch (err) {

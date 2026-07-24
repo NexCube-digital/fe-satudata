@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Database,
   UserPlus,
-  History
+  History,
+  MapPin
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -108,6 +109,7 @@ export default function Sidebar({ role }) {
         return [
           { href: "/dashboard/admin", label: "Overview", icon: Home, badge: null },
           { href: "/dashboard/admin/users", label: "Kelola Pengguna", icon: Users, badge: badgeCounts.users || "Aktif" },
+          { href: "/dashboard/admin/faskes", label: "Geotagging Faskes", icon: MapPin, badge: null },
           { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: badgeCounts.logs || "Live" },
         ];
       case "faskes":

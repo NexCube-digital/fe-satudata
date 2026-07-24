@@ -230,7 +230,7 @@ export default function UsersComponent() {
               <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari nama, email, NIK, atau wallet..."
+                placeholder="Cari nama, email, NIK/SIP, atau wallet..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden"
@@ -274,7 +274,7 @@ export default function UsersComponent() {
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5">Pengguna & Role</th>
-                    <th className="px-5 py-3.5">Identitas (Email & NIK)</th>
+                    <th className="px-5 py-3.5">Identitas (Email & NIK/SIP)</th>
                     <th className="px-5 py-3.5">Wallet Address Web3</th>
                     <th className="px-5 py-3.5 text-center">Status Akun</th>
                     <th className="px-5 py-3.5 text-right">Aksi</th>
@@ -320,7 +320,9 @@ export default function UsersComponent() {
 
                           <td className="px-5 py-4">
                             <p className="font-semibold text-slate-800">{u.email}</p>
-                            <p className="font-mono text-[10px] text-slate-400 mt-0.5">NIK: {u.nik || "-"}</p>
+                            <p className="font-mono text-[10px] text-slate-400 mt-0.5">
+                              {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.nik || "-"}
+                            </p>
                           </td>
 
                           <td className="px-5 py-4">
@@ -363,13 +365,6 @@ export default function UsersComponent() {
                           <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button
-                                onClick={() => setSelectedUser(u)}
-                                className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition cursor-pointer"
-                                title="Lihat Detail"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button
                                 onClick={() => handleToggleStatus(u)}
                                 disabled={actionLoadingId === u.id}
                                 className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold text-[11px] transition cursor-pointer border ${
@@ -403,78 +398,6 @@ export default function UsersComponent() {
         </main>
       </div>
 
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <User className="h-5 w-5 text-rose-600" />
-                Detail Pengguna
-              </h3>
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
-                  {getAvatarUrl(selectedUser) ? (
-                    <img src={getAvatarUrl(selectedUser)} alt={selectedUser.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center font-bold text-white text-sm">
-                      {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : "U"}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-slate-900 text-sm">{selectedUser.name}</h4>
-                  <p className="text-slate-500">{selectedUser.email}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Role Akun</span>
-                  <span className="font-extrabold text-slate-900 uppercase">{selectedUser.role}</span>
-                </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">NIK</span>
-                  <span className="font-mono font-extrabold text-slate-900">{selectedUser.nik || "-"}</span>
-                </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Status Akun</span>
-                  <span className={`font-extrabold ${selectedUser.status_account === "active" ? "text-emerald-600" : "text-amber-600"}`}>
-                    {selectedUser.status_account === "active" ? "Aktif" : "Nonaktif"}
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Telepon</span>
-                  <span className="font-semibold text-slate-800">{selectedUser.profil?.phone || selectedUser.hospitalProfile?.phone || "-"}</span>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                <span className="text-[10px] text-slate-400 font-bold block uppercase">Web3 Wallet Address</span>
-                <span className="font-mono text-xs text-slate-800 break-all">{selectedUser.wallet_address || "Belum ditautkan"}</span>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

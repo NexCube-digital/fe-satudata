@@ -366,9 +366,8 @@ export default function AdminDashboard() {
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                        <th className="py-3 px-4 rounded-l-xl">Nama / Email</th>
+                        <th className="py-3 px-4 rounded-l-xl">Nama / Identitas</th>
                         <th className="py-3 px-4">Peran (Role)</th>
-                        <th className="py-3 px-4">NIK / Lisensi</th>
                         <th className="py-3 px-4">Status Akun</th>
                         <th className="py-3 px-4 text-right rounded-r-xl">Aksi Admin</th>
                       </tr>
@@ -376,7 +375,7 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-slate-100">
                       {filteredUsers.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-400">
+                          <td colSpan={4} className="py-8 text-center text-slate-400">
                             Tidak ada data pengguna ditemukan.
                           </td>
                         </tr>
@@ -403,7 +402,9 @@ export default function AdminDashboard() {
                                 </div>
                                 <div>
                                   <p className="font-bold text-slate-900">{u.name}</p>
-                                  <p className="text-[10px] text-slate-400">{u.email}</p>
+                                  <p className="text-[10px] text-slate-400 font-mono">
+                                    {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.nik || "-"}
+                                  </p>
                                 </div>
                               </div>
                             </td>
@@ -422,7 +423,6 @@ export default function AdminDashboard() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-[10px] text-slate-600">{u.nik || "-"}</td>
                             <td className="py-3.5 px-4">
                               {u.status_account === "active" ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
@@ -468,23 +468,23 @@ export default function AdminDashboard() {
 
             {/* Right Column (1 Col): Terminal Console & Live Event Stream */}
             <div className="space-y-8">
-              <div className="rounded-3xl bg-gradient-to-br from-rose-950 to-red-950 border border-rose-800/40 p-6 text-white shadow-xl">
-                <div className="flex items-center justify-between border-b border-rose-800/60 pb-4 mb-4">
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-rose-300 flex items-center gap-2 font-mono">
-                    <Terminal className="h-4 w-4" />
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-mono">
+                    <Terminal className="h-4 w-4 text-rose-600" />
                     Live System Event Stream
                   </h3>
                   <div className="flex items-center gap-2">
-                    <Link href="/logs" className="text-[10px] font-bold text-rose-300 hover:underline">
+                    <Link href="/dashboard/admin/logs" className="text-[10px] font-bold text-rose-800 hover:text-rose-900 transition">
                       Detail Logs →
                     </Link>
-                    <span className="flex h-2 w-2 rounded-full bg-rose-400 animate-ping" />
+                    <span className="flex h-2 w-2 rounded-full bg-rose-600 animate-ping" />
                   </div>
                 </div>
 
-                <div className="space-y-2 font-mono text-[10px] text-rose-200 max-h-96 overflow-y-auto leading-relaxed">
+                <div className="space-y-2 font-mono text-[10px] text-slate-600 max-h-96 overflow-y-auto leading-relaxed">
                   {terminalLogs.map((log, idx) => (
-                    <div key={idx} className="p-2 rounded-xl bg-black/30 border border-rose-800/30 break-all text-rose-100">
+                    <div key={idx} className="p-2.5 rounded-xl bg-rose-50/20 border border-rose-100/50 break-all text-slate-700 font-medium">
                       {log}
                     </div>
                   ))}
