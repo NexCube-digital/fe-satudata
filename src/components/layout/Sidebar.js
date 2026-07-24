@@ -39,7 +39,8 @@ export default function Sidebar({ role }) {
   const [openDropdowns, setOpenDropdowns] = useState({
     patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
     users: pathname.startsWith("/dashboard/admin/users"),
-    doctors: pathname.startsWith("/dashboard/faskes/doctor")
+    doctors: pathname.startsWith("/dashboard/faskes/doctor"),
+    geotagging: pathname.startsWith("/dashboard/admin/faskes")
   });
 
   useEffect(() => {
@@ -124,7 +125,16 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/admin/users/faskes", label: "Akun Rumah Sakit", icon: Building2, badge: badgeCounts.hospitals }
             ]
           },
-          { href: "/dashboard/admin/faskes", label: "Geotagging Faskes", icon: MapPin, badge: null },
+          { 
+            label: "Geotagging Faskes", 
+            icon: MapPin,
+            dropdownKey: "geotagging",
+            badge: null,
+            children: [
+              { href: "/dashboard/admin/faskes", label: "Semua Lokasi", icon: MapPin, badge: null },
+              { href: "/dashboard/admin/faskes/add", label: "Tambah Titik Baru", icon: MapPin, badge: null }
+            ]
+          },
           { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: badgeCounts.logs || "Live" },
         ];
       case "faskes":

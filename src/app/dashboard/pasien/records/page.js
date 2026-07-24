@@ -458,7 +458,7 @@ export default function PatientRecordsPage() {
                 <div className="pt-6 border-t border-slate-100 mt-6 flex justify-end gap-3">
                   <button
                     onClick={() => window.print()}
-                    className="inline-flex items-center gap-2 rounded-xl bg-slate-900 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-slate-800 transition cursor-pointer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-rose-800 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition cursor-pointer"
                   >
                     <Download className="h-4 w-4" /> Unduh Dokumen Rekam Medis PDF
                   </button>

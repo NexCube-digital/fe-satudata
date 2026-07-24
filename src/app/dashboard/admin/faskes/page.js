@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
@@ -25,13 +25,32 @@ import {
   Link2
 } from "lucide-react";
 
-export default function AdminGeotagging() {
+function AdminGeotaggingContent() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const searchParams = useSearchParams();
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (msg, type = "success") => {
+    setToast({ show: true, message: msg, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 4500);
+  };
+
+  useEffect(() => {
+    const toastVal = searchParams.get("toast");
+    const actionVal = searchParams.get("action");
+    if (toastVal === "success") {
+      const actionName = actionVal === "edit" ? "diperbarui" : "ditambahkan";
+      showToast(`Data geotagging berhasil ${actionName}.`, "success");
+      router.replace("/dashboard/admin/faskes");
+    }
+  }, [searchParams]);
 
   // Data lists
   const [faskesList, setFaskesList] = useState([]);
@@ -53,6 +72,33 @@ export default function AdminGeotagging() {
   const [customAddress, setCustomAddress] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const modalMapRef = useRef(null);
+  const modalMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    if (!document.getElementById("leaflet-js")) {
+      const script = document.createElement("script");
+      script.id = "leaflet-js";
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      script.onload = () => setMapLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      if (window.L) {
+        setMapLoaded(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -120,36 +166,11 @@ export default function AdminGeotagging() {
   };
 
   const openAddModal = () => {
-    setModalMode("add");
-    setEntryType("registered");
-    setSelectedHospitalId("");
-    setCustomName("");
-    setCustomAddress("");
-    setLatitude("");
-    setLongitude("");
-    setSelectedFaskesId(null);
-    setIsModalOpen(true);
+    router.push("/dashboard/admin/faskes/add");
   };
 
   const openEditModal = (f) => {
-    setModalMode("edit");
-    setSelectedFaskesId(f.id);
-    setLatitude(String(f.latitude));
-    setLongitude(String(f.longitude));
-    
-    if (f.hospital_id) {
-      setEntryType("registered");
-      setSelectedHospitalId(String(f.hospital_id));
-      setCustomName("");
-      setCustomAddress("");
-    } else {
-      setEntryType("custom");
-      setSelectedHospitalId("");
-      setCustomName(f.name);
-      setCustomAddress(f.address);
-    }
-    
-    setIsModalOpen(true);
+    router.push(`/dashboard/admin/faskes/add?id=${f.id}`);
   };
 
   const handleDelete = async (id) => {
@@ -241,6 +262,88 @@ export default function AdminGeotagging() {
     return matchesSearch && matchesFilter;
   });
 
+  useEffect(() => {
+    if (!mapLoaded || !window.L) return;
+
+    if (mapRef.current) {
+      try {
+        mapRef.current.remove();
+      } catch (e) {}
+      mapRef.current = null;
+    }
+
+    const container = document.getElementById("leaflet-map");
+    if (!container) return;
+
+    let center = [-2.5489, 118.0149];
+    let zoom = 5;
+
+    const validFaskes = filteredFaskes.filter(
+      (f) => f.latitude && f.longitude && !isNaN(parseFloat(f.latitude)) && !isNaN(parseFloat(f.longitude))
+    );
+
+    if (validFaskes.length > 0) {
+      center = [parseFloat(validFaskes[0].latitude), parseFloat(validFaskes[0].longitude)];
+      zoom = 12;
+    }
+
+    try {
+      const map = window.L.map("leaflet-map").setView(center, zoom);
+      mapRef.current = map;
+
+      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const hospitalIcon = window.L.divIcon({
+        html: `
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-rose-800 text-white shadow-md border-2 border-white hover:scale-110 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 22V11A2 2 0 0 0 17 9H7a2 2 0 0 0-2 2v11"/>
+              <path d="M4 22h16"/>
+              <path d="M12 14v4"/>
+              <path d="M10 16h4"/>
+              <path d="M12 5V3"/>
+              <path d="M10 4h4"/>
+            </svg>
+          </div>
+        `,
+        className: 'custom-hospital-marker',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+
+      validFaskes.forEach((f) => {
+        const marker = window.L.marker([parseFloat(f.latitude), parseFloat(f.longitude)], { icon: hospitalIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
+              <b style="color: #6b0c0c; font-size: 12px;">${f.name || "Faskes"}</b><br/>
+              <span style="color: #666;">${f.address || "-"}</span><br/>
+              <div style="margin-top: 5px; font-weight: bold; color: #333;">Koordinat: ${f.latitude}, ${f.longitude}</div>
+            </div>
+          `);
+
+        marker.bindTooltip(`<b>${f.name || "Faskes"}</b>`, {
+          direction: 'top',
+          offset: [0, -10]
+        });
+      });
+    } catch (e) {
+      console.error("Map initialization failed", e);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove();
+        } catch (e) {}
+        mapRef.current = null;
+      }
+    };
+  }, [mapLoaded, filteredFaskes]);
+
   const hasCoordinates = latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude));
 
   return (
@@ -250,28 +353,6 @@ export default function AdminGeotagging() {
         <Navbar user={user} onLogout={handleLogout} title="Manajemen Geotagging Faskes" />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 space-y-6">
-          {/* Header Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row items-start justify-between gap-4">
-            <div className="flex gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 shrink-0 border border-rose-100">
-                <Compass className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <h1 className="text-lg font-extrabold text-slate-900 font-sans">Geotagging & Peta Faskes</h1>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-3xl font-medium">
-                  Tambahkan dan kelola titik koordinat GPS (geotagging) untuk Fasilitas Kesehatan/Rumah Sakit agar muncul secara akurat di direktori peta publik SatuData.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={openAddModal}
-              className="px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer"
-            >
-              <Plus className="h-4 w-4 text-rose-500" />
-              Tambah Geotagging
-            </button>
-          </div>
-
           {/* Feedback message */}
           {message.text && (
             <div
@@ -311,6 +392,22 @@ export default function AdminGeotagging() {
               <option value="linked">Terhubung ke Akun RS</option>
               <option value="custom">Entri Kustom (Belum Registrasi)</option>
             </select>
+          </div>
+
+          {/* Map View */}
+          <div className="bg-white border border-slate-200/85 rounded-3xl p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-rose-600 animate-pulse" />
+                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Visualisasi Peta Geotagging</h2>
+              </div>
+              <span className="text-[10px] text-slate-400 font-bold">Peta Sebaran Faskes Terdaftar</span>
+            </div>
+            <div 
+              id="leaflet-map" 
+              style={{ height: "350px", zIndex: 1 }} 
+              className="rounded-2xl border border-slate-150 shadow-inner bg-slate-50"
+            />
           </div>
 
           {/* Table list */}
@@ -396,216 +493,44 @@ export default function AdminGeotagging() {
         </main>
       </div>
 
-      {/* Add / Edit Geotagging Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <form onSubmit={handleSubmit} className="w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 font-sans">
-                <MapPin className="h-5 w-5 text-rose-600" />
-                {modalMode === "add" ? "Tambah Geotagging Faskes" : "Edit Geotagging Faskes"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-base font-bold cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-xs">
-              {/* Form Input fields */}
-              <div className="lg:col-span-5 space-y-4">
-                {/* Entry Type Selection */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Sumber Informasi Faskes
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEntryType("registered")}
-                      className={`py-2 px-3 rounded-xl border text-center font-bold transition cursor-pointer text-[11px] ${
-                        entryType === "registered"
-                          ? "border-rose-500 bg-rose-50/50 text-rose-700"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      Pilih dari RS Terdaftar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEntryType("custom")}
-                      className={`py-2 px-3 rounded-xl border text-center font-bold transition cursor-pointer text-[11px] ${
-                        entryType === "custom"
-                          ? "border-rose-500 bg-rose-50/50 text-rose-700"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      Input Faskes Kustom
-                    </button>
-                  </div>
-                </div>
-
-                {entryType === "registered" ? (
-                  /* Dropdown hospital list */
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Akun Rumah Sakit Terdaftar
-                    </label>
-                    <select
-                      value={selectedHospitalId}
-                      onChange={(e) => setSelectedHospitalId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold text-slate-800 focus:border-rose-600 focus:outline-hidden bg-white"
-                    >
-                      <option value="">-- Pilih Instansi RS --</option>
-                      {hospitalAccounts.map((a) => {
-                        const val = a.hospitalProfile ? a.hospitalProfile.id : `user_${a.id}`;
-                        const license = a.hospitalProfile?.medical_license || "-";
-                        return (
-                          <option key={val} value={val}>
-                            {a.name} (License: {license})
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <p className="text-[9px] text-slate-400 leading-relaxed">
-                      Nama dan Alamat akan disinkronisasikan secara otomatis dari data Profil Rumah Sakit terpilih.
-                    </p>
-                  </div>
-                ) : (
-                  /* Custom input fields */
-                  <>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                        Nama Faskes / RS Kustom
-                      </label>
-                      <input
-                        type="text"
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value)}
-                        placeholder="Contoh: Klinik Pratama Medika Baru"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                        Alamat Lengkap Kustom
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={customAddress}
-                        onChange={(e) => setCustomAddress(e.target.value)}
-                        placeholder="Jalan, nomor, RT/RW, kelurahan, kecamatan, kota..."
-                        className="w-full rounded-xl border border-slate-200 p-3 focus:border-rose-600 focus:outline-hidden"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Coordinates inputs */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Latitude
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      placeholder="-6.2088"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-rose-600 focus:outline-hidden"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Longitude
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      placeholder="106.8456"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-rose-600 focus:outline-hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* Locator button */}
-                <button
-                  type="button"
-                  onClick={handleGetCurrentLocation}
-                  className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-[10px] text-slate-700 transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Navigation className="h-3.5 w-3.5 text-rose-600" />
-                  Gunakan Lokasi Browser Saat Ini (GPS)
-                </button>
-              </div>
-
-              {/* Map Preview */}
-              <div className="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between min-h-[300px]">
-                <div className="space-y-3 flex-1 flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Preview Peta Marker
-                  </span>
-                  {hasCoordinates ? (
-                    <div className="rounded-xl overflow-hidden border border-slate-200 flex-1 relative bg-white min-h-[220px]">
-                      <iframe
-                        title="Location Map Marker"
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                        allowFullScreen
-                        src={`https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`}
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-slate-350 rounded-xl bg-white text-slate-400 p-6 text-center space-y-2 min-h-[220px]">
-                      <MapPin className="h-7 w-7 text-slate-300 animate-bounce" />
-                      <p className="font-bold text-[11px] text-slate-700">Peta belum dikonfigurasi</p>
-                      <p className="text-[9px] text-slate-400 max-w-xs">
-                        Masukkan koordinat Latitude & Longitude untuk memunculkan visualisasi pin lokasi Google Maps.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-start gap-2 p-2.5 bg-amber-50/50 border border-amber-250/30 rounded-xl text-[9px] text-amber-900 font-semibold mt-3">
-                  <Info className="h-3.5 w-3.5 text-amber-700 shrink-0" />
-                  <span>
-                    Pastikan koordinat dalam format desimal standar. Contoh koordinat Jakarta: Latitude <code>-6.2088</code>, Longitude <code>106.8456</code>.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-xs text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {submitting ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Simpan Geotagging"
-                )}
-              </button>
-            </div>
-          </form>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-6 right-6 z-55 flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg transition-all animate-in slide-in-from-top-5 duration-300">
+          <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+            toast.type === "success" 
+              ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
+              : "bg-rose-50 text-rose-600 border border-rose-100"
+          }`}>
+            {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+          </div>
+          <div className="space-y-0.5 pr-2">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+              {toast.type === "success" ? "Sukses" : "Pemberitahuan"}
+            </span>
+            <p className="text-xs font-bold text-slate-800 leading-tight">{toast.message}</p>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setToast({ ...toast, show: false })}
+            className="text-slate-400 hover:text-slate-650 font-extrabold text-sm p-1 ml-2 cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminGeotagging() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-slate-50 text-xs font-bold text-slate-500 gap-2">
+        <RefreshCw className="h-4 w-4 animate-spin text-rose-600" />
+        Memuat...
+      </div>
+    }>
+      <AdminGeotaggingContent />
+    </Suspense>
   );
 }

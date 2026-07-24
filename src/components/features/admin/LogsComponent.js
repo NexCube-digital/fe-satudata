@@ -425,7 +425,7 @@ export default function LogsComponent() {
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-rose-800 text-white font-bold text-xs hover:bg-rose-900 transition cursor-pointer"
               >
                 Tutup Inspector
               </button>
