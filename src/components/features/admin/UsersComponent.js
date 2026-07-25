@@ -22,7 +22,7 @@ import {
   Info,
   Key
 } from "lucide-react";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, getAvatarUrl } from "@/lib/api";
 
 export default function UsersComponent({ forcedRole }) {
   const router = useRouter();

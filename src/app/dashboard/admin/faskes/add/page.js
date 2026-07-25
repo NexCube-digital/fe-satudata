@@ -43,6 +43,10 @@ function AddGeotagForm() {
   const [customAddress, setCustomAddress] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [createAccount, setCreateAccount] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [medicalLicense, setMedicalLicense] = useState("");
 
   // Map state
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -293,6 +297,22 @@ function AddGeotagForm() {
       payload.name = customName;
       payload.address = customAddress;
       payload.hospital_id = null;
+
+      // detail pembuatan akun
+      payload.create_account = createAccount;
+      if (createAccount) {
+        if (!email.trim() || !password.trim()) {
+          showToast("Email dan Password akun wajib diisi.", "error");
+          return;
+        }
+        if (password.length < 6) {
+          showToast("Password akun minimal harus 6 karakter.", "error");
+          return;
+        }
+        payload.email = email;
+        payload.password = password;
+        payload.medical_license = medicalLicense;
+      }
     }
 
     setSubmitting(true);
@@ -433,6 +453,66 @@ function AddGeotagForm() {
                         className="w-full rounded-xl border border-slate-200 p-3 focus:border-rose-600 focus:outline-hidden text-xs"
                       />
                     </div>
+
+                    {/* Opsi pembuatan akun (hanya muncul saat tambah/baru) */}
+                    {!editId && (
+                      <div className="pt-2 border-t border-slate-100 space-y-3">
+                        <label className="flex items-center gap-2 cursor-pointer py-1.5 select-none">
+                          <input
+                            type="checkbox"
+                            checked={createAccount}
+                            onChange={(e) => setCreateAccount(e.target.checked)}
+                            className="rounded border-slate-300 text-rose-800 focus:ring-rose-500 h-4 w-4"
+                          />
+                          <span className="text-xs font-bold text-slate-700">
+                            Sekaligus Buatkan Akun Faskes
+                          </span>
+                        </label>
+
+                        {createAccount && (
+                          <div className="space-y-3.5 pl-4 border-l-2 border-rose-200/60 animate-in fade-in duration-200">
+                            <div className="space-y-1.5 text-xs">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                Email Akun Faskes *
+                              </label>
+                              <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="contoh: admin@klinikmedika.com"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                                required={createAccount}
+                              />
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                Password Akun *
+                              </label>
+                              <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Minimal 6 karakter..."
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                                required={createAccount}
+                              />
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                Nomor Izin Operasional (SIP/License)
+                              </label>
+                              <input
+                                type="text"
+                                value={medicalLicense}
+                                onChange={(e) => setMedicalLicense(e.target.value)}
+                                placeholder="Contoh: 503/SIP-RS/2026"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 

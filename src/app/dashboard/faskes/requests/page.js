@@ -607,30 +607,25 @@ export default function FaskesRequests() {
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                         Pilih Dokter Penanggung Jawab / Poli
                       </label>
-                      {doctors.length === 0 ? (
-                        <input
-                          type="text"
-                          required
-                          value={poliInput}
-                          onChange={(e) => setPoliInput(e.target.value)}
-                          placeholder="Masukkan unit poliklinik / nama dokter"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-medium focus:border-rose-800 focus:outline-hidden bg-white"
-                        />
-                      ) : (
-                        <select
-                          value={poliInput}
-                          onChange={(e) => setPoliInput(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white cursor-pointer"
-                          required
-                        >
-                          <option value="" disabled>-- Pilih Dokter / Poli Faskes --</option>
-                          {doctors.map((d) => (
-                            <option key={d.id} value={`${d.specialist} - ${d.name}`}>
-                              {d.specialist} - {d.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <select
+                        value={poliInput}
+                        onChange={(e) => setPoliInput(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white cursor-pointer"
+                        required
+                      >
+                        {doctors.length === 0 ? (
+                          <option value="" disabled>-- Belum ada staf dokter terhubung (Tautkan di menu Staf Dokter) --</option>
+                        ) : (
+                          <>
+                            <option value="" disabled>-- Pilih Dokter / Poli Faskes --</option>
+                            {doctors.map((d) => (
+                              <option key={d.id} value={`${d.specialist} - ${d.name}`}>
+                                {d.specialist} - {d.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
                     </div>
 
                     <div>
