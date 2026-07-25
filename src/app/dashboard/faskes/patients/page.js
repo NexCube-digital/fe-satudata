@@ -92,9 +92,9 @@ export default function FaskesPatients() {
         const mapped = approvedRequests.map((item) => ({
           requestId: item.id,
           patientId: item.patient_id,
-          patientName: item.patient?.name || "Pasien Terdaftar",
-          nik: item.patient?.profil?.nik || "0000000000000000",
-          walletAddress: item.patient?.wallet_address || "0x0000...0000",
+          patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "0000000000000000",
+          walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || "Klinik Umum",
           approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
           expiryTime: item.expiry_time ? new Date(item.expiry_time).toLocaleDateString("id-ID") : "Selamanya"
@@ -239,6 +239,13 @@ export default function FaskesPatients() {
     }
   };
 
+  const maskNik = (nik) => {
+    if (!nik) return "";
+    const str = String(nik);
+    if (str.length < 16) return str;
+    return str.slice(0, 6) + "******" + str.slice(12);
+  };
+
   const filteredPatients = activePatients.filter(
     (p) =>
       p.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -340,7 +347,7 @@ export default function FaskesPatients() {
                           <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
                             <td className="py-4 px-4">
                               <p className="font-bold text-slate-900">{patient.patientName}</p>
-                              <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {patient.nik}</p>
+                              <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
                             </td>
                             <td className="py-4 px-4">
                               <span className="font-medium text-slate-700 bg-rose-50 text-rose-900 border border-rose-100 px-2 py-0.5 rounded-lg text-[10px] font-semibold">{patient.poli}</span>
@@ -398,7 +405,7 @@ export default function FaskesPatients() {
                         <div>
                           <p className="text-[9px] uppercase tracking-wider text-rose-800 font-extrabold">Pasien Terpilih</p>
                           <h4 className="text-sm font-bold text-slate-900 mt-0.5">{selectedPatient.patientName}</h4>
-                          <p className="text-[10px] font-mono text-slate-400 mt-1 truncate max-w-[180px]">NIK: {selectedPatient.nik}</p>
+                          <p className="text-[10px] font-mono text-slate-400 mt-1 truncate max-w-[180px]">NIK: {maskNik(selectedPatient.nik)}</p>
                         </div>
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-700/10 text-rose-900">
                           <User className="h-4 w-4" />

@@ -150,6 +150,32 @@ export default function SettingPage() {
   const [walletAddress, setWalletAddress] = useState("");
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletMsg, setWalletMsg] = useState({ type: "", text: "" });
+  const [walletBalance, setWalletBalance] = useState("");
+
+  const fetchWalletBalance = async (address) => {
+    if (!address) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/bc/wallet-balance?address=${address}`);
+      const result = await res.json();
+      if (res.ok && result.success) {
+        const balanceEth = parseFloat(result.balance);
+        setWalletBalance(balanceEth.toFixed(4) + " ETH");
+      } else {
+        setWalletBalance("0.0000 ETH");
+      }
+    } catch (err) {
+      console.error("Error fetching balance from blockchain service:", err);
+      setWalletBalance("0.0000 ETH");
+    }
+  };
+
+  useEffect(() => {
+    if (walletAddress) {
+      fetchWalletBalance(walletAddress);
+    } else {
+      setWalletBalance("");
+    }
+  }, [walletAddress]);
 
   // Fetch Initial Data
   useEffect(() => {
@@ -1266,9 +1292,16 @@ export default function SettingPage() {
                   )}
                 </div>
 
-                <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700">
+                <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700 mb-3">
                   {walletAddress || "Alamat wallet belum dikonfigurasi"}
                 </div>
+
+                {walletAddress && (
+                  <div className="flex items-center justify-between border-t border-slate-200/60 pt-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-bold">Saldo Dompet (Sepolia)</span>
+                    <span className="text-sm font-extrabold text-slate-800 font-mono">{walletBalance || "Memuat..."}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">

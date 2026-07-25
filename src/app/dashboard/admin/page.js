@@ -39,6 +39,46 @@ export default function AdminDashboard() {
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [walletBalance, setWalletBalance] = useState("Memuat...");
+  const [nodeStatus, setNodeStatus] = useState("Offline (Blockchain Service Down)");
+
+  const fetchNodeStatus = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/bc/status");
+      const result = await res.json();
+      if (res.ok && result.success) {
+        if (result.providerStatus === "connected_to_sepolia_via_infura") {
+          setNodeStatus("Online (Sepolia via Infura)");
+        } else if (result.providerStatus === "connected_to_hardhat_8545") {
+          setNodeStatus("Online (Hardhat Local)");
+        } else {
+          setNodeStatus(`Online (${result.providerStatus || "Connected"})`);
+        }
+      } else {
+        setNodeStatus("Offline (Blockchain Service Down)");
+      }
+    } catch (err) {
+      console.error("Error fetching node status:", err);
+      setNodeStatus("Offline (Blockchain Service Down)");
+    }
+  };
+
+  const fetchWalletBalance = async (address) => {
+    if (!address) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/bc/wallet-balance?address=${address}`);
+      const result = await res.json();
+      if (res.ok && result.success) {
+        const balanceEth = parseFloat(result.balance);
+        setWalletBalance(balanceEth.toFixed(4) + " ETH");
+      } else {
+        setWalletBalance("0.0000 ETH");
+      }
+    } catch (err) {
+      console.error("Error fetching balance from blockchain service:", err);
+      setWalletBalance("0.0000 ETH");
+    }
+  };
 
   // Live Data States
   const [stats, setStats] = useState({
@@ -66,8 +106,15 @@ export default function AdminDashboard() {
     loadDashboardData();
   }, []);
 
+  useEffect(() => {
+    if (user?.wallet_address) {
+      fetchWalletBalance(user.wallet_address);
+    }
+  }, [user]);
+
   const loadDashboardData = async () => {
     setFetching(true);
+    fetchNodeStatus();
     try {
       const [statsRes, usersRes, logsRes, profileRes] = await Promise.allSettled([
         apiGet("/api/dashboard/admin/stats"),
@@ -251,8 +298,17 @@ export default function AdminDashboard() {
                 </button>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Node Status</p>
-                  <p className="font-bold text-emerald-400 mt-0.5">Online (Hardhat Local)</p>
+                  <p className={`font-bold mt-0.5 ${nodeStatus.startsWith("Online") ? "text-emerald-400" : "text-rose-455 text-rose-400"}`}>{nodeStatus}</p>
                 </div>
+                {user?.wallet_address && (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Admin</p>
+                    <p className="font-bold text-rose-300 mt-0.5 truncate max-w-[120px]" title={user.wallet_address}>
+                      {user.wallet_address.slice(0, 6) + "..." + user.wallet_address.slice(-4)}
+                    </p>
+                    <p className="text-[9px] text-rose-400 font-bold mt-0.5">{walletBalance}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

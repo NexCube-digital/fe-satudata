@@ -42,6 +42,7 @@ export default function FaskesDashboard() {
 
   // External Requests Table State
   const [requestsList, setRequestsList] = useState([]);
+  const [hospitalProfile, setHospitalProfile] = useState(null);
 
   // Selected Decrypted Record Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -62,7 +63,7 @@ export default function FaskesDashboard() {
     izin_akses_disetujui: 0,
     request_pending: 0
   });
-  const [sessionOmzet, setSessionOmzet] = useState(4850000); // Realistic cashier start amount
+  const [sessionOmzet, setSessionOmzet] = useState(0);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -88,12 +89,15 @@ export default function FaskesDashboard() {
       });
       const result = await res.json();
       if (res.ok && result.success && result.data) {
-        const { stats: backendStats } = result.data;
+        const { stats: backendStats, profile: backendProfile } = result.data;
         setStats({
           kunjungan_hari_ini: backendStats?.kunjungan_hari_ini || 0,
           izin_akses_disetujui: backendStats?.izin_akses_disetujui || 0,
           request_pending: backendStats?.request_pending || 0
         });
+        if (backendProfile) {
+          setHospitalProfile(backendProfile);
+        }
       }
     } catch (err) {
       console.error("Error loading dashboard stats:", err);
@@ -123,8 +127,8 @@ export default function FaskesDashboard() {
         const mapped = result.data.map((item) => ({
           id: item.id,
           patientId: item.patient_id,
-          patientName: item.patient?.name || "Pasien Terdaftar",
-          nik: item.patient?.profil?.nik || "0000000000000000",
+          patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "0000000000000000",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
           txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Signature",
@@ -252,6 +256,13 @@ export default function FaskesDashboard() {
     }
   };
 
+  const maskNik = (nik) => {
+    if (!nik) return "";
+    const str = String(nik);
+    if (str.length < 16) return str;
+    return str.slice(0, 6) + "******" + str.slice(12);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
@@ -294,7 +305,7 @@ export default function FaskesDashboard() {
                   Sistem HIS & Integrated Medis POS Active
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  {user.name || "RS Cipto Mangunkusumo"}
+                  {hospitalProfile?.name || user?.name || "RS Cipto Mangunkusumo"}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
                   Portal Fasilitas Kesehatan & Dokter Penanggung Jawab. Ajukan permohonan rekam medis eksternal secara terlisensi dan cetak billing kasir.
@@ -304,11 +315,11 @@ export default function FaskesDashboard() {
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Lisensi Faskes</p>
-                  <p className="font-bold text-rose-400 mt-0.5">KEMENKES-RSCM-2026</p>
+                  <p className="font-bold text-rose-400 mt-0.5">{hospitalProfile?.medical_license || "Belum Terdaftar"}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Integrasi API</p>
-                  <p className="font-bold text-rose-300 mt-0.5">SATUSEHAT v2.5 (Ready)</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">Tipe Faskes</p>
+                  <p className="font-bold text-rose-300 mt-0.5">{hospitalProfile?.hospital_type || "Umum"}</p>
                 </div>
               </div>
             </div>
@@ -416,30 +427,25 @@ export default function FaskesDashboard() {
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                         Pilih Dokter / Poli
                       </label>
-                      {doctors.length === 0 ? (
-                        <input
-                          type="text"
-                          value={poliInput}
-                          onChange={(e) => setPoliInput(e.target.value)}
-                          placeholder="Nama Poli / Dokter"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-medium focus:border-rose-800 focus:outline-hidden"
-                          required
-                        />
-                      ) : (
-                        <select
-                          value={poliInput}
-                          onChange={(e) => setPoliInput(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-rose-800 focus:outline-hidden"
-                          required
-                        >
-                          <option value="" disabled>-- Pilih Dokter / Poli (Contoh: Kardiologi - Dr. John Doe) --</option>
-                          {doctors.map((d) => (
-                            <option key={d.id} value={`${d.specialist} - ${d.name}`}>
-                              {d.specialist} - {d.name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <select
+                        value={poliInput}
+                        onChange={(e) => setPoliInput(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-rose-800 focus:outline-hidden bg-white cursor-pointer"
+                        required
+                      >
+                        {doctors.length === 0 ? (
+                          <option value="" disabled>-- Belum ada staf dokter terhubung (Tautkan di menu Staf Dokter) --</option>
+                        ) : (
+                          <>
+                            <option value="" disabled>-- Pilih Dokter / Poli (Contoh: Kardiologi - Dr. John Doe) --</option>
+                            {doctors.map((d) => (
+                              <option key={d.id} value={`${d.specialist} - ${d.name}`}>
+                                {d.specialist} - {d.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
                     </div>
                   </div>
 
@@ -504,7 +510,7 @@ export default function FaskesDashboard() {
                         <tr key={req.id} className="hover:bg-slate-50/50 transition">
                           <td className="py-3.5 px-4">
                             <p className="font-bold text-slate-900">{req.patientName}</p>
-                            <p className="font-mono text-[10px] text-slate-400">NIK: {req.nik}</p>
+                            <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
                           </td>
                           <td className="py-3.5 px-4 font-medium text-slate-700">{req.poli}</td>
                           <td className="py-3.5 px-4">
@@ -554,7 +560,7 @@ export default function FaskesDashboard() {
                     </div>
 
                     <div className="space-y-2 text-xs font-mono text-rose-100">
-                      <p><span className="text-rose-300/70">NIK:</span> {selectedRecord.nik}</p>
+                      <p><span className="text-rose-300/70">NIK:</span> {maskNik(selectedRecord.nik)}</p>
                       <p><span className="text-rose-300/70">Tx Hash Validasi:</span> {selectedRecord.txHash}</p>
                       <div className="mt-3 rounded-xl bg-black/30 p-3 text-rose-200 border border-rose-800/40 leading-relaxed">
                         {selectedRecord.decryptedData}
