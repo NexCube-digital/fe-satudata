@@ -22,7 +22,7 @@ import {
   Info,
   Key
 } from "lucide-react";
-import { apiGet, apiPost, getAvatarUrl } from "@/lib/api";
+import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
 export default function UsersComponent({ forcedRole }) {
   const router = useRouter();
@@ -173,7 +173,7 @@ export default function UsersComponent({ forcedRole }) {
       const nextStatus = userToToggle.status_account === "active" ? "inactive" : "active";
       let res;
       if (nextStatus === "active") {
-        res = await apiPost(`/api/admin/accounts/${userToToggle.id}/force-activate`);
+        res = await apiPut(`/api/admin/accounts/${userToToggle.id}/force-activate`);
       } else {
         res = await apiPost(`/api/admin/accounts/${userToToggle.id}/deactivate`, { reason: "Deactivated by Admin" });
       }

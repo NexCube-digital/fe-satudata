@@ -522,13 +522,13 @@ export default function PasienDashboard() {
 
                           {/* Decrypted / Encrypted Content Preview */}
                           {decryptedRecords[rec.id] ? (
-                            <div className="mt-3 rounded-xl bg-gradient-to-r from-rose-950/90 to-red-950/90 p-3 text-[11px] font-mono text-rose-100 border border-rose-800/40 shadow-xs animate-fade-in">
-                              <p className="font-bold text-rose-200 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
-                              <p>{rec.details}</p>
+                            <div className="mt-3 rounded-xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-3 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
+                              <p className="font-bold text-rose-700 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
+                              <p className="leading-relaxed">{rec.details}</p>
                             </div>
                           ) : (
-                            <div className="mt-3 rounded-xl bg-rose-950/80 p-3 text-[10px] font-mono text-rose-200/90 border border-rose-800/30 truncate">
-                              <span className="text-rose-400 font-bold mr-2">[CIPHERTEXT AES-256]:</span>
+                            <div className="mt-3 rounded-xl bg-slate-50/80 p-3 text-[10px] font-mono text-slate-500 border border-slate-200/60 truncate">
+                              <span className="text-rose-600 font-extrabold mr-2">[CIPHERTEXT AES-256]:</span>
                               U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash.substring(0, 10)}...
                             </div>
                           )}

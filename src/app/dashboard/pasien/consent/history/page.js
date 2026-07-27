@@ -7,25 +7,21 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import {
   ShieldCheck,
-  ShieldAlert,
   ShieldX,
   Clock,
   CheckCircle,
-  XCircle,
   RefreshCw,
   Building2,
   Lock,
   Unlock,
-  Key,
   Database,
   Search,
-  ArrowRight,
   Zap,
   Info,
-  Radio
+  History
 } from "lucide-react";
 
-export default function PatientConsentPage() {
+export default function PatientConsentHistoryPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -124,7 +120,6 @@ export default function PatientConsentPage() {
     router.push("/auth/login");
   };
 
-  // Perform Consent Action (Approve / Reject / Revoke)
   const handleAction = async (requestId, targetStatus) => {
     setSubmittingId(requestId);
     const token = localStorage.getItem("accessToken");
@@ -159,7 +154,6 @@ export default function PatientConsentPage() {
     }
   };
 
-  const pendingRequestsList = requests.filter((r) => r.status === "pending");
   const historyRequestsList = requests.filter((r) => r.status !== "pending");
 
   const filteredHistory = requests.filter((req) => {
@@ -205,55 +199,42 @@ export default function PatientConsentPage() {
                   Pusat Kendali Hak Akses Terdesentralisasi (Sovereign Consent)
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Manajemen Persetujuan Akses Faskes
+                  Riwayat Otorisasi Akses
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-                  Kelola izin baca rekam medis Anda ke fasilitas kesehatan secara granul, transparan, dan dapat dicabut sewaktu-waktu melalui smart contract.
+                  Daftar lengkap riwayat izin akses faskes beserta verifikasi hash transaksi pada blockchain.
                 </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2.5">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Gas Fee Standard</p>
-                  <p className="font-bold text-emerald-400 mt-0.5">0 ETH (EIP-2771 Relay)</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Smart Contract</p>
-                  <p className="font-bold text-rose-300 mt-0.5">SatuDataAccessControl.sol</p>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          {/* Quick Metrics Grid */}
+          <div className="grid gap-6 grid-cols-2 lg:grid-cols-4 mb-8">
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Izin Akses Disetujui</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Faskes</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                  <Building2 className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="text-2xl font-extrabold text-slate-900 mt-3">
+                {new Set(historyRequestsList.map((r) => r.hospitalName)).size} <span className="text-xs font-normal text-slate-500">Mitra</span>
+              </p>
+              <p className="text-[10px] font-semibold text-slate-500 mt-1">Pernah Terhubung</p>
+            </div>
+
+            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Izin Akses Aktif</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                   <ShieldCheck className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "approved").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
+                {historyRequestsList.filter((r) => r.status === "approved").length} <span className="text-xs font-normal text-slate-500">Aktif</span>
               </p>
               <p className="text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Hak Baca Aktif Real-time
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Permintaan Menunggu</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                  <Clock className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "pending").length} <span className="text-xs font-normal text-slate-500">Request</span>
-              </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
-                <Radio className="h-3 w-3 animate-pulse" /> Memerlukan Tindakan Pasien
+                <CheckCircle className="h-3 w-3" /> Memiliki Akses Baca
               </p>
             </div>
 
@@ -265,7 +246,7 @@ export default function PatientConsentPage() {
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "revoked" || r.status === "rejected").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
+                {historyRequestsList.filter((r) => r.status === "revoked" || r.status === "rejected").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
               </p>
               <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
                 <Lock className="h-3 w-3" /> Dekripsi Dikunci Pasien
@@ -290,35 +271,76 @@ export default function PatientConsentPage() {
 
           {/* Main Layout Grid */}
           <div className="grid gap-8 lg:grid-cols-3 items-start">
-            {/* Left Column (2 Cols): Active Requests */}
+            {/* Left Column (2 Cols): History list */}
             <div className="lg:col-span-2 space-y-8">
               
-              {/* SECTION 1: PERMINTAAN AKSES BARU */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="border-b border-slate-100 pb-4 mb-4">
-                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <Clock className="h-4.5 w-4.5 text-amber-500 animate-pulse" />
-                    Permintaan Akses Baru ({pendingRequestsList.length})
-                  </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Permintaan akses medis dari rumah sakit yang memerlukan otorisasi Anda.</p>
+              {/* SECTION 2: RIWAYAT PERSATUJUAN */}
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                      <ShieldCheck className="h-4.5 w-4.5 text-rose-600" />
+                      Riwayat & Status Persetujuan ({historyRequestsList.length})
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Daftar izin akses yang telah Anda putuskan sebelumnya.</p>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setActiveTab("all")}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                        activeTab === "all" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Semua
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("approved")}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                        activeTab === "approved" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Aktif
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("revoked")}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                        activeTab === "revoked" ? "bg-rose-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      Dicabut
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Cari dalam histori..."
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden bg-slate-50/50"
+                  />
                 </div>
 
                 <div className="space-y-4">
-                  {pendingRequestsList.length === 0 ? (
+                  {filteredHistory.length === 0 ? (
                     <div className="rounded-2xl bg-slate-50/50 border border-slate-100 p-8 text-center">
-                      <ShieldCheck className="h-8 w-8 text-emerald-600/70 mx-auto mb-2" />
-                      <p className="text-xs font-bold text-slate-500">Semua Permintaan Selesai</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Tidak ada faskes yang sedang mengantre meminta persetujuan Anda.</p>
+                      <Building2 className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-slate-500">Histori Kosong</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Tidak ada riwayat tindakan medis atau pencarian cocok.</p>
                     </div>
                   ) : (
-                    pendingRequestsList.map((req) => (
+                    filteredHistory.map((req) => (
                       <div
                         key={req.id}
-                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
+                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-white"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                           <div className="flex items-start gap-3">
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800 text-xs shadow-2xs">
                               {req.hospitalName.charAt(0)}{req.hospitalName.charAt(3)}
                             </span>
                             <div>
@@ -330,53 +352,66 @@ export default function PatientConsentPage() {
                             </div>
                           </div>
 
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
-                            <Clock className="h-3.5 w-3.5 text-amber-600" />
-                            Menunggu Persetujuan
-                          </span>
+                          <div>
+                            {req.status === "approved" && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
+                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                                Akses Disetujui
+                              </span>
+                            )}
+                            {(req.status === "revoked" || req.status === "rejected") && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-xs font-bold text-rose-700">
+                                <Lock className="h-3.5 w-3.5 text-rose-600" />
+                                Izin Akses Dicabut
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Scope */}
-                        <div className="space-y-3 mb-4">
+                        {/* Dates */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] font-mono text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-3">
                           <div>
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1">
-                              Cakupan Hak Baca Data
-                            </span>
-                            <div className="flex flex-wrap gap-1">
-                              {req.accessScope.map((scope, idx) => (
-                                <span
-                                  key={idx}
-                                  className="rounded-lg bg-white px-2.5 py-0.5 text-[10px] font-semibold text-slate-700 border border-slate-200/60"
-                                >
-                                  • {scope}
-                                </span>
-                              ))}
-                            </div>
+                            <span className="text-slate-400 block">Masa Berlaku:</span>
+                            <span className="font-bold text-slate-700">{req.duration}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block">Tanggal Izin:</span>
+                            <span className="font-bold text-slate-700">{req.grantedAt}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block">Kadaluarsa:</span>
+                            <span className="font-bold text-slate-700">{req.expiresAt}</span>
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div className="border-t border-slate-100 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="font-mono text-[9px] text-slate-400">
                             Tx Hash: <span className="text-rose-600 font-bold">{req.txHash}</span>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleAction(req.id, "approved")}
-                              disabled={submittingId === req.id}
-                              className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-bold text-white transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                            >
-                              {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
-                              Setujui Akses (Approve)
-                            </button>
-                            <button
-                              onClick={() => handleAction(req.id, "rejected")}
-                              disabled={submittingId === req.id}
-                              className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3.5 py-2 font-semibold text-slate-700 transition cursor-pointer disabled:opacity-50"
-                            >
-                              Tolak
-                            </button>
+                          <div>
+                            {req.status === "approved" && (
+                              <button
+                                onClick={() => handleAction(req.id, "revoked")}
+                                disabled={submittingId === req.id}
+                                className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 font-bold transition cursor-pointer flex items-center gap-1.5"
+                              >
+                                {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                                Cabut Akses
+                              </button>
+                            )}
+
+                            {req.status === "revoked" && (
+                              <button
+                                onClick={() => handleAction(req.id, "approved")}
+                                disabled={submittingId === req.id}
+                                className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 font-bold transition cursor-pointer flex items-center gap-1.5"
+                              >
+                                {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
+                                Izinkan Kembali
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

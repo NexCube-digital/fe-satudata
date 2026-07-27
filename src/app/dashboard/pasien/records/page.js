@@ -40,6 +40,8 @@ export default function PatientRecordsPage() {
 
   // Decryption State (Map of record ID -> boolean)
   const [decryptedState, setDecryptedState] = useState({});
+  const [decryptedDetails, setDecryptedDetails] = useState({});
+  const [decryptingIds, setDecryptingIds] = useState({});
 
   // Active Detail Modal Record
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -103,8 +105,105 @@ export default function PatientRecordsPage() {
     router.push("/auth/login");
   };
 
-  const toggleDecryptRecord = (id) => {
+  const mapBackendDetailToFrontend = (rec, backendData) => {
+    const detail = backendData.detail || {};
+    const summary = backendData.summary || backendData.title || rec.diagnosis;
+    
+    let diagnosis = summary;
+    let prescriptions = [];
+    let vitals = null;
+    let notes = "Telah didekripsi secara aman.";
+
+    if (rec.category === "umum") {
+      diagnosis = detail.diagnosis || summary;
+      notes = detail.note_doctor || "Tidak ada catatan tambahan.";
+      if (detail.complaint || detail.action) {
+        notes = `Keluhan: ${detail.complaint || '-'}\nTindakan: ${detail.action || '-'}\nCatatan: ${notes}`;
+      }
+    } else if (rec.category === "resep") {
+      diagnosis = "Resep Obat";
+      notes = detail.note || "Aturan pakai terlampir.";
+      if (detail.list_of_medicines) {
+        const meds = detail.list_of_medicines.split(";").map(item => {
+          const parts = item.split(":");
+          return {
+            medicine: parts[0]?.trim() || "Obat",
+            dosage: parts[1]?.trim() || "Sesuai petunjuk dokter"
+          };
+        });
+        prescriptions = meds;
+      }
+    } else if (rec.category === "lab") {
+      diagnosis = `Pemeriksaan Laboratorium: ${summary}`;
+      notes = `Kesimpulan: ${detail.conclusion || "-"}\nNilai Rujukan: ${detail.reference_values || "-"}`;
+      vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Lab: " + (detail.checkup_result || "-") };
+    } else if (rec.category === "radiologi") {
+      diagnosis = `Pemeriksaan Radiologi: ${summary}`;
+      notes = `Kesimpulan: ${detail.conclusion || "-"}`;
+      vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Radiologi: " + (detail.checkup_result || "-") };
+    }
+
+    return {
+      ...rec,
+      diagnosis,
+      prescriptions,
+      vitals,
+      notes,
+      isRealDecrypted: true
+    };
+  };
+
+  const toggleDecryptRecord = async (id) => {
+    const isCurrentlyDecrypted = decryptedState[id];
     setDecryptedState((prev) => ({ ...prev, [id]: !prev[id] }));
+
+    if (!isCurrentlyDecrypted && !decryptedDetails[id]) {
+      setDecryptingIds((prev) => ({ ...prev, [id]: true }));
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.data) {
+          const originalRecord = records.find(r => r.id === id);
+          const mappedRecord = mapBackendDetailToFrontend(originalRecord, result.data);
+          setDecryptedDetails((prev) => ({ ...prev, [id]: mappedRecord }));
+        }
+      } catch (err) {
+        console.error("Error decrypting medical record:", err);
+      } finally {
+        setDecryptingIds((prev) => ({ ...prev, [id]: false }));
+      }
+    }
+  };
+
+  const handleOpenDetailModal = async (rec) => {
+    setSelectedRecord(rec);
+    const id = rec.id;
+    if (!decryptedDetails[id]) {
+      setDecryptingIds((prev) => ({ ...prev, [id]: true }));
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.data) {
+          const mappedRecord = mapBackendDetailToFrontend(rec, result.data);
+          setDecryptedDetails((prev) => ({ ...prev, [id]: mappedRecord }));
+          setDecryptedState((prev) => ({ ...prev, [id]: true }));
+        }
+      } catch (err) {
+        console.error("Error decrypting medical record in modal:", err);
+      } finally {
+        setDecryptingIds((prev) => ({ ...prev, [id]: false }));
+      }
+    }
   };
 
   const filteredRecords = records.filter((rec) => {
@@ -279,6 +378,7 @@ export default function PatientRecordsPage() {
             ) : (
               filteredRecords.map((rec) => {
                 const isDecrypted = decryptedState[rec.id];
+                const isDecrypting = decryptingIds[rec.id];
                 return (
                   <div
                     key={rec.id}
@@ -324,9 +424,14 @@ export default function PatientRecordsPage() {
 
                         <button
                           onClick={() => toggleDecryptRecord(rec.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition cursor-pointer"
+                          disabled={isDecrypting}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
                         >
-                          {isDecrypted ? (
+                          {isDecrypting ? (
+                            <>
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" /> Mendekripsi...
+                            </>
+                          ) : isDecrypted ? (
                             <>
                               <EyeOff className="h-3.5 w-3.5 text-rose-600" /> Sembunyikan Data
                             </>
@@ -338,56 +443,64 @@ export default function PatientRecordsPage() {
                         </button>
                       </div>
 
-                      {isDecrypted ? (
-                        <div className="rounded-2xl bg-gradient-to-r from-rose-950/90 to-red-950/90 p-5 text-white shadow-xs border border-rose-800/40 animate-fade-in space-y-4 text-xs font-mono">
-                          <div className="border-b border-rose-800/80 pb-3">
-                            <p className="text-rose-300 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama:</p>
-                            <p className="text-sm font-extrabold text-white">{rec.diagnosis}</p>
-                          </div>
-
-                          {rec.vitals && (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-black/30 p-3 rounded-xl border border-rose-800/40 text-[11px]">
-                              <div>
-                                <span className="text-rose-300/70 block text-[9px]">Tekanan Darah</span>
-                                <span className="font-bold text-white">{rec.vitals.bp}</span>
-                              </div>
-                              <div>
-                                <span className="text-rose-300/70 block text-[9px]">Nadi</span>
-                                <span className="font-bold text-white">{rec.vitals.pulse}</span>
-                              </div>
-                              <div>
-                                <span className="text-rose-300/70 block text-[9px]">Suhu Tubuh</span>
-                                <span className="font-bold text-white">{rec.vitals.temp}</span>
-                              </div>
-                              <div>
-                                <span className="text-rose-300/70 block text-[9px]">Berat Badan</span>
-                                <span className="font-bold text-white">{rec.vitals.weight}</span>
-                              </div>
-                            </div>
-                          )}
-
-                          {rec.prescriptions && rec.prescriptions.length > 0 && (
-                            <div>
-                              <p className="text-rose-300 font-bold uppercase text-[10px] tracking-wider mb-2">Resep Obat & Aturan Pakai:</p>
-                              <div className="space-y-1.5">
-                                {rec.prescriptions.map((rx, idx) => (
-                                  <div key={idx} className="flex items-center justify-between rounded-lg bg-black/40 px-3 py-1.5 border border-rose-900/50">
-                                    <span className="font-bold text-rose-100">{rx.medicine}</span>
-                                    <span className="text-[10px] text-rose-300">{rx.dosage}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div>
-                            <p className="text-rose-300 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
-                            <p className="text-rose-100 leading-relaxed text-[11px] bg-black/20 p-2.5 rounded-lg border border-rose-900/40">{rec.notes}</p>
-                          </div>
+                      {isDecrypting ? (
+                        <div className="rounded-2xl bg-slate-50 p-6 flex flex-col items-center justify-center border border-slate-200">
+                          <RefreshCw className="h-6 w-6 animate-spin text-rose-600 mb-2" />
+                          <p className="text-xs font-bold text-slate-500">Mendekripsi data rekam medis dengan Kunci Privat Anda...</p>
                         </div>
-                      ) : (
-                        <div className="rounded-2xl bg-rose-950/80 p-4 text-[10px] font-mono text-rose-200/90 border border-rose-800/30 truncate">
-                          <span className="text-rose-400 font-bold mr-2">[CIPHERTEXT AES-256]:</span>
+                      ) : isDecrypted ? (() => {
+                        const displayRec = decryptedDetails[rec.id] || rec;
+                        return (
+                          <div className="rounded-2xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-5 text-slate-800 shadow-xs animate-fade-in space-y-4 text-xs">
+                            <div className="border-b border-rose-100 pb-3">
+                              <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama:</p>
+                              <p className="text-sm font-extrabold text-slate-900">{displayRec.diagnosis}</p>
+                            </div>
+
+                            {displayRec.vitals && (
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-3 rounded-xl border border-rose-100/50 text-[11px] font-mono">
+                                <div>
+                                  <span className="text-rose-600 block text-[9px] font-bold">Tekanan Darah</span>
+                                  <span className="font-bold text-slate-800">{displayRec.vitals.bp}</span>
+                                </div>
+                                <div>
+                                  <span className="text-rose-600 block text-[9px] font-bold">Nadi</span>
+                                  <span className="font-bold text-slate-800">{displayRec.vitals.pulse}</span>
+                                </div>
+                                <div>
+                                  <span className="text-rose-600 block text-[9px] font-bold">Suhu Tubuh</span>
+                                  <span className="font-bold text-slate-800">{displayRec.vitals.temp}</span>
+                                </div>
+                                <div>
+                                  <span className="text-rose-600 block text-[9px] font-bold">Berat Badan</span>
+                                  <span className="font-bold text-slate-800">{displayRec.vitals.weight}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {displayRec.prescriptions && displayRec.prescriptions.length > 0 && (
+                              <div>
+                                <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-2">Resep Obat & Aturan Pakai:</p>
+                                <div className="space-y-1.5">
+                                  {displayRec.prescriptions.map((rx, idx) => (
+                                    <div key={idx} className="flex items-center justify-between rounded-lg bg-white/90 px-3 py-1.5 border border-rose-100/40">
+                                      <span className="font-bold text-slate-800">{rx.medicine}</span>
+                                      <span className="text-[10px] text-slate-500 font-medium">{rx.dosage}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div>
+                              <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
+                              <p className="text-slate-700 leading-relaxed text-[11px] bg-white/90 p-2.5 rounded-lg border border-rose-100/40 whitespace-pre-line">{displayRec.notes}</p>
+                            </div>
+                          </div>
+                        );
+                      })() : (
+                        <div className="rounded-2xl bg-slate-50/80 p-4 text-[10px] font-mono text-slate-500 border border-slate-200/60 truncate">
+                          <span className="text-rose-600 font-extrabold mr-2">[CIPHERTEXT AES-256]:</span>
                           {rec.encryptedData}
                         </div>
                       )}
@@ -400,7 +513,7 @@ export default function PatientRecordsPage() {
                       </div>
 
                       <button
-                        onClick={() => setSelectedRecord(rec)}
+                        onClick={() => handleOpenDetailModal(rec)}
                         className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
                       >
                         Detail Lengkap & Audit Trail <ChevronRight className="h-4 w-4" />
@@ -413,59 +526,84 @@ export default function PatientRecordsPage() {
           </div>
 
           {/* Modal Detail View */}
-          {selectedRecord && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 font-bold text-xs">
-                      {selectedRecord.hospitalName.charAt(0)}{selectedRecord.hospitalName.charAt(3)}
-                    </span>
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900">{selectedRecord.hospitalName}</h3>
-                      <p className="text-xs text-slate-500">{selectedRecord.date} • {selectedRecord.time}</p>
+          {selectedRecord && (() => {
+            const displaySelected = decryptedDetails[selectedRecord.id] || selectedRecord;
+            const isModalDecrypting = decryptingIds[selectedRecord.id];
+            return (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 font-bold text-xs">
+                        {displaySelected.hospitalName.charAt(0)}{displaySelected.hospitalName.charAt(3)}
+                      </span>
+                      <div>
+                        <h3 className="text-base font-extrabold text-slate-900">{displaySelected.hospitalName}</h3>
+                        <p className="text-xs text-slate-500">{displaySelected.date} • {displaySelected.time}</p>
+                      </div>
                     </div>
+
+                    <button
+                      onClick={() => setSelectedRecord(null)}
+                      className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 font-bold"
+                    >
+                      ✕
+                    </button>
                   </div>
 
-                  <button
-                    onClick={() => setSelectedRecord(null)}
-                    className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 font-bold"
-                  >
-                    ✕
-                  </button>
-                </div>
+                  {isModalDecrypting ? (
+                    <div className="py-12 flex flex-col items-center justify-center">
+                      <RefreshCw className="h-8 w-8 animate-spin text-rose-600 mb-3" />
+                      <p className="text-xs font-bold text-slate-500">Mendekripsi rekam medis...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Dokter Penanggung Jawab</span>
+                        <p className="font-bold text-slate-800 text-sm">{displaySelected.doctorName}</p>
+                        <p className="text-slate-500">{displaySelected.specialty}</p>
+                      </div>
 
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Dokter Penanggung Jawab</span>
-                    <p className="font-bold text-slate-800 text-sm">{selectedRecord.doctorName}</p>
-                    <p className="text-slate-500">{selectedRecord.specialty}</p>
+                      <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-2">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 block">Diagnosa Utama</span>
+                        <p className="font-bold text-slate-900 text-sm">{displaySelected.diagnosis}</p>
+                        <p className="text-slate-600 mt-2 leading-relaxed whitespace-pre-line">{displaySelected.notes}</p>
+                      </div>
+
+                      {displaySelected.prescriptions && displaySelected.prescriptions.length > 0 && (
+                        <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-2">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 block">Resep Obat & Aturan Pakai</span>
+                          <div className="space-y-1.5 mt-2">
+                            {displaySelected.prescriptions.map((rx, idx) => (
+                              <div key={idx} className="flex items-center justify-between rounded-lg bg-white px-3 py-1.5 border border-slate-200">
+                                <span className="font-bold text-slate-800">{rx.medicine}</span>
+                                <span className="text-[10px] text-slate-500">{rx.dosage}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="rounded-2xl bg-slate-50 p-4 text-[10px] font-mono text-slate-600 space-y-1 border border-slate-200/80">
+                        <p className="text-rose-700 font-bold">VERIFIKASI BLOCKCHAIN & ENKRIPSI:</p>
+                        <p className="text-slate-700">Tx Hash: {displaySelected.txHash}</p>
+                        <p className="text-slate-500">Enkripsi: Off-chain AES-256 CBC Mode</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-6 border-t border-slate-100 mt-6 flex justify-end gap-3">
+                    <button
+                      onClick={() => window.print()}
+                      className="inline-flex items-center gap-2 rounded-xl bg-rose-800 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition cursor-pointer"
+                    >
+                      <Download className="h-4 w-4" /> Unduh Dokumen PDF
+                    </button>
                   </div>
-
-                  <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-2">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Diagnosa Utama</span>
-                    <p className="font-bold text-slate-900 text-sm">{selectedRecord.diagnosis}</p>
-                    <p className="text-slate-600 mt-2 leading-relaxed">{selectedRecord.notes}</p>
-                  </div>
-
-                  <div className="rounded-2xl bg-gradient-to-br from-rose-950 to-red-950 p-4 text-white font-mono text-[10px] space-y-1 border border-rose-800/40">
-                    <p className="text-rose-400 font-bold">VERIFIKASI BLOCKCHAIN & ENKRIPSI:</p>
-                    <p className="text-rose-200">Tx Hash: {selectedRecord.txHash}</p>
-                    <p className="text-rose-300">Enkripsi: Off-chain AES-256 CBC Mode</p>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-slate-100 mt-6 flex justify-end gap-3">
-                  <button
-                    onClick={() => window.print()}
-                    className="inline-flex items-center gap-2 rounded-xl bg-rose-800 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition cursor-pointer"
-                  >
-                    <Download className="h-4 w-4" /> Unduh Dokumen Rekam Medis PDF
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </main>
       </div>
     </div>

@@ -19,7 +19,8 @@ import {
   UserPlus,
   History,
   MapPin,
-  Building2
+  Building2,
+  Clock
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -40,7 +41,8 @@ export default function Sidebar({ role }) {
     patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
     users: pathname.startsWith("/dashboard/admin/users"),
     doctors: pathname.startsWith("/dashboard/faskes/doctor"),
-    geotagging: pathname.startsWith("/dashboard/admin/faskes")
+    geotagging: pathname.startsWith("/dashboard/admin/faskes"),
+    consent: pathname.startsWith("/dashboard/pasien/consent")
   });
 
   useEffect(() => {
@@ -87,19 +89,20 @@ export default function Sidebar({ role }) {
           if (res.success && res.data) {
             setBadgeCounts((prev) => ({
               ...prev,
-              patients: `${res.data.totalPatients || res.data.patientsCount || 0} Pasien`,
-              requests: `${res.data.pendingRequests || res.data.consentRequestsCount || 0} Baru`
+              patients: res.data.izin_akses_disetujui !== undefined ? `${res.data.izin_akses_disetujui} EHR` : null,
+              requests: res.data.request_pending !== undefined ? `${res.data.request_pending} Baru` : null
             }));
           }
         } catch (e) {}
       } else if (currentUser?.id) {
         try {
-          const res = await apiGet(`/api/dashboard/patient/${currentUser.id}/stats`);
+          const res = await apiGet("/api/dashboard/patient/stats");
           if (res.success && res.data) {
             setBadgeCounts((prev) => ({
               ...prev,
-              records: `${res.data.totalMedicalRecords || res.data.recordsCount || 0} EHR`,
-              consent: `${res.data.activeConsents || res.data.consentCount || 0} Aktif`
+              records: res.data.total_documents !== undefined ? `${res.data.total_documents} EHR` : null,
+              consent: res.data.connected_hospitals !== undefined ? `${res.data.connected_hospitals} Aktif` : null,
+              pendingConsent: res.data.pending_requests !== undefined && res.data.pending_requests > 0 ? `${res.data.pending_requests} Baru` : null
             }));
           }
         } catch (e) {}
@@ -165,7 +168,15 @@ export default function Sidebar({ role }) {
         return [
           { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
           { href: "/dashboard/pasien/records", label: "Rekam Medis", icon: FileText, badge: badgeCounts.records || "EHR" },
-          { href: "/dashboard/pasien/consent", label: "Kelola Izin", icon: ShieldCheck, badge: badgeCounts.consent || "Aktif" },
+          { 
+            label: "Kelola Izin", 
+            icon: ShieldCheck,
+            dropdownKey: "consent",
+            children: [
+              { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: Clock, badge: badgeCounts.pendingConsent },
+              { href: "/dashboard/pasien/consent/history", label: "Riwayat Otorisasi", icon: History, badge: badgeCounts.consent || "Aktif" }
+            ]
+          },
         ];
     }
   };
@@ -261,8 +272,8 @@ export default function Sidebar({ role }) {
                           {item.badge && (
                             <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
                               isChildActive
-                                ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
-                                : "bg-slate-100 text-slate-500 border border-slate-200"
+                                ? "bg-rose-100/90 text-rose-800 border border-rose-200"
+                                : "bg-slate-100 text-slate-500 border border-slate-200/80"
                             }`}>
                               {item.badge}
                             </span>
@@ -293,8 +304,8 @@ export default function Sidebar({ role }) {
                                 {child.badge && (
                                   <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
                                     isChildActive
-                                      ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
-                                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                                      ? "bg-white/20 text-white border border-white/30"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200/80"
                                   }`}>
                                     {child.badge}
                                   </span>
@@ -329,8 +340,8 @@ export default function Sidebar({ role }) {
                     {item.badge && (
                       <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
                         isActive
-                          ? "bg-rose-500/20 text-rose-300 border border-rose-400/30"
-                          : "bg-slate-100 text-slate-500 border border-slate-200"
+                          ? "bg-white/20 text-white border border-white/30"
+                          : "bg-slate-100 text-slate-500 border border-slate-200/80"
                       }`}>
                         {item.badge}
                       </span>

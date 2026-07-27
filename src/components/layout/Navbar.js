@@ -92,6 +92,11 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
             category = "ehr";
             link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
             icon = FileText;
+          } else if (item.tipe === "rekam_medis_diperbarui") {
+            title = "Rekam Medis Diperbarui";
+            category = "ehr";
+            link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
+            icon = FileText;
           }
 
           const diffMs = Date.now() - new Date(item.created_at).getTime();
@@ -104,11 +109,24 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
           else if (diffHrs > 0) timestamp = `${diffHrs} jam yang lalu`;
           else if (diffMins > 0) timestamp = `${diffMins} menit yang lalu`;
 
+          const reqObj = item.access_request || item.AccessRequest;
+          let actorName = currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien";
+          if (reqObj) {
+            if (currentUser?.role === "pasien") {
+              actorName = reqObj.hospital?.user?.name || "Fasilitas Kesehatan";
+            } else {
+              actorName = reqObj.Patient?.name || "Pasien";
+            }
+          }
+
+          let actorRoleName = item.tipe.replace(/_/g, " ");
+          actorRoleName = actorRoleName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
           return {
             id: item.id,
             title,
-            actor: currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien",
-            actorRole: item.tipe.replace("_", " "),
+            actor: actorName,
+            actorRole: actorRoleName,
             description: item.message,
             timestamp,
             category,
@@ -360,7 +378,13 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                 {/* Footer Link */}
                 <div className="pt-3 border-t border-slate-100 mt-3 text-center">
                   <Link
-                    href="/dashboard/pasien/records"
+                    href={
+                      currentUser?.role === "admin"
+                        ? "/dashboard/admin/logs"
+                        : (currentUser?.role === "rumah_sakit" || currentUser?.role === "dokter" || currentUser?.role === "faskes")
+                          ? "/dashboard/faskes/requests/history"
+                          : "/dashboard/pasien/records"
+                    }
                     onClick={() => setIsNotifOpen(false)}
                     className="text-xs font-bold text-rose-800 hover:text-rose-900 inline-flex items-center gap-1"
                   >
