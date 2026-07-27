@@ -42,56 +42,53 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 1: Fitur & Portal */}
+          {/* Column 1: Navigasi Sistem */}
           <div>
-            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Portal & Fitur</h4>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Navigasi Utama</h4>
             <ul className="space-y-2.5 font-medium">
               <li>
-                <Link href="/dashboard/pasien" className="hover:text-rose-800 transition">Portal Pasien Digital</Link>
+                <Link href="/" className="hover:text-rose-800 transition">Beranda Utama</Link>
               </li>
               <li>
-                <Link href="/dashboard/faskes" className="hover:text-rose-800 transition">Portal Faskes & Kasir POS</Link>
+                <Link href="/faskes" className="hover:text-rose-800 transition">Peta Sebaran Faskes</Link>
               </li>
               <li>
-                <Link href="/dashboard/admin" className="hover:text-rose-800 transition">Admin Command Center</Link>
+                <Link href="/faq" className="hover:text-rose-800 transition">Tanya Jawab (FAQ)</Link>
               </li>
               <li>
-                <Link href="/records" className="hover:text-rose-800 transition">Linimasa Rekam Medis (EHR)</Link>
+                <Link href="/#fitur" className="hover:text-rose-800 transition">Fitur Infrastruktur</Link>
               </li>
               <li>
-                <Link href="/consent" className="hover:text-rose-800 transition">Kelola Izin (Consent Manager)</Link>
+                <Link href="/#alur" className="hover:text-rose-800 transition">Alur Pendaftaran</Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 2: Akun & Akses */}
+          {/* Column 2: Akses & Portal */}
           <div>
-            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Akun & Otentikasi</h4>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Akses Portal</h4>
             <ul className="space-y-2.5 font-medium">
               <li>
-                <Link href="/auth/login" className="hover:text-rose-800 transition">Masuk Akun (Login)</Link>
+                <Link href="/auth/login" className="hover:text-rose-800 transition">Masuk Portal (Login)</Link>
               </li>
               <li>
-                <Link href="/auth/register" className="hover:text-rose-800 transition">Pendaftaran Pasien Baru</Link>
+                <Link href="/auth/register" className="hover:text-rose-800 transition">Daftar Pasien Baru</Link>
               </li>
               <li>
-                <Link href="/settings" className="hover:text-rose-800 transition">Pengaturan Akun & Wallet</Link>
-              </li>
-              <li>
-                <a href="#simulator" className="hover:text-rose-800 transition">Simulasi Live Consent</a>
+                <Link href="/auth/forgot-password" className="hover:text-rose-800 transition">Lupa Kata Sandi</Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: Keamanan & Teknologi */}
+          {/* Column 3: Keamanan & Web3 */}
           <div>
-            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Keamanan & Web3</h4>
+            <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Infrastruktur & Web3</h4>
             <ul className="space-y-2.5 font-medium">
-              <li><span className="text-slate-600">Smart Contract EIP-2771</span></li>
-              <li><span className="text-slate-600">Off-chain Enkripsi AES-256</span></li>
-              <li><span className="text-slate-600">Hardhat Local Node Relay</span></li>
+              <li><span className="text-slate-650">Smart Contract EIP-2771</span></li>
+              <li><span className="text-slate-650">Off-chain Enkripsi AES-256</span></li>
+              <li><span className="text-slate-650">Sovereign Data Storage</span></li>
               <li>
-                <Link href="/faq" className="text-rose-800 font-bold hover:underline transition">Pusat Bantuan & FAQ (/faq)</Link>
+                <Link href="/faq" className="text-rose-800 font-bold hover:underline transition">Bantuan & FAQ (/faq)</Link>
               </li>
             </ul>
           </div>

@@ -27,13 +27,28 @@ export default function Hero({ walletConnected, setWalletConnected }) {
       id="top"
       className="relative overflow-hidden rounded-3xl border border-rose-100/80 bg-white px-6 py-6 text-slate-900 shadow-[0_20px_70px_rgba(244,114,182,0.08)] sm:px-8 lg:min-h-[calc(100vh-7.5rem)] lg:px-12 lg:py-8 flex flex-col justify-center"
     >
+      {/* Brand Partnership Logos (Separate frames per logo) */}
+      <div className="absolute top-6 left-6 lg:top-8 lg:left-12 flex items-center gap-3 z-10">
+        <div className="bg-white/95 backdrop-blur-md h-[72px] px-4 rounded-2xl shadow-xs flex items-center justify-center">
+          <img src="/images/logo.png" alt="SatuData" className="h-22 w-auto object-contain" />
+        </div>
+        
+        <div className="bg-white/95 backdrop-blur-md h-[72px] px-4 rounded-2xl shadow-xs flex items-center justify-center">
+          <img src="/images/satusehat.jfif" alt="SatuSehat" className="h-14 w-auto object-contain" />
+        </div>
+        
+        <div className="bg-white/95 backdrop-blur-md h-[72px] w-[160px] rounded-2xl shadow-xs flex items-center justify-center overflow-hidden">
+          <img src="/images/kemenkes.jfif" alt="Kemenkes" className="h-18 w-auto object-contain scale-[1.6] transform-gpu" />
+        </div>
+      </div>
+
       {/* Background glowing gradients */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(244,63,94,0.08),transparent_40%),radial-gradient(circle_at_80%_80%,rgba(225,29,72,0.06),transparent_35%)]" />
       <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-rose-800/10 blur-[120px]" />
 
       <div className="relative grid h-full gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-10">
         {/* Left Column: Heading and Info */}
-        <div className="space-y-6 reveal-left">
+        <div className="space-y-6 reveal-left pt-20 lg:pt-24">
           <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/80 px-3.5 py-1 text-xs font-semibold tracking-wide text-rose-800 shadow-2xs">
             <Sparkles className="h-3.5 w-3.5 text-rose-600 animate-pulse" />
             Integrasi Official SATUSEHAT Kemenkes & Web3 Sovereign
