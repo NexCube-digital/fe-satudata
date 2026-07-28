@@ -7,6 +7,7 @@ import {
   Home, 
   Users, 
   FileText, 
+  Plus,
   Settings, 
   BarChart3, 
   Stethoscope, 
@@ -39,6 +40,7 @@ export default function Sidebar({ role }) {
 
   const [openDropdowns, setOpenDropdowns] = useState({
     patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
+    medicalRecords: pathname.startsWith("/dashboard/faskes/medical-records"),
     users: pathname.startsWith("/dashboard/admin/users"),
     doctors: pathname.startsWith("/dashboard/faskes/doctor"),
     geotagging: pathname.startsWith("/dashboard/admin/faskes"),
@@ -145,15 +147,25 @@ export default function Sidebar({ role }) {
       case "rumah_sakit":
         return [
           { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: badgeCounts.tokens || null },
+          {
+            label: "Rekam Medis",
+            icon: FileText,
+            dropdownKey: "medicalRecords",
+            badge: badgeCounts.records || "EHR",
+            children: [
+              { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText },
+              { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus }
+            ]
+          },
           { 
             label: "Data Pasien", 
             icon: Stethoscope,
             children: [
               { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus },
               { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
-              { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History }
             ]
           },
+          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History },
           { 
             label: "Kelola Dokter", 
             icon: Users,

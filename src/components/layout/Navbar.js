@@ -62,85 +62,90 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const fetchNotifications = async () => {
     try {
       const result = await apiGet("/api/notifications?limit=20");
-      if (result.success && result.data?.items) {
-        const mapped = result.data.items.map((item) => {
-          let title = "Notifikasi";
-          let category = "security";
-          let link = "#";
-          let icon = ShieldCheck;
+      const items = Array.isArray(result?.data?.items) ? result.data.items : [];
+      const mapped = items.map((item) => {
+        let title = "Notifikasi";
+        let category = "security";
+        let link = "#";
+        let icon = ShieldCheck;
 
-          if (item.tipe === "permintaan_akses") {
-            title = "Permintaan Akses Rekam Medis";
-            category = "consent";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
-            icon = Building2;
-          } else if (item.tipe === "akses_disetujui") {
-            title = "Permintaan Akses Disetujui";
-            category = "consent";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
-            icon = CheckCircle;
-          } else if (item.tipe === "akses_ditolak") {
-            title = "Permintaan Akses Ditolak";
-            category = "consent";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
-            icon = XCircle;
-          } else if (item.tipe === "akses_dicabut") {
-            title = "Akses Rekam Medis Dicabut";
-            category = "consent";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
-            icon = Lock;
-          } else if (item.tipe === "rekam_medis_baru") {
-            title = "Rekam Medis Baru Diunggah";
-            category = "ehr";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
-            icon = FileText;
-          } else if (item.tipe === "rekam_medis_diperbarui") {
-            title = "Rekam Medis Diperbarui";
-            category = "ehr";
-            link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
-            icon = FileText;
+        if (item.tipe === "permintaan_akses") {
+          title = "Permintaan Akses Rekam Medis";
+          category = "consent";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+          icon = Building2;
+        } else if (item.tipe === "akses_disetujui") {
+          title = "Permintaan Akses Disetujui";
+          category = "consent";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+          icon = CheckCircle;
+        } else if (item.tipe === "akses_ditolak") {
+          title = "Permintaan Akses Ditolak";
+          category = "consent";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+          icon = XCircle;
+        } else if (item.tipe === "akses_dicabut") {
+          title = "Akses Rekam Medis Dicabut";
+          category = "consent";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/consent" : "/dashboard/faskes/requests";
+          icon = Lock;
+        } else if (item.tipe === "rekam_medis_baru") {
+          title = "Rekam Medis Baru Diunggah";
+          category = "ehr";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
+          icon = FileText;
+        } else if (item.tipe === "rekam_medis_diperbarui") {
+          title = "Rekam Medis Diperbarui";
+          category = "ehr";
+          link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
+          icon = FileText;
+        }
+
+        const createdAt = item.created_at ? new Date(item.created_at) : null;
+        const diffMs = createdAt ? Date.now() - createdAt.getTime() : 0;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHrs = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHrs / 24);
+        
+        let timestamp = "Baru saja";
+        if (diffDays > 0) timestamp = `${diffDays} hari yang lalu`;
+        else if (diffHrs > 0) timestamp = `${diffHrs} jam yang lalu`;
+        else if (diffMins > 0) timestamp = `${diffMins} menit yang lalu`;
+
+        const reqObj = item.access_request || item.AccessRequest;
+        let actorName = currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien";
+        if (reqObj) {
+          if (currentUser?.role === "pasien") {
+            actorName = reqObj.hospital?.user?.name || "Fasilitas Kesehatan";
+          } else {
+            actorName = reqObj.Patient?.name || "Pasien";
           }
+        }
 
-          const diffMs = Date.now() - new Date(item.created_at).getTime();
-          const diffMins = Math.floor(diffMs / 60000);
-          const diffHrs = Math.floor(diffMins / 60);
-          const diffDays = Math.floor(diffHrs / 24);
-          
-          let timestamp = "Baru saja";
-          if (diffDays > 0) timestamp = `${diffDays} hari yang lalu`;
-          else if (diffHrs > 0) timestamp = `${diffHrs} jam yang lalu`;
-          else if (diffMins > 0) timestamp = `${diffMins} menit yang lalu`;
+        let actorRoleName = String(item.tipe || "").replace(/_/g, " ");
+        actorRoleName = actorRoleName
+          .split(" ")
+          .filter(Boolean)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
 
-          const reqObj = item.access_request || item.AccessRequest;
-          let actorName = currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien";
-          if (reqObj) {
-            if (currentUser?.role === "pasien") {
-              actorName = reqObj.hospital?.user?.name || "Fasilitas Kesehatan";
-            } else {
-              actorName = reqObj.Patient?.name || "Pasien";
-            }
-          }
-
-          let actorRoleName = item.tipe.replace(/_/g, " ");
-          actorRoleName = actorRoleName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-          return {
-            id: item.id,
-            title,
-            actor: actorName,
-            actorRole: actorRoleName,
-            description: item.message,
-            timestamp,
-            category,
-            link,
-            read: item.reading,
-            icon
-          };
-        });
-        setNotifications(mapped);
-      }
+        return {
+          id: item.id,
+          title,
+          actor: actorName,
+          actorRole: actorRoleName,
+          description: item.message,
+          timestamp,
+          category,
+          link,
+          read: item.reading,
+          icon,
+        };
+      });
+      setNotifications(mapped);
     } catch (err) {
       console.error("Gagal memuat notifikasi", err);
+      setNotifications([]);
     }
 
     try {

@@ -478,6 +478,45 @@ export default function FaskesDashboard() {
               </div>
 
               {/* WIDGET 2: TABEL STATUS AKSES & DEKRIPSI DATA PASIEN */}
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-rose-800" />
+                      Rekam Medis & Upload Baru
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Akses daftar rekam medis yang Anda unggah sendiri, atau buat berkas baru untuk pasien terotorisasi.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2 mb-4">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-bold text-slate-900 mb-2">Semua Rekam Medis</h4>
+                    <p className="text-xs text-slate-500 mb-4">Lihat berkas EHR, transaksi Blockchain, dan status upload pasien Anda.</p>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard/faskes/medical-records")}
+                      className="inline-flex items-center gap-2 rounded-xl bg-rose-800 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 transition"
+                    >
+                      <FileText className="h-4 w-4" /> Buka Semua Rekam Medis
+                    </button>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <h4 className="text-sm font-bold text-slate-900 mb-2">Upload Baru</h4>
+                    <p className="text-xs text-slate-500 mb-4">Unggah catatan medis baru untuk pasien dengan akses aktif.</p>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
+                      className="inline-flex items-center gap-2 rounded-xl border border-rose-800 bg-white px-4 py-2 text-xs font-bold text-rose-800 hover:bg-rose-50 transition"
+                    >
+                      <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                   <div>
