@@ -47,6 +47,7 @@ export default function FaskesDashboard() {
 
   // Selected Decrypted Record Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
   // POS Kasir Simulator State
   const [billItems, setBillItems] = useState([
@@ -132,7 +133,7 @@ export default function FaskesDashboard() {
           nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "0000000000000000",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Signature",
+          txHash: item.status === "approved" ? item.tx_hash_response || "" : "",
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -147,6 +148,13 @@ export default function FaskesDashboard() {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     router.push("/auth/login");
+  };
+
+  const showToast = (message, type = "success", title = "") => {
+    setToast({ show: true, type, title, message });
+    window.setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3500);
   };
 
   const handleSendRequest = async (e) => {
@@ -175,12 +183,13 @@ export default function FaskesDashboard() {
         fetchRequestsList();
         fetchDashboardStats();
         setNikInput("");
+        showToast("Permintaan akses rekam medis berhasil dikirim ke portal pasien!", "success", "Berhasil");
       } else {
-        alert(result.message || "Gagal membuat permohonan akses");
+        showToast(result.message || "Gagal membuat permohonan akses", "error", "Gagal");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat mengirimkan permohonan");
+      showToast("Terjadi kesalahan saat mengirimkan permohonan", "error", "Gagal");
     } finally {
       setSubmittingRequest(false);
     }
@@ -204,11 +213,11 @@ export default function FaskesDashboard() {
           decryptedData: recordsStr
         });
       } else {
-        alert(result.message || "Gagal memuat rekam medis");
+        showToast(result.message || "Gagal memuat rekam medis", "error", "Gagal");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat memproses data medis");
+      showToast("Terjadi kesalahan saat memproses data medis", "error", "Gagal");
     }
   };
 
@@ -253,7 +262,7 @@ export default function FaskesDashboard() {
       }
     } catch (err) {
       console.error(err);
-      alert("Gagal memproses transaksi kasir");
+      showToast("Gagal memproses transaksi kasir", "error", "Gagal");
     }
   };
 
@@ -581,25 +590,36 @@ export default function FaskesDashboard() {
 
                 {/* Modal View Decrypted Record */}
                 {selectedRecord && (
-                  <div className="mt-6 rounded-2xl border border-rose-800/40 bg-gradient-to-br from-rose-950 to-red-950 p-5 text-white animate-fade-in shadow-xl">
-                    <div className="flex items-center justify-between border-b border-rose-800/60 pb-3 mb-3">
-                      <div className="flex items-center gap-2 text-rose-300">
-                        <Unlock className="h-5 w-5" />
-                        <h4 className="text-xs font-bold uppercase tracking-wider">Rekam Medis Terdekripsi: {selectedRecord.patientName}</h4>
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-sky-950/40 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-3xl rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-slate-50 via-sky-50 to-white p-6 shadow-2xl shadow-sky-400/20 text-slate-900">
+                      <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
+                        <div>
+                          <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-semibold text-sky-800">
+                            <Unlock className="h-4 w-4" />
+                            Rekam Medis Terdekripsi
+                          </div>
+                          <h4 className="mt-3 text-lg font-extrabold text-slate-900">{selectedRecord.patientName}</h4>
+                          <p className="text-sm text-slate-500">NIK: <span className="font-mono text-slate-700">{maskNik(selectedRecord.nik)}</span></p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedRecord(null)}
+                          className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
+                        >
+                          Tutup
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setSelectedRecord(null)}
-                        className="text-xs text-rose-300 hover:text-white"
-                      >
-                        Tutup [X]
-                      </button>
-                    </div>
 
-                    <div className="space-y-2 text-xs font-mono text-rose-100">
-                      <p><span className="text-rose-300/70">NIK:</span> {maskNik(selectedRecord.nik)}</p>
-                      <p><span className="text-rose-300/70">Tx Hash Validasi:</span> {selectedRecord.txHash}</p>
-                      <div className="mt-3 rounded-xl bg-black/30 p-3 text-rose-200 border border-rose-800/40 leading-relaxed">
-                        {selectedRecord.decryptedData}
+                      <div className="space-y-4 text-sm">
+                        <div className="rounded-3xl bg-sky-50 border border-sky-200 p-4">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
+                          <p className="mt-2 font-mono text-slate-900 break-all">{selectedRecord.txHash}</p>
+                        </div>
+                        <div className="rounded-[28px] border border-slate-200 bg-white p-4 text-slate-700 shadow-sm">
+                          <p className="text-sm font-semibold text-slate-900 mb-3">Ringkasan Rekam Medis</p>
+                          <div className="leading-relaxed text-slate-700 whitespace-pre-line">
+                            {selectedRecord.decryptedData}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -687,6 +707,30 @@ export default function FaskesDashboard() {
               </div>
             </div>
           </div>
+          {toast.show && (
+            <div className="fixed right-4 bottom-4 z-50 max-w-sm rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
+              <div className="flex items-start gap-3">
+                <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                  {toast.type === "success" ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {toast.title && <p className="text-sm font-bold text-slate-900">{toast.title}</p>}
+                  <p className="mt-1 text-sm text-slate-700 whitespace-pre-line">{toast.message}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setToast((prev) => ({ ...prev, show: false }))}
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

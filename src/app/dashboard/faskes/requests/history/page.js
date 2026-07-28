@@ -54,7 +54,7 @@ export default function FaskesRequestsHistory() {
           walletAddress: item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Signature",
+          txHash: item.status === "approved" ? item.tx_hash_response || "" : "",
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
