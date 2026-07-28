@@ -20,7 +20,8 @@ import {
   Plus,
   X,
   Info,
-  Key
+  Key,
+  Coins
 } from "lucide-react";
 import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
@@ -62,6 +63,59 @@ export default function UsersComponent({ forcedRole }) {
   // Credentials notification banner inside modal or list
   const [registeredFaskesCredentials, setRegisteredFaskesCredentials] = useState(null);
   const [copiedCredentials, setCopiedCredentials] = useState(false);
+
+  // Token System States
+  const [isSendTokenModalOpen, setIsSendTokenModalOpen] = useState(false);
+  const [selectedHospitalForToken, setSelectedHospitalForToken] = useState(null);
+  const [tokenAmountToGrant, setTokenAmountToGrant] = useState(10);
+  const [isSubmittingToken, setIsSubmittingToken] = useState(false);
+
+  const handleOpenSendTokenModal = (user) => {
+    setSelectedHospitalForToken(user);
+    setTokenAmountToGrant(10);
+    setErrorMsg("");
+    setSuccessMsg("");
+    setIsSendTokenModalOpen(true);
+  };
+
+  const handleSendTokens = async () => {
+    if (!selectedHospitalForToken) return;
+    setErrorMsg("");
+    setSuccessMsg("");
+    setIsSubmittingToken(true);
+    try {
+      const res = await apiPut(`/api/admin/accounts/${selectedHospitalForToken.id}/add-tokens`, {
+        amount: tokenAmountToGrant
+      });
+      if (res.success) {
+        setSuccessMsg(res.message || "Token berhasil dikirim!");
+        // Update user state locally
+        setUsersList((prev) =>
+          prev.map((u) => {
+            if (u.id === selectedHospitalForToken.id) {
+              const updatedProfile = u.hospital_profile ? {
+                ...u.hospital_profile,
+                tokens: (u.hospital_profile.tokens || 0) + tokenAmountToGrant
+              } : { tokens: tokenAmountToGrant };
+              return { ...u, hospital_profile: updatedProfile };
+            }
+            return u;
+          })
+        );
+        setTimeout(() => {
+          setIsSendTokenModalOpen(false);
+          setSelectedHospitalForToken(null);
+          setSuccessMsg("");
+        }, 1500);
+      } else {
+        setErrorMsg(res.message || "Gagal mengirim token");
+      }
+    } catch (err) {
+      setErrorMsg(err.message || "Gagal mengirim token. Silakan coba lagi.");
+    } finally {
+      setIsSubmittingToken(false);
+    }
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -451,15 +505,22 @@ export default function UsersComponent({ forcedRole }) {
                               </div>
                               <div>
                                 <p className="font-extrabold text-slate-900">{u.name}</p>
-                                <span className={`inline-block px-2 py-0.5 mt-0.5 text-[9px] font-bold rounded-md uppercase border ${
-                                  u.role === "admin"
-                                    ? "bg-purple-50 text-purple-700 border-purple-200"
-                                    : u.role === "rumah_sakit" || u.role === "faskes"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                    : "bg-rose-50 text-rose-800 border-rose-200"
-                                }`}>
-                                  {u.role === "admin" ? "Admin" : u.role === "rumah_sakit" || u.role === "faskes" ? "Faskes / RS" : "Pasien"}
-                                </span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className={`inline-block px-2 py-0.5 text-[9px] font-bold rounded-md uppercase border ${
+                                    u.role === "admin"
+                                      ? "bg-purple-50 text-purple-700 border-purple-200"
+                                      : u.role === "rumah_sakit" || u.role === "faskes"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : "bg-rose-50 text-rose-800 border-rose-200"
+                                  }`}>
+                                    {u.role === "admin" ? "Admin" : u.role === "rumah_sakit" || u.role === "faskes" ? "Faskes / RS" : "Pasien"}
+                                  </span>
+                                  {(u.role === "rumah_sakit" || u.role === "faskes") && (
+                                    <span className="inline-block px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase border bg-amber-50 text-amber-700 border-amber-200 font-mono">
+                                      {u.hospital_profile?.tokens !== undefined ? u.hospital_profile.tokens : 20} Token
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -510,6 +571,14 @@ export default function UsersComponent({ forcedRole }) {
 
                           <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              {(u.role === "rumah_sakit" || u.role === "faskes") && (
+                                <button
+                                  onClick={() => handleOpenSendTokenModal(u)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold text-[11px] bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition cursor-pointer"
+                                >
+                                  <Coins className="h-3.5 w-3.5 text-amber-600" /> Kirim Token
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleToggleStatus(u)}
                                 disabled={actionLoadingId === u.id}
@@ -727,6 +796,73 @@ export default function UsersComponent({ forcedRole }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Send Token Modal Dialog */}
+      {isSendTokenModalOpen && selectedHospitalForToken && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Coins className="h-5 w-5 text-rose-600 animate-pulse" />
+                Kirim Token Ke Faskes
+              </h3>
+              <button
+                onClick={() => {
+                  setIsSendTokenModalOpen(false);
+                  setSelectedHospitalForToken(null);
+                  setTokenAmountToGrant(10);
+                }}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500">
+                Kirim token tambahan ke <strong>{selectedHospitalForToken.name}</strong> untuk memfasilitasi transaksi data rekam medis.
+              </p>
+              
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                  Jumlah Token
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={tokenAmountToGrant}
+                  onChange={(e) => setTokenAmountToGrant(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:border-rose-600 focus:outline-hidden text-slate-800"
+                />
+              </div>
+
+              {errorMsg && <p className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-100 p-2 rounded-lg">{errorMsg}</p>}
+              {successMsg && <p className="text-xs text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 p-2 rounded-lg">{successMsg}</p>}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setIsSendTokenModalOpen(false);
+                    setSelectedHospitalForToken(null);
+                    setTokenAmountToGrant(10);
+                  }}
+                  className="w-1/2 rounded-xl border border-slate-200 text-slate-500 py-2.5 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSendTokens}
+                  disabled={isSubmittingToken}
+                  className="w-1/2 rounded-xl bg-rose-800 text-white py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingToken ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4" />}
+                  Kirim Token
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

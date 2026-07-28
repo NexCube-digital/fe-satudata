@@ -90,7 +90,8 @@ export default function Sidebar({ role }) {
             setBadgeCounts((prev) => ({
               ...prev,
               patients: res.data.izin_akses_disetujui !== undefined ? `${res.data.izin_akses_disetujui} EHR` : null,
-              requests: res.data.request_pending !== undefined ? `${res.data.request_pending} Baru` : null
+              requests: res.data.request_pending !== undefined ? `${res.data.request_pending} Baru` : null,
+              tokens: res.data.tokens !== undefined ? `${res.data.tokens} Token` : null
             }));
           }
         } catch (e) {}
@@ -143,7 +144,7 @@ export default function Sidebar({ role }) {
       case "faskes":
       case "rumah_sakit":
         return [
-          { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: null },
+          { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: badgeCounts.tokens || null },
           { 
             label: "Data Pasien", 
             icon: Stethoscope,

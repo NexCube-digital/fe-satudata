@@ -26,7 +26,10 @@ import {
   Server,
   Clock,
   Loader,
-  AlertCircle
+  AlertCircle,
+  Coins,
+  X,
+  Send
 } from "lucide-react";
 import { apiGet, apiPost, apiPut, getAvatarUrl } from "@/lib/api";
 
@@ -92,6 +95,11 @@ export default function AdminDashboard() {
   const [usersList, setUsersList] = useState([]);
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  // Token Modal State
+  const [tokenModal, setTokenModal] = useState({ open: false, user: null });
+  const [tokenAmount, setTokenAmount] = useState("");
+  const [tokenSending, setTokenSending] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -224,6 +232,38 @@ export default function AdminDashboard() {
       );
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  // ─── Send Token Handler ─────────────────────────────────────────────────
+  const handleSendToken = async () => {
+    if (!tokenModal.user || !tokenAmount) return;
+    const amount = parseInt(tokenAmount, 10);
+    if (isNaN(amount) || amount <= 0) return;
+
+    setTokenSending(true);
+    try {
+      await apiPut(`/api/admin/accounts/${tokenModal.user.id}/add-tokens`, { amount });
+
+      // Update token count in local state
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === tokenModal.user.id
+            ? { ...u, hospitalProfile: { ...(u.hospitalProfile || {}), tokens: ((u.hospitalProfile?.tokens || 0) + amount) } }
+            : u
+        )
+      );
+
+      const logMsg = `[${new Date().toLocaleTimeString()}] [TOKEN] Sent ${amount} token(s) to ${tokenModal.user.name}`;
+      setTerminalLogs((prev) => [logMsg, ...prev]);
+
+      setTokenModal({ open: false, user: null });
+      setTokenAmount("");
+    } catch (err) {
+      console.error("Gagal kirim token:", err.message);
+      alert("Gagal mengirim token: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setTokenSending(false);
     }
   };
 
@@ -432,13 +472,14 @@ export default function AdminDashboard() {
                         <th className="py-3 px-4 rounded-l-xl">Nama / Identitas</th>
                         <th className="py-3 px-4">Peran (Role)</th>
                         <th className="py-3 px-4">Status Akun</th>
+                        <th className="py-3 px-4">Token</th>
                         <th className="py-3 px-4 text-right rounded-r-xl">Aksi Admin</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredUsers.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="py-8 text-center text-slate-400">
+                          <td colSpan={5} className="py-8 text-center text-slate-400">
                             Tidak ada data pengguna ditemukan.
                           </td>
                         </tr>
@@ -497,28 +538,48 @@ export default function AdminDashboard() {
                                 </span>
                               )}
                             </td>
+                            <td className="py-3.5 px-4">
+                              {(u.role === "rumah_sakit" || u.role === "faskes") ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200 px-2.5 py-0.5 text-[10px] font-bold text-violet-700">
+                                  <Coins className="h-3 w-3" />
+                                  {u.hospitalProfile?.tokens ?? 20}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-300">—</span>
+                              )}
+                            </td>
                             <td className="py-3.5 px-4 text-right">
-                              <button
-                                onClick={() => handleToggleStatus(u)}
-                                disabled={actionLoadingId === u.id}
-                                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 font-bold transition cursor-pointer ${
-                                  u.status_account === "active"
-                                    ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                }`}
-                              >
-                                {actionLoadingId === u.id ? (
-                                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                ) : u.status_account === "active" ? (
-                                  <>
-                                    <UserX className="h-3.5 w-3.5" /> Nonaktifkan
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserCheck className="h-3.5 w-3.5" /> Aktifkan
-                                  </>
+                              <div className="flex items-center gap-2 justify-end">
+                                {(u.role === "rumah_sakit" || u.role === "faskes") && (
+                                  <button
+                                    onClick={() => { setTokenModal({ open: true, user: u }); setTokenAmount(""); }}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 px-3 py-1.5 font-bold transition cursor-pointer text-[10px]"
+                                  >
+                                    <Send className="h-3.5 w-3.5" /> Token
+                                  </button>
                                 )}
-                              </button>
+                                <button
+                                  onClick={() => handleToggleStatus(u)}
+                                  disabled={actionLoadingId === u.id}
+                                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 font-bold transition cursor-pointer ${
+                                    u.status_account === "active"
+                                      ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  }`}
+                                >
+                                  {actionLoadingId === u.id ? (
+                                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                  ) : u.status_account === "active" ? (
+                                    <>
+                                      <UserX className="h-3.5 w-3.5" /> Nonaktifkan
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserCheck className="h-3.5 w-3.5" /> Aktifkan
+                                    </>
+                                  )}
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -557,6 +618,111 @@ export default function AdminDashboard() {
           </div>
         </main>
       </div>
+
+      {/* ─── Token Send Modal ─────────────────────────────────────────────── */}
+      {tokenModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-6 py-5 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                    <Coins className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold">Kirim Token</h3>
+                    <p className="text-[10px] text-violet-200 font-medium">Transfer token ke akun Faskes</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTokenModal({ open: false, user: null })}
+                  className="h-8 w-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-5 space-y-5">
+              {/* Recipient Info */}
+              <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Penerima</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-rose-800 to-red-900 flex items-center justify-center text-white text-sm font-bold">
+                    {tokenModal.user?.name?.charAt(0) || "F"}
+                  </div>
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-900">{tokenModal.user?.name}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      Saldo saat ini: <span className="text-violet-600 font-bold">{tokenModal.user?.hospitalProfile?.tokens ?? 20} Token</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 block">Jumlah Token</label>
+                <div className="relative">
+                  <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400" />
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={tokenAmount}
+                    onChange={(e) => setTokenAmount(e.target.value)}
+                    placeholder="Masukkan jumlah token..."
+                    className="w-full pl-11 pr-20 py-3 rounded-xl border border-slate-200 text-sm font-bold focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-hidden transition"
+                    autoFocus
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold uppercase">Token</span>
+                </div>
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="flex gap-2">
+                {[5, 10, 20, 50].map((amt) => (
+                  <button
+                    key={amt}
+                    onClick={() => setTokenAmount(String(amt))}
+                    className={`flex-1 py-2 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      tokenAmount === String(amt)
+                        ? "border-violet-500 bg-violet-50 text-violet-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {amt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center gap-3">
+              <button
+                onClick={() => setTokenModal({ open: false, user: null })}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSendToken}
+                disabled={tokenSending || !tokenAmount || parseInt(tokenAmount) <= 0}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {tokenSending ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+                {tokenSending ? "Mengirim..." : "Kirim Token"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,7 +18,8 @@ import {
   Building2,
   Clock,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Coins
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -29,6 +30,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifFilter, setNotifFilter] = useState("all");
+  const [tokenBalance, setTokenBalance] = useState(null);
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
@@ -165,6 +167,29 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
     }
   }, [currentUser]);
 
+  // Fetch token balance for faskes/rumah_sakit users
+  useEffect(() => {
+    if (!currentUser || (currentUser.role !== "rumah_sakit" && currentUser.role !== "faskes" && currentUser.role !== "dokter")) return;
+    const fetchTokens = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/dashboard/hospital/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await res.json();
+        if (res.ok && result.success && result.data) {
+          setTokenBalance(result.data.tokens ?? 0);
+        }
+      } catch (err) {
+        console.error("Gagal memuat token balance", err);
+      }
+    };
+    fetchTokens();
+    const interval = setInterval(fetchTokens, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
   // Otomatis menutup dropdown & notifikasi ketika pengguna mengklik di luar area
   useEffect(() => {
     function handleClickOutside(event) {
@@ -266,6 +291,14 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
 
         {/* Right Action Icons: Notification Bell & Profile Dropdown */}
         <div className="flex items-center gap-3">
+          {/* TOKEN BALANCE BADGE (untuk faskes/rumah_sakit) */}
+          {tokenBalance !== null && (
+            <div className="hidden sm:flex items-center gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs font-bold text-amber-700">
+              <Coins className="h-4 w-4 text-amber-500" />
+              <span>{tokenBalance}</span>
+              <span className="text-[10px] font-medium text-amber-500">Token</span>
+            </div>
+          )}
           {/* TOMBOL NOTIFIKASI & POPUP HISTORY INTERAKSI */}
           <div className="relative" ref={notifRef}>
             <button

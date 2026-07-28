@@ -25,7 +25,8 @@ import {
   ShieldCheck,
   Eye,
   RefreshCw,
-  Receipt
+  Receipt,
+  Coins
 } from "lucide-react";
 
 export default function FaskesDashboard() {
@@ -314,12 +315,8 @@ export default function FaskesDashboard() {
 
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Lisensi Faskes</p>
-                  <p className="font-bold text-rose-400 mt-0.5">{hospitalProfile?.medical_license || "Belum Terdaftar"}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Tipe Faskes</p>
-                  <p className="font-bold text-rose-300 mt-0.5">{hospitalProfile?.hospital_type || "Umum"}</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1"><Coins className="h-3 w-3" /> Token Akun</p>
+                  <p className="font-bold text-amber-400 mt-0.5 text-lg">{hospitalProfile?.tokens ?? 0} <span className="text-[10px] text-slate-400 font-normal">token</span></p>
                 </div>
               </div>
             </div>
