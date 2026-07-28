@@ -23,7 +23,10 @@ import {
   Unlock,
   Upload,
   X,
-  Move
+  Move,
+  Server,
+  Zap,
+  RefreshCw
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -146,16 +149,22 @@ export default function SettingPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState({ type: "", text: "" });
 
-  // State Wallet
+  // State Wallet (personal - non-admin)
   const [walletAddress, setWalletAddress] = useState("");
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletMsg, setWalletMsg] = useState({ type: "", text: "" });
   const [walletBalance, setWalletBalance] = useState("");
 
+  // State System Wallet (admin only)
+  const [systemWallet, setSystemWallet] = useState(null);
+  const [systemWalletBalance, setSystemWalletBalance] = useState("");
+  const [systemWalletLoading, setSystemWalletLoading] = useState(false);
+
   const fetchWalletBalance = async (address) => {
     if (!address) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/bc/wallet-balance?address=${address}`);
+      const BC_URL = process.env.NEXT_PUBLIC_BC_SERVICE_URL || "http://localhost:4000";
+      const res = await fetch(`${BC_URL}/api/bc/wallet-balance?address=${address}`);
       const result = await res.json();
       if (res.ok && result.success) {
         const balanceEth = parseFloat(result.balance);
@@ -166,6 +175,31 @@ export default function SettingPage() {
     } catch (err) {
       console.error("Error fetching balance from blockchain service:", err);
       setWalletBalance("0.0000 ETH");
+    }
+  };
+
+  // Fetch system wallet info (admin only)
+  const fetchSystemWallet = async () => {
+    setSystemWalletLoading(true);
+    try {
+      const BC_URL = process.env.NEXT_PUBLIC_BC_SERVICE_URL || "http://localhost:4000";
+      const statusRes = await fetch(`${BC_URL}/api/bc/status`);
+      const statusData = await statusRes.json();
+      const address = statusData?.adminWallet;
+      setSystemWallet(statusData);
+      if (address) {
+        const balRes = await fetch(`${BC_URL}/api/bc/wallet-balance?address=${address}`);
+        const balData = await balRes.json();
+        if (balRes.ok && balData.success) {
+          setSystemWalletBalance(parseFloat(balData.balance).toFixed(6) + " ETH");
+        } else {
+          setSystemWalletBalance("0.000000 ETH");
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching system wallet:", err);
+    } finally {
+      setSystemWalletLoading(false);
     }
   };
 
@@ -194,6 +228,11 @@ export default function SettingPage() {
           setIsNikFilledOnLoad(true);
         }
         setWalletAddress(parsed.wallet_address || "");
+
+        // Jika admin, ambil info system wallet
+        if (parsed.role === "admin") {
+          fetchSystemWallet();
+        }
 
         // Fetch detailed profile from BE if available
         fetchProfile(parsed);
@@ -736,7 +775,7 @@ export default function SettingPage() {
               }`}
             >
               <Wallet className="h-4 w-4" />
-              Web3 & MetaMask
+              {user?.role === "admin" ? "Dompet Sistem" : "Web3 & MetaMask"}
             </button>
           </div>
 
@@ -1259,65 +1298,148 @@ export default function SettingPage() {
           {/* TAB 3: WEB3 & METAMASK */}
           {activeTab === "wallet" && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-pink-600" />
-                Penautan Dompet MetaMask (Web3 Identity)
-              </h2>
-              <p className="text-sm text-slate-500 mb-6">
-                Tautkan alamat wallet MetaMask Anda ke akun SatuData untuk mengotorisasi transaksi *grantAccess()* dan *revokeAccess()* secara terdesentralisasi.
-              </p>
 
-              {walletMsg.text && (
-                <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
-                  walletMsg.type === "success" 
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}>
-                  {walletMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
-                  <span>{walletMsg.text}</span>
-                </div>
-              )}
+              {/* ── ADMIN: tampilkan System Wallet (read-only) ── */}
+              {user?.role === "admin" ? (
+                <>
+                  <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                    <Server className="h-5 w-5 text-pink-600" />
+                    Dompet Sistem (Admin Wallet)
+                  </h2>
+                  <p className="text-sm text-slate-500 mb-6">
+                    Wallet di bawah adalah wallet sistem yang digunakan secara otomatis untuk
+                    menandatangani semua transaksi on-chain (requestAccess, grantAccess, dll).
+                    Wallet ini dikonfigurasi langsung di server dan tidak perlu dihubungkan secara manual.
+                  </p>
 
-              <div className="rounded-2xl bg-slate-50 p-6 border border-slate-200/80 mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Kredensial Wallet</span>
-                  {walletAddress ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
-                      <ShieldCheck className="h-4 w-4" /> Terverifikasi & Ditautkan
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 border border-amber-200">
-                      Belum Ditautkan
-                    </span>
-                  )}
-                </div>
+                  <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6 mb-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Sistem</span>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
+                        systemWallet?.onChainReady
+                          ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                          : "bg-amber-100 text-amber-700 border-amber-200"
+                      }`}>
+                        <Zap className="h-3.5 w-3.5" />
+                        {systemWallet?.onChainReady ? "On-Chain Ready ✅" : "Offline / Simulation Mode"}
+                      </span>
+                    </div>
 
-                <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700 mb-3">
-                  {walletAddress || "Alamat wallet belum dikonfigurasi"}
-                </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Alamat Wallet</p>
+                        <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700">
+                          {systemWalletLoading ? "Memuat..." : (systemWallet?.adminWallet || "Tidak terkonfigurasi")}
+                        </div>
+                      </div>
 
-                {walletAddress && (
-                  <div className="flex items-center justify-between border-t border-slate-200/60 pt-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-bold">Saldo Dompet (Sepolia)</span>
-                    <span className="text-sm font-extrabold text-slate-800 font-mono">{walletBalance || "Memuat..."}</span>
+                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Saldo Sepolia ETH</p>
+                          <p className="text-xl font-extrabold text-slate-800 font-mono mt-0.5">
+                            {systemWalletLoading ? "Memuat..." : (systemWalletBalance || "–")}
+                          </p>
+                        </div>
+                        <button
+                          onClick={fetchSystemWallet}
+                          disabled={systemWalletLoading}
+                          className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                          title="Refresh saldo"
+                        >
+                          <RefreshCw className={`h-4 w-4 text-slate-500 ${systemWalletLoading ? "animate-spin" : ""}`} />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Network</p>
+                          <p className="text-sm font-bold text-slate-700 mt-0.5">{systemWallet?.network || "sepolia"} (Chain ID: {systemWallet?.chainId || 11155111})</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Smart Contract</p>
+                          <p className="text-xs font-mono text-slate-600 mt-0.5 break-all">{systemWallet?.contractAddress || "–"}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={handleConnectWallet}
-                  disabled={walletLoading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-sm font-bold text-slate-900 shadow-sm hover:from-amber-400 hover:to-orange-500 transition cursor-pointer disabled:opacity-50"
-                >
-                  {walletLoading ? (
-                    <Loader className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wallet className="h-4 w-4" />
+                  {parseFloat(systemWalletBalance) < 0.001 && !systemWalletLoading && (
+                    <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-700">
+                      <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Saldo hampir habis!</p>
+                        <p className="text-xs mt-0.5">Isi wallet dengan Sepolia ETH gratis melalui <a href="https://www.infura.io/faucet/sepolia" target="_blank" rel="noopener noreferrer" className="underline font-bold">infura.io/faucet/sepolia</a></p>
+                      </div>
+                    </div>
                   )}
-                  {walletAddress ? "Tautkan Ulang Wallet" : "Tautkan MetaMask Wallet"}
-                </button>
-              </div>
+                </>
+              ) : (
+                /* ── NON-ADMIN: tampilkan personal MetaMask connect ── */
+                <>
+                  <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <Wallet className="h-5 w-5 text-pink-600" />
+                    Penautan Dompet MetaMask (Web3 Identity)
+                  </h2>
+                  <p className="text-sm text-slate-500 mb-6">
+                    Tautkan alamat wallet MetaMask Anda ke akun SatuData untuk mengotorisasi transaksi *grantAccess()* dan *revokeAccess()* secara terdesentralisasi.
+                  </p>
+
+                  {walletMsg.text && (
+                    <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
+                      walletMsg.type === "success" 
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}>
+                      {walletMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                      <span>{walletMsg.text}</span>
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl bg-slate-50 p-6 border border-slate-200/80 mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Kredensial Wallet</span>
+                      {walletAddress ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                          <ShieldCheck className="h-4 w-4" /> Terverifikasi &amp; Ditautkan
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 border border-amber-200">
+                          Belum Ditautkan
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700 mb-3">
+                      {walletAddress || "Alamat wallet belum dikonfigurasi"}
+                    </div>
+
+                    {walletAddress && (
+                      <div className="flex items-center justify-between border-t border-slate-200/60 pt-3">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-bold">Saldo Dompet (Sepolia)</span>
+                        <span className="text-sm font-extrabold text-slate-800 font-mono">{walletBalance || "Memuat..."}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleConnectWallet}
+                      disabled={walletLoading}
+                      className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-sm font-bold text-slate-900 shadow-sm hover:from-amber-400 hover:to-orange-500 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {walletLoading ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wallet className="h-4 w-4" />
+                      )}
+                      {walletAddress ? "Tautkan Ulang Wallet" : "Tautkan MetaMask Wallet"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </main>
