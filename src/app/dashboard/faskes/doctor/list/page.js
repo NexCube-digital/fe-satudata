@@ -579,7 +579,7 @@ export default function FaskesDoctorsList() {
                         <FileText className="h-3.5 w-3.5 text-slate-400" />
                         <span className="text-slate-400">Lisensi SIP:</span> <span className="font-mono text-slate-700">{doctor.medical_license}</span>
                       </p>
-                      <p className="flex items-start gap-2">
+                      <div className="flex items-start gap-2">
                         <Calendar className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
                         <div className="flex flex-col">
                           <span className="text-slate-400">Jadwal:</span>
@@ -587,7 +587,7 @@ export default function FaskesDoctorsList() {
                             {doctor.practice_schedule || "Senin-Jumat"}
                           </span>
                         </div>
-                      </p>
+                      </div>
                       {doctor.phone && (
                         <p className="flex items-center gap-2">
                           <Phone className="h-3.5 w-3.5 text-slate-400" />
