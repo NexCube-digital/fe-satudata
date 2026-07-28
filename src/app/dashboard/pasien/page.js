@@ -38,6 +38,7 @@ export default function PasienDashboard() {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [decryptedRecords, setDecryptedRecords] = useState({});
   const [auditLogs, setAuditLogs] = useState([]);
+  const [actionInProgress, setActionInProgress] = useState(null);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -119,7 +120,7 @@ export default function PasienDashboard() {
           doctorName: item.doctor?.name || "Dokter Spesialis",
           category: item.record_type || "Rekam Medis Terverifikasi",
           date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          txHash: item.data_hash || "0x9f12...a3bc",
+          txHash: item.tx_hash || item.data_hash || "Menunggu Approval",
           diagnosis: item.title || "Konsultasi Medis",
           details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
         }));
@@ -166,9 +167,23 @@ export default function PasienDashboard() {
     router.push("/auth/login");
   };
 
-  const handleToggleConsent = async (id, newStatus) => {
+  const handleToggleConsent = async (id, newStatus, currentStatus) => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
+
+    const status = String(currentStatus || "").toLowerCase();
+    if (newStatus === "approved" && status === "approved") {
+      console.warn("Permintaan sudah disetujui, tidak perlu mengirim ulang.");
+      return;
+    }
+    if (newStatus === "rejected" && status !== "pending") {
+      console.warn("Hanya request yang masih pending yang bisa ditolak.");
+      return;
+    }
+    if (newStatus === "revoked" && status !== "approved") {
+      console.warn("Hanya request yang sudah disetujui yang bisa dicabut.");
+      return;
+    }
 
     const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
@@ -181,6 +196,12 @@ export default function PasienDashboard() {
       endpoint = `/api/patient/access-requests/${id}/revoke`;
     }
 
+    if (!endpoint) {
+      console.warn("Status action tidak dikenali:", newStatus);
+      return;
+    }
+
+    setActionInProgress(id);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}${endpoint}`, {
         method: "POST",
@@ -198,6 +219,8 @@ export default function PasienDashboard() {
       }
     } catch (err) {
       console.error("Error toggling consent:", err);
+    } finally {
+      setActionInProgress(null);
     }
   };
 
@@ -437,23 +460,39 @@ export default function PasienDashboard() {
                             {h.status === "pending" && (
                               <>
                                 <button
-                                  onClick={() => handleToggleConsent(h.id, "approved")}
-                                  className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition shadow-xs cursor-pointer"
+                                  onClick={() => handleToggleConsent(h.id, "approved", h.status)}
+                                  disabled={actionInProgress === h.id}
+                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-xs ${actionInProgress === h.id ? "bg-emerald-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"}`}
                                 >
-                                  Setujui Akses (Approve)
+                                  {actionInProgress === h.id ? (
+                                    <span className="inline-flex items-center gap-2">
+                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                      Menunggu konfirmasi...
+                                    </span>
+                                  ) : (
+                                    "Setujui Akses (Approve)"
+                                  )}
                                 </button>
                                 <button
-                                  onClick={() => handleToggleConsent(h.id, "rejected")}
-                                  className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition cursor-pointer"
+                                  onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
+                                  disabled={actionInProgress === h.id}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
                                 >
-                                  Tolak
+                                  {actionInProgress === h.id ? (
+                                    <span className="inline-flex items-center gap-2">
+                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                      Sedang diproses...
+                                    </span>
+                                  ) : (
+                                    "Tolak"
+                                  )}
                                 </button>
                               </>
                             )}
 
                             {h.status === "approved" && (
                               <button
-                                onClick={() => handleToggleConsent(h.id, "revoked")}
+                                onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
                                 className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
                               >
                                 Cabut Izin Akses (revokeAccess)
@@ -461,12 +500,9 @@ export default function PasienDashboard() {
                             )}
 
                             {(h.status === "revoked" || h.status === "rejected") && (
-                              <button
-                                onClick={() => handleToggleConsent(h.id, "approved")}
-                                className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
-                              >
-                                Izinkan Kembali
-                              </button>
+                              <div className="rounded-xl bg-slate-100 px-4 py-2 text-xs text-slate-600 border border-slate-200">
+                                Permintaan harus diajukan ulang oleh faskes untuk mendapatkan izin kembali.
+                              </div>
                             )}
                           </div>
                         </div>
