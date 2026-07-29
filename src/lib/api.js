@@ -133,18 +133,33 @@ export const apiFetch = async (endpoint, options = {}) => {
     headers,
   };
 
-  let response = await fetch(url, config);
+  let response;
+  try {
+    response = await fetch(url, config);
+  } catch (netErr) {
+    const error = new Error(`Gagal terhubung ke API backend (${netErr.message || "Network error"}).`);
+    error.status = 0;
+    error.data = null;
+    throw error;
+  }
 
   // If 401 Unauthorized, attempt token refresh and retry request once
   if (response.status === 401 && accessToken && !options._isRetry) {
     const newAccessToken = await refreshAuthToken();
     if (newAccessToken) {
       headers.Authorization = `Bearer ${newAccessToken}`;
-      response = await fetch(url, {
-        ...config,
-        headers,
-        _isRetry: true,
-      });
+      try {
+        response = await fetch(url, {
+          ...config,
+          headers,
+          _isRetry: true,
+        });
+      } catch (retryErr) {
+        const error = new Error(`Gagal terhubung ke API backend setelah refresh token (${retryErr.message}).`);
+        error.status = 0;
+        error.data = null;
+        throw error;
+      }
     }
   }
 

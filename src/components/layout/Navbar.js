@@ -19,9 +19,10 @@ import {
   Clock,
   XCircle,
   AlertCircle,
-  Coins
+  Coins,
+  Trash2
 } from "lucide-react";
-import { apiGet, getAvatarUrl } from "@/lib/api";
+import { apiGet, apiPut, apiDelete, getAvatarUrl } from "@/lib/api";
 
 export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const [currentUser, setCurrentUser] = useState(initialUser);
@@ -144,17 +145,17 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
       });
       setNotifications(mapped);
     } catch (err) {
-      console.error("Gagal memuat notifikasi", err);
+      console.warn("Gagal memuat notifikasi:", err.message);
       setNotifications([]);
     }
 
     try {
       const resCountJson = await apiGet("/api/notifications/unread-count");
-      if (resCountJson.success && resCountJson.data) {
+      if (resCountJson && resCountJson.success && resCountJson.data) {
         setUnreadCount(resCountJson.data.unread_count || 0);
       }
     } catch (err) {
-      console.error("Gagal memuat jumlah notifikasi", err);
+      console.warn("Gagal memuat jumlah notifikasi:", err.message);
     }
   };
 
@@ -238,7 +239,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const handleNotifClick = async (id) => {
     try {
       const res = await apiPut(`/api/notifications/${id}/read`, { read: true });
-      if (res.success) {
+      if (res && res.success) {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         );
@@ -248,6 +249,20 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
       console.error("Gagal menandai dibaca:", err);
     }
     setIsNotifOpen(false);
+  };
+
+  const handleDeleteNotif = async (e, id) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      const res = await apiDelete(`/api/notifications/${id}`);
+      if (res && res.success) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        fetchNotifications();
+      }
+    } catch (err) {
+      console.error("Gagal menghapus notifikasi:", err);
+    }
   };
 
   const displayRoleLabel = roleLabel || (user?.role === "admin" ? "Administrator" : user?.role === "rumah_sakit" ? "Fasilitas Kesehatan" : "Pasien Terdaftar");
@@ -391,10 +406,20 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                             <span className="text-xs font-bold text-slate-800 truncate">{n.title}</span>
                             {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />}
                           </div>
-                          <p className="text-[10px] text-slate-500 leading-relaxed">
+                          <p className="text-[10px] text-slate-500 leading-relaxed pr-6">
                             <strong className="font-semibold text-rose-800">{n.actor}</strong> — {n.description}
                           </p>
-                          <span className="text-[9px] font-mono text-slate-300 mt-0.5 block">{n.timestamp}</span>
+                          <div className="flex items-center justify-between mt-0.5">
+                            <span className="text-[9px] font-mono text-slate-400 block">{n.timestamp}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteNotif(e, n.id)}
+                              className="text-slate-300 hover:text-rose-600 p-1 transition-colors rounded-md hover:bg-rose-100/50"
+                              title="Hapus Notifikasi"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       </Link>
                     );
