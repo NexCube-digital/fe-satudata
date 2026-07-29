@@ -92,8 +92,8 @@ export default function FaskesPatients() {
         const mapped = approvedRequests.map((item) => ({
           requestId: item.id,
           patientId: item.patient_id,
-          patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
-          nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "0000000000000000",
+          patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || "Klinik Umum",
           approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),

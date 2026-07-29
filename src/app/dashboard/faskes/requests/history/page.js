@@ -49,12 +49,12 @@ export default function FaskesRequestsHistory() {
         const mapped = result.data.map((item) => ({
           id: item.id,
           patientId: item.patient_id,
-          patientName: item.patient?.name || "Pasien Terdaftar",
-          nik: item.patient?.profil?.nik || "0000000000000000",
-          walletAddress: item.patient?.wallet_address || "0x0000...0000",
-          poli: item.requested_data || "Instalasi Medis",
+          patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
+          walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
+          poli: item.requested_data || item.poli_dokter || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.status === "approved" ? item.tx_hash_response || "" : "",
+          txHash: item.tx_hash_response || item.tx_hash_request || "-",
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -62,6 +62,13 @@ export default function FaskesRequestsHistory() {
     } catch (err) {
       console.error("Error loading requests list:", err);
     }
+  };
+
+  const maskNik = (nik) => {
+    if (!nik || nik === "-") return "-";
+    const str = String(nik);
+    if (str.length < 16) return str;
+    return str.slice(0, 6) + "******" + str.slice(12);
   };
 
   const handleLogout = () => {
@@ -189,7 +196,7 @@ export default function FaskesRequestsHistory() {
                       <tr key={req.id} className="hover:bg-slate-50/50 transition">
                         <td className="py-4 px-4">
                           <p className="font-bold text-slate-900">{req.patientName}</p>
-                          <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {req.nik}</p>
+                          <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {maskNik(req.nik)}</p>
                         </td>
                         <td className="py-4 px-4 font-medium text-slate-700">{req.poli}</td>
                         <td className="py-4 px-4">

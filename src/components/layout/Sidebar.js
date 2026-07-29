@@ -147,6 +147,15 @@ export default function Sidebar({ role }) {
       case "rumah_sakit":
         return [
           { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: badgeCounts.tokens || null },
+          { 
+            label: "Kelola Dokter", 
+            icon: Users,
+            dropdownKey: "doctors",
+            children: [
+              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
+              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
+            ]
+          },
           {
             label: "Rekam Medis",
             icon: FileText,
@@ -166,15 +175,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History },
-          { 
-            label: "Kelola Dokter", 
-            icon: Users,
-            dropdownKey: "doctors",
-            children: [
-              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
-              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
-            ]
-          },
+          { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: ShieldCheck },
         ];
       case "pasien":
       default:
@@ -242,23 +243,28 @@ export default function Sidebar({ role }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sticky top-[65px] self-start h-[calc(100vh-65px)] w-64 border-r border-slate-200/80 bg-white/90 backdrop-blur-md hidden md:flex flex-col shrink-0 shadow-xs">
+      <aside className="sticky top-[57px] self-start h-[calc(100vh-57px)] w-64 border-r border-slate-100 bg-white hidden md:flex flex-col shrink-0" style={{boxShadow: "inset -1px 0 0 0 rgb(0 0 0 / 0.05)"}}>
         {/* Scrollable Nav Content */}
-        <div className="flex-1 p-5 space-y-6 overflow-y-auto min-h-0">
-          {/* Role Chip Header */}
-          <div className={`rounded-2xl border bg-gradient-to-r p-3.5 ${roleHeader.bg}`}>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <span className="text-xs font-extrabold uppercase tracking-wider">{roleHeader.title}</span>
+        <div className="flex-1 p-4 space-y-5 overflow-y-auto min-h-0">
+          {/* Role Header */}
+          <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-r p-4 ${roleHeader.bg}`}>
+            <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
+            <div className="relative flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 border border-white/30">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="block text-[11px] font-extrabold uppercase tracking-wider">{roleHeader.title}</span>
+                <p className="text-[9px] font-semibold opacity-70 tracking-wide uppercase mt-0.5">{roleHeader.subtitle}</p>
+              </div>
             </div>
-            <p className="text-[10px] font-semibold opacity-75 mt-0.5">{roleHeader.subtitle}</p>
           </div>
 
           <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-3 px-3">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-300 mb-3 px-2">
               Navigasi Utama
             </p>
-            <nav className="space-y-1.5">
+            <nav className="space-y-0.5">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 if (item.children) {
@@ -266,59 +272,65 @@ export default function Sidebar({ role }) {
                   const isOpen = openDropdowns[dropdownKey];
                   const isChildActive = item.children.some((child) => pathname === child.href);
                   return (
-                    <div key={item.label} className="space-y-1">
+                    <div key={item.label} className="space-y-0.5">
                       <button
                         onClick={() => setOpenDropdowns((prev) => ({ ...prev, [dropdownKey]: !prev[dropdownKey] }))}
-                        className={`group relative flex items-center justify-between w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                        className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isChildActive
-                            ? "bg-rose-50/80 text-rose-900 border border-rose-900/10"
-                            : "text-slate-600 hover:bg-rose-50/90 hover:text-rose-800"
+                            ? "bg-rose-50 text-rose-900"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110 ${
-                            isChildActive ? "text-rose-800" : "text-slate-400 group-hover:text-slate-700"
-                          }`} />
+                        <div className="flex items-center gap-2.5">
+                          <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors ${
+                            isChildActive
+                              ? "bg-rose-100 border-rose-200 text-rose-800"
+                              : "bg-slate-100 border-slate-200 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
+                          }`}>
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
                           <span>{item.label}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           {item.badge && (
-                            <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
+                            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
                               isChildActive
-                                ? "bg-rose-100/90 text-rose-800 border border-rose-200"
-                                : "bg-slate-100 text-slate-500 border border-slate-200/80"
+                                ? "bg-rose-100 text-rose-800 border border-rose-200"
+                                : "bg-slate-100 text-slate-500 border border-slate-200"
                             }`}>
                               {item.badge}
                             </span>
                           )}
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                          <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
                         </div>
                       </button>
                       
                       {isOpen && (
-                        <div className="pl-9 space-y-1">
+                        <div className="pl-4 space-y-0.5">
                           {item.children.map((child) => {
-                            const isChildActive = pathname === child.href;
+                            const isChildItemActive = pathname === child.href;
                             const ChildIcon = child.icon;
                             return (
                               <Link
                                 key={child.href}
                                 href={child.href}
-                                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
-                                  isChildActive
-                                    ? "bg-gradient-to-r from-rose-800 to-red-900 text-white shadow-md shadow-rose-900/10"
-                                    : "text-slate-600 hover:bg-rose-50/90 hover:text-rose-800"
+                                className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all duration-200 ${
+                                  isChildItemActive
+                                    ? "bg-gradient-to-r from-rose-800 to-rose-900 text-white shadow-sm shadow-rose-900/15"
+                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
-                                  {ChildIcon && <ChildIcon className={`h-3.5 w-3.5 ${isChildActive ? "text-rose-300" : "text-slate-400 group-hover:text-rose-800"}`} />}
+                                  {ChildIcon && (
+                                    <ChildIcon className={`h-3.5 w-3.5 ${isChildItemActive ? "text-rose-300" : "text-slate-400 group-hover:text-slate-600"}`} />
+                                  )}
                                   <span>{child.label}</span>
                                 </div>
                                 {child.badge && (
                                   <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
-                                    isChildActive
+                                    isChildItemActive
                                       ? "bg-white/20 text-white border border-white/30"
-                                      : "bg-slate-100 text-slate-500 border border-slate-200/80"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
                                   }`}>
                                     {child.badge}
                                   </span>
@@ -337,16 +349,20 @@ export default function Sidebar({ role }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group relative flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                       isActive
-                        ? "bg-gradient-to-r from-rose-800 to-red-900 text-white shadow-md shadow-rose-900/20"
-                        : "text-slate-600 hover:bg-rose-50/90 hover:text-rose-800"
+                        ? "bg-gradient-to-r from-rose-800 to-rose-900 text-white shadow-sm shadow-rose-900/15"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110 ${
-                        isActive ? "text-rose-400" : "text-slate-400 group-hover:text-slate-700"
-                      }`} />
+                    <div className="flex items-center gap-2.5">
+                      <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors ${
+                        isActive
+                          ? "bg-white/15 border-white/20 text-rose-200"
+                          : "bg-slate-100 border-slate-200 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
+                      }`}>
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
                       <span>{item.label}</span>
                     </div>
 
@@ -354,7 +370,7 @@ export default function Sidebar({ role }) {
                       <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
                         isActive
                           ? "bg-white/20 text-white border border-white/30"
-                          : "bg-slate-100 text-slate-500 border border-slate-200/80"
+                          : "bg-slate-100 text-slate-500 border border-slate-200"
                       }`}>
                         {item.badge}
                       </span>
@@ -366,35 +382,33 @@ export default function Sidebar({ role }) {
           </div>
         </div>
 
-        {/* Footer Account Status Widget - Fixed at bottom */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/60 shrink-0">
-          <div className="rounded-xl border border-slate-200/70 bg-white p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-2">
-              <span className="uppercase tracking-wider text-[9px] text-slate-400 font-extrabold">Status Akun</span>
-              <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold text-[10px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        {/* Footer Account Widget */}
+        <div className="p-3 border-t border-slate-100 shrink-0">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Status Akun</span>
+              <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-[9px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {accountStatus.badge}
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+              <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-rose-700 to-rose-900 ring-2 ring-rose-500/20 shrink-0">
                 {getAvatarUrl(currentUser) ? (
                   <img
                     src={getAvatarUrl(currentUser)}
                     alt={currentUser?.name || "Foto Profil"}
                     className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
-                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-4 w-4 text-white" />}
+                  <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-white">
+                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3.5 w-3.5 text-white" />}
                   </div>
                 )}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-extrabold text-slate-800 truncate">{currentUser?.name || accountStatus.title}</p>
+                <p className="text-[11px] font-extrabold text-slate-800 truncate">{currentUser?.name || accountStatus.title}</p>
                 <p className="text-[9px] text-slate-400 font-mono truncate">{currentUser?.email || accountStatus.subtext}</p>
               </div>
             </div>
@@ -403,8 +417,8 @@ export default function Sidebar({ role }) {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 flex items-center justify-around md:hidden shadow-lg">
-        {menuItems.map((item) => {
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
+        {menuItems.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (item.children && item.children.some((c) => pathname === c.href));
           const href = item.href || (item.children ? item.children[0].href : "#");
@@ -412,12 +426,16 @@ export default function Sidebar({ role }) {
             <Link
               key={item.label}
               href={href}
-              className={`flex flex-col items-center gap-1 text-[10px] font-bold transition ${
-                isActive ? "text-rose-600 scale-105" : "text-slate-400 hover:text-slate-600"
+              className={`flex flex-col items-center gap-1 text-[9px] font-bold transition-all ${
+                isActive ? "text-rose-700 scale-105" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.label.split(" ")[0]}</span>
+              <div className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
+                isActive ? "bg-rose-100 text-rose-800" : "text-slate-400"
+              }`}>
+                <Icon className="h-4.5 w-4.5" />
+              </div>
+              <span className="uppercase tracking-wide">{item.label.split(" ")[0]}</span>
             </Link>
           );
         })}
@@ -425,3 +443,4 @@ export default function Sidebar({ role }) {
     </>
   );
 }
+

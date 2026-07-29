@@ -116,6 +116,12 @@ export default function FaskesMedicalRecordUploadPage() {
       return;
     }
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (visitDate < todayStr) {
+      setErrorMessage("Tanggal kunjungan tidak boleh sebelum hari ini.");
+      return;
+    }
+
     setIsUploading(true);
 
     const payload = {
@@ -238,6 +244,7 @@ export default function FaskesMedicalRecordUploadPage() {
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
                     type="date"
+                    min={new Date().toISOString().split('T')[0]}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
                     required
                   />

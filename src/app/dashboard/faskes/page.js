@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { getDoctors } from "@/services/doctorService";
+import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {
   Stethoscope,
   Send,
@@ -129,11 +130,11 @@ export default function FaskesDashboard() {
         const mapped = result.data.map((item) => ({
           id: item.id,
           patientId: item.patient_id,
-          patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
-          nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "0000000000000000",
+          patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.status === "approved" ? item.tx_hash_response || "" : "",
+          txHash: item.tx_hash_response || item.tx_hash_request || "-",
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -433,25 +434,12 @@ export default function FaskesDashboard() {
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                         Pilih Dokter / Poli
                       </label>
-                      <select
+                      <ModernDoctorSelect
+                        doctors={doctors}
                         value={poliInput}
-                        onChange={(e) => setPoliInput(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-rose-800 focus:outline-hidden bg-white cursor-pointer"
+                        onChange={(val) => setPoliInput(val)}
                         required
-                      >
-                        {doctors.length === 0 ? (
-                          <option value="" disabled>-- Belum ada staf dokter terhubung (Tautkan di menu Staf Dokter) --</option>
-                        ) : (
-                          <>
-                            <option value="" disabled>-- Pilih Dokter / Poli (Contoh: Kardiologi - Dr. John Doe) --</option>
-                            {doctors.map((d) => (
-                              <option key={d.id} value={`${d.specialist} - ${d.name}`}>
-                                {d.specialist} - {d.name}
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
+                      />
                     </div>
                   </div>
 
