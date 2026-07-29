@@ -224,42 +224,28 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   };
 
   const markAllRead = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/read-all`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
+      const res = await apiPut("/api/notifications/read-all");
+      if (res.success) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
         setUnreadCount(0);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Gagal menandai semua dibaca:", err);
     }
   };
 
   const handleNotifClick = async (id) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/notifications/${id}/read`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ read: true })
-      });
-      if (res.ok) {
+      const res = await apiPut(`/api/notifications/${id}/read`, { read: true });
+      if (res.success) {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         );
         setUnreadCount((count) => Math.max(0, count - 1));
       }
     } catch (err) {
-      console.error(err);
+      console.error("Gagal menandai dibaca:", err);
     }
     setIsNotifOpen(false);
   };

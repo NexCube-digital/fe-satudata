@@ -97,7 +97,7 @@ export default function PasienDashboard() {
           code: item.hospital?.medical_license || "N/A",
           dept: "Instalasi / Layanan Medis",
           status: item.status,
-          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Approval",
+          txHash: null,
           grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
           accessTypes: item.requested_data ? item.requested_data.split(",") : ["Diagnosis", "Resep Obat"]
         }));
@@ -120,7 +120,7 @@ export default function PasienDashboard() {
           doctorName: item.doctor?.name || "Dokter Spesialis",
           category: item.record_type || "Rekam Medis Terverifikasi",
           date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          txHash: item.tx_hash || item.data_hash || "Menunggu Approval",
+          txHash: item.tx_hash || null,
           diagnosis: item.title || "Konsultasi Medis",
           details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
         }));

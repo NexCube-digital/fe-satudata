@@ -42,8 +42,7 @@ export default function FaskesMedicalRecordsPage() {
           doctorName: item.doctor?.name || "-",
           status: item.status,
           dataHash: item.data_hash,
-          txHash: item.tx_hash || item.data_hash || "Menunggu Konfirmasi Blockchain",
-          blockchainStatus: item.blockchain_status || "pending"
+          txHash: item.tx_hash || null,
         }));
         setRecords(mapped);
         setFilteredRecords(mapped);
@@ -81,33 +80,30 @@ export default function FaskesMedicalRecordsPage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Dashboard Faskes</p>
-              <h1 className="text-3xl font-extrabold text-slate-900 mt-3">Upload & Kelola Rekam Medis</h1>
-              <p className="max-w-2xl text-sm text-slate-500 mt-2">Unggah rekam medis terenkripsi dengan ketentuan backend, lalu blockchain akan menghasilkan tx hash sebagai bukti rekam.</p>
+              <h1 className="text-3xl font-extrabold text-slate-900 mt-3">Direktori Rekam Medis</h1>
+              <p className="max-w-2xl text-sm text-slate-500 mt-2">Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.</p>
             </div>
             <button
               type="button"
               onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
             >
-              <Plus className="h-4 w-4" /> Upload Baru
+              <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
             </button>
           </div>
 
-          <div className="space-y-8">
+          <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
             <section className="space-y-6">
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">Semua Rekam Medis</h2>
-                    <p className="text-xs text-slate-500 mt-1">Daftar rekam medis yang sudah diunggah dari rumah sakit Anda.</p>
-                  </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400">{records.length} Berkas</span>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="text-lg font-bold text-slate-900">Arsip Rekam Medis</h3>
+                  <span className="text-xs text-slate-500">{filteredRecords.length} Data Ditemukan</span>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="relative w-full sm:w-80">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="relative flex-1">
+                      <Search className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                       <input
                         type="text"
                         value={searchTerm}
@@ -117,8 +113,8 @@ export default function FaskesMedicalRecordsPage() {
                       />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">{records.filter((r) => r.blockchainStatus === "confirmed").length} On-chain</span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">{records.filter((r) => r.blockchainStatus !== "confirmed").length} Menunggu Chain</span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">{records.filter((r) => r.txHash).length} On-chain</span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">{records.filter((r) => !r.txHash).length} Off-chain</span>
                     </div>
                   </div>
 
@@ -140,7 +136,15 @@ export default function FaskesMedicalRecordsPage() {
                             <td className="px-4 py-4 text-slate-700">{item.recordType.toUpperCase()}</td>
                             <td className="px-4 py-4 text-slate-700">{item.doctorName}</td>
                             <td className="px-4 py-4 text-slate-700">{new Date(item.visitDate).toLocaleDateString("id-ID")}</td>
-                            <td className="px-4 py-4 font-mono text-xs text-rose-700 break-all">{item.txHash}</td>
+                            <td className="px-4 py-4">
+                              {item.txHash ? (
+                                <span className="font-mono text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg inline-block max-w-[180px] truncate" title={item.txHash}>
+                                  {item.txHash}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-400 font-medium italic">Off-Chain</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

@@ -134,7 +134,7 @@ export default function FaskesDashboard() {
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.tx_hash_response || item.tx_hash_request || "-",
+          txHash: null,
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);

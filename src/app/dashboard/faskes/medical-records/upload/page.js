@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { apiGet } from "@/lib/api";
-import { Plus, RefreshCw, ArrowUpRight } from "lucide-react";
+import { Plus, RefreshCw, ArrowUpRight, CheckCircle, Hash, FileText } from "lucide-react";
 import { uploadMedicalRecord } from "@/services/hospitalService";
 
 const RECORD_TYPES = [
@@ -39,6 +39,11 @@ export default function FaskesMedicalRecordUploadPage() {
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [uploadedTxHash, setUploadedTxHash] = useState("");
+  const [copiedTx, setCopiedTx] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [doctorsList, setDoctorsList] = useState([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
 
   useEffect(() => {
     const rawUser = localStorage.getItem("user");
@@ -76,6 +81,27 @@ export default function FaskesMedicalRecordUploadPage() {
     };
 
     fetchApprovedPatients();
+  }, []);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setLoadingDoctors(true);
+      try {
+        const result = await apiGet("/api/doctor");
+        const docs = Array.isArray(result?.data)
+          ? result.data
+          : Array.isArray(result?.data?.items)
+          ? result.data.items
+          : [];
+        setDoctorsList(docs);
+      } catch (err) {
+        console.error("Gagal memuat daftar dokter", err);
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+
+    fetchDoctors();
   }, []);
 
   const recordTypeDetails = useMemo(() => {
@@ -132,6 +158,7 @@ export default function FaskesMedicalRecordUploadPage() {
       doctorId: Number(doctorId),
       summary,
       detail: {
+        examination_type: title || "Pemeriksaan Medis",
         complaint: detail.complaint,
         diagnosis: detail.diagnosis,
         action: detail.action,
@@ -146,7 +173,9 @@ export default function FaskesMedicalRecordUploadPage() {
     try {
       const result = await uploadMedicalRecord(payload);
       if (result.success) {
-        setSuccessMessage("Rekam medis berhasil diunggah dan tersimpan ke blockchain.");
+        const hash = result.data?.tx_hash || result.data?.txHash || result.tx_hash || "";
+        setUploadedTxHash(hash);
+        setShowSuccessModal(true);
         setPatientId("");
         setTitle("");
         setDoctorId("");
@@ -253,14 +282,22 @@ export default function FaskesMedicalRecordUploadPage() {
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Dokter Penanggung Jawab</label>
-                <input
+                <select
                   value={doctorId}
                   onChange={(e) => setDoctorId(e.target.value)}
-                  type="text"
-                    placeholder="Masukkan nama atau ID dokter"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
-                    required
-                />
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none cursor-pointer font-medium"
+                  required
+                >
+                  <option value="">{loadingDoctors ? "Memuat daftar dokter..." : "-- Pilih Dokter Penanggung Jawab --"}</option>
+                  {doctorsList.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.name} - {doc.specialist || "Dokter Umum"}
+                    </option>
+                  ))}
+                </select>
+                {!loadingDoctors && doctorsList.length === 0 && (
+                  <p className="mt-2 text-xs text-amber-700 font-medium">Belum ada dokter yang terhubung ke Faskes Anda. Silakan daftarkan dokter terlebih dahulu.</p>
+                )}
               </div>
 
               <div>
@@ -289,8 +326,11 @@ export default function FaskesMedicalRecordUploadPage() {
                 ))}
               </div>
 
-              {errorMessage && <p className="text-sm text-rose-700 font-medium">{errorMessage}</p>}
-              {successMessage && <p className="text-sm text-emerald-700 font-medium">{successMessage}</p>}
+              {errorMessage && (
+                <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm font-medium text-rose-700">
+                  {errorMessage}
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -304,6 +344,82 @@ export default function FaskesMedicalRecordUploadPage() {
           </div>
         </main>
       </div>
+
+      {/* Success Popup Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-8 text-white text-center relative overflow-hidden">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-xl" />
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-lg ring-4 ring-white/30">
+                <CheckCircle className="h-9 w-9 text-white" />
+              </div>
+              <h3 className="text-xl font-extrabold tracking-tight">Rekam Medis Berhasil Diunggah!</h3>
+              <p className="text-xs text-emerald-100 mt-1 font-medium max-w-sm mx-auto">
+                Data rekam medis terenkripsi AES-256 dan bukti transaksi terjangkar secara resmi ke Smart Contract Blockchain.
+              </p>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 space-y-5">
+              {/* Tx Hash Box */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5 text-rose-600" />
+                    Blockchain Transaction Hash
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full border border-rose-200">
+                    Smart Contract
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 p-3 gap-2">
+                  <span className="font-mono text-xs font-bold text-rose-900 break-all select-all">
+                    {uploadedTxHash || "0x0000000000000000000000000000000000000000"}
+                  </span>
+                  {uploadedTxHash && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(uploadedTxHash);
+                        setCopiedTx(true);
+                        setTimeout(() => setCopiedTx(false), 2000);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold text-xs transition cursor-pointer shrink-0 border border-rose-200"
+                    >
+                      {copiedTx ? "Tersalin!" : "Salin Hash"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/faskes/medical-records")}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 px-5 py-3 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                >
+                  <FileText className="h-4 w-4" />
+                  Lihat Semua Rekam Medis
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    setUploadedTxHash("");
+                  }}
+                  className="inline-flex items-center justify-center rounded-2xl bg-slate-100 hover:bg-slate-200 px-5 py-3 text-xs font-bold text-slate-700 transition cursor-pointer"
+                >
+                  Unggah Lagi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

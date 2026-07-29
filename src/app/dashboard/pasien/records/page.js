@@ -81,7 +81,7 @@ export default function PatientRecordsPage() {
           category: item.record_type || "Rekam Medis Terverifikasi",
           date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
           time: new Date(item.visit_date || item.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB",
-          txHash: item.tx_hash || item.data_hash || "Menunggu Approval",
+          txHash: item.tx_hash || null,
           encryptedData: "U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNmFk...",
           diagnosis: item.title || "Konsultasi Medis & Rekam Kesehatan Terenkripsi",
           prescriptions: [

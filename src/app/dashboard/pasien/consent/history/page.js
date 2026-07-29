@@ -69,7 +69,7 @@ export default function PatientConsentHistoryPage() {
           accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],
           duration: "30 Hari",
           status: item.status || "pending",
-          txHash: item.tx_hash_response || item.tx_hash_request || "Menunggu Otorisasi",
+          txHash: null,
           grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
           expiresAt: item.expire_time ? new Date(item.expire_time).toLocaleDateString("id-ID") : "-"
         }));
