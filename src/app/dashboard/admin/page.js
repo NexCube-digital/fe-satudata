@@ -506,8 +506,8 @@ export default function AdminDashboard() {
                                 </div>
                                 <div>
                                   <p className="font-bold text-slate-900">{u.name}</p>
-                                  <p className="text-[10px] text-slate-400 font-mono">
-                                    {u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {u.role === "pasien" ? maskNik(u.nik) : (u.nik || "-")}
+                                  <p className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                                    <span>{u.role === "rumah_sakit" || u.role === "faskes" ? "SIP" : "NIK"}: {maskNik(u.nik)}</span>
                                   </p>
                                 </div>
                               </div>

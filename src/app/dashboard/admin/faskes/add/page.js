@@ -415,10 +415,11 @@ function AddGeotagForm() {
                       <option value="">-- Pilih Instansi RS --</option>
                       {hospitalAccounts.map((a) => {
                         const val = a.hospitalProfile ? a.hospitalProfile.id : `user_${a.id}`;
-                        const license = a.hospitalProfile?.medical_license || "-";
+                        const licenseRaw = a.hospitalProfile?.medical_license || "";
+                        const licenseMasked = licenseRaw ? `${licenseRaw.substring(0, 4)}*** [🔒 AES-256]` : "-";
                         return (
                           <option key={val} value={val}>
-                            {a.name} (License: {license})
+                            {a.name} (SIP: {licenseMasked})
                           </option>
                         );
                       })}

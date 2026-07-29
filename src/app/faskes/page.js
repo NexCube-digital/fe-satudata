@@ -26,6 +26,7 @@ export default function FaskesDirectory() {
   const [selectedFaskes, setSelectedFaskes] = useState(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef(null);
   const markersGroupRef = useRef(null);
   const markersRef = useRef({});
@@ -97,6 +98,7 @@ export default function FaskesDirectory() {
       }).addTo(map);
 
       markersGroupRef.current = window.L.layerGroup().addTo(map);
+      setMapReady(true);
     }
 
     return () => {
@@ -162,7 +164,7 @@ export default function FaskesDirectory() {
 
       markersRef.current[f.id] = marker;
     });
-  }, [filteredHospitals, mapLoaded]);
+  }, [filteredHospitals, mapReady]);
 
   // Handle flyTo when selectedFaskes changes
   useEffect(() => {

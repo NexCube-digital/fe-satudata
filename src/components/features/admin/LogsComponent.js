@@ -146,6 +146,7 @@ export default function LogsComponent() {
   const totalLogs = logsList.length;
   const successLogs = logsList.filter((l) => l.status === "success").length;
   const failedLogs = logsList.filter((l) => l.status === "failed").length;
+  const onChainLogs = logsList.filter((l) => l.tx_hash).length;
 
   if (loading) {
     return (
@@ -191,79 +192,77 @@ export default function LogsComponent() {
             </button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p className="text-[10px] font-extrabold uppercase text-slate-400">Total Audit Log</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{totalLogs}</h3>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">Sistem & Blockchain</p>
-            </div>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p className="text-[10px] font-extrabold uppercase text-emerald-700">Transaksi Berhasil</p>
-              <h3 className="text-2xl font-extrabold text-emerald-800 mt-1">{successLogs}</h3>
-              <p className="text-[11px] font-semibold text-emerald-600 mt-1">Status SUCCESS</p>
-            </div>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p className="text-[10px] font-extrabold uppercase text-amber-700">Gagal / Ditolak</p>
-              <h3 className="text-2xl font-extrabold text-amber-800 mt-1">{failedLogs}</h3>
-              <p className="text-[11px] font-semibold text-amber-600 mt-1">Status FAILED</p>
-            </div>
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p className="text-[10px] font-extrabold uppercase text-rose-800">Node Hardhat</p>
-              <h3 className="text-2xl font-extrabold text-rose-900 mt-1">Live</h3>
-              <p className="text-[11px] font-semibold text-rose-700 mt-1">Smart Contract Active</p>
-            </div>
-          </div>
+          {/* Unified Audit Trail Card */}
+          <div className="rounded-3xl bg-white border border-slate-200 shadow-xs overflow-hidden">
 
-          {/* Search & Filter Bar */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Cari aksi, pengguna, faskes, atau tx hash..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden"
-              />
+            {/* Stats Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-100">
+              {[
+                { label: "Total Audit Log", value: totalLogs, color: "text-slate-900", sub: "Sistem & Blockchain" },
+                { label: "Transaksi Berhasil", value: successLogs, color: "text-emerald-700", sub: "Status SUCCESS" },
+                { label: "Gagal / Ditolak", value: failedLogs, color: "text-amber-700", sub: "Status FAILED" },
+                { label: "On-Chain Tx", value: onChainLogs, color: "text-rose-800", sub: "Punya Tx Hash" },
+              ].map((stat, i) => (
+                <div key={i} className="p-4 sm:p-5 border-r border-slate-100 last:border-r-0">
+                  <p className={`text-[10px] font-extrabold uppercase tracking-wider ${stat.color}`}>{stat.label}</p>
+                  <h3 className={`text-2xl font-extrabold mt-0.5 ${stat.color}`}>{stat.value}</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{stat.sub}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 w-full md:w-auto">
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
-                <Filter className="h-3.5 w-3.5 text-slate-400" />
-                <span className="font-bold text-slate-600">Kategori:</span>
-                <select
-                  value={actionFilter}
-                  onChange={(e) => setActionFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
-                >
-                  <option value="all">Semua Aksi</option>
-                  <option value="status">Status Akun</option>
-                  <option value="consent">Consent / Izin</option>
-                  <option value="decrypt">Dekripsi EHR</option>
-                </select>
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col md:flex-row gap-3 items-center justify-between p-4 border-b border-slate-100 bg-slate-50/60">
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari aksi, pengguna, faskes, atau tx hash..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-rose-600 focus:outline-hidden"
+                />
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
-                <span className="font-bold text-slate-600">Status:</span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="success">Success</option>
-                  <option value="failed">Failed</option>
-                </select>
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                  <Filter className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="font-bold text-slate-600">Kategori:</span>
+                  <select
+                    value={actionFilter}
+                    onChange={(e) => setActionFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
+                  >
+                    <option value="all">Semua Aksi</option>
+                    <option value="status">Status Akun</option>
+                    <option value="consent">Consent / Izin</option>
+                    <option value="decrypt">Dekripsi EHR</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                  <span className="font-bold text-slate-600">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-slate-800 outline-hidden cursor-pointer"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="success">Success</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-100 px-2.5 py-1.5 rounded-lg flex items-center">
+                  {filteredLogs.length} log
+                </span>
               </div>
             </div>
-          </div>
 
-          {/* Logs Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            {/* Logs Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase tracking-wider">
+                <thead className="bg-slate-50/40 border-b border-slate-100 text-slate-500 font-extrabold uppercase tracking-wider">
                   <tr>
                     <th className="px-5 py-3.5">Waktu & Tanggal</th>
                     <th className="px-5 py-3.5">Aktor Pengguna</th>
@@ -277,8 +276,11 @@ export default function LogsComponent() {
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {filteredLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
-                        Tidak ada log yang sesuai dengan filter pencarian.
+                      <td colSpan={7} className="px-5 py-10 text-center text-slate-400">
+                        <div className="flex flex-col items-center gap-2">
+                          <Lock className="h-8 w-8 text-slate-200" />
+                          Tidak ada log yang sesuai dengan filter pencarian.
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -337,13 +339,9 @@ export default function LogsComponent() {
                               : "bg-red-50 text-red-700 border-red-200"
                           }`}>
                             {log.status === "success" || log.status === "approved" ? (
-                              <>
-                                <CheckCircle className="h-3 w-3 text-emerald-600" /> SUCCESS
-                              </>
+                              <><CheckCircle className="h-3 w-3 text-emerald-600" /> SUCCESS</>
                             ) : (
-                              <>
-                                <XCircle className="h-3 w-3 text-red-600" /> FAILED
-                              </>
+                              <><XCircle className="h-3 w-3 text-red-600" /> FAILED</>
                             )}
                           </span>
                         </td>
@@ -363,6 +361,7 @@ export default function LogsComponent() {
                 </tbody>
               </table>
             </div>
+
           </div>
         </main>
       </div>
