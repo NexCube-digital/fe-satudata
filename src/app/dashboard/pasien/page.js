@@ -120,7 +120,7 @@ export default function PasienDashboard() {
           doctorName: item.doctor?.name || "Dokter Spesialis",
           category: item.record_type || "Rekam Medis Terverifikasi",
           date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          txHash: item.tx_hash || null,
+          txHash: item.tx_hash || "",
           diagnosis: item.title || "Konsultasi Medis",
           details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
         }));
@@ -285,8 +285,8 @@ export default function PasienDashboard() {
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Address</p>
                   <p className="font-bold text-emerald-400 mt-0.5">
-                    {user.wallet_address 
-                      ? `${user.wallet_address.substring(0, 6)}...${user.wallet_address.substring(user.wallet_address.length - 4)}` 
+                    {user.wallet_address && typeof user.wallet_address === "string" && user.wallet_address.length >= 10
+                      ? `${user.wallet_address.substring(0, 6)}...${user.wallet_address.substring(user.wallet_address.length - 4)}`
                       : "Belum Ditautkan"}
                   </p>
                 </div>
@@ -408,7 +408,7 @@ export default function PasienDashboard() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                           <div className="flex items-start gap-3">
                             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
-                              {h.name.charAt(0)}{h.name.substring(3, 4) || ""}
+                              {h.name && typeof h.name === "string" ? `${h.name.charAt(0)}${h.name.substring(3, 4) || ""}` : "RS"}
                             </span>
                             <div>
                               <div className="flex items-center gap-2">
@@ -565,7 +565,7 @@ export default function PasienDashboard() {
                           ) : (
                             <div className="mt-3 rounded-xl bg-slate-50/80 p-3 text-[10px] font-mono text-slate-500 border border-slate-200/60 truncate">
                               <span className="text-rose-600 font-extrabold mr-2">[CIPHERTEXT AES-256]:</span>
-                              U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash.substring(0, 10)}...
+                              U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash && typeof rec.txHash === "string" ? `${rec.txHash.substring(0, 10)}...` : "[tidak tersedia]"}
                             </div>
                           )}
                         </div>

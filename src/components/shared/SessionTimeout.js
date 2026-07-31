@@ -11,8 +11,8 @@ export default function SessionTimeout() {
   const [countdown, setCountdown] = useState(30);
 
   // Time constants in seconds
-  const IDLE_LIMIT = 5 * 60; // 5 minutes (300 seconds)
-  const WARNING_LIMIT = IDLE_LIMIT - 30; // 4 minutes 30 seconds (270 seconds)
+  const IDLE_LIMIT = 60 * 60; // 1 hour (3600 seconds)
+  const WARNING_LIMIT = IDLE_LIMIT - 30; // 59 minutes 30 seconds (3570 seconds)
 
   const warningActive = useRef(false);
 
