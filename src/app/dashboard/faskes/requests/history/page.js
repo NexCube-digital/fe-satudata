@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import {
   Activity,
   Building2,
@@ -216,7 +217,9 @@ export default function FaskesRequestsHistory() {
                         </td>
                         <td className="py-4 px-4 text-slate-500 font-semibold">{req.requestedAt}</td>
                         <td className="py-4 px-4 font-mono text-[9px] text-rose-900 max-w-[120px] truncate" title={req.txHash}>
-                          {req.txHash}
+                          <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1" title={req.txHash}>
+                            <span>{req.txHash}</span>
+                          </TxHashLink>
                         </td>
                       </tr>
                     ))}

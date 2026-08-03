@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {
@@ -557,7 +558,11 @@ export default function FaskesDashboard() {
                               </span>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900">{req.txHash}</td>
+                          <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900">
+                            <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1" title={req.txHash}>
+                              <span>{req.txHash}</span>
+                            </TxHashLink>
+                          </td>
                           <td className="py-3.5 px-4 text-right">
                             {req.status === "Approved" ? (
                               <button
@@ -600,7 +605,9 @@ export default function FaskesDashboard() {
                       <div className="space-y-4 text-sm">
                         <div className="rounded-3xl bg-sky-50 border border-sky-200 p-4">
                           <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
-                          <p className="mt-2 font-mono text-slate-900 break-all">{selectedRecord.txHash}</p>
+                          <TxHashLink txHash={selectedRecord.txHash} className="mt-2 font-mono text-slate-900 break-all inline-flex" title={selectedRecord.txHash}>
+                            <span>{selectedRecord.txHash}</span>
+                          </TxHashLink>
                         </div>
                         <div className="rounded-[28px] border border-slate-200 bg-white p-4 text-slate-700 shadow-sm">
                           <p className="text-sm font-semibold text-slate-900 mb-3">Ringkasan Rekam Medis</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import TxHashLink from "@/components/ui/TxHashLink";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import {
@@ -452,7 +453,7 @@ export default function PasienDashboard() {
                         <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="space-y-1 font-mono text-[10px] text-slate-500">
                             <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
-                            <p>Tx Hash: <span className="text-rose-600 font-semibold">{h.txHash}</span></p>
+                            <p>Tx Hash: <TxHashLink txHash={h.txHash} className="text-rose-600 font-semibold inline-flex items-center gap-1" title={h.txHash}><span>{h.txHash}</span></TxHashLink></p>
                           </div>
 
                           {/* Action Buttons */}
@@ -598,7 +599,7 @@ export default function PasienDashboard() {
                           <span className="text-[9px] font-mono text-slate-400">{log.time}</span>
                         </div>
                         <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                        <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: {log.hash}</p>
+                        <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: <TxHashLink txHash={log.hash} className="inline-flex items-center gap-1" title={log.hash}><span>{log.hash}</span></TxHashLink></p>
                       </div>
                     ))
                   )}

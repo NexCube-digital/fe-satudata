@@ -143,6 +143,10 @@ export default function FaskesMedicalRecordUploadPage() {
   const [doctorsList, setDoctorsList] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
 
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
   useEffect(() => {
     const rawUser = localStorage.getItem("user");
     if (rawUser) {
@@ -444,7 +448,7 @@ export default function FaskesMedicalRecordUploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
@@ -716,9 +720,24 @@ export default function FaskesMedicalRecordUploadPage() {
       </div>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-8 text-white text-center relative overflow-hidden">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={closeSuccessModal}
+        >
+          <div
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeSuccessModal}
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition cursor-pointer z-10"
+              aria-label="Tutup modal"
+              title="Tutup modal"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-8 text-white text-center relative overflow-hidden">
               <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-xl" />
               <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-lg ring-4 ring-white/30">
                 <CheckCircle className="h-9 w-9 text-white" />
@@ -780,7 +799,7 @@ export default function FaskesMedicalRecordUploadPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowSuccessModal(false);
+                    closeSuccessModal();
                     setUploadedResults([]);
                   }}
                   className="inline-flex items-center justify-center rounded-2xl bg-slate-100 hover:bg-slate-200 px-5 py-3 text-xs font-bold text-slate-700 transition cursor-pointer"

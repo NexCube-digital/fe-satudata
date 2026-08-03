@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -358,7 +359,7 @@ export default function PatientConsentPage() {
                         {/* Actions */}
                         <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="font-mono text-[9px] text-slate-400">
-                            Tx Hash: <span className="text-rose-600 font-bold">{req.txHash}</span>
+                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -405,7 +406,7 @@ export default function PatientConsentPage() {
                         <span className="text-[9px] font-mono text-slate-400">{log.timestamp}</span>
                       </div>
                       <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                      <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: {log.txHash}</p>
+                      <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: <TxHashLink txHash={log.txHash} className="inline-flex items-center gap-1" title={log.txHash}><span>{log.txHash}</span></TxHashLink></p>
                     </div>
                   ))}
                 </div>

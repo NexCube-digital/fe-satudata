@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import {
   FileText,
   Search,
@@ -509,7 +510,7 @@ export default function PatientRecordsPage() {
                     {/* Record Footer */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-3 border-t border-slate-100">
                       <div className="font-mono text-[10px] text-slate-500">
-                        Blockchain Tx Hash: <span className="text-rose-600 font-bold font-mono">{rec.txHash}</span>
+                        Blockchain Tx Hash: <TxHashLink txHash={rec.txHash} className="text-rose-600 font-bold font-mono inline-flex items-center gap-1" title={rec.txHash}><span>{rec.txHash}</span></TxHashLink>
                       </div>
 
                       <button
@@ -586,7 +587,7 @@ export default function PatientRecordsPage() {
 
                       <div className="rounded-2xl bg-slate-50 p-4 text-[10px] font-mono text-slate-600 space-y-1 border border-slate-200/80">
                         <p className="text-rose-700 font-bold">VERIFIKASI BLOCKCHAIN & ENKRIPSI:</p>
-                        <p className="text-slate-700">Tx Hash: {displaySelected.txHash}</p>
+                        <p className="text-slate-700">Tx Hash: <TxHashLink txHash={displaySelected.txHash} className="inline-flex items-center gap-1" title={displaySelected.txHash}><span>{displaySelected.txHash}</span></TxHashLink></p>
                         <p className="text-slate-500">Enkripsi: Off-chain AES-256 CBC Mode</p>
                       </div>
                     </div>

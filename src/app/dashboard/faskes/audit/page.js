@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import { getHospitalAuditLogs } from "@/services/hospitalService";
 import {
   FileText,
@@ -265,9 +266,15 @@ export default function FaskesAuditLogPage() {
                           {item.txHash ? (
                             <div className="flex items-center gap-1.5">
                               <Hash className="h-3 w-3 text-rose-400 shrink-0" />
-                              <span className="font-mono text-[10px] text-rose-800 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md max-w-[120px] truncate" title={item.txHash}>
-                                {item.txHash.substring(0, 8)}...{item.txHash.slice(-6)}
-                              </span>
+                              <TxHashLink
+                                txHash={item.txHash}
+                                className="font-mono text-[10px] text-rose-800 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md max-w-[120px] truncate"
+                                title={item.txHash}
+                              >
+                                <span title={item.txHash}>
+                                  {item.txHash.substring(0, 8)}...{item.txHash.slice(-6)}
+                                </span>
+                              </TxHashLink>
                               <button
                                 onClick={() => copyToClipboard(item.txHash, item.id)}
                                 className="text-slate-400 hover:text-slate-600 transition cursor-pointer"

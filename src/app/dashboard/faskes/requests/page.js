@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {

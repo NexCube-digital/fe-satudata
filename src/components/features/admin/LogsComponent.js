@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import {
   FileText,
   Search,
@@ -316,9 +317,13 @@ export default function LogsComponent() {
                         <td className="px-5 py-4">
                           {log.tx_hash ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                                {log.tx_hash.substring(0, 10)}...{log.tx_hash.substring(log.tx_hash.length - 6)}
-                              </span>
+                              <TxHashLink
+                                txHash={log.tx_hash}
+                                className="font-mono text-[11px] text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200"
+                                title={log.tx_hash}
+                              >
+                                <span>{log.tx_hash.substring(0, 10)}...{log.tx_hash.substring(log.tx_hash.length - 6)}</span>
+                              </TxHashLink>
                               <button
                                 onClick={() => copyToClipboard(log.tx_hash, log.id)}
                                 className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
@@ -410,9 +415,19 @@ export default function LogsComponent() {
 
               <div className="p-3 rounded-xl border border-slate-200 bg-white">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">Blockchain Tx Hash (Hardhat)</span>
-                <p className="font-mono text-[11px] text-slate-700 break-all bg-slate-50 p-2 rounded-lg border border-slate-200 mt-1">
-                  {selectedLog.tx_hash || "Off-chain / Local MySQL Record"}
-                </p>
+                {selectedLog.tx_hash ? (
+                  <TxHashLink
+                    txHash={selectedLog.tx_hash}
+                    className="font-mono text-[11px] text-slate-700 break-all bg-slate-50 p-2 rounded-lg border border-slate-200 mt-1 inline-flex"
+                    title={selectedLog.tx_hash}
+                  >
+                    <span>{selectedLog.tx_hash}</span>
+                  </TxHashLink>
+                ) : (
+                  <p className="font-mono text-[11px] text-slate-700 break-all bg-slate-50 p-2 rounded-lg border border-slate-200 mt-1">
+                    Off-chain / Local MySQL Record
+                  </p>
+                )}
               </div>
 
               <div className="p-3 rounded-xl border border-slate-200 bg-white">
