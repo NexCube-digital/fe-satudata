@@ -144,7 +144,7 @@ export default function FaskesDashboard() {
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: null,
+          txHash: item.tx_hash || item.txHash || null,
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -203,6 +203,31 @@ export default function FaskesDashboard() {
       showToast("Terjadi kesalahan saat mengirimkan permohonan", "error", "Gagal");
     } finally {
       setSubmittingRequest(false);
+    }
+  };
+
+  const [syncingReqId, setSyncingReqId] = useState(null);
+
+  const handleSyncBlockchain = async (requestId) => {
+    setSyncingReqId(requestId);
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests/${requestId}/sync-blockchain`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        showToast("Data otorisasi NIK berhasil di-upload ulang ke blockchain (bc-satudata)!", "success", "Sync Berhasil");
+        fetchRequestsList();
+      } else {
+        showToast(result.message || "Gagal meng-upload ulang data ke blockchain", "error", "Gagal Sync");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan koneksi saat sync ke blockchain", "error", "Gagal Sync");
+    } finally {
+      setSyncingReqId(null);
     }
   };
 
@@ -329,7 +354,7 @@ export default function FaskesDashboard() {
                   {hospitalProfile?.name || user?.name || "RS Cipto Mangunkusumo"}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-                  {isStaff 
+                  {isStaff
                     ? `Selamat Datang ${user?.name || ""}. Tampilan modul dan fitur di halaman ini disesuaikan dengan wewenang hak akses aktif Anda.`
                     : "Portal Fasilitas Kesehatan & Dokter Penanggung Jawab. Ajukan permohonan rekam medis eksternal secara terlisensi dan cetak billing kasir."}
                 </p>
@@ -540,14 +565,14 @@ export default function FaskesDashboard() {
                 </div>
               )}
 
-              {/* WIDGET 3: TABEL PERMINTAAN & DEKRIPSI REKAM MEDIS */}
+              {/* WIDGET 3: TABEL PERMINTAAN REKAM MEDIS */}
               {hasPermission("access_request:read") && (
                 <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                         <FileText className="h-5 w-5 text-rose-800" />
-                        Tabel Permintaan & Dekripsi Rekam Medis
+                        Tabel Permintaan Rekam Medis
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
                         Daftar permohonan rekam medis eksternal yang diajukan oleh dokter rumah sakit.
@@ -562,8 +587,7 @@ export default function FaskesDashboard() {
                           <th className="py-3 px-4 rounded-l-xl">Pasien / NIK</th>
                           <th className="py-3 px-4">Poli Dokter</th>
                           <th className="py-3 px-4">Status Consent</th>
-                          <th className="py-3 px-4">Tx Hash</th>
-                          <th className="py-3 px-4 text-right rounded-r-xl">Aksi Dekripsi</th>
+                          <th className="py-3 px-4 rounded-r-xl">Tx Hash</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -586,20 +610,24 @@ export default function FaskesDashboard() {
                               )}
                             </td>
                             <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900">
-                              <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1" title={req.txHash}>
-                                <span>{req.txHash}</span>
-                              </TxHashLink>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              {req.status === "Approved" ? (
+                              {req.txHash ? (
+                                <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 font-bold text-rose-900" title={req.txHash}>
+                                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                  <span className="truncate max-w-[150px]">{req.txHash}</span>
+                                </TxHashLink>
+                              ) : req.status === "Approved" ? (
                                 <button
-                                  onClick={() => handleViewPatientRecords(req)}
-                                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 hover:bg-rose-100 px-3 py-1.5 font-bold transition cursor-pointer"
+                                  type="button"
+                                  onClick={() => handleSyncBlockchain(req.id)}
+                                  disabled={syncingReqId === req.id}
+                                  className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 px-2 py-1 text-[10px] font-bold transition cursor-pointer"
+                                  title="Upload Ulang ke Blockchain (bc-satudata)"
                                 >
-                                  <Eye className="h-3.5 w-3.5" /> Lihat EHR
+                                  <RefreshCw className={`h-3 w-3 text-amber-700 ${syncingReqId === req.id ? "animate-spin" : ""}`} />
+                                  <span>{syncingReqId === req.id ? "Syncing..." : "Upload Ulang (Sync)"}</span>
                                 </button>
                               ) : (
-                                <span className="text-slate-400 italic font-mono text-[10px]">Terkunci</span>
+                                <span className="text-slate-400 font-sans italic text-[11px]">-</span>
                               )}
                             </td>
                           </tr>
@@ -673,73 +701,73 @@ export default function FaskesDashboard() {
                     <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">POS v2.5</span>
                   </div>
 
-                {/* Bill items list */}
-                <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-                  {billItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs border border-slate-100">
-                      <span className="font-semibold text-slate-800">{item.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-rose-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
-                        <button
-                          onClick={() => handleRemoveBillItem(item.id)}
-                          className="text-slate-400 hover:text-red-500 transition"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                  {/* Bill items list */}
+                  <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                    {billItems.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs border border-slate-100">
+                        <span className="font-semibold text-slate-800">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-rose-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
+                          <button
+                            onClick={() => handleRemoveBillItem(item.id)}
+                            className="text-slate-400 hover:text-red-500 transition"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Add Custom Item Form */}
-                <form onSubmit={handleAddBillItem} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    placeholder="Nama Layanan Medis"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
-                  />
-                  <div className="flex gap-2">
+                  {/* Add Custom Item Form */}
+                  <form onSubmit={handleAddBillItem} className="space-y-2 mb-4">
                     <input
-                      type="number"
-                      value={newItemPrice}
-                      onChange={(e) => setNewItemPrice(e.target.value)}
-                      placeholder="Harga (Rp)"
-                      className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden"
+                      type="text"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      placeholder="Nama Layanan Medis"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
                     />
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={newItemPrice}
+                        onChange={(e) => setNewItemPrice(e.target.value)}
+                        placeholder="Harga (Rp)"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Tambah
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Total & Checkout */}
+                  <div className="border-t border-slate-100 pt-4">
+                    <div className="flex items-center justify-between text-sm font-bold mb-3">
+                      <span className="text-slate-700">Total Tagihan:</span>
+                      <span className="text-rose-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
+                    </div>
+
+                    {receiptSuccess && (
+                      <div className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900 font-medium flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 shrink-0" />
+                        <span>Transaksi kasir sukses! Struk billing tercatat ke rekam medis.</span>
+                      </div>
+                    )}
+
                     <button
-                      type="submit"
-                      className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 cursor-pointer"
+                      type="button"
+                      onClick={handleProcessTransaction}
+                      className="w-full rounded-xl bg-rose-800 hover:bg-rose-700 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-rose-950/10 cursor-pointer"
                     >
-                      <Plus className="h-3.5 w-3.5" /> Tambah
+                      Proses Transaksi Kasir
                     </button>
                   </div>
-                </form>
-
-                {/* Total & Checkout */}
-                <div className="border-t border-slate-100 pt-4">
-                  <div className="flex items-center justify-between text-sm font-bold mb-3">
-                    <span className="text-slate-700">Total Tagihan:</span>
-                    <span className="text-rose-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
-                  </div>
-
-                  {receiptSuccess && (
-                    <div className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900 font-medium flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 shrink-0" />
-                      <span>Transaksi kasir sukses! Struk billing tercatat ke rekam medis.</span>
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleProcessTransaction}
-                    className="w-full rounded-xl bg-rose-800 hover:bg-rose-700 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-rose-950/10 cursor-pointer"
-                  >
-                    Proses Transaksi Kasir
-                  </button>
                 </div>
-              </div>
               ) : null}
             </div>
           </div>

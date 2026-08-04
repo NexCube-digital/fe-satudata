@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
 import { getDoctors } from "@/services/doctorService";
 import {
   Stethoscope,
@@ -21,6 +22,7 @@ import {
   Lock,
   Unlock,
   ShieldAlert,
+  ShieldCheck,
   Calendar,
   User,
   Heart,
@@ -28,7 +30,6 @@ import {
   Sparkles,
   UserPlus,
   X,
-  ShieldCheck,
   Activity
 } from "lucide-react";
 
@@ -60,7 +61,7 @@ export default function FaskesPatients() {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [ehrSummary, setEhrSummary] = useState("");
   const [ehrSignature, setEhrSignature] = useState(""); // signature to encrypt/decrypt
-  
+
   // Dynamic EHR Detail State
   const [umumDetail, setUmumDetail] = useState({ complaint: "", diagnosis: "", action: "", note_doctor: "" });
   const [labDetail, setLabDetail] = useState({ checkup_result: "", reference_values: "", conclusion: "" });
@@ -100,12 +101,39 @@ export default function FaskesPatients() {
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || "Klinik Umum",
           approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
+          txHash: item.tx_hash || item.txHash || null,
           expiryTime: item.expiry_time ? new Date(item.expiry_time).toLocaleDateString("id-ID") : "Selamanya"
         }));
         setActivePatients(mapped);
       }
     } catch (err) {
       console.error("Error loading active patients:", err);
+    }
+  };
+
+  const [syncingPatientId, setSyncingPatientId] = useState(null);
+
+  const handleSyncBlockchain = async (patient) => {
+    if (!patient?.requestId) return;
+    setSyncingPatientId(patient.patientId);
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests/${patient.requestId}/sync-blockchain`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        alert("Data otorisasi NIK pasien berhasil di-upload ulang dan disinkronkan ke blockchain (bc-satudata)!");
+        fetchActivePatients();
+      } else {
+        alert(result.message || "Gagal meng-upload ulang data ke blockchain");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi saat sync ke blockchain");
+    } finally {
+      setSyncingPatientId(null);
     }
   };
 
@@ -138,7 +166,7 @@ export default function FaskesPatients() {
     // Use MetaMask or custom signature key for decryption.
     // If not supplied, we generate a dummy random key (similar to faskes/page.js dashboard)
     const signature = forceSignature || decryptionKeys[patient.patientId] || "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-    
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/patient/${patient.patientId}?signature=${signature}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -173,7 +201,7 @@ export default function FaskesPatients() {
     // Generate a default signature for the upload
     const defaultSig = decryptionKeys[patient.patientId] || "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
     setEhrSignature(defaultSig);
-    
+
     // Clear details
     setUmumDetail({ complaint: "", diagnosis: "", action: "", note_doctor: "" });
     setLabDetail({ checkup_result: "", reference_values: "", conclusion: "" });
@@ -312,7 +340,7 @@ export default function FaskesPatients() {
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Daftar pasien yang memberikan izin akses EHR ke instansi Anda.</p>
                 </div>
-                
+
                 {/* Search Input */}
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -340,6 +368,7 @@ export default function FaskesPatients() {
                       <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
                         <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
                         <th className="py-3 px-4">Poliklinik Tujuan</th>
+                        <th className="py-3 px-4">Tx Hash Otorisasi</th>
                         <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
                       </tr>
                     </thead>
@@ -352,6 +381,25 @@ export default function FaskesPatients() {
                           </td>
                           <td className="py-4 px-4">
                             <span className="font-medium text-slate-700 bg-rose-50 text-rose-900 border border-rose-100 px-2 py-0.5 rounded-lg text-[10px] font-semibold">{patient.poli}</span>
+                          </td>
+                          <td className="py-4 px-4 font-mono text-[10px]">
+                            {patient.txHash ? (
+                              <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1 font-bold text-rose-900" title={patient.txHash}>
+                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                <span className="truncate max-w-[140px] font-mono">{patient.txHash}</span>
+                              </TxHashLink>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleSyncBlockchain(patient)}
+                                disabled={syncingPatientId === patient.patientId}
+                                className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 px-2 py-1 text-[10px] font-bold transition cursor-pointer"
+                                title="Upload Ulang ke Blockchain (bc-satudata)"
+                              >
+                                <RefreshCw className={`h-3 w-3 text-amber-700 ${syncingPatientId === patient.patientId ? "animate-spin" : ""}`} />
+                                <span>{syncingPatientId === patient.patientId ? "Syncing..." : "Upload Ulang (Sync)"}</span>
+                              </button>
+                            )}
                           </td>
                           <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
                             <Link
@@ -382,7 +430,7 @@ export default function FaskesPatients() {
       {isAddModalOpen && modalPatient && (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-6 sm:p-8">
-            
+
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
               <div>
@@ -499,7 +547,7 @@ export default function FaskesPatients() {
                 {/* Dynamic Details Forms based on recordType */}
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/50 space-y-4">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Detail Rekam Medis (Enkripsi AES-256)</h4>
-                  
+
                   {recordType === "umum" && (
                     <div className="grid grid-cols-1 gap-4">
                       <div>

@@ -297,7 +297,7 @@ export default function PatientEhrDetailPage() {
             ) : (
               <div className="space-y-4">
                 {patientRecords.map((record) => {
-                  const recordTxHash = record.tx_hash || `0x${Array.from({ length: 64 }, (_, i) => ((record.id * 17 + i * 31) % 16).toString(16)).join("")}`;
+                  const recordTxHash = record.tx_hash || record.txHash || null;
                   return (
                     <div key={record.id} className="rounded-3xl border border-slate-200/90 p-6 bg-white shadow-xs hover:border-rose-300 hover:shadow-md transition space-y-4">
                       {/* Record Item Header */}
