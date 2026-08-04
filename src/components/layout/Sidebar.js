@@ -145,8 +145,12 @@ export default function Sidebar({ role }) {
         ];
       case "faskes":
       case "rumah_sakit":
-        return [
-          { href: "/dashboard/faskes", label: "Dasbor Dokter", icon: Home, badge: badgeCounts.tokens || null },
+      case "staf_rs":
+        const userPerms = currentUser?.staff_profile?.permissions || currentUser?.permissions || null;
+        const isStaf = role === "staf_rs" || currentUser?.role === "staf_rs font";
+
+        const baseFaskesMenu = [
+          { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
           { 
             label: "Kelola Dokter", 
             icon: Users,
@@ -161,22 +165,35 @@ export default function Sidebar({ role }) {
             icon: FileText,
             dropdownKey: "medicalRecords",
             badge: badgeCounts.records || "EHR",
+            permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText },
-              { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus }
+              { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" }
             ]
           },
           { 
             label: "Data Pasien", 
             icon: Stethoscope,
+            permissionRequired: ["patient:create", "access_request:create"],
             children: [
-              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus },
+              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
               { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
             ]
           },
-          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History },
+          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permission: "access_request:read" },
+          { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: ShieldCheck },
         ];
+
+        // Jika staf_rs, filter menu berdasarkan list permission pengguna
+        if (Array.isArray(userPerms)) {
+          return baseFaskesMenu.filter(item => {
+            if (!item.permissionRequired) return true;
+            return item.permissionRequired.some(p => userPerms.includes(p));
+          });
+        }
+
+        return baseFaskesMenu;
       case "pasien":
       default:
         return [
@@ -199,6 +216,12 @@ export default function Sidebar({ role }) {
     switch (role) {
       case "admin":
         return { title: "Admin Center", subtitle: "System Governance", bg: "from-rose-500/10 to-red-500/10 border-rose-200 text-rose-700" };
+      case "staf_rs":
+        return { 
+          title: currentUser?.staff_profile?.role_name || "Staf Faskes", 
+          subtitle: currentUser?.staff_profile?.hospital_name || "Hospital Sub-Account", 
+          bg: "from-rose-800/10 to-red-900/10 border-rose-900/20 text-rose-900" 
+        };
       case "faskes":
       case "rumah_sakit":
         return { title: "Hospital Portal", subtitle: "HIS & Medical POS", bg: "from-rose-800/10 to-red-900/10 border-rose-900/20 text-rose-900" };
@@ -217,12 +240,19 @@ export default function Sidebar({ role }) {
           subtext: "Hak Akses System Admin",
           iconColor: "text-rose-600 bg-rose-50 border-rose-200" 
         };
+      case "staf_rs":
+        return { 
+          title: currentUser?.staff_profile?.role_name || "Staf RS", 
+          badge: "Sub-Akun", 
+          subtext: currentUser?.staff_profile?.position || "Staf Operasional Faskes",
+          iconColor: "text-rose-900 bg-rose-50 border-rose-200" 
+        };
       case "faskes":
       case "rumah_sakit":
         return { 
           title: "Fasilitas Kesehatan", 
           badge: "Terverifikasi", 
-          subtext: "Hak Akses Faskes & RS",
+          subtext: "Hak Akses Super Admin Faskes",
           iconColor: "text-rose-900 bg-rose-50 border-rose-200" 
         };
       case "pasien":

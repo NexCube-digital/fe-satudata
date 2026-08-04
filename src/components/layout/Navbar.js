@@ -265,7 +265,15 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
     }
   };
 
-  const displayRoleLabel = roleLabel || (user?.role === "admin" ? "Administrator" : user?.role === "rumah_sakit" ? "Fasilitas Kesehatan" : "Pasien Terdaftar");
+  const displayRoleLabel = roleLabel || (
+    user?.role === "admin" 
+      ? "Administrator" 
+      : user?.role === "staf_rs"
+      ? (user?.staff_profile?.role_name || "Staf Faskes")
+      : user?.role === "rumah_sakit" 
+      ? "Fasilitas Kesehatan" 
+      : "Pasien Terdaftar"
+  );
 
   const filteredNotifs = notifications.filter((n) => {
     if (notifFilter === "all") return true;
