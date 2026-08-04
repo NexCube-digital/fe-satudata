@@ -217,6 +217,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
       case "rumah_sakit":
       case "faskes":
       case "dokter":
+      case "staf_rs":
         return "/dashboard/faskes/settings";
       case "pasien":
       default:
@@ -440,7 +441,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                     href={
                       currentUser?.role === "admin"
                         ? "/dashboard/admin/logs"
-                        : (currentUser?.role === "rumah_sakit" || currentUser?.role === "dokter" || currentUser?.role === "faskes")
+                        : (currentUser?.role === "rumah_sakit" || currentUser?.role === "dokter" || currentUser?.role === "faskes" || currentUser?.role === "staf_rs")
                           ? "/dashboard/faskes/requests/history"
                           : "/dashboard/pasien/records"
                     }

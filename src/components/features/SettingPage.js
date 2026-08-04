@@ -400,7 +400,7 @@ export default function SettingPage() {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    const isHospital = currentUser?.role === "rumah_sakit" || currentUser?.role === "faskes";
+    const isHospital = currentUser?.role === "rumah_sakit" || currentUser?.role === "faskes" || currentUser?.role === "staf_rs";
     const isAdmin = currentUser?.role === "admin";
     const endpoint = isHospital
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
@@ -490,7 +490,7 @@ export default function SettingPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const isHospital = user?.role === "rumah_sakit" || user?.role === "faskes";
+      const isHospital = user?.role === "rumah_sakit" || user?.role === "faskes" || user?.role === "staf_rs";
       const isAdmin = user?.role === "admin";
       const endpoint = isHospital
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/profile`
@@ -907,56 +907,60 @@ export default function SettingPage() {
                     </div>
                   </div>
 
-                   {/* NIK */}
-                   <div>
-                     <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                          {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Nomor Izin Operasional (SIP)" : "NIK"}
-                        </label>
+                   {/* NIK (Kecuali Staf RS) */}
+                   {user?.role !== "staf_rs" && (
+                     <div>
+                       <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Nomor Izin Operasional (SIP)" : "NIK"}
+                          </label>
+                       </div>
+                       <div className="relative">
+                         <input
+                           type="text"
+                           maxLength={16}
+                           value={nik}
+                           onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
+                           disabled={isNikFilledOnLoad || !isFieldEditable("nik")}
+                           className={`w-full pl-4 pr-10 py-2.5 rounded-xl border text-sm font-mono transition ${
+                             !isNikFilledOnLoad && isFieldEditable("nik")
+                               ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                               : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                           }`}
+                           placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Masukkan Nomor Izin Operasional" : "3171010509840002"}
+                         />
+                         {isNikFilledOnLoad && (
+                           <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
+                         )}
+                       </div>
                      </div>
-                     <div className="relative">
-                       <input
-                         type="text"
-                         maxLength={16}
-                         value={nik}
-                         onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
-                         disabled={isNikFilledOnLoad || !isFieldEditable("nik")}
-                         className={`w-full pl-4 pr-10 py-2.5 rounded-xl border text-sm font-mono transition ${
-                           !isNikFilledOnLoad && isFieldEditable("nik")
-                             ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
-                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                         }`}
-                         placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Masukkan Nomor Izin Operasional" : "3171010509840002"}
-                       />
-                       {isNikFilledOnLoad && (
-                         <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
-                       )}
-                     </div>
-                   </div>
+                   )}
 
-                   {/* Nomor Telepon */}
-                   <div>
-                     <div className="flex items-center justify-between mb-2">
-                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                         Nomor Telepon
-                       </label>
+                   {/* Nomor Telepon (Kecuali Staf RS) */}
+                   {user?.role !== "staf_rs" && (
+                     <div>
+                       <div className="flex items-center justify-between mb-2">
+                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                           Nomor Telepon
+                         </label>
+                       </div>
+                       <div className="relative">
+                         <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                         <input
+                           type="tel"
+                           value={phone}
+                           onChange={(e) => setPhone(e.target.value)}
+                           disabled={!isFieldEditable("phone")}
+                           placeholder="+62 812 3456 7890"
+                           className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                             isFieldEditable("phone")
+                               ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                               : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                           }`}
+                         />
+                       </div>
                      </div>
-                     <div className="relative">
-                       <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                       <input
-                         type="tel"
-                         value={phone}
-                         onChange={(e) => setPhone(e.target.value)}
-                         disabled={!isFieldEditable("phone")}
-                         placeholder="+62 812 3456 7890"
-                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                           isFieldEditable("phone")
-                             ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
-                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                         }`}
-                       />
-                     </div>
-                   </div>
+                   )}
 
                   {/* Pasien Specific Fields */}
                   {user?.role === "pasien" && (
@@ -1106,29 +1110,31 @@ export default function SettingPage() {
                   )}
                 </div>
 
-                 {/* Alamat Tempat Tinggal */}
-                 <div>
-                   <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Alamat Instansi / Faskes" : "Alamat Tempat Tinggal"}
-                      </label>
-                   </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      disabled={!isFieldEditable("address")}
-                      placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Jl. Bukit Jarian No. 40, Bandung" : "Jl. Raya Kebon Jeruk No. 12"}
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                        isFieldEditable("address")
-                          ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
-                          : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                      }`}
-                    />
+                 {/* Alamat Tempat Tinggal (Kecuali Staf RS) */}
+                 {user?.role !== "staf_rs" && (
+                   <div>
+                     <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          {user?.role === "rumah_sakit" || user?.role === "faskes" ? "Alamat Instansi / Faskes" : "Alamat Tempat Tinggal"}
+                        </label>
+                     </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        disabled={!isFieldEditable("address")}
+                        placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Jl. Bukit Jarian No. 40, Bandung" : "Jl. Raya Kebon Jeruk No. 12"}
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
+                          isFieldEditable("address")
+                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                        }`}
+                      />
+                    </div>
                   </div>
-                </div>
+                 )}
 
                 {/* Geotagging coordinates for Hospital/Faskes */}
                 {(user?.role === "rumah_sakit" || user?.role === "faskes") && (

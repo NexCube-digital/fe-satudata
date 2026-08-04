@@ -272,7 +272,7 @@ export default function UsersComponent({ forcedRole }) {
   };
 
   const filteredUsers = usersList.filter((u) => {
-    if (u.role === "admin") return false;
+    if (u.role === "admin" || u.role === "staf_rs") return false;
     const term = searchTerm.toLowerCase();
     const matchesSearch =
       (u.name && u.name.toLowerCase().includes(term)) ||
@@ -285,10 +285,10 @@ export default function UsersComponent({ forcedRole }) {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const totalUsers = usersList.filter((u) => u.role !== "admin").length;
+  const totalUsers = usersList.filter((u) => u.role !== "admin" && u.role !== "staf_rs").length;
   const totalPatients = usersList.filter((u) => u.role === "pasien").length;
   const totalHospitals = usersList.filter((u) => u.role === "rumah_sakit" || u.role === "faskes").length;
-  const totalActive = usersList.filter((u) => u.role !== "admin" && u.status_account === "active").length;
+  const totalActive = usersList.filter((u) => u.role !== "admin" && u.role !== "staf_rs" && u.status_account === "active").length;
 
   if (loading) {
     return (

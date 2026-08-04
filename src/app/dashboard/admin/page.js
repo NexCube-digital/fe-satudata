@@ -268,7 +268,7 @@ export default function AdminDashboard() {
   };
 
   const filteredUsers = usersList.filter((u) => {
-    if (u.role === "admin") return false;
+    if (u.role === "admin" || u.role === "staf_rs") return false;
     const term = searchTerm.toLowerCase();
     const matchesSearch =
       (u.name && u.name.toLowerCase().includes(term)) ||

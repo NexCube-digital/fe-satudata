@@ -41,7 +41,7 @@ export default function LoginPage() {
         const userRole = result.data.user.role;
         if (userRole === "admin") {
           router.push("/dashboard/admin");
-        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes") {
+        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
           router.push("/dashboard/faskes");
         } else {
           router.push("/dashboard/pasien");
@@ -99,7 +99,7 @@ export default function LoginPage() {
         const userRole = result.data.user.role;
         if (userRole === "admin") {
           router.push("/dashboard/admin");
-        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes") {
+        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
           router.push("/dashboard/faskes");
         } else {
           router.push("/dashboard/pasien");
