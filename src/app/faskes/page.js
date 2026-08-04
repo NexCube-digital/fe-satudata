@@ -33,6 +33,10 @@ export default function FaskesDirectory() {
 
   // Dynamic Leaflet loading
   useEffect(() => {
+    const markMapLoaded = () => {
+      window.requestAnimationFrame(() => setMapLoaded(true));
+    };
+
     if (!document.getElementById("leaflet-css")) {
       const link = document.createElement("link");
       link.id = "leaflet-css";
@@ -45,11 +49,11 @@ export default function FaskesDirectory() {
       const script = document.createElement("script");
       script.id = "leaflet-js";
       script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = () => setMapLoaded(true);
+      script.onload = markMapLoaded;
       document.head.appendChild(script);
     } else {
       if (window.L) {
-        setMapLoaded(true);
+        markMapLoaded();
       }
     }
   }, []);
@@ -84,11 +88,11 @@ export default function FaskesDirectory() {
 
   // Initialize Leaflet Map
   useEffect(() => {
-    if (!mapLoaded || !window.L) return;
+    if (!mapLoaded || !window.L || loading) return;
 
-    if (!mapRef.current) {
+    const timer = setTimeout(() => {
       const container = document.getElementById("leaflet-map");
-      if (!container) return;
+      if (!container || mapRef.current) return;
 
       const map = window.L.map("leaflet-map").setView([-2.5489, 118.0149], 5);
       mapRef.current = map;
@@ -99,18 +103,22 @@ export default function FaskesDirectory() {
 
       markersGroupRef.current = window.L.layerGroup().addTo(map);
       setMapReady(true);
-    }
+
+      map.invalidateSize();
+    }, 150);
 
     return () => {
+      clearTimeout(timer);
       if (mapRef.current) {
         try {
           mapRef.current.remove();
         } catch (e) {}
         mapRef.current = null;
         markersGroupRef.current = null;
+        setMapReady(false);
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, loading]);
 
   // Update Markers when data or map loads
   useEffect(() => {
