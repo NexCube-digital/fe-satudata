@@ -113,13 +113,31 @@ export const refreshAuthToken = async () => {
 };
 
 /**
+ * Build a query string from a plain params object.
+ * Skips undefined/null/"" values. Returns "" if there's nothing to add.
+ */
+const buildQueryString = (params = {}) => {
+  const search = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    search.append(key, value);
+  });
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+};
+
+/**
  * Main API Fetch Wrapper with Interceptor
  */
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
 
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
   const headers = {
-    "Content-Type": "application/json",
+    // Jangan set Content-Type manual untuk FormData -- browser yang akan
+    // menentukan boundary multipart/form-data secara otomatis.
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers || {}),
   };
 
@@ -176,9 +194,29 @@ export const apiFetch = async (endpoint, options = {}) => {
 };
 
 // Convenience shorthand functions
-export const apiGet = (endpoint, options = {}) => apiFetch(endpoint, { method: "GET", ...options });
-export const apiPost = (endpoint, body, options = {}) => apiFetch(endpoint, { method: "POST", body: JSON.stringify(body), ...options });
-export const apiPut = (endpoint, body, options = {}) => apiFetch(endpoint, { method: "PUT", body: JSON.stringify(body), ...options });
+// `params` pada apiGet adalah object query params biasa, misal { page: 1, limit: 20 }
+export const apiGet = (endpoint, params = {}, options = {}) =>
+  apiFetch(`${endpoint}${buildQueryString(params)}`, { method: "GET", ...options });
+
+// `body` boleh berupa FormData (untuk upload file) atau plain object (otomatis JSON.stringify)
+export const apiPost = (endpoint, body, options = {}) => {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  return apiFetch(endpoint, {
+    method: "POST",
+    body: isFormData ? body : JSON.stringify(body),
+    ...options,
+  });
+};
+
+export const apiPut = (endpoint, body, options = {}) => {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  return apiFetch(endpoint, {
+    method: "PUT",
+    body: isFormData ? body : JSON.stringify(body),
+    ...options,
+  });
+};
+
 export const apiDelete = (endpoint, options = {}) => apiFetch(endpoint, { method: "DELETE", ...options });
 
 export default {

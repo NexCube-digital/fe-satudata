@@ -5,8 +5,62 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
-import { FileText, Plus, Search, ArrowUpRight, RefreshCw, X, Clock, Hash, User, Stethoscope, CalendarDays, FileText as FileTextIcon } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Search,
+  RefreshCw,
+  X,
+  Hash,
+  User,
+  Stethoscope,
+  CalendarDays,
+  FileText as FileTextIcon,
+  Paperclip,
+  Download,
+} from "lucide-react";
 import { getHospitalMedicalRecords } from "@/services/hospitalService";
+
+// Label tampilan untuk tiap jenis detail rekam medis
+const DETAIL_TYPE_LABELS = {
+  umum: "Pemeriksaan Umum",
+  lab: "Laboratorium",
+  radiologi: "Radiologi",
+  resep: "Resep",
+};
+
+// Label field per jenis detail, biar ga nampilin key mentah (mis. "note_doctor")
+const DETAIL_FIELD_LABELS = {
+  umum: {
+    complaint: "Keluhan",
+    diagnosis: "Diagnosis",
+    action: "Tindakan",
+    note_doctor: "Catatan Dokter",
+  },
+  lab: {
+    examination_type: "Jenis Pemeriksaan",
+    checkup_result: "Hasil Pemeriksaan",
+    reference_values: "Nilai Rujukan",
+    conclusion: "Kesimpulan",
+  },
+  radiologi: {
+    examination_type: "Jenis Pemeriksaan",
+    checkup_result: "Hasil Pemeriksaan",
+    conclusion: "Kesimpulan",
+  },
+  resep: {
+    list_of_medicines: "Daftar Obat",
+    note: "Catatan",
+  },
+};
+
+function formatRecordType(recordType) {
+  if (!recordType) return "-";
+  return recordType
+    .split(",")
+    .map((t) => DETAIL_TYPE_LABELS[t.trim()] || t.trim().toUpperCase())
+    .join(", ");
+}
 
 export default function FaskesMedicalRecordsPage() {
   const router = useRouter();
@@ -16,6 +70,8 @@ export default function FaskesMedicalRecordsPage() {
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [pagination, setPagination] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -33,34 +89,51 @@ export default function FaskesMedicalRecordsPage() {
   const fetchRecords = async () => {
     try {
       const result = await getHospitalMedicalRecords();
-      if (result.success && result.data) {
+      if (result?.success && Array.isArray(result.data)) {
         const mapped = result.data.map((item) => ({
           id: item.id,
-          patientId: item.user_id,
-          patientName: item.Owner?.name || "Pasien Tidak Diketahui",
+          patientId: item.patient?.id ?? item.user_id ?? null,
+          patientName: item.patient?.name || "Pasien Tidak Diketahui",
           recordType: item.record_type,
           title: item.title,
           visitDate: item.visit_date,
-          doctorName: item.doctor?.name || "-",
           status: item.status,
+          doctorName: item.doctor?.name || "-",
+          doctorSpecialist: item.doctor?.specialist || "-",
+          summary: item.summary || null,
+          detail: item.detail || {},
+          attachments: item.attachments || [],
           dataHash: item.data_hash,
           txHash: item.tx_hash || null,
+          decryptError: item.decryptError || null,
         }));
         setRecords(mapped);
         setFilteredRecords(mapped);
+        setPagination(result.pagination || null);
+      } else {
+        setRecords([]);
+        setFilteredRecords([]);
       }
     } catch (err) {
       console.error("Error fetching medical records", err);
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchRecords();
+    setRefreshing(false);
+  };
+
   const handleSearch = (value) => {
     setSearchTerm(value);
+    const keyword = value.toLowerCase();
     const filtered = records.filter((rec) =>
       [rec.patientName, rec.title, rec.recordType, rec.doctorName, rec.txHash]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(value.toLowerCase())
+        .includes(keyword)
     );
     setFilteredRecords(filtered);
   };
@@ -93,13 +166,23 @@ export default function FaskesMedicalRecordsPage() {
               <h1 className="text-3xl font-extrabold text-slate-900 mt-3">Direktori Rekam Medis</h1>
               <p className="max-w-2xl text-sm text-slate-500 mt-2">Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
-            >
-              <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer disabled:opacity-60"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
+                className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
+              >
+                <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
+              </button>
+            </div>
           </div>
 
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
@@ -107,7 +190,10 @@ export default function FaskesMedicalRecordsPage() {
               <div className="space-y-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="text-lg font-bold text-slate-900">Arsip Rekam Medis</h3>
-                  <span className="text-xs text-slate-500">{filteredRecords.length} Data Ditemukan</span>
+                  <span className="text-xs text-slate-500">
+                    {filteredRecords.length} Data Ditemukan
+                    {pagination ? ` dari ${pagination.total} total` : ""}
+                  </span>
                 </div>
 
                 <div className="space-y-4">
@@ -123,8 +209,12 @@ export default function FaskesMedicalRecordsPage() {
                       />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">{records.filter((r) => r.txHash).length} On-chain</span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">{records.filter((r) => !r.txHash).length} Off-chain</span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">
+                        {records.filter((r) => r.txHash).length} On-chain
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">
+                        {records.filter((r) => !r.txHash).length} Off-chain
+                      </span>
                     </div>
                   </div>
 
@@ -134,9 +224,12 @@ export default function FaskesMedicalRecordsPage() {
                         <tr className="text-xs uppercase tracking-[0.2em] text-slate-500">
                           <th className="px-4 py-3">Visit Date</th>
                           <th className="px-4 py-3">Pasien</th>
-                          <th className="px-4 py-3">JENIS</th>
+                          <th className="px-4 py-3">Judul</th>
+                          <th className="px-4 py-3">Jenis</th>
+                          <th className="px-4 py-3">Status</th>
                           <th className="px-4 py-3">Tx Hash</th>
                           <th className="px-4 py-3">Dokter</th>
+                          <th className="px-4 py-3">Lampiran</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -154,9 +247,25 @@ export default function FaskesMedicalRecordsPage() {
                               }
                             }}
                           >
-                            <td className="px-4 py-4 text-slate-700">{new Date(item.visitDate).toLocaleDateString("id-ID")}</td>
+                            <td className="px-4 py-4 text-slate-700 whitespace-nowrap">
+                              {item.visitDate ? new Date(item.visitDate).toLocaleDateString("id-ID") : "-"}
+                            </td>
                             <td className="px-4 py-4 font-semibold text-slate-900">{item.patientName}</td>
-                            <td className="px-4 py-4 text-slate-700">{item.recordType.toUpperCase()}</td>
+                            <td className="px-4 py-4 text-slate-700 max-w-[220px] truncate" title={item.title}>
+                              {item.title || "-"}
+                            </td>
+                            <td className="px-4 py-4 text-slate-700">{formatRecordType(item.recordType)}</td>
+                            <td className="px-4 py-4">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                                  item.status === "draft"
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                }`}
+                              >
+                                {item.status || "-"}
+                              </span>
+                            </td>
                             <td className="px-4 py-4">
                               <div onClick={(e) => e.stopPropagation()}>
                                 {item.txHash ? (
@@ -165,7 +274,9 @@ export default function FaskesMedicalRecordsPage() {
                                     className="font-mono text-[10px] font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm px-2 py-1 rounded-xl inline-flex items-center gap-1 whitespace-normal break-all"
                                     title={item.txHash}
                                   >
-                                    <span className="tracking-[0.03em] leading-tight" title={item.txHash}>{item.txHash}</span>
+                                    <span className="tracking-[0.03em] leading-tight" title={item.txHash}>
+                                      {item.txHash}
+                                    </span>
                                   </TxHashLink>
                                 ) : (
                                   <span className="text-xs text-slate-400 font-medium italic">Off-Chain</span>
@@ -173,6 +284,15 @@ export default function FaskesMedicalRecordsPage() {
                               </div>
                             </td>
                             <td className="px-4 py-4 text-slate-700">{item.doctorName}</td>
+                            <td className="px-4 py-4 text-slate-700">
+                              {item.attachments.length > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600">
+                                  <Paperclip className="h-3.5 w-3.5" /> {item.attachments.length}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-300">-</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -196,10 +316,10 @@ export default function FaskesMedicalRecordsPage() {
           onClick={closeRecordDetail}
         >
           <div
-            className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-6 py-5 text-white">
+            <div className="sticky top-0 z-10 bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-6 py-5 text-white">
               <button
                 type="button"
                 onClick={closeRecordDetail}
@@ -211,40 +331,129 @@ export default function FaskesMedicalRecordsPage() {
               </button>
               <p className="text-[10px] uppercase tracking-[0.3em] text-rose-200 font-bold">Detail Rekam Medis</p>
               <h3 className="mt-2 text-2xl font-extrabold tracking-tight">{selectedRecord.patientName}</h3>
-              <p className="mt-1 text-xs text-rose-100">Klik area luar atau tombol close untuk menutup detail.</p>
+              <p className="mt-1 text-xs text-rose-100">{selectedRecord.title}</p>
             </div>
 
             <div className="p-6 space-y-4 text-sm">
+              {selectedRecord.decryptError && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+                  {selectedRecord.decryptError}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Pasien</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5" /> Pasien
+                  </p>
                   <p className="mt-1 font-semibold text-slate-900">{selectedRecord.patientName}</p>
-                  <p className="text-xs text-slate-500">ID Pasien: {selectedRecord.patientId || "-"}</p>
+                  <p className="text-xs text-slate-500">ID Pasien: {selectedRecord.patientId ?? "-"}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><Stethoscope className="h-3.5 w-3.5" /> Dokter</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <Stethoscope className="h-3.5 w-3.5" /> Dokter
+                  </p>
                   <p className="mt-1 font-semibold text-slate-900">{selectedRecord.doctorName}</p>
-                  <p className="text-xs text-slate-500">Jenis: {selectedRecord.recordType.toUpperCase()}</p>
+                  <p className="text-xs text-slate-500">{selectedRecord.doctorSpecialist}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" /> Visit Date</p>
-                  <p className="mt-1 font-semibold text-slate-900">{new Date(selectedRecord.visitDate).toLocaleDateString("id-ID")}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5" /> Visit Date
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-900">
+                    {selectedRecord.visitDate ? new Date(selectedRecord.visitDate).toLocaleDateString("id-ID") : "-"}
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><FileTextIcon className="h-3.5 w-3.5" /> Judul Rekam Medis</p>
-                  <p className="mt-1 font-semibold text-slate-900">{selectedRecord.title || "-"}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <FileTextIcon className="h-3.5 w-3.5" /> Jenis
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-900">{formatRecordType(selectedRecord.recordType)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><Hash className="h-3.5 w-3.5" /> Status</p>
-                  <p className="mt-1 font-semibold text-slate-900">{selectedRecord.status || "-"}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5" /> Status
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-900 capitalize">{selectedRecord.status || "-"}</p>
                 </div>
               </div>
 
+              {selectedRecord.summary && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Ringkasan</p>
+                  <p className="mt-1 text-slate-700 whitespace-pre-line">{selectedRecord.summary}</p>
+                </div>
+              )}
+
+              {Object.keys(selectedRecord.detail || {}).length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Detail Pemeriksaan</p>
+                  {Object.entries(selectedRecord.detail).map(([type, fields]) => {
+                    if (!fields) return null;
+                    const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
+                    const entries = Object.entries(fields).filter(
+                      ([key, val]) => !["id", "medical_record_id", "created_at", "updated_at"].includes(key) && val
+                    );
+                    if (entries.length === 0) return null;
+                    return (
+                      <div key={type} className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4">
+                        <p className="text-xs font-bold text-rose-800 uppercase tracking-wide">
+                          {DETAIL_TYPE_LABELS[type] || type}
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {entries.map(([key, val]) => (
+                            <div key={key}>
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+                                {fieldLabels[key] || key}
+                              </p>
+                              <p className="text-slate-700 whitespace-pre-line">{String(val)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {selectedRecord.attachments.length > 0 && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                    <Paperclip className="h-3.5 w-3.5" /> Lampiran ({selectedRecord.attachments.length})
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {selectedRecord.attachments.map((att) => (
+                      <li
+                        key={att.id}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <FileText className="h-4 w-4 text-slate-400 shrink-0" />
+                          <span className="truncate text-slate-700" title={att.fileName}>
+                            {att.fileName}
+                          </span>
+                        </span>
+                        <a
+                          href={att.filePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 hover:text-rose-800 shrink-0"
+                        >
+                          <Download className="h-3.5 w-3.5" /> Unduh
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5"><Hash className="h-3.5 w-3.5" /> Blockchain Tx Hash</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
+                  <Hash className="h-3.5 w-3.5" /> Blockchain Tx Hash
+                </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {selectedRecord.txHash ? (
                     <TxHashLink
