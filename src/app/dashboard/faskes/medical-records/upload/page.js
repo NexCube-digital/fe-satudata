@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { apiGet } from "@/lib/api";
-import { Plus, RefreshCw, ArrowUpRight, CheckCircle, Hash, FileText, Check, X } from "lucide-react";
+import { Plus, RefreshCw, ArrowUpRight, CheckCircle, Hash, FileText, Check, X, Search, Stethoscope } from "lucide-react";
 import { uploadMedicalRecord } from "@/services/hospitalService";
 
 const RECORD_TYPES = [
@@ -126,6 +126,59 @@ export default function FaskesMedicalRecordUploadPage() {
   const [patientId, setPatientId] = useState("");
   const [approvedPatients, setApprovedPatients] = useState([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
+
+  // Searchable Patient Combobox States
+  const [patientSearchQuery, setPatientSearchQuery] = useState("");
+  const [isPatientDropdownOpen, setIsPatientDropdownOpen] = useState(false);
+  const patientComboboxRef = useRef(null);
+
+  useEffect(() => {
+    if (patientId && approvedPatients.length > 0) {
+      const selected = approvedPatients.find(p => String(p.patientId) === String(patientId));
+      if (selected && !patientSearchQuery) {
+        setPatientSearchQuery(`${selected.patientName} - ${selected.nik}`);
+      }
+    }
+  }, [patientId, approvedPatients]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (patientComboboxRef.current && !patientComboboxRef.current.contains(e.target)) {
+        setIsPatientDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredApprovedPatients = useMemo(() => {
+    if (!patientSearchQuery) return approvedPatients;
+    const term = patientSearchQuery.toLowerCase();
+    return approvedPatients.filter((p) =>
+      (p.patientName && p.patientName.toLowerCase().includes(term)) ||
+      (p.nik && p.nik.toString().includes(term))
+    );
+  }, [approvedPatients, patientSearchQuery]);
+
+  // Searchable Doctor Combobox States
+  const [doctorSearchQueries, setDoctorSearchQueries] = useState({});
+  const [openDoctorDropdowns, setOpenDoctorDropdowns] = useState({});
+  const doctorComboboxRefs = useRef({});
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (doctorComboboxRefs.current) {
+        Object.keys(doctorComboboxRefs.current).forEach((key) => {
+          const ref = doctorComboboxRefs.current[key];
+          if (ref && !ref.contains(e.target)) {
+            setOpenDoctorDropdowns((prev) => ({ ...prev, [key]: false }));
+          }
+        });
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const [selectedTypes, setSelectedTypes] = useState([]);
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -338,6 +391,7 @@ export default function FaskesMedicalRecordUploadPage() {
 
   const resetForm = () => {
     setPatientId("");
+    setPatientSearchQuery("");
     setSelectedTypes([]);
     setRecordsData({});
     setSyncMeta({});
@@ -470,21 +524,93 @@ export default function FaskesMedicalRecordUploadPage() {
 
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Pilih Pasien Terotorisasi</label>
-                <select
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
-                  required
-                >
-                  <option value="">{loadingPatients ? "Memuat pasien terotorisasi..." : "Pilih pasien yang sudah menyetujui akses"}</option>
-                  {approvedPatients.map((patient) => (
-                    <option key={patient.patientId} value={patient.patientId}>
-                      {patient.patientName} - {patient.nik}
-                    </option>
-                  ))}
-                </select>
+              {/* Searchable Patient Combobox */}
+              <div className="relative" ref={patientComboboxRef}>
+                <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                  Pilih Pasien Terotorisasi
+                </label>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={patientSearchQuery}
+                    onFocus={() => setIsPatientDropdownOpen(true)}
+                    onChange={(e) => {
+                      setPatientSearchQuery(e.target.value);
+                      setPatientId("");
+                      setIsPatientDropdownOpen(true);
+                    }}
+                    placeholder={loadingPatients ? "Memuat pasien terotorisasi..." : "Pilih atau ketik nama / NIK pasien yang menyetujui akses..."}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-4 pr-10 py-3 text-sm text-slate-900 focus:border-rose-700 focus:bg-white focus:outline-none transition shadow-xs font-medium"
+                  />
+
+                  {patientSearchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPatientSearchQuery("");
+                        setPatientId("");
+                        setIsPatientDropdownOpen(true);
+                      }}
+                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      title="Clear Selection"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <Search className="absolute right-3.5 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                  )}
+                </div>
+
+                {/* Hidden input for form validation */}
+                <input type="hidden" name="patientId" value={patientId} required />
+
+                {/* Dropdown Suggestions List */}
+                {isPatientDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-2 z-50 max-h-60 overflow-y-auto rounded-2xl bg-white border border-slate-200/90 p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                    {loadingPatients ? (
+                      <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                        <RefreshCw className="h-4 w-4 animate-spin text-rose-700" />
+                        <span>Memuat daftar pasien terotorisasi...</span>
+                      </div>
+                    ) : filteredApprovedPatients.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-slate-400">
+                        Tidak ada pasien terotorisasi ditemukan{patientSearchQuery ? ` dengan kata kunci "${patientSearchQuery}"` : ""}.
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {filteredApprovedPatients.map((patient) => {
+                          const isSelected = String(patient.patientId) === String(patientId);
+                          return (
+                            <button
+                              key={patient.patientId}
+                              type="button"
+                              onClick={() => {
+                                setPatientId(patient.patientId);
+                                setPatientSearchQuery(`${patient.patientName} - ${patient.nik}`);
+                                setIsPatientDropdownOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold transition cursor-pointer ${
+                                isSelected
+                                  ? "bg-rose-800 text-white shadow-xs"
+                                  : "text-slate-800 hover:bg-slate-50"
+                              }`}
+                            >
+                              <div>
+                                <p className="font-bold text-sm">{patient.patientName}</p>
+                                <p className={`font-mono text-[10px] mt-0.5 ${isSelected ? "text-rose-200" : "text-slate-400"}`}>
+                                  NIK: {patient.nik}
+                                </p>
+                              </div>
+                              {isSelected && <CheckCircle className="h-4 w-4 shrink-0 text-white" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {!loadingPatients && approvedPatients.length === 0 && (
                   <p className="mt-2 text-xs text-slate-500">Belum ada pasien yang memberi akses. Silakan ajukan permintaan akses terlebih dahulu.</p>
                 )}
@@ -558,30 +684,155 @@ export default function FaskesMedicalRecordUploadPage() {
                       </div>
                     </div>
 
-                    <div>
+                    {/* Modern Searchable Doctor Combobox */}
+                    <div className="relative" ref={(el) => (doctorComboboxRefs.current[type] = el)}>
                       <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
                         Dokter Penanggung Jawab
                         {!doctorRequired && <span className="text-slate-400 font-medium normal-case ml-1">(opsional)</span>}
                       </label>
-                      <select
-                        value={entry.doctorId}
-                        onChange={(e) => updateSyncedField("doctorId", type, e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none cursor-pointer font-medium"
-                        required={doctorRequired}
-                      >
-                        <option value="">
-                          {loadingDoctors
-                            ? "Memuat daftar dokter..."
-                            : doctorRequired
-                            ? `-- Pilih Dokter untuk ${typeLabel} --`
-                            : "-- Tidak ditentukan (opsional) --"}
-                        </option>
-                        {doctorsForType.map((doc) => (
-                          <option key={doc.id} value={doc.id}>
-                            {doc.name} - {doc.specialist || "Dokter Umum"}
-                          </option>
-                        ))}
-                      </select>
+
+                      <div className="relative">
+                        <div className="absolute left-3.5 top-3.5 text-rose-800 pointer-events-none">
+                          <Stethoscope className="h-4 w-4" />
+                        </div>
+
+                        <input
+                          type="text"
+                          value={
+                            doctorSearchQueries[type] !== undefined
+                              ? doctorSearchQueries[type]
+                              : entry.doctorId
+                              ? doctorsList.find((d) => String(d.id) === String(entry.doctorId))
+                                ? `${doctorsList.find((d) => String(d.id) === String(entry.doctorId)).name} - ${doctorsList.find((d) => String(d.id) === String(entry.doctorId)).specialist || "Dokter Umum"}`
+                                : ""
+                              : ""
+                          }
+                          onFocus={() => setOpenDoctorDropdowns((prev) => ({ ...prev, [type]: true }))}
+                          onChange={(e) => {
+                            const query = e.target.value;
+                            setDoctorSearchQueries((prev) => ({ ...prev, [type]: query }));
+                            updateSyncedField("doctorId", type, "");
+                            setOpenDoctorDropdowns((prev) => ({ ...prev, [type]: true }));
+                          }}
+                          placeholder={
+                            loadingDoctors
+                              ? "Memuat daftar dokter..."
+                              : doctorRequired
+                              ? `Pilih atau ketik nama dokter untuk ${typeLabel}...`
+                              : "Pilih dokter penanggung jawab (opsional)..."
+                          }
+                          className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-10 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none transition shadow-xs font-medium"
+                        />
+
+                        {(doctorSearchQueries[type] || entry.doctorId) ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDoctorSearchQueries((prev) => ({ ...prev, [type]: "" }));
+                              updateSyncedField("doctorId", type, "");
+                              setOpenDoctorDropdowns((prev) => ({ ...prev, [type]: true }));
+                            }}
+                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                            title="Clear Selection"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <Search className="absolute right-3.5 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                        )}
+                      </div>
+
+                      {/* Hidden input to enforce form requirement */}
+                      <input type="hidden" name={`doctorId_${type}`} value={entry.doctorId} required={doctorRequired} />
+
+                      {/* Doctor Dropdown Suggestions */}
+                      {openDoctorDropdowns[type] && (
+                        <div className="absolute left-0 right-0 top-full mt-2 z-50 max-h-60 overflow-y-auto rounded-2xl bg-white border border-slate-200/90 p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                          {loadingDoctors ? (
+                            <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                              <RefreshCw className="h-4 w-4 animate-spin text-rose-700" />
+                              <span>Memuat daftar dokter...</span>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              {!doctorRequired && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    updateSyncedField("doctorId", type, "");
+                                    setDoctorSearchQueries((prev) => ({ ...prev, [type]: "" }));
+                                    setOpenDoctorDropdowns((prev) => ({ ...prev, [type]: false }));
+                                  }}
+                                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-500 hover:bg-slate-50 border-b border-slate-100 mb-1 cursor-pointer"
+                                >
+                                  <span>-- Tidak ditentukan (opsional) --</span>
+                                </button>
+                              )}
+
+                              {doctorsForType
+                                .filter((doc) => {
+                                  const query = (doctorSearchQueries[type] || "").toLowerCase();
+                                  if (!query) return true;
+                                  return (
+                                    (doc.name && doc.name.toLowerCase().includes(query)) ||
+                                    (doc.specialist && doc.specialist.toLowerCase().includes(query))
+                                  );
+                                })
+                                .map((doc) => {
+                                  const isSelected = String(doc.id) === String(entry.doctorId);
+                                  return (
+                                    <button
+                                      key={doc.id}
+                                      type="button"
+                                      onClick={() => {
+                                        updateSyncedField("doctorId", type, doc.id);
+                                        setDoctorSearchQueries((prev) => ({
+                                          ...prev,
+                                          [type]: `${doc.name} - ${doc.specialist || "Dokter Umum"}`
+                                        }));
+                                        setOpenDoctorDropdowns((prev) => ({ ...prev, [type]: false }));
+                                      }}
+                                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold transition cursor-pointer ${
+                                        isSelected
+                                          ? "bg-rose-800 text-white shadow-xs"
+                                          : "text-slate-800 hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5">
+                                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center border shrink-0 ${
+                                          isSelected ? "bg-white/20 border-white/30 text-white" : "bg-rose-50 border-rose-100 text-rose-800"
+                                        }`}>
+                                          <Stethoscope className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                          <p className="font-bold text-xs">{doc.name}</p>
+                                          <p className={`text-[10px] ${isSelected ? "text-rose-200" : "text-slate-400"}`}>
+                                            {doc.specialist || "Dokter Umum"}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {isSelected && <CheckCircle className="h-4 w-4 shrink-0 text-white" />}
+                                    </button>
+                                  );
+                                })}
+
+                              {doctorsForType.filter((doc) => {
+                                const query = (doctorSearchQueries[type] || "").toLowerCase();
+                                if (!query) return true;
+                                return (
+                                  (doc.name && doc.name.toLowerCase().includes(query)) ||
+                                  (doc.specialist && doc.specialist.toLowerCase().includes(query))
+                                );
+                              }).length === 0 && (
+                                <div className="p-4 text-center text-xs text-slate-400">
+                                  Tidak ada dokter ditemukan untuk kata kunci ini.
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {!loadingDoctors && doctorsForType.length === 0 && (
                         <p className="mt-2 text-xs text-amber-700 font-medium">Belum ada dokter yang terhubung ke Faskes Anda. Silakan daftarkan dokter terlebih dahulu.</p>
                       )}

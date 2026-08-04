@@ -194,7 +194,7 @@ export default function Sidebar({ role }) {
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
           { 
             label: "Kelola Dokter", 
-            icon: Users,
+            icon: Stethoscope,
             dropdownKey: "doctors",
             permissionRequired: ["staff:manage", "role:manage"],
             children: [
@@ -215,11 +215,11 @@ export default function Sidebar({ role }) {
           },
           { 
             label: "Data Pasien", 
-            icon: Stethoscope,
+            icon: Users,
             permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
             children: [
-              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
               { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
+              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
             ]
           },
           { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permission: "access_request:read" },
@@ -319,6 +319,16 @@ export default function Sidebar({ role }) {
     }
   };
 
+  const isRouteActive = (currentPath, targetHref) => {
+    if (!currentPath || !targetHref) return false;
+    if (currentPath === targetHref) return true;
+    // Match sub-routes like /dashboard/faskes/patients/1 to /dashboard/faskes/patients
+    if (targetHref !== "/dashboard/faskes" && targetHref !== "/dashboard/pasien" && targetHref !== "/dashboard/admin") {
+      if (currentPath.startsWith(targetHref + "/")) return true;
+    }
+    return false;
+  };
+
   const menuItems = getMenuItems();
   const roleHeader = getRoleHeader();
   const accountStatus = getAccountStatus();
@@ -390,7 +400,7 @@ export default function Sidebar({ role }) {
                 if (item.children) {
                   const dropdownKey = item.dropdownKey || "patients";
                   const isOpen = openDropdowns[dropdownKey];
-                  const isChildActive = item.children.some((child) => pathname === child.href);
+                  const isChildActive = item.children.some((child) => isRouteActive(pathname, child.href));
 
                   // COLLAPSED MODE: FLOATING DROPDOWN POPOVER ONLY ON CLICK
                   if (isCollapsed) {
@@ -434,7 +444,7 @@ export default function Sidebar({ role }) {
                             {/* Floating Sub-items */}
                             <div className="space-y-0.5">
                               {item.children.map((child) => {
-                                const isChildItemActive = pathname === child.href;
+                                const isChildItemActive = isRouteActive(pathname, child.href);
                                 const ChildIcon = child.icon;
                                 return (
                                   <Link
@@ -506,7 +516,7 @@ export default function Sidebar({ role }) {
                       {isOpen && (
                         <div className="pl-4 space-y-0.5">
                           {item.children.map((child) => {
-                            const isChildItemActive = pathname === child.href;
+                            const isChildItemActive = isRouteActive(pathname, child.href);
                             const ChildIcon = child.icon;
                             return (
                               <Link
@@ -543,7 +553,7 @@ export default function Sidebar({ role }) {
                 }
 
                 // Handling Single Link Items
-                const isActive = pathname === item.href;
+                const isActive = isRouteActive(pathname, item.href);
 
                 if (isCollapsed) {
                   return (

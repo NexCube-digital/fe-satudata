@@ -26,7 +26,10 @@ import {
   Heart,
   ChevronRight,
   Sparkles,
-  UserPlus
+  UserPlus,
+  X,
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 
 export default function FaskesPatients() {
@@ -297,236 +300,79 @@ export default function FaskesPatients() {
             </div>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-3 items-start">
-            {/* Left Section - Active Patient List (2 Cols) */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                {/* Search Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <Stethoscope className="h-5 w-5 text-rose-800" />
-                      Pasien Terotorisasi Aktif
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Daftar pasien yang memberikan izin akses EHR ke instansi Anda.</p>
-                  </div>
-                  
-                  {/* Search Input */}
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari pasien / wallet..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-rose-800 transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Patient List Table */}
-                {filteredPatients.length === 0 ? (
-                  <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                    <UserPlus className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-slate-600">Tidak Ada Pasien Aktif</p>
-                    <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Kirim permohonan akses baru ke NIK/wallet pasien terlebih dahulu di menu "Request Akses".</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                          <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
-                          <th className="py-3 px-4">Poliklinik Tujuan</th>
-                          <th className="py-3 px-4">Masa Berlaku Izin</th>
-                          <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredPatients.map((patient) => (
-                          <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
-                            <td className="py-4 px-4">
-                              <p className="font-bold text-slate-900">{patient.patientName}</p>
-                              <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className="font-medium text-slate-700 bg-rose-50 text-rose-900 border border-rose-100 px-2 py-0.5 rounded-lg text-[10px] font-semibold">{patient.poli}</span>
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                                <Clock className="h-3.5 w-3.5 text-amber-500" />
-                                {patient.expiryTime}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => loadPatientRecords(patient)}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-rose-800 hover:text-white hover:border-rose-800 px-3 py-2 font-semibold transition cursor-pointer"
-                              >
-                                <Eye className="h-3.5 w-3.5" /> EHR
-                              </button>
-                              <button
-                                onClick={() => openAddEhrModal(patient)}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white px-3 py-2 font-bold transition shadow-xs cursor-pointer"
-                              >
-                                <Plus className="h-3.5 w-3.5" /> Tambah
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Section - EHR History Viewer (1 Col) */}
-            <div className="space-y-6">
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="border-b border-slate-100 pb-4 mb-4">
-                  <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="h-4.5 w-4.5 text-rose-800" />
-                    Peninjau EHR Terdekripsi
+          <div className="w-full space-y-6">
+            {/* Active Patient List */}
+            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+              {/* Search Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-rose-800" />
+                    Pasien Terotorisasi Aktif
                   </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Dekripsi rekam medis pasien real-time</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Daftar pasien yang memberikan izin akses EHR ke instansi Anda.</p>
                 </div>
-
-                {!selectedPatient ? (
-                  <div className="text-center py-16 text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-100">
-                    <Lock className="h-8 w-8 text-slate-300 mx-auto mb-3" />
-                    <p className="text-xs font-semibold">Pilih pasien dan klik tombol "EHR" untuk menampilkan visualisasi rekam medis terenkripsi.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Selected Patient Mini Profile */}
-                    <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-rose-50/60 p-4 border border-rose-100">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-[9px] uppercase tracking-wider text-rose-800 font-extrabold">Pasien Terpilih</p>
-                          <h4 className="text-sm font-bold text-slate-900 mt-0.5">{selectedPatient.patientName}</h4>
-                          <p className="text-[10px] font-mono text-slate-400 mt-1 truncate max-w-[180px]">NIK: {maskNik(selectedPatient.nik)}</p>
-                        </div>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-700/10 text-rose-900">
-                          <User className="h-4 w-4" />
-                        </span>
-                      </div>
-
-                      {/* Decryption Signature Interface */}
-                      <div className="mt-4 pt-3 border-t border-rose-700/10">
-                        <label className="block text-[9px] font-bold uppercase tracking-wider text-rose-900 mb-1.5">
-                          Kunci Dekripsi (Signature MetaMask)
-                        </label>
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={decryptionKeys[selectedPatient.patientId] || ""}
-                            onChange={(e) => setDecryptionKeys(prev => ({ ...prev, [selectedPatient.patientId]: e.target.value }))}
-                            className="w-full rounded-xl border border-rose-200 px-3 py-1.5 text-[10px] font-mono focus:border-rose-800 focus:outline-hidden bg-white text-slate-800"
-                            placeholder="Kunci signature dekripsi"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => loadPatientRecords(selectedPatient)}
-                              disabled={loadingRecords}
-                              className="flex-1 rounded-lg bg-rose-800 hover:bg-rose-700 text-white font-bold py-1 px-2.5 text-[10px] text-center transition cursor-pointer"
-                            >
-                              {loadingRecords ? "Proses..." : "Terapkan Kunci"}
-                            </button>
-                            <button
-                              onClick={() => generateAutoSignature(selectedPatient.patientId)}
-                              className="rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold py-1 px-2.5 text-[10px] text-center transition cursor-pointer"
-                            >
-                              Demo Auto
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* EHR Lists */}
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Riwayat Kunjungan Medis ({patientRecords.length})</p>
-                      
-                      {patientRecords.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic">Belum ada rekam medis terdaftar.</p>
-                      ) : (
-                        <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                          {patientRecords.map((record) => (
-                            <div key={record.id} className="rounded-xl border border-slate-100 p-3.5 bg-slate-50 hover:bg-white hover:shadow-xs transition">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className={`px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase ${
-                                  record.record_type === "umum" ? "bg-blue-50 text-blue-700 border border-blue-100" :
-                                  record.record_type === "lab" ? "bg-purple-50 text-purple-700 border border-purple-100" :
-                                  record.record_type === "radiologi" ? "bg-amber-50 text-amber-700 border border-amber-100" :
-                                  "bg-rose-50 text-rose-700 border border-rose-100"
-                                }`}>
-                                  {record.record_type}
-                                </span>
-                                <span className="text-[9px] text-slate-400 font-semibold flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" /> {new Date(record.visit_date).toLocaleDateString("id-ID")}
-                                </span>
-                              </div>
-
-                              <h5 className="text-xs font-bold text-slate-800 mb-1">{record.title}</h5>
-                              
-                              {record.doctor && (
-                                <p className="text-[9px] text-slate-500 font-semibold mb-2">Dokter: {record.doctor.name} ({record.doctor.specialist})</p>
-                              )}
-
-                              {/* Decryption Status & Decrypted details */}
-                              <div className="mt-2 pt-2 border-t border-slate-200/50">
-                                {record.detail ? (
-                                  <div className="rounded-lg bg-rose-700/5 border border-rose-700/10 p-2.5 text-[10px] space-y-1.5 leading-relaxed text-slate-700 font-medium">
-                                    <div className="flex items-center gap-1 text-rose-900 text-[8px] font-bold uppercase mb-1">
-                                      <Unlock className="h-3 w-3" /> Medis Terdekripsi
-                                    </div>
-                                    {record.record_type === "umum" && (
-                                      <>
-                                        <p><span className="font-bold text-slate-500">Keluhan:</span> {record.detail.complaint || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Diagnosis:</span> {record.detail.diagnosis || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Tindakan:</span> {record.detail.action || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Catatan:</span> {record.detail.note_doctor || "-"}</p>
-                                      </>
-                                    )}
-                                    {record.record_type === "lab" && (
-                                      <>
-                                        <p><span className="font-bold text-slate-500">Hasil Cek:</span> {record.detail.checkup_result || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Rujukan:</span> {record.detail.reference_values || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Kesimpulan:</span> {record.detail.conclusion || "-"}</p>
-                                      </>
-                                    )}
-                                    {record.record_type === "radiologi" && (
-                                      <>
-                                        <p><span className="font-bold text-slate-500">Hasil Cek:</span> {record.detail.checkup_result || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Kesimpulan:</span> {record.detail.conclusion || "-"}</p>
-                                      </>
-                                    )}
-                                    {record.record_type === "resep" && (
-                                      <>
-                                        <p><span className="font-bold text-slate-500">Daftar Obat:</span> {record.detail.list_of_medicines || "-"}</p>
-                                        <p><span className="font-bold text-slate-500">Catatan Resep:</span> {record.detail.note || "-"}</p>
-                                      </>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="rounded-lg bg-rose-50 border border-rose-100 p-2.5 text-[9px] flex items-start gap-1.5 text-rose-700">
-                                    <Lock className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
-                                    <div>
-                                      <p className="font-bold">EHR Terkunci Aman (AES-256)</p>
-                                      <p className="text-[8px] text-rose-500/80 mt-0.5">Input signature digital valid di atas untuk mendekripsi rekam medis ini.</p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari pasien / wallet..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-rose-800 transition"
+                  />
+                </div>
               </div>
+
+              {/* Patient List Table */}
+              {filteredPatients.length === 0 ? (
+                <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                  <UserPlus className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-600">Tidak Ada Pasien Aktif</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Kirim permohonan akses baru ke NIK/wallet pasien terlebih dahulu di menu "Request Akses".</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                        <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
+                        <th className="py-3 px-4">Poliklinik Tujuan</th>
+                        <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredPatients.map((patient) => (
+                        <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
+                          <td className="py-4 px-4">
+                            <p className="font-bold text-slate-900">{patient.patientName}</p>
+                            <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="font-medium text-slate-700 bg-rose-50 text-rose-900 border border-rose-100 px-2 py-0.5 rounded-lg text-[10px] font-semibold">{patient.poli}</span>
+                          </td>
+                          <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                            <Link
+                              href={`/dashboard/faskes/patients/${patient.patientId}`}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-rose-800 hover:text-white hover:border-rose-800 px-3 py-2 font-semibold transition cursor-pointer"
+                            >
+                              <Eye className="h-3.5 w-3.5" /> EHR
+                            </Link>
+                            <button
+                              onClick={() => openAddEhrModal(patient)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white px-3 py-2 font-bold transition shadow-xs cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" /> Tambah
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </main>
