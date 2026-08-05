@@ -18,12 +18,16 @@ export const getHospitalMedicalRecords = async (params = {}) => {
   return await apiGet("/api/hospital/medical-record", params);
 };
 
-export const uploadMedicalRecord = async (payload) => {
+export const createMedicalRecordDraft = async (payload) => {
   return await apiPost("/api/hospital/medical-record", payload);
 };
 
-export const updateMedicalRecord = async (recordId, payload) => {
+export const updateMedicalRecordDraft = async (recordId, payload) => {
   return await apiPut(`/api/hospital/medical-record/${recordId}`, payload);
+};
+
+export const getMedicalRecordById = async (recordId) => {
+  return await apiGet(`/api/hospital/medical-record/${recordId}`);
 };
 
 export const getHospitalAuditLogs = async (params = {}) => {
@@ -35,7 +39,8 @@ export default {
   updateHospitalProfile,
   getPatientMedicalRecords,
   getHospitalMedicalRecords,
-  uploadMedicalRecord,
-  updateMedicalRecord,
+  createMedicalRecordDraft,
+  updateMedicalRecordDraft,
+  getMedicalRecordById,
   getHospitalAuditLogs,
 };
