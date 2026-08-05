@@ -24,7 +24,10 @@ import {
   Clock,
   PanelLeftClose,
   PanelLeftOpen,
-  ChevronRight
+  ChevronRight,
+  Pill,
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -55,7 +58,8 @@ export default function Sidebar({ role }) {
     users: pathname.startsWith("/dashboard/admin/users"),
     doctors: pathname.startsWith("/dashboard/faskes/doctor"),
     geotagging: pathname.startsWith("/dashboard/admin/faskes"),
-    consent: pathname.startsWith("/dashboard/pasien/consent")
+    consent: pathname.startsWith("/dashboard/pasien/consent"),
+    pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy")
   });
 
   // Read collapsed preference from localStorage without initial animation flicker
@@ -223,6 +227,20 @@ export default function Sidebar({ role }) {
             ]
           },
           { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permission: "access_request:read" },
+          { 
+            label: "Apoteker & POS Obat", 
+            icon: Pill,
+            dropdownKey: "pharmacy",
+            badge: "POS",
+            permissionRequired: ["pharmacy:manage", "pharmacy:pos"],
+            children: [
+              { href: "/dashboard/faskes/pharmacy", label: "Overview Apoteker", icon: Home },
+              { href: "/dashboard/faskes/pharmacy/prescriptions", label: "Antrean Resep", icon: FileText, permission: "pharmacy:manage" },
+              { href: "/dashboard/faskes/pharmacy/inventory", label: "Katalog & Stok Obat", icon: Package, permission: "pharmacy:manage" },
+              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
+              { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi", icon: History, permission: "pharmacy:pos" }
+            ]
+          },
           { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: Activity, permissionRequired: ["staff:manage", "role:manage"] },
         ];

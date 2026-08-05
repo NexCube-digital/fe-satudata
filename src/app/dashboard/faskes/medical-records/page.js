@@ -469,11 +469,6 @@ export default function FaskesMedicalRecordsPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Data Hash</p>
-                <p className="mt-1 font-mono text-xs text-slate-700 break-all">{selectedRecord.dataHash || "-"}</p>
-              </div>
-
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
