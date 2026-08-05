@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { apiGet } from "@/lib/api";
-import { Plus, RefreshCw, ArrowUpRight, CheckCircle, Hash, FileText, Check, X, Paperclip, Info } from "lucide-react";
+import {
+  Plus,
+  RefreshCw,
+  ArrowUpRight,
+  CheckCircle,
+  Hash,
+  FileText,
+  Check,
+  X,
+  Paperclip,
+  Info,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import { uploadMedicalRecord } from "@/services/hospitalService";
 
 // "resep" SENGAJA tidak ada di sini: backend (DETAIL_MODEL_BY_TYPE) tidak
@@ -65,6 +78,146 @@ function buildEmptyDetail(type) {
 }
 
 const MAX_ATTACHMENTS = 5;
+
+/**
+ * Dropdown dengan kotak pencarian di dalamnya. Klik untuk membuka, ketik
+ * untuk memfilter daftar opsi berdasarkan label, klik opsi atau klik di luar
+ * untuk menutup.
+ */
+function SearchableSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "-- Pilih --",
+  isLoading = false,
+  loadingText = "Memuat...",
+  emptyText = "Tidak ada hasil yang cocok.",
+  disabled = false,
+  required = false,
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      // Fokuskan kotak pencarian begitu dropdown terbuka
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  const filteredOptions = useMemo(() => {
+    if (!query.trim()) return options;
+    const q = query.trim().toLowerCase();
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [options, query]);
+
+  const toggleOpen = () => {
+    if (disabled || isLoading) return;
+    setOpen((o) => !o);
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      {/* Input tersembunyi hanya untuk validasi native "required" pada form */}
+      {required && (
+        <input tabIndex={-1} value={value || ""} onChange={() => {}} required className="sr-only" aria-hidden="true" />
+      )}
+
+      <button
+        type="button"
+        onClick={toggleOpen}
+        disabled={disabled || isLoading}
+        className="w-full flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none disabled:opacity-60 cursor-pointer"
+      >
+        <span className={`truncate text-left ${selected ? "text-slate-900 font-medium" : "text-slate-400"}`}>
+          {isLoading ? loadingText : selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && !isLoading && (
+        <div className="absolute z-20 mt-2 w-full rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-slate-100">
+            <div className="relative">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setOpen(false);
+                    setQuery("");
+                  }
+                }}
+                placeholder="Cari..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <ul className="max-h-56 overflow-y-auto py-1">
+            {value && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("");
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-50 cursor-pointer"
+                >
+                  -- Kosongkan pilihan --
+                </button>
+              </li>
+            )}
+
+            {filteredOptions.length === 0 ? (
+              <li className="px-4 py-3 text-sm text-slate-400">{emptyText}</li>
+            ) : (
+              filteredOptions.map((opt) => (
+                <li key={opt.value}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(opt.value);
+                      setOpen(false);
+                      setQuery("");
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm transition cursor-pointer ${
+                      opt.value === value
+                        ? "bg-rose-50 text-rose-800 font-semibold"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function FaskesMedicalRecordUploadPage() {
   const router = useRouter();
@@ -172,6 +325,36 @@ export default function FaskesMedicalRecordUploadPage() {
     });
     return filtered.length > 0 ? filtered : doctorsList;
   }, [doctorsList, selectedTypes]);
+
+  // Opsi untuk dropdown pasien (bisa dicari berdasarkan nama atau NIK)
+  const patientOptions = useMemo(
+    () =>
+      approvedPatients.map((p) => ({
+        value: p.patientId,
+        label: `${p.patientName} - ${p.nik}`,
+      })),
+    [approvedPatients]
+  );
+
+  // Opsi untuk dropdown dokter (bisa dicari berdasarkan nama atau spesialisasi)
+  const doctorOptions = useMemo(
+    () =>
+      doctorsForSelection.map((d) => ({
+        value: d.id,
+        label: `${d.name} - ${d.specialist || "Dokter Umum"}`,
+      })),
+    [doctorsForSelection]
+  );
+
+  // Kalau dokter yang sudah dipilih tidak lagi ada di daftar hasil filter
+  // (karena jenis rekam medis berubah), kosongkan pilihan supaya tidak
+  // nyangkut ke dokter yang tidak relevan.
+  useEffect(() => {
+    if (doctorId && !doctorsForSelection.some((d) => String(d.id) === String(doctorId))) {
+      setDoctorId("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doctorsForSelection]);
 
   const toggleRecordType = (type) => {
     setSelectedTypes((prev) => {
@@ -337,19 +520,16 @@ export default function FaskesMedicalRecordUploadPage() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Pilih Pasien Terotorisasi</label>
-                <select
+                <SearchableSelect
                   value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+                  onChange={setPatientId}
+                  options={patientOptions}
+                  isLoading={loadingPatients}
+                  loadingText="Memuat pasien terotorisasi..."
+                  placeholder="Pilih pasien yang sudah menyetujui akses"
+                  emptyText="Tidak ada pasien yang cocok dengan pencarian."
                   required
-                >
-                  <option value="">{loadingPatients ? "Memuat pasien terotorisasi..." : "Pilih pasien yang sudah menyetujui akses"}</option>
-                  {approvedPatients.map((patient) => (
-                    <option key={patient.patientId} value={patient.patientId}>
-                      {patient.patientName} - {patient.nik}
-                    </option>
-                  ))}
-                </select>
+                />
                 {!loadingPatients && approvedPatients.length === 0 && (
                   <p className="mt-2 text-xs text-slate-500">Belum ada pasien yang memberi akses. Silakan ajukan permintaan akses terlebih dahulu.</p>
                 )}
@@ -405,18 +585,15 @@ export default function FaskesMedicalRecordUploadPage() {
                     <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
                       Dokter Penanggung Jawab <span className="text-slate-400 font-medium normal-case ml-1">(opsional)</span>
                     </label>
-                    <select
+                    <SearchableSelect
                       value={doctorId}
-                      onChange={(e) => setDoctorId(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none cursor-pointer font-medium"
-                    >
-                      <option value="">{loadingDoctors ? "Memuat daftar dokter..." : "-- Tidak ditentukan --"}</option>
-                      {doctorsForSelection.map((doc) => (
-                        <option key={doc.id} value={doc.id}>
-                          {doc.name} - {doc.specialist || "Dokter Umum"}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setDoctorId}
+                      options={doctorOptions}
+                      isLoading={loadingDoctors}
+                      loadingText="Memuat daftar dokter..."
+                      placeholder="-- Tidak ditentukan --"
+                      emptyText="Tidak ada dokter yang cocok dengan pencarian."
+                    />
                     {!loadingDoctors && doctorsForSelection.length === 0 && (
                       <p className="mt-2 text-xs text-amber-700 font-medium">Belum ada dokter yang terhubung ke Faskes Anda.</p>
                     )}
