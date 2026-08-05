@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import Toast from "@/components/ui/Toast";
 import { createDoctor } from "@/services/doctorService";
 import {
   Users,
@@ -36,6 +37,14 @@ export default function FaskesAddDoctor() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+
+  const showToast = (message, type = "success", title = "") => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -277,17 +286,17 @@ export default function FaskesAddDoctor() {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.specialist || !formData.medical_license) {
-      alert("Harap isi field utama (Nama, Spesialisasi, No Izin)");
+      showToast("Harap isi field utama (Nama, Spesialisasi, No Izin)", "error", "Form Belum Lengkap");
       return;
     }
     if (formData.sex === "pilihan") {
-      alert("Harap pilih jenis kelamin dokter");
+      showToast("Harap pilih jenis kelamin dokter", "error", "Pilih Jenis Kelamin");
       return;
     }
     
     const activeDays = Object.keys(dailySchedules).filter((d) => dailySchedules[d].active);
     if (activeDays.length === 0) {
-      alert("Harap pilih setidaknya satu hari praktik");
+      showToast("Harap pilih setidaknya satu hari praktik", "error", "Pilih Hari Praktik");
       return;
     }
     setSubmitting(true);
@@ -300,12 +309,14 @@ export default function FaskesAddDoctor() {
         imageFile
       });
       if (res.success) {
-        alert("Dokter berhasil ditambahkan!");
-        router.push("/dashboard/faskes/doctor/list");
+        showToast("Dokter berhasil ditambahkan!", "success", "Dokter Ditambahkan");
+        setTimeout(() => {
+          router.push("/dashboard/faskes/doctor/list");
+        }, 1200);
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || "Gagal menyimpan data dokter");
+      showToast(err.message || "Gagal menyimpan data dokter", "error", "Gagal Simpan");
     } finally {
       setSubmitting(false);
     }
@@ -715,6 +726,7 @@ export default function FaskesAddDoctor() {
           </div>
         </div>
       )}
+      <Toast toast={toast} onClose={() => setToast({ show: false })} />
     </div>
   );
 }

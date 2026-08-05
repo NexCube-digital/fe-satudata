@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import Toast from "@/components/ui/Toast";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {
@@ -31,6 +32,14 @@ export default function FaskesRequests() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [doctors, setDoctors] = useState([]);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+
+  const showToast = (message, type = "success", title = "") => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
+  };
 
   // Form states
   const [nikInput, setNikInput] = useState("");
@@ -92,7 +101,7 @@ export default function FaskesRequests() {
 
   const handleCheckNik = async () => {
     if (!nikInput || !/^\d{16}$/.test(nikInput)) {
-      alert("NIK harus berupa 16 digit angka");
+      showToast("NIK harus berupa 16 digit angka", "error", "Validasi NIK Gagal");
       return;
     }
 
@@ -129,12 +138,12 @@ export default function FaskesRequests() {
         }
       } else {
         setSearchStatus("error");
-        alert(result.message || "Gagal memeriksa status NIK");
+        showToast(result.message || "Gagal memeriksa status NIK", "error", "Gagal Cek NIK");
       }
     } catch (err) {
       console.error(err);
       setSearchStatus("error");
-      alert("Terjadi kesalahan koneksi saat memeriksa NIK");
+      showToast("Terjadi kesalahan koneksi saat memeriksa NIK", "error", "Koneksi Error");
     }
   };
 
@@ -160,7 +169,7 @@ export default function FaskesRequests() {
     if (!nikInput) return;
 
     if (searchStatus === "idle" || searchStatus === "searching") {
-      alert("Silakan periksa NIK terlebih dahulu");
+      showToast("Silakan periksa NIK terlebih dahulu", "error", "Periksa NIK");
       return;
     }
 
@@ -186,14 +195,14 @@ export default function FaskesRequests() {
         const result = await res.json();
         
         if (res.ok && result.success) {
-          alert("Permintaan akses rekam medis berhasil dikirim ke portal pasien!");
+          showToast("Permintaan akses rekam medis berhasil dikirim ke portal pasien!", "success", "Permintaan Terkirim");
           setNikInput("");
           setPoliInput("");
           setPurposeInput("");
           setSearchStatus("idle");
           setPatientData(null);
         } else {
-          alert(result.message || "Gagal membuat permohonan akses");
+          showToast(result.message || "Gagal membuat permohonan akses", "error", "Gagal Permintaan");
         }
       } else if (searchStatus === "not_found") {
         // Option B: Patient doesn't exist, register them first, then request access
@@ -224,7 +233,7 @@ export default function FaskesRequests() {
         const regResult = await regRes.json();
 
         if (!regRes.ok || !regResult.success) {
-          alert(regResult.message || "Gagal mendaftarkan pasien baru");
+          showToast(regResult.message || "Gagal mendaftarkan pasien baru", "error", "Registrasi Gagal");
           setSubmittingRequest(false);
           return;
         }
@@ -253,7 +262,7 @@ export default function FaskesRequests() {
           });
           setShowCredentialsBanner(true);
 
-          alert("Pasien baru berhasil didaftarkan dan permintaan akses rekam medis telah dikirim!");
+          showToast("Pasien baru berhasil didaftarkan dan permintaan akses rekam medis telah dikirim!", "success", "Registrasi & Akses Sukses");
           
           // Clear inputs
           setPoliInput("");
@@ -271,12 +280,12 @@ export default function FaskesRequests() {
           setSearchStatus("idle");
           setPatientData(null);
         } else {
-          alert(reqResult.message || "Registrasi berhasil, tetapi gagal mengirim permintaan akses.");
+          showToast(reqResult.message || "Registrasi berhasil, tetapi gagal mengirim permintaan akses.", "error", "Permintaan Akses Gagal");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem dalam mengirimkan permohonan");
+      showToast("Terjadi kesalahan sistem dalam mengirimkan permohonan", "error", "System Error");
     } finally {
       setSubmittingRequest(false);
     }
@@ -652,6 +661,7 @@ export default function FaskesRequests() {
           </div>
         </main>
       </div>
+      <Toast toast={toast} onClose={() => setToast({ show: false })} />
     </div>
   );
 }

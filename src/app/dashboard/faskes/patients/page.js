@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import Toast from "@/components/ui/Toast";
 import { getDoctors } from "@/services/doctorService";
 import {
   Stethoscope,
@@ -47,6 +48,14 @@ export default function FaskesPatients() {
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [decryptionKeys, setDecryptionKeys] = useState({}); // patientId -> key
   const [decryptionErrors, setDecryptionErrors] = useState({});
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+
+  const showToast = (message, type = "success", title = "") => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
+  };
 
   // Add EHR record modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -124,14 +133,14 @@ export default function FaskesPatients() {
       });
       const result = await res.json();
       if (res.ok && result.success) {
-        alert("Data otorisasi NIK pasien berhasil di-upload ulang dan disinkronkan ke blockchain (bc-satudata)!");
+        showToast("Data otorisasi NIK pasien berhasil di-upload ulang dan disinkronkan ke blockchain (bc-satudata)!", "success", "Sinkronisasi Blockchain Sukses");
         fetchActivePatients();
       } else {
-        alert(result.message || "Gagal meng-upload ulang data ke blockchain");
+        showToast(result.message || "Gagal meng-upload ulang data ke blockchain", "error", "Sinkronisasi Gagal");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan koneksi saat sync ke blockchain");
+      showToast("Terjadi kesalahan koneksi saat sync ke blockchain", "error", "Koneksi Error");
     } finally {
       setSyncingPatientId(null);
     }
@@ -179,7 +188,7 @@ export default function FaskesPatients() {
         setDecryptionKeys(prev => ({ ...prev, [patient.patientId]: signature }));
         setDecryptionErrors(prev => ({ ...prev, [patient.patientId]: null }));
       } else {
-        alert(result.message || "Gagal memuat rekam medis");
+        showToast(result.message || "Gagal memuat rekam medis", "error", "Gagal Memuat");
       }
     } catch (err) {
       console.error(err);
@@ -214,7 +223,7 @@ export default function FaskesPatients() {
   const handleAddEhrSubmit = async (e) => {
     e.preventDefault();
     if (!recordTitle || !ehrSignature || !selectedDoctorId) {
-      alert("Harap lengkapi semua field utama dan pilih dokter");
+      showToast("Harap lengkapi semua field utama dan pilih dokter", "error", "Form Belum Lengkap");
       return;
     }
 
@@ -260,11 +269,11 @@ export default function FaskesPatients() {
           setSuccessMessage("");
         }, 3000);
       } else {
-        alert(result.message || "Gagal mengunggah rekam medis");
+        showToast(result.message || "Gagal mengunggah rekam medis", "error", "Gagal Upload");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan koneksi backend");
+      showToast("Terjadi kesalahan koneksi backend", "error", "System Error");
     } finally {
       setSubmittingEhr(false);
     }
@@ -706,6 +715,7 @@ export default function FaskesPatients() {
           </div>
         </div>
       )}
+      <Toast toast={toast} onClose={() => setToast({ show: false })} />
     </div>
   );
 }

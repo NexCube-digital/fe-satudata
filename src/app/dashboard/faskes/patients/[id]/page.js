@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import TxHashLink from "@/components/ui/TxHashLink";
+import Toast from "@/components/ui/Toast";
 import { getDoctors } from "@/services/doctorService";
 import {
   Stethoscope,
@@ -43,6 +45,14 @@ export default function PatientEhrDetailPage() {
   const [patientRecords, setPatientRecords] = useState([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [doctorsList, setDoctorsList] = useState([]);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+
+  const showToast = (message, type = "success", title = "") => {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
+  };
 
   // Add EHR Record Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -189,11 +199,11 @@ export default function PatientEhrDetailPage() {
           loadPatientDetailsAndRecords();
         }, 1500);
       } else {
-        alert(result.message || "Gagal menambahkan rekam medis.");
+        showToast(result.message || "Gagal menambahkan rekam medis.", "error", "Gagal Menambahkan");
       }
     } catch (err) {
       console.error("Error submit EHR:", err);
-      alert("Terjadi kesalahan saat menyimpan data rekam medis.");
+      showToast("Terjadi kesalahan saat menyimpan data rekam medis.", "error", "System Error");
     } finally {
       setSubmittingEhr(false);
     }
@@ -632,6 +642,7 @@ export default function PatientEhrDetailPage() {
           </div>
         </div>
       )}
+      <Toast toast={toast} onClose={() => setToast({ show: false })} />
     </div>
   );
 }

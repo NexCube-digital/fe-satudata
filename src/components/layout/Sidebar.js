@@ -197,6 +197,7 @@ export default function Sidebar({ role }) {
 
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
+          { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { 
             label: "Kelola Dokter", 
             icon: Stethoscope,
@@ -205,6 +206,16 @@ export default function Sidebar({ role }) {
             children: [
               { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
               { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
+            ]
+          },
+          { 
+            label: "Data Pasien", 
+            icon: Users,
+            permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
+            children: [
+              { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
+              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
+              { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permissionRequired: "access_request:read" },
             ]
           },
           {
@@ -219,16 +230,6 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Data Pasien", 
-            icon: Users,
-            permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
-            children: [
-              { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
-              { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
-            ]
-          },
-          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permissionRequired: "access_request:read" },
-          { 
             label: "Apoteker & POS Obat", 
             icon: Pill,
             dropdownKey: "pharmacy",
@@ -241,7 +242,6 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi POS", icon: History, permission: "pharmacy:pos" }
             ]
           },
-          { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: Activity, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 
@@ -357,19 +357,28 @@ export default function Sidebar({ role }) {
   const isRouteActive = (currentPath, targetHref) => {
     if (!currentPath || !targetHref) return false;
     if (currentPath === targetHref) return true;
-    // Exact-only paths: don't highlight parent when a child sub-route is active
-    const exactOnlyPaths = [
+    
+    // Exact-only matching for sibling routes to prevent double highlighting (e.g., /requests vs /requests/history)
+    const exactSiblings = [
       "/dashboard/faskes",
-      "/dashboard/fasken/medical-records",
-      "/dashboard/faskes/medical-records",
+      "/dashboard/faskes/requests",
       "/dashboard/faskes/patients",
+      "/dashboard/faskes/medical-records",
+      "/dashboard/faskes/pharmacy",
+      "/dashboard/faskes/pharmacy/pos",
+      "/dashboard/faskes/pharmacy/prescriptions",
+      "/dashboard/faskes/pharmacy/inventory",
+      "/dashboard/faskes/pharmacy/sales-history",
       "/dashboard/faskes/doctor/list",
+      "/dashboard/faskes/doctor/add",
       "/dashboard/pasien",
       "/dashboard/admin",
     ];
-    if (!exactOnlyPaths.includes(targetHref)) {
-      if (currentPath.startsWith(targetHref + "/")) return true;
+
+    if (!exactSiblings.includes(targetHref)) {
+      return currentPath.startsWith(targetHref + "/");
     }
+
     return false;
   };
 
@@ -527,7 +536,7 @@ export default function Sidebar({ role }) {
                     <div key={item.label} className="space-y-0.5">
                       <button
                         onClick={() => setOpenDropdowns((prev) => ({ ...prev, [dropdownKey]: !prev[dropdownKey] }))}
-                        className={`group/parent flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isChildActive
                             ? "bg-rose-50 text-rose-900"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -537,7 +546,7 @@ export default function Sidebar({ role }) {
                           <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
                             isChildActive
                               ? "bg-rose-100 border-rose-200 text-rose-800"
-                              : "bg-slate-100 border-slate-200 text-slate-500 group-hover/parent:bg-slate-200 group-hover/parent:text-slate-700"
+                              : "bg-slate-100 border-slate-200 text-slate-500"
                           }`}>
                             <Icon className="h-3.5 w-3.5" />
                           </div>
@@ -566,7 +575,7 @@ export default function Sidebar({ role }) {
                               <Link
                                 key={child.href}
                                 href={child.href}
-                                className={`group/child relative flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all duration-200 ${
+                                className={`relative flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all duration-200 ${
                                   isChildItemActive
                                     ? "bg-gradient-to-r from-rose-800 to-rose-900 text-white shadow-sm shadow-rose-900/15"
                                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
@@ -574,7 +583,7 @@ export default function Sidebar({ role }) {
                               >
                                 <div className="flex items-center gap-2 overflow-hidden">
                                   {ChildIcon && (
-                                    <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-rose-300" : "text-slate-400 group-hover/child:text-slate-600"}`} />
+                                    <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-rose-300" : "text-slate-400"}`} />
                                   )}
                                   <span className="truncate">{child.label}</span>
                                 </div>
@@ -620,7 +629,7 @@ export default function Sidebar({ role }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group/link flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                       isActive
                         ? "bg-gradient-to-r from-rose-800 to-rose-900 text-white shadow-sm shadow-rose-900/15"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -630,7 +639,7 @@ export default function Sidebar({ role }) {
                       <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
                         isActive
                           ? "bg-white/15 border-white/20 text-rose-200"
-                          : "bg-slate-100 border-slate-200 text-slate-500 group-hover/link:bg-slate-200 group-hover/link:text-slate-700"
+                          : "bg-slate-100 border-slate-200 text-slate-500"
                       }`}>
                         <Icon className="h-3.5 w-3.5" />
                       </div>
