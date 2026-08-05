@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import Toast from "@/components/ui/Toast";
+import notify from "@/lib/notify";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {
@@ -36,10 +37,8 @@ export default function FaskesRequests() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "") => {
-    setToast({ show: true, type, title, message });
-    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
-  };
+  const showToast = (message, type = "success", title = "", tipe) =>
+    notify(setToast, { type, title, message, tipe });
 
   // Form states
   const [nikInput, setNikInput] = useState("");

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
+import notify from "@/lib/notify";
 import { createDoctor } from "@/services/doctorService";
 import {
   Users,
@@ -41,10 +42,8 @@ export default function FaskesAddDoctor() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "") => {
-    setToast({ show: true, type, title, message });
-    setTimeout(() => setToast({ show: false, type: "success", title: "", message: "" }), 4000);
-  };
+  const showToast = (message, type = "success", title = "", tipe) =>
+    notify(setToast, { type, title, message, tipe });
 
   // Form State
   const [formData, setFormData] = useState({

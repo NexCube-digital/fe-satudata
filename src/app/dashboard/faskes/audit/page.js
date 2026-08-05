@@ -99,6 +99,11 @@ export default function FaskesAuditLogPage() {
       case "upload_rekam_medis": return "Upload Rekam Medis";
       case "update_rekam_medis": return "Update Rekam Medis";
       case "request_akses": return "Pengajuan Izin Akses";
+      case "reupload_blockchain": return "Re-upload Blockchain";
+      case "tambah_pasien": return "Pendaftaran Pasien";
+      case "tambah_dokter": return "Penambahan Dokter";
+      case "pos_transaksi": return "Transaksi Kasir POS";
+      case "penyerahan_resep": return "Penyerahan Resep Obat";
       case "approve_akses": return "Izin Akses Disetujui";
       case "reject_akses": return "Izin Akses Ditolak";
       case "revoke_akses": return "Izin Akses Dicabut";

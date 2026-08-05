@@ -100,6 +100,36 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
           category = "ehr";
           link = currentUser?.role === "pasien" ? "/dashboard/pasien/records" : "/dashboard/faskes/patients";
           icon = FileText;
+        } else if (item.tipe === "reupload_blockchain") {
+          title = "Re-upload ke Blockchain";
+          category = "security";
+          link = "/dashboard/faskes/requests";
+          icon = ShieldCheck;
+        } else if (item.tipe === "tambah_pasien") {
+          title = "Pendaftaran Pasien Baru";
+          category = "ehr";
+          link = "/dashboard/faskes/patients";
+          icon = Activity;
+        } else if (item.tipe === "tambah_dokter") {
+          title = "Penambahan Dokter";
+          category = "ehr";
+          link = "/dashboard/faskes/doctor";
+          icon = Activity;
+        } else if (item.tipe === "pos_transaksi") {
+          title = "Transaksi Kasir POS";
+          category = "ehr";
+          link = "/dashboard/faskes/pharmacy";
+          icon = Activity;
+        } else if (item.tipe === "penyerahan_resep") {
+          title = "Penyerahan Resep Obat";
+          category = "ehr";
+          link = "/dashboard/faskes/pharmacy";
+          icon = Activity;
+        } else if (item.tipe === "info" || item.tipe === "sistem") {
+          title = "Informasi Sistem";
+          category = "security";
+          link = "#";
+          icon = AlertCircle;
         }
 
         const createdAt = item.created_at ? new Date(item.created_at) : null;
@@ -130,12 +160,17 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
 
+        let description = item.message;
+        if (currentUser?.role !== "pasien" && description && description.includes("meminta akses ke data medis Anda")) {
+          description = `Permintaan akses data rekam medis untuk ${actorName} telah terkirim ke Patient Wallet (Menunggu Persetujuan).`;
+        }
+
         return {
           id: item.id,
           title,
           actor: actorName,
           actorRole: actorRoleName,
-          description: item.message,
+          description,
           timestamp,
           category,
           link,
@@ -172,6 +207,16 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
       return () => clearInterval(interval);
     }
   }, [currentUser]);
+
+  // Dengarkan event "newNotification" yang di-dispatch oleh notify() utility
+  // supaya bell langsung refresh tanpa tunggu polling 10 detik
+  useEffect(() => {
+    const handleNewNotif = () => {
+      fetchNotifications();
+    };
+    window.addEventListener("newNotification", handleNewNotif);
+    return () => window.removeEventListener("newNotification", handleNewNotif);
+  }, []);
 
   // Fetch token balance for faskes/rumah_sakit users
   useEffect(() => {

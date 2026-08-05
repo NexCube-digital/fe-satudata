@@ -6,6 +6,8 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import Toast from "@/components/ui/Toast";
+import notify from "@/lib/notify";
 import {
   MapPin,
   Compass,
@@ -35,12 +37,8 @@ function AdminGeotaggingContent() {
   const searchParams = useSearchParams();
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  const showToast = (msg, type = "success") => {
-    setToast({ show: true, message: msg, type });
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, show: false }));
-    }, 4500);
-  };
+  const showToast = (msg, type = "success", title = "", tipe) =>
+    notify(setToast, { type, title, message: msg, tipe });
 
   useEffect(() => {
     const toastVal = searchParams.get("toast");
