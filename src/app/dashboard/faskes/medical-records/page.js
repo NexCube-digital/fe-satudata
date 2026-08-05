@@ -18,6 +18,8 @@ import {
   FileText as FileTextIcon,
   Paperclip,
   Download,
+  Pencil,
+  Inbox,
 } from "lucide-react";
 import { getHospitalMedicalRecords } from "@/services/hospitalService";
 
@@ -62,12 +64,61 @@ function formatRecordType(recordType) {
     .join(", ");
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function StatusBadge({ status }) {
+  const isDraft = status === "draft";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide whitespace-nowrap ${
+        isDraft
+          ? "bg-amber-50 text-amber-700 border border-amber-200"
+          : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+      }`}
+    >
+      {status || "-"}
+    </span>
+  );
+}
+
+// Potong hash jadi "depan...belakang" biar baris tabel/kartu nggak melar ke bawah.
+// Hash lengkap tetap ada di title (tooltip) dan di modal detail (truncate=false).
+function shortenHash(hash, head = 8, tail = 6) {
+  if (!hash || hash.length <= head + tail + 3) return hash;
+  return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
+}
+
+function TxHashPill({ txHash, compact = false, truncate = true }) {
+  if (!txHash) {
+    return <span className="text-xs text-slate-400 font-medium italic">Off-Chain</span>;
+  }
+  return (
+    <TxHashLink
+      txHash={txHash}
+      className={`font-mono font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm rounded-xl inline-flex items-center gap-1 max-w-full ${
+        compact ? "text-[10px] px-2 py-1" : "text-xs px-3 py-1.5"
+      } ${truncate ? "whitespace-nowrap" : "whitespace-normal break-all"}`}
+      title={txHash}
+    >
+      <span className="tracking-[0.03em] leading-tight">
+        {truncate ? shortenHash(txHash, compact ? 6 : 10, compact ? 4 : 8) : txHash}
+      </span>
+    </TxHashLink>
+  );
+}
+
 export default function FaskesMedicalRecordsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
-  const [filteredRecords, setFilteredRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [pagination, setPagination] = useState(null);
@@ -108,11 +159,9 @@ export default function FaskesMedicalRecordsPage() {
           decryptError: item.decryptError || null,
         }));
         setRecords(mapped);
-        setFilteredRecords(mapped);
         setPagination(result.pagination || null);
       } else {
         setRecords([]);
-        setFilteredRecords([]);
       }
     } catch (err) {
       console.error("Error fetching medical records", err);
@@ -125,25 +174,35 @@ export default function FaskesMedicalRecordsPage() {
     setRefreshing(false);
   };
 
-  const handleSearch = (value) => {
-    setSearchTerm(value);
-    const keyword = value.toLowerCase();
-    const filtered = records.filter((rec) =>
-      [rec.patientName, rec.title, rec.recordType, rec.doctorName, rec.txHash]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(keyword)
-    );
-    setFilteredRecords(filtered);
-  };
+  // Filter dihitung langsung dari records + searchTerm, jadi selalu konsisten
+  // walau data di-refresh sementara ada keyword pencarian aktif.
+  const keyword = searchTerm.trim().toLowerCase();
+  const filteredRecords = keyword
+    ? records.filter((rec) =>
+        [rec.patientName, rec.title, rec.recordType, rec.doctorName, rec.txHash]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(keyword)
+      )
+    : records;
 
-  const openRecordDetail = (record) => {
-    setSelectedRecord(record);
-  };
+  const draftCount = records.filter((r) => r.status === "draft").length;
+  const onChainCount = records.filter((r) => r.txHash).length;
+  const offChainCount = records.length - onChainCount;
 
-  const closeRecordDetail = () => {
-    setSelectedRecord(null);
+  const openRecordDetail = (record) => setSelectedRecord(record);
+  const closeRecordDetail = () => setSelectedRecord(null);
+  const goToEditDraft = (recordId) => router.push(`/dashboard/faskes/medical-records/${recordId}/edit`);
+
+  // Draft -> langsung ke wizard edit (lebih berguna daripada modal view karena
+  // datanya memang belum lengkap). Final -> tetap buka modal detail seperti biasa.
+  const handleRowActivate = (record) => {
+    if (record.status === "draft") {
+      goToEditDraft(record.id);
+      return;
+    }
+    openRecordDetail(record);
   };
 
   if (loading) {
@@ -159,152 +218,249 @@ export default function FaskesMedicalRecordsPage() {
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
-            <div>
+        <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
+          {/* Header */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8">
+            <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Dashboard Faskes</p>
-              <h1 className="text-3xl font-extrabold text-slate-900 mt-3">Direktori Rekam Medis</h1>
-              <p className="max-w-2xl text-sm text-slate-500 mt-2">Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Direktori Rekam Medis</h1>
+              <p className="max-w-2xl text-sm text-slate-500 mt-1.5">
+                Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition cursor-pointer disabled:opacity-60"
               >
-                <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh
+                <RefreshCw className={`h-4 w-4 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-                className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
               >
-                <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Upload Rekam Medis Baru</span>
+                <span className="sm:hidden">Upload</span>
               </button>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-            <section className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="text-lg font-bold text-slate-900">Arsip Rekam Medis</h3>
-                  <span className="text-xs text-slate-500">
-                    {filteredRecords.length} Data Ditemukan
-                    {pagination ? ` dari ${pagination.total} total` : ""}
+          <div className="rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-6 shadow-xs">
+            <section className="space-y-5">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-lg font-bold text-slate-900">Arsip Rekam Medis</h3>
+                <span className="text-xs text-slate-500">
+                  {filteredRecords.length} data ditemukan
+                  {pagination ? ` dari ${pagination.total} total` : ""}
+                </span>
+              </div>
+
+              {/* Search + stat pills */}
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="relative flex-1 md:max-w-sm">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Cari pasien, judul, tx hash..."
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-9 py-3 text-sm text-slate-800 focus:border-rose-700 focus:outline-none"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label="Hapus pencarian"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 border border-amber-100 whitespace-nowrap">
+                    {draftCount} Draft
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 border border-rose-100 whitespace-nowrap">
+                    {onChainCount} On-chain
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 whitespace-nowrap">
+                    {offChainCount} Off-chain
                   </span>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="relative flex-1">
-                      <Search className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Cari pasien, judul, tx hash..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-10 py-3 text-sm text-slate-800 focus:border-rose-700 focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">
-                        {records.filter((r) => r.txHash).length} On-chain
-                      </span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">
-                        {records.filter((r) => !r.txHash).length} Off-chain
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
+              {filteredRecords.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-14 text-center text-slate-500">
+                  <Inbox className="h-8 w-8 text-slate-300" />
+                  <p className="text-sm font-medium px-4">
+                    {keyword ? "Tidak ada rekam medis yang cocok dengan pencarian." : "Belum ada rekam medis."}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop besar: table. Di bawah lg pakai card supaya tidak sesak. */}
+                  <div className="hidden lg:block overflow-x-auto">
                     <table className="min-w-full border-separate border-spacing-y-3 text-left text-sm">
                       <thead>
                         <tr className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                          <th className="px-4 py-3">Visit Date</th>
-                          <th className="px-4 py-3">Pasien</th>
-                          <th className="px-4 py-3">Judul</th>
-                          <th className="px-4 py-3">Jenis</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Tx Hash</th>
-                          <th className="px-4 py-3">Dokter</th>
-                          <th className="px-4 py-3">Lampiran</th>
+                          <th className="px-4 py-2 font-semibold whitespace-nowrap">Visit Date</th>
+                          <th className="px-4 py-2 font-semibold">Pasien</th>
+                          <th className="px-4 py-2 font-semibold">Judul</th>
+                          <th className="px-4 py-2 font-semibold">Jenis</th>
+                          <th className="px-4 py-2 font-semibold">Status</th>
+                          <th className="px-4 py-2 font-semibold">Tx Hash</th>
+                          <th className="hidden xl:table-cell px-4 py-2 font-semibold">Dokter</th>
+                          <th className="hidden xl:table-cell px-4 py-2 font-semibold">Lampiran</th>
+                          <th className="px-4 py-2 font-semibold text-right">Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredRecords.map((item) => (
-                          <tr
-                            key={item.id}
-                            className="rounded-3xl border border-slate-200/80 bg-slate-50 transition hover:bg-slate-100 cursor-pointer"
-                            onClick={() => openRecordDetail(item)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                openRecordDetail(item);
-                              }
-                            }}
-                          >
-                            <td className="px-4 py-4 text-slate-700 whitespace-nowrap">
-                              {item.visitDate ? new Date(item.visitDate).toLocaleDateString("id-ID") : "-"}
-                            </td>
-                            <td className="px-4 py-4 font-semibold text-slate-900">{item.patientName}</td>
-                            <td className="px-4 py-4 text-slate-700 max-w-[220px] truncate" title={item.title}>
-                              {item.title || "-"}
-                            </td>
-                            <td className="px-4 py-4 text-slate-700">{formatRecordType(item.recordType)}</td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                                  item.status === "draft"
-                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                }`}
+                        {filteredRecords.map((item) => {
+                          const isDraft = item.status === "draft";
+                          return (
+                            <tr
+                              key={item.id}
+                              className="group cursor-pointer"
+                              onClick={() => handleRowActivate(item)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  handleRowActivate(item);
+                                }
+                              }}
+                            >
+                              <td className="px-4 py-4 text-slate-700 whitespace-nowrap bg-slate-50 group-hover:bg-slate-100 transition rounded-l-2xl border-y border-l border-slate-200/80">
+                                {formatDate(item.visitDate)}
+                              </td>
+                              <td className="px-4 py-4 font-semibold text-slate-900 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 max-w-[160px] truncate">
+                                {item.patientName}
+                              </td>
+                              <td
+                                className="px-4 py-4 text-slate-700 max-w-[160px] xl:max-w-[220px] truncate bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80"
+                                title={item.title}
                               >
-                                {item.status || "-"}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div onClick={(e) => e.stopPropagation()}>
-                                {item.txHash ? (
-                                  <TxHashLink
-                                    txHash={item.txHash}
-                                    className="font-mono text-[10px] font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm px-2 py-1 rounded-xl inline-flex items-center gap-1 whitespace-normal break-all"
-                                    title={item.txHash}
-                                  >
-                                    <span className="tracking-[0.03em] leading-tight" title={item.txHash}>
-                                      {item.txHash}
-                                    </span>
-                                  </TxHashLink>
+                                {item.title || "-"}
+                              </td>
+                              <td className="px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
+                                {formatRecordType(item.recordType)}
+                              </td>
+                              <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
+                                <StatusBadge status={item.status} />
+                              </td>
+                              <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <TxHashPill txHash={item.txHash} compact />
+                                </div>
+                              </td>
+                              <td className="hidden xl:table-cell px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
+                                {item.doctorName}
+                              </td>
+                              <td className="hidden xl:table-cell px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
+                                {item.attachments.length > 0 ? (
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                                    <Paperclip className="h-3.5 w-3.5" /> {item.attachments.length}
+                                  </span>
                                 ) : (
-                                  <span className="text-xs text-slate-400 font-medium italic">Off-Chain</span>
+                                  <span className="text-xs text-slate-300">-</span>
                                 )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-slate-700">{item.doctorName}</td>
-                            <td className="px-4 py-4 text-slate-700">
-                              {item.attachments.length > 0 ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600">
-                                  <Paperclip className="h-3.5 w-3.5" /> {item.attachments.length}
-                                </span>
-                              ) : (
-                                <span className="text-xs text-slate-300">-</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="px-4 py-4 text-right bg-slate-50 group-hover:bg-slate-100 transition rounded-r-2xl border-y border-r border-slate-200/80">
+                                {isDraft ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      goToEditDraft(item.id);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer whitespace-nowrap"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" /> Lanjutkan
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-slate-300">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
-                    {filteredRecords.length === 0 && (
-                      <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-slate-500">
-                        Belum ada rekam medis yang cocok dengan pencarian.
-                      </div>
-                    )}
                   </div>
-                </div>
-              </div>
+
+                  {/* Mobile & tablet (< lg): stacked cards, menghindari tabel sesak / scroll horizontal canggung */}
+                  <div className="lg:hidden space-y-3">
+                    {filteredRecords.map((item) => {
+                      const isDraft = item.status === "draft";
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => handleRowActivate(item)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleRowActivate(item);
+                            }
+                          }}
+                          className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 space-y-2.5 active:bg-slate-100 transition cursor-pointer"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-slate-900 truncate">{item.patientName}</p>
+                              <p className="text-xs text-slate-500 truncate">{item.title || "-"}</p>
+                            </div>
+                            <StatusBadge status={item.status} />
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                            <span className="inline-flex items-center gap-1">
+                              <CalendarDays className="h-3.5 w-3.5 text-slate-400" /> {formatDate(item.visitDate)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 min-w-0">
+                              <Stethoscope className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span className="truncate">{item.doctorName}</span>
+                            </span>
+                            {item.attachments.length > 0 && (
+                              <span className="inline-flex items-center gap-1">
+                                <Paperclip className="h-3.5 w-3.5 text-slate-400" /> {item.attachments.length}
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-xs text-slate-500">{formatRecordType(item.recordType)}</p>
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                            <div onClick={(e) => e.stopPropagation()} className="min-w-0">
+                              <TxHashPill txHash={item.txHash} compact />
+                            </div>
+                            {isDraft && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  goToEditDraft(item.id);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer whitespace-nowrap"
+                              >
+                                <Pencil className="h-3.5 w-3.5" /> Lanjutkan
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </section>
           </div>
         </main>
@@ -312,29 +468,31 @@ export default function FaskesMedicalRecordsPage() {
 
       {selectedRecord && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
           onClick={closeRecordDetail}
         >
           <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
+            className="w-full max-w-2xl my-6 sm:my-0 max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-6 py-5 text-white">
+            <div className="sticky top-0 z-10 bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-5 sm:px-6 py-5 text-white">
               <button
                 type="button"
                 onClick={closeRecordDetail}
-                className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25 transition"
+                className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25 transition cursor-pointer"
                 aria-label="Tutup detail rekam medis"
                 title="Tutup"
               >
                 <X className="h-4 w-4" />
               </button>
               <p className="text-[10px] uppercase tracking-[0.3em] text-rose-200 font-bold">Detail Rekam Medis</p>
-              <h3 className="mt-2 text-2xl font-extrabold tracking-tight">{selectedRecord.patientName}</h3>
-              <p className="mt-1 text-xs text-rose-100">{selectedRecord.title}</p>
+              <h3 className="mt-2 text-xl sm:text-2xl font-extrabold tracking-tight pr-10 break-words">
+                {selectedRecord.patientName}
+              </h3>
+              <p className="mt-1 text-xs text-rose-100 break-words">{selectedRecord.title}</p>
             </div>
 
-            <div className="p-6 space-y-4 text-sm">
+            <div className="p-5 sm:p-6 space-y-4 text-sm">
               {selectedRecord.decryptError && (
                 <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
                   {selectedRecord.decryptError}
@@ -346,45 +504,43 @@ export default function FaskesMedicalRecordsPage() {
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <User className="h-3.5 w-3.5" /> Pasien
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900">{selectedRecord.patientName}</p>
+                  <p className="mt-1.5 font-semibold text-slate-900 break-words">{selectedRecord.patientName}</p>
                   <p className="text-xs text-slate-500">ID Pasien: {selectedRecord.patientId ?? "-"}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <Stethoscope className="h-3.5 w-3.5" /> Dokter
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900">{selectedRecord.doctorName}</p>
+                  <p className="mt-1.5 font-semibold text-slate-900 break-words">{selectedRecord.doctorName}</p>
                   <p className="text-xs text-slate-500">{selectedRecord.doctorSpecialist}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <CalendarDays className="h-3.5 w-3.5" /> Visit Date
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900">
-                    {selectedRecord.visitDate ? new Date(selectedRecord.visitDate).toLocaleDateString("id-ID") : "-"}
-                  </p>
+                  <p className="mt-1.5 font-semibold text-slate-900">{formatDate(selectedRecord.visitDate)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <FileTextIcon className="h-3.5 w-3.5" /> Jenis
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900">{formatRecordType(selectedRecord.recordType)}</p>
+                  <p className="mt-1.5 font-semibold text-slate-900">{formatRecordType(selectedRecord.recordType)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <Hash className="h-3.5 w-3.5" /> Status
                   </p>
-                  <p className="mt-1 font-semibold text-slate-900 capitalize">{selectedRecord.status || "-"}</p>
+                  <p className="mt-1.5 font-semibold text-slate-900 capitalize">{selectedRecord.status || "-"}</p>
                 </div>
               </div>
 
               {selectedRecord.summary && (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Ringkasan</p>
-                  <p className="mt-1 text-slate-700 whitespace-pre-line">{selectedRecord.summary}</p>
+                  <p className="mt-1.5 text-slate-700 whitespace-pre-line break-words">{selectedRecord.summary}</p>
                 </div>
               )}
 
@@ -403,13 +559,13 @@ export default function FaskesMedicalRecordsPage() {
                         <p className="text-xs font-bold text-rose-800 uppercase tracking-wide">
                           {DETAIL_TYPE_LABELS[type] || type}
                         </p>
-                        <div className="mt-2 space-y-2">
+                        <div className="mt-2.5 space-y-2.5">
                           {entries.map(([key, val]) => (
                             <div key={key}>
                               <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
                                 {fieldLabels[key] || key}
                               </p>
-                              <p className="text-slate-700 whitespace-pre-line">{String(val)}</p>
+                              <p className="text-slate-700 whitespace-pre-line break-words">{String(val)}</p>
                             </div>
                           ))}
                         </div>
@@ -424,7 +580,7 @@ export default function FaskesMedicalRecordsPage() {
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                     <Paperclip className="h-3.5 w-3.5" /> Lampiran ({selectedRecord.attachments.length})
                   </p>
-                  <ul className="mt-2 space-y-2">
+                  <ul className="mt-2.5 space-y-2">
                     {selectedRecord.attachments.map((att) => (
                       <li
                         key={att.id}
@@ -454,18 +610,8 @@ export default function FaskesMedicalRecordsPage() {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
                   <Hash className="h-3.5 w-3.5" /> Blockchain Tx Hash
                 </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {selectedRecord.txHash ? (
-                    <TxHashLink
-                      txHash={selectedRecord.txHash}
-                      className="font-mono text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
-                      title={selectedRecord.txHash}
-                    >
-                      <span>{selectedRecord.txHash}</span>
-                    </TxHashLink>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">Off-Chain</span>
-                  )}
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <TxHashPill txHash={selectedRecord.txHash} />
                 </div>
               </div>
 
