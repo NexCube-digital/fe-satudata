@@ -193,6 +193,7 @@ export default function Sidebar({ role }) {
       case "rumah_sakit":
       case "staf_rs":
         const userPerms = currentUser?.staff_profile?.permissions || currentUser?.permissions || null;
+        const isStaff = currentUser?.role === "staf_rs";
 
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
@@ -226,7 +227,7 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
             ]
           },
-          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permission: "access_request:read" },
+          { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permissionRequired: "access_request:read" },
           { 
             label: "Apoteker & POS Obat", 
             icon: Pill,
@@ -234,11 +235,10 @@ export default function Sidebar({ role }) {
             badge: "POS",
             permissionRequired: ["pharmacy:manage", "pharmacy:pos"],
             children: [
-              { href: "/dashboard/faskes/pharmacy", label: "Overview Apoteker", icon: Home },
+              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
               { href: "/dashboard/faskes/pharmacy/prescriptions", label: "Antrean Resep", icon: FileText, permission: "pharmacy:manage" },
               { href: "/dashboard/faskes/pharmacy/inventory", label: "Katalog & Stok Obat", icon: Package, permission: "pharmacy:manage" },
-              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
-              { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi", icon: History, permission: "pharmacy:pos" }
+              { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi POS", icon: History, permission: "pharmacy:pos" }
             ]
           },
           { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
@@ -246,22 +246,39 @@ export default function Sidebar({ role }) {
         ];
 
         if (Array.isArray(userPerms)) {
-          return baseFaskesMenu
-            .map(item => {
-              if (item.permissionRequired && !item.permissionRequired.some(p => userPerms.includes(p))) {
-                return null;
-              }
-              if (item.children) {
-                const filteredChildren = item.children.filter(child => {
-                  if (!child.permission) return true;
-                  return userPerms.includes(child.permission);
+          const filtered = [];
+          baseFaskesMenu.forEach(item => {
+            if (item.permissionRequired) {
+              const reqs = Array.isArray(item.permissionRequired) ? item.permissionRequired : [item.permissionRequired];
+              if (!reqs.some(p => userPerms.includes(p))) return;
+            }
+
+            if (item.children) {
+              const filteredChildren = item.children.filter(child => {
+                if (!child.permission) return true;
+                return userPerms.includes(child.permission);
+              });
+              if (filteredChildren.length === 0) return;
+
+              if (isStaff) {
+                // Untuk Staf RS: Keluarkan menu dari dropdown menjadi menu utama terpisah
+                filteredChildren.forEach(child => {
+                  filtered.push({
+                    href: child.href,
+                    label: child.label,
+                    icon: child.icon || item.icon,
+                    badge: child.badge || null
+                  });
                 });
-                if (filteredChildren.length === 0) return null;
-                return { ...item, children: filteredChildren };
+              } else {
+                // Untuk Admin RS (rumah_sakit): Tetap dalam dropdown
+                filtered.push({ ...item, children: filteredChildren });
               }
-              return item;
-            })
-            .filter(Boolean);
+            } else {
+              filtered.push(item);
+            }
+          });
+          return filtered;
         }
 
         return baseFaskesMenu;
