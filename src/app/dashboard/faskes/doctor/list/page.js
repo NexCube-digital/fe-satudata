@@ -42,6 +42,21 @@ const DAYS_OF_WEEK = [
   { key: "Minggu", label: "Minggu" }
 ];
 
+const getDoctorImgSrc = (img) => {
+  if (!img) return null;
+  if (img.startsWith("http://") || img.startsWith("https://")) {
+    return img;
+  }
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+  if (img.startsWith("/images/") || img.startsWith("/upload/")) {
+    return `${apiBase}/public${img}`;
+  }
+  if (img.startsWith("/")) {
+    return `${apiBase}${img}`;
+  }
+  return `${apiBase}/public/upload/doctors/${img}`;
+};
+
 export default function FaskesDoctorsList() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -406,9 +421,7 @@ export default function FaskesDoctorsList() {
       status: doctor.status || "Aktif"
     });
 
-    const imgUrl = doctor.image
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/public/upload/doctors/${doctor.image}`
-      : null;
+    const imgUrl = getDoctorImgSrc(doctor.image);
     setImagePreview(imgUrl);
     setImageFile(null);
 
@@ -545,16 +558,16 @@ export default function FaskesDoctorsList() {
                     {/* Top Identity Row */}
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-800 flex items-center justify-center text-white font-extrabold text-sm shadow-sm overflow-hidden shrink-0">
+                        <div className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl bg-rose-50 border border-rose-200/70 flex items-center justify-center text-rose-800 font-extrabold text-xl shadow-xs overflow-hidden shrink-0">
                           {doctor.image ? (
                             <img
-                              src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/public/upload/doctors/${doctor.image}`}
+                              src={getDoctorImgSrc(doctor.image)}
                               alt={doctor.name}
                               className="h-full w-full object-cover"
                               onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                           ) : (
-                            doctor.name ? doctor.name.replace("Dr.", "").trim().charAt(0).toUpperCase() : "D"
+                            doctor.name ? doctor.name.replace("dr.", "").replace("Dr.", "").trim().charAt(0).toUpperCase() : "D"
                           )}
                         </div>
                         <div>

@@ -22,9 +22,11 @@ import {
   Coins,
   Trash2
 } from "lucide-react";
-import { apiGet, apiPut, apiDelete, getAvatarUrl } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { apiGet, apiPost, apiPut, apiDelete, clearAuth, getAvatarUrl } from "@/lib/api";
 
 export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -35,6 +37,25 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
+
+  const handleLogoutClick = async () => {
+    setIsDropdownOpen(false);
+    try {
+      const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+      if (refreshToken) {
+        await apiPost("/api/auth/logout", { refreshToken }).catch(() => {});
+      }
+    } catch (err) {}
+    clearAuth();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("userUpdated"));
+    }
+    if (onLogout) {
+      onLogout();
+    } else if (typeof window !== "undefined") {
+      window.location.href = "/auth/login";
+    }
+  };
 
   useEffect(() => {
     if (initialUser) {
@@ -563,7 +584,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                 <div className="my-1.5 border-t border-slate-100" />
 
                 <button
-                  onClick={() => { setIsDropdownOpen(false); onLogout?.(); }}
+                  onClick={handleLogoutClick}
                   className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 transition-all hover:bg-rose-50"
                 >
                   <div className="h-6 w-6 rounded-lg bg-rose-50 flex items-center justify-center">

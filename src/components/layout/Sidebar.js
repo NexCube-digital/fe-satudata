@@ -230,14 +230,14 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Apoteker & POS Obat", 
+            label: "Farmasi", 
             icon: Pill,
             dropdownKey: "pharmacy",
             badge: "POS",
             permissionRequired: ["pharmacy:manage", "pharmacy:pos"],
             children: [
-              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
               { href: "/dashboard/faskes/pharmacy/prescriptions", label: "Antrean Resep", icon: FileText, permission: "pharmacy:manage" },
+              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
               { href: "/dashboard/faskes/pharmacy/inventory", label: "Katalog & Stok Obat", icon: Package, permission: "pharmacy:manage" },
               { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi POS", icon: History, permission: "pharmacy:pos" }
             ]

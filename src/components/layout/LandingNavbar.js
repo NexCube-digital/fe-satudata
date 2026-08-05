@@ -138,6 +138,9 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
     setUser(null);
     setIsDropdownOpen(false);
     setMobileMenuOpen(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("userUpdated"));
+    }
   };
 
   const getDashboardHref = () => {
