@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import PrescriptionList from "@/components/PrescriptionList";
 import {
   FileText,
   Plus,
@@ -559,15 +560,26 @@ export default function FaskesMedicalRecordsPage() {
                         <p className="text-xs font-bold text-rose-800 uppercase tracking-wide">
                           {DETAIL_TYPE_LABELS[type] || type}
                         </p>
-                        <div className="mt-2.5 space-y-2.5">
-                          {entries.map(([key, val]) => (
-                            <div key={key}>
-                              <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-                                {fieldLabels[key] || key}
-                              </p>
-                              <p className="text-slate-700 whitespace-pre-line break-words">{String(val)}</p>
-                            </div>
-                          ))}
+                        <div className="mt-2.5 space-y-3">
+                          {entries.map(([key, val]) => {
+                            // PERBAIKAN: field "list_of_medicines" pada resep berisi string JSON
+                            // (array obat), bukan teks biasa -- jangan di-String() mentah,
+                            // render pakai PrescriptionList supaya rapi (nama, jumlah, aturan pakai).
+                            const isMedicinesField = type === "resep" && key === "list_of_medicines";
+
+                            return (
+                              <div key={key}>
+                                <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold mb-1.5">
+                                  {fieldLabels[key] || key}
+                                </p>
+                                {isMedicinesField ? (
+                                  <PrescriptionList rawListOfMedicines={val} />
+                                ) : (
+                                  <p className="text-slate-700 whitespace-pre-line break-words">{String(val)}</p>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
