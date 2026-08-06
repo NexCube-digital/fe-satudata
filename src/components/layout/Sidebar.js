@@ -231,7 +231,8 @@ export default function Sidebar({ role }) {
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
               { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
-              { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" }
+              { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/invoice", label: "Tagihan & Invoice", icon: ShoppingCart }
             ]
           },
           { 
