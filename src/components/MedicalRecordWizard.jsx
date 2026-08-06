@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -176,7 +176,20 @@ function buildStateFromRecord(record, selectedTypesHint) {
         }));
       }
     } catch (err) {
-      console.error("Gagal membaca data obat dari draft sebelumnya", err);
+      if (typeof rawPrescription === "string") {
+        prescriptionRows = rawPrescription.split(",").map((medStr, idx) => {
+          const trimmed = medStr.trim();
+          const match = trimmed.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+          return {
+            id: `obat-plain-${idx}`,
+            medicineId: "",
+            medicine: match && match[1] ? match[1].trim() : trimmed,
+            unit: "Pcs",
+            quantity: match && match[2] ? match[2].trim() : "1",
+            rule: "Diminum 3x1 sesudah makan"
+          };
+        });
+      }
     }
   }
 

@@ -197,6 +197,7 @@ export default function Sidebar({ role }) {
 
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
+          { href: "/dashboard/faskes/patient-flow", label: "Alur & Status Pasien", badge: "Live", icon: Activity },
           { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { 
             label: "Kelola Dokter", 
@@ -286,7 +287,15 @@ export default function Sidebar({ role }) {
       default:
         return [
           { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
-          { href: "/dashboard/pasien/records", label: "Rekam Medis", icon: FileText, badge: badgeCounts.records || "EHR" },
+          { 
+            label: "Rekam Medis", 
+            icon: FileText,
+            dropdownKey: "patientMedicalRecords",
+            children: [
+              { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: Clock, badge: badgeCounts.records || "EHR" },
+              { href: "/dashboard/pasien/records/history", label: "Riwayat Rekam Medis", icon: History, badge: "Histori" }
+            ]
+          },
           { 
             label: "Kelola Izin", 
             icon: ShieldCheck,
@@ -361,6 +370,7 @@ export default function Sidebar({ role }) {
     // Exact-only matching for sibling routes to prevent double highlighting (e.g., /requests vs /requests/history)
     const exactSiblings = [
       "/dashboard/faskes",
+      "/dashboard/faskes/patient-flow",
       "/dashboard/faskes/requests",
       "/dashboard/faskes/patients",
       "/dashboard/faskes/medical-records",
@@ -372,6 +382,10 @@ export default function Sidebar({ role }) {
       "/dashboard/faskes/doctor/list",
       "/dashboard/faskes/doctor/add",
       "/dashboard/pasien",
+      "/dashboard/pasien/records",
+      "/dashboard/pasien/records/history",
+      "/dashboard/pasien/consent",
+      "/dashboard/pasien/consent/history",
       "/dashboard/admin",
     ];
 

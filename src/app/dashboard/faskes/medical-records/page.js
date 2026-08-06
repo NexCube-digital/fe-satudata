@@ -84,7 +84,7 @@ function StatusBadge({ status }) {
           : "bg-emerald-50 text-emerald-700 border border-emerald-200"
       }`}
     >
-      {status || "-"}
+      {status || "FINAL"}
     </span>
   );
 }
@@ -124,6 +124,21 @@ export default function FaskesMedicalRecordsPage() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [recordStages, setRecordStages] = useState({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem("activePatientStage");
+    if (saved) {
+      const stageVal = parseInt(saved, 10);
+      setRecordStages((prev) => ({ 1: stageVal, ...prev }));
+    }
+  }, []);
+
+  const handleStageChange = (recordId, newStage) => {
+    setRecordStages((prev) => ({ ...prev, [recordId]: newStage }));
+    localStorage.setItem("activePatientStage", newStage.toString());
+    window.dispatchEvent(new Event("storage"));
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -353,9 +368,9 @@ export default function FaskesMedicalRecordsPage() {
                               <td className="px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
                                 {formatRecordType(item.recordType)}
                               </td>
-                              <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
-                                <StatusBadge status={item.status} />
-                              </td>
+                               <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
+                                 <StatusBadge status={item.status} />
+                               </td>
                               <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
                                 <div onClick={(e) => e.stopPropagation()}>
                                   <TxHashPill txHash={item.txHash} compact />

@@ -22,7 +22,6 @@ import {
   Unlock,
   Building2,
   Activity,
-  ArrowUpRight,
   RefreshCw,
   Eye,
   EyeOff,
@@ -98,7 +97,7 @@ export default function PasienDashboard() {
           code: item.hospital?.medical_license || "N/A",
           dept: "Instalasi / Layanan Medis",
           status: item.status,
-          txHash: null,
+          txHash: item.tx_hash || item.txHash || null,
           grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
           accessTypes: item.requested_data ? item.requested_data.split(",") : ["Diagnosis", "Resep Obat"]
         }));
@@ -117,14 +116,15 @@ export default function PasienDashboard() {
       if (res.ok && result.data) {
         const mapped = result.data.map((item) => ({
           id: item.id,
-          hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
+          hospitalName: item.hospital?.user?.name || item.hospital_name || item.hospital?.name || "Rumah Sakit Terdaftar",
           doctorName: item.doctor?.name || "Dokter Spesialis",
           category: item.record_type || "Rekam Medis Terverifikasi",
           date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+          rawTimestamp: new Date(item.visit_date || item.created_at || Date.now()).getTime(),
           txHash: item.tx_hash || "",
           diagnosis: item.title || "Konsultasi Medis",
           details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
-        }));
+        })).sort((a, b) => b.rawTimestamp - a.rawTimestamp);
         setMedicalRecords(mapped);
       }
     } catch (err) {
@@ -282,14 +282,6 @@ export default function PasienDashboard() {
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">NIK Pasien</p>
                   <p className="font-bold text-rose-300 mt-0.5">{user.nik || "Belum Dilengkapi"}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Address</p>
-                  <p className="font-bold text-emerald-400 mt-0.5">
-                    {user.wallet_address && typeof user.wallet_address === "string" && user.wallet_address.length >= 10
-                      ? `${user.wallet_address.substring(0, 6)}...${user.wallet_address.substring(user.wallet_address.length - 4)}`
-                      : "Belum Ditautkan"}
-                  </p>
                 </div>
               </div>
             </div>
@@ -453,7 +445,16 @@ export default function PasienDashboard() {
                         <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="space-y-1 font-mono text-[10px] text-slate-500">
                             <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
-                            <p>Tx Hash: <TxHashLink txHash={h.txHash} className="text-rose-600 font-semibold inline-flex items-center gap-1" title={h.txHash}><span>{h.txHash}</span></TxHashLink></p>
+                            <p>
+                              Tx Hash:{" "}
+                              {h.txHash ? (
+                                <TxHashLink txHash={h.txHash} className="text-rose-600 font-semibold inline-flex items-center gap-1" title={h.txHash}>
+                                  <span>{h.txHash}</span>
+                                </TxHashLink>
+                              ) : (
+                                <span className="text-slate-400 font-sans italic">Belum ada (Pending Blockchain)</span>
+                              )}
+                            </p>
                           </div>
 
                           {/* Action Buttons */}
@@ -513,85 +514,24 @@ export default function PasienDashboard() {
                 </div>
               </div>
 
-              {/* WIDGET 2: ENCRYPTED EHR TIMELINE */}
+              {/* WIDGET 2: AUDIT TRAIL BLOCKCHAIN LOG */}
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-rose-600" />
-                      Linimasa Medis Terpadu (Encrypted EHR Timeline)
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Seluruh riwayat diagnosa dan resep obat antar-rumah sakit tersimpan dalam enkripsi off-chain.
-                    </p>
-                  </div>
-                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer">
-                    <Download className="h-3.5 w-3.5" /> Unduh Resume PDF
-                  </button>
+                <div className="border-b border-slate-100 pb-4 mb-5">
+                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <Database className="h-5 w-5 text-rose-600" />
+                    Audit Trail Blockchain Log
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Riwayat aktivitas mutasi persetujuan dan verifikasi akses terikat pada ledger immutable.
+                  </p>
                 </div>
 
-                <div className="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6">
-                  {medicalRecords.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada riwayat rekam medis terdaftar.</p>
-                  ) : (
-                    medicalRecords.map((rec) => (
-                      <div key={rec.id} className="relative group">
-                        <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 ring-4 ring-white" />
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-xs">
-                          <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                            <span className="font-bold text-rose-700">{rec.hospitalName} ({rec.category})</span>
-                            <span className="font-mono text-[10px]">{rec.date}</span>
-                          </div>
-
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900">Diagnosa: {rec.diagnosis}</h4>
-                              <p className="text-xs text-slate-500 mt-0.5">Dokter Penanggung Jawab: {rec.doctorName}</p>
-                            </div>
-                            <button
-                              onClick={() => toggleDecrypt(rec.id)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer shrink-0"
-                            >
-                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
-                              {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi Data"}
-                            </button>
-                          </div>
-
-                          {/* Decrypted / Encrypted Content Preview */}
-                          {decryptedRecords[rec.id] ? (
-                            <div className="mt-3 rounded-xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-3 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
-                              <p className="font-bold text-rose-700 mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
-                              <p className="leading-relaxed">{rec.details}</p>
-                            </div>
-                          ) : (
-                            <div className="mt-3 rounded-xl bg-slate-50/80 p-3 text-[10px] font-mono text-slate-500 border border-slate-200/60 truncate">
-                              <span className="text-rose-600 font-extrabold mr-2">[CIPHERTEXT AES-256]:</span>
-                              U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash && typeof rec.txHash === "string" ? `${rec.txHash.substring(0, 10)}...` : "[tidak tersedia]"}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column (1 Col): Real-time Audit Trail & Quick Actions */}
-            <div className="space-y-8">
-              {/* Audit Trail Stream Widget */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="h-4 w-4 text-rose-600" />
-                  Audit Trail Blockchain Log
-                </h3>
-
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                   {auditLogs.length === 0 ? (
                     <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada log aktivitas blockchain.</p>
                   ) : (
                     auditLogs.map((log) => (
-                      <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
+                      <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 text-xs">
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-bold ${log.type === "success" ? "text-emerald-700" : "text-rose-700"}`}>
                             {log.action}
@@ -605,33 +545,77 @@ export default function PasienDashboard() {
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Quick Actions Panel */}
-              <div className="rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-red-900 p-6 text-white shadow-xl">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider mb-2 text-rose-200">
-                  Bantuan & Simulator
-                </h3>
-                <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-                  Ingin mensimulasikan persetujuan transaksi dari sudut pandang dokter? Buka Live Consent Simulator.
-                </p>
-
-                <div className="space-y-2.5">
-                  <Link
-                    href="/#simulator"
-                    className="flex items-center justify-between rounded-2xl bg-rose-600 hover:bg-rose-500 px-4 py-3 text-xs font-bold text-white transition shadow-md"
-                  >
-                    <span>Buka Consent Simulator</span>
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-
-                  <Link
-                    href="/dashboard/pasien/settings"
-                    className="flex items-center justify-between rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-3 text-xs font-bold text-slate-200 transition"
-                  >
-                    <span>Pengaturan Akun & Wallet</span>
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
+            {/* Right Column (1 Col): Encrypted EHR Timeline */}
+            <div className="space-y-8">
+              {/* WIDGET 3: ENCRYPTED EHR TIMELINE */}
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-5 gap-2">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-rose-600" />
+                      Linimasa Medis Terpadu
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Encrypted EHR Timeline off-chain.
+                    </p>
+                  </div>
+                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer">
+                    <Download className="h-3.5 w-3.5" /> Resume PDF
+                  </button>
                 </div>
+
+                <div className="relative border-l-2 border-slate-200 ml-3 space-y-6 pl-5">
+                  {medicalRecords.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada riwayat rekam medis terdaftar.</p>
+                  ) : (
+                    medicalRecords.slice(0, 3).map((rec) => (
+                      <div key={rec.id} className="relative group">
+                        <span className="absolute -left-[27px] top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 ring-4 ring-white" />
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 transition-all hover:bg-white hover:shadow-xs">
+                          <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+                            <span className="font-bold text-rose-700 text-[11px] truncate max-w-[140px]">{rec.hospitalName}</span>
+                            <span className="font-mono text-[9px]">{rec.date}</span>
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <h4 className="text-xs font-bold text-slate-900">{rec.diagnosis}</h4>
+                              <p className="text-[10px] text-slate-500 mt-0.5">{rec.doctorName}</p>
+                            </div>
+                            <button
+                              onClick={() => toggleDecrypt(rec.id)}
+                              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer w-full"
+                            >
+                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
+                              {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi Data"}
+                            </button>
+                          </div>
+
+                          {/* Decrypted Content Preview */}
+                          {decryptedRecords[rec.id] && (
+                            <div className="mt-2.5 rounded-xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-2.5 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
+                              <p className="font-bold text-rose-700 mb-1 text-[10px]">✔ TERDEKRIPSI LOKAL:</p>
+                              <p className="leading-relaxed">{rec.details}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {medicalRecords.length > 0 && (
+                  <div className="mt-5 border-t border-slate-100 pt-3 text-center">
+                    <Link
+                      href="/dashboard/pasien/records"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 transition"
+                    >
+                      Lihat Semua Rekam Medis ({medicalRecords.length}) →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

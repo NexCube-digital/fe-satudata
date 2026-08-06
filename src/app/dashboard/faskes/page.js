@@ -605,37 +605,26 @@ export default function FaskesDashboard() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full text-center text-xs">
                       <thead>
                         <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                          <th className="py-3 px-4 rounded-l-xl">Pasien / NIK</th>
-                          <th className="py-3 px-4">Poli Dokter</th>
-                          <th className="py-3 px-4">Status Consent</th>
-                          <th className="py-3 px-4 rounded-r-xl">Tx Hash</th>
+                          <th className="py-3 px-4 rounded-l-xl text-center">Tgl Pengajuan</th>
+                          <th className="py-3 px-4 text-center">Pasien</th>
+                          <th className="py-3 px-4 text-center">Tx Hash</th>
+                          <th className="py-3 px-4 rounded-r-xl text-center">Status Consent</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {requestsList.map((req) => (
                           <tr key={req.id} className="hover:bg-slate-50/50 transition">
-                            <td className="py-3.5 px-4">
+                            <td className="py-3.5 px-4 text-slate-500 font-semibold text-center">{req.requestedAt}</td>
+                            <td className="py-3.5 px-4 text-center">
                               <p className="font-bold text-slate-900">{req.patientName}</p>
                               <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
                             </td>
-                            <td className="py-3.5 px-4 font-medium text-slate-700">{req.poli}</td>
-                            <td className="py-3.5 px-4">
-                              {req.status === "Approved" ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-900">
-                                  <CheckCircle className="h-3 w-3" /> Disetujui
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse">
-                                  <Clock className="h-3 w-3" /> Pending Pasien
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900">
+                            <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900 text-center">
                               {req.txHash ? (
-                                <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 font-bold text-rose-900" title={req.txHash}>
+                                <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-rose-900 mx-auto" title={req.txHash}>
                                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                                   <span className="truncate max-w-[150px]">{req.txHash}</span>
                                 </TxHashLink>
@@ -644,14 +633,25 @@ export default function FaskesDashboard() {
                                   type="button"
                                   onClick={() => handleSyncBlockchain(req.id)}
                                   disabled={syncingReqId === req.id}
-                                  className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 px-2 py-1 text-[10px] font-bold transition cursor-pointer"
+                                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 px-2 py-1 text-[10px] font-bold transition cursor-pointer"
                                   title="Upload Ulang ke Blockchain (bc-satudata)"
                                 >
                                   <RefreshCw className={`h-3 w-3 text-amber-700 ${syncingReqId === req.id ? "animate-spin" : ""}`} />
-                                  <span>{syncingReqId === req.id ? "Syncing..." : "Upload Ulang (Sync)"}</span>
+                                  Sync Blockchain
                                 </button>
                               ) : (
-                                <span className="text-slate-400 font-sans italic text-[11px]">-</span>
+                                <span className="text-slate-300 italic font-sans">-</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              {req.status === "Approved" ? (
+                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                                  <CheckCircle className="h-3 w-3 text-emerald-600" /> Approved
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse">
+                                  <Clock className="h-3 w-3" /> Pending Pasien
+                                </span>
                               )}
                             </td>
                           </tr>

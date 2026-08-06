@@ -4,14 +4,25 @@ import { Pill } from "lucide-react";
 
 function parsePrescriptionList(raw) {
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw; // jaga-jaga kalau sudah berupa array, bukan string JSON
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error("Gagal membaca data obat:", err);
-    return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (err) {
+      // Fallback untuk string teks resep biasa (misal: "Amoxicillin 500mg (15 Kaplet), Paracetamol 500mg (10 Tablet)")
+      return raw.split(",").map((medStr) => {
+        const trimmed = medStr.trim();
+        const match = trimmed.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+        return {
+          medicine: match && match[1] ? match[1].trim() : trimmed,
+          quantity: match && match[2] ? match[2].trim() : "-",
+          rule: "Diminum 3x1 sesudah makan"
+        };
+      });
+    }
   }
+  return [];
 }
 
 /**
