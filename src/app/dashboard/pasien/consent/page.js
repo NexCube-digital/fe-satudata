@@ -226,68 +226,7 @@ export default function PatientConsentPage() {
             </div>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Izin Akses Disetujui</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <ShieldCheck className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "approved").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
-              </p>
-              <p className="text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Hak Baca Aktif Real-time
-              </p>
-            </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Permintaan Menunggu</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                  <Clock className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "pending").length} <span className="text-xs font-normal text-slate-500">Request</span>
-              </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
-                <Radio className="h-3 w-3 animate-pulse" /> Memerlukan Tindakan Pasien
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Akses Dicabut</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
-                  <ShieldX className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {requests.filter((r) => r.status === "revoked" || r.status === "rejected").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
-              </p>
-              <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
-                <Lock className="h-3 w-3" /> Dekripsi Dikunci Pasien
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Otorisasi Relay</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                  <Zap className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                EIP-2771 <span className="text-xs font-normal text-slate-500">Relayer</span>
-              </p>
-              <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Transaksi Tanpa Potongan Gas
-              </p>
-            </div>
-          </div>
 
           {/* Main Layout Grid */}
           <div className="grid gap-8 lg:grid-cols-3 items-start">

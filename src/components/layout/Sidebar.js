@@ -27,7 +27,8 @@ import {
   ChevronRight,
   Pill,
   ShoppingCart,
-  Package
+  Package,
+  Lock
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -36,8 +37,13 @@ export default function Sidebar({ role }) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Lazy initialize isCollapsed from localStorage to prevent layout jump during page navigation
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Lazy initialize isCollapsed from localStorage synchronously on client to eliminate page transition jump/flicker
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sidebarCollapsed") === "true";
+    }
+    return false;
+  });
   const [mounted, setMounted] = useState(false);
 
   const [activeHoverMenu, setActiveHoverMenu] = useState(null);
@@ -62,15 +68,13 @@ export default function Sidebar({ role }) {
     pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy")
   });
 
-  // Read collapsed preference from localStorage without initial animation flicker
+  // Enable CSS transitions after initial render mount
   useEffect(() => {
-    const storedCollapsed = localStorage.getItem("sidebarCollapsed");
-    if (storedCollapsed === "true") {
-      setIsCollapsed(true);
-    }
+    const stored = localStorage.getItem("sidebarCollapsed") === "true";
+    setIsCollapsed(stored);
     const timer = setTimeout(() => {
       setMounted(true);
-    }, 50);
+    }, 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -287,24 +291,10 @@ export default function Sidebar({ role }) {
       default:
         return [
           { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
-          { 
-            label: "Rekam Medis", 
-            icon: FileText,
-            dropdownKey: "patientMedicalRecords",
-            children: [
-              { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: Clock, badge: badgeCounts.records || "EHR" },
-              { href: "/dashboard/pasien/records/history", label: "Riwayat Rekam Medis", icon: History, badge: "Histori" }
-            ]
-          },
-          { 
-            label: "Kelola Izin", 
-            icon: ShieldCheck,
-            dropdownKey: "consent",
-            children: [
-              { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: Clock, badge: badgeCounts.pendingConsent },
-              { href: "/dashboard/pasien/consent/history", label: "Riwayat Otorisasi", icon: History, badge: badgeCounts.consent || "Aktif" }
-            ]
-          },
+          { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: FileText, badge: badgeCounts.records || "EHR" },
+          { href: "/dashboard/pasien/records/history", label: "Riwayat Rekam Medis", icon: History, badge: "Histori" },
+          { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: ShieldCheck, badge: badgeCounts.pendingConsent },
+          { href: "/dashboard/pasien/consent/history", label: "Riwayat Otorisasi", icon: Lock, badge: badgeCounts.consent || "Aktif" }
         ];
     }
   };

@@ -377,47 +377,83 @@ export default function FaskesPatientFlowPage() {
                       </div>
                     </div>
 
-                    {/* Read-Only Automatic Flow Stepper Bar */}
-                    <div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                    {/* Read-Only Automatic Flow Stepper Bar (Horizontal Line) */}
+                    <div className="py-2">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block mb-4">
                         Indikator Alur Pelayanan Pasien (Ter-update Otomatis):
                       </span>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                        {[
-                          { step: 1, label: "Step 1: Pendaftaran", desc: "Loket Faskes" },
-                          { step: 2, label: "Step 2: Rekam Medis", desc: "Upload Dokter" },
-                          { step: 3, label: "Step 3: Farmasi", desc: "Apotek Resep" },
-                          { step: 4, label: "Step 4: Pelunasan", desc: "Billing Gateway" },
-                          { step: 5, label: "Step 5: Selesai", desc: "Kwitansi Lunas" }
-                        ].map((item) => {
-                          const isCurrent = p.stage === item.step;
-                          const isPassed = p.stage > item.step;
+                      <div className="relative px-2 sm:px-6">
+                        {/* Connecting Line Background */}
+                        <div className="absolute top-[20px] left-8 right-8 h-1 -translate-y-1/2 bg-slate-100 rounded-full z-0" />
 
-                          return (
-                            <div
-                              key={item.step}
-                              className={`rounded-xl border p-2.5 text-left transition-all duration-200 select-none ${
-                                isCurrent
-                                  ? "border-rose-600 bg-rose-50/60 ring-2 ring-rose-500/20 shadow-2xs"
-                                  : isPassed
-                                  ? "border-emerald-200 bg-emerald-50/40 text-emerald-800"
-                                  : "border-slate-200/80 bg-slate-50/40 text-slate-500 opacity-60"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span className="text-[9px] font-bold font-mono">0{item.step}</span>
-                                {isCurrent ? (
-                                  <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping" />
-                                ) : isPassed ? (
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                ) : null}
+                        {/* Active Connecting Progress Fill Line */}
+                        <div
+                          className="absolute top-[20px] left-8 h-1 -translate-y-1/2 bg-gradient-to-r from-emerald-400 via-rose-700 to-rose-900 rounded-full transition-all duration-500 z-0"
+                          style={{ width: `calc(${((p.stage - 1) / 4) * 100}% - 0px)` }}
+                        />
+
+                        {/* 5 Step Nodes Grid */}
+                        <div className="relative z-10 grid grid-cols-5 text-center">
+                          {[
+                            { step: 1, label: "Pendaftaran", desc: "Loket Faskes", icon: User },
+                            { step: 2, label: "Rekam Medis", desc: "Upload Dokter", icon: Stethoscope },
+                            { step: 3, label: "Layanan Farmasi", desc: "Apotek Resep", icon: Pill },
+                            { step: 4, label: "Pelunasan Billing", desc: "Billing Gateway", icon: Receipt },
+                            { step: 5, label: "Selesai & Lunas", desc: "Kwitansi Lunas", icon: CheckCircle2 }
+                          ].map((item) => {
+                            const isCurrent = p.stage === item.step;
+                            const isPassed = p.stage > item.step;
+                            const StepIcon = item.icon;
+
+                            return (
+                              <div key={item.step} className="flex flex-col items-center group">
+                                {/* Circle Node Icon */}
+                                <div
+                                  className={`flex items-center justify-center transition-all duration-300 rounded-full select-none ${
+                                    isCurrent
+                                      ? "h-11 w-11 bg-rose-900 text-white ring-4 ring-rose-900/20 shadow-md scale-110 -mt-1"
+                                      : isPassed
+                                      ? "h-7 w-7 bg-emerald-500 text-white border-2 border-white shadow-2xs mt-1"
+                                      : "h-6 w-6 bg-slate-100 text-slate-400 border border-slate-200 mt-1.5"
+                                  }`}
+                                >
+                                  {isCurrent ? (
+                                    <StepIcon className="h-5 w-5 text-white animate-pulse" />
+                                  ) : isPassed ? (
+                                    <CheckCircle2 className="h-4 w-4 text-white" />
+                                  ) : (
+                                    <span className="text-[9px] font-bold font-mono">{item.step}</span>
+                                  )}
+                                </div>
+
+                                {/* Text Labels */}
+                                <div className="mt-2 space-y-0.5">
+                                  <p
+                                    className={`transition-all duration-200 ${
+                                      isCurrent
+                                        ? "text-xs font-black text-rose-950 uppercase tracking-tight scale-105"
+                                        : isPassed
+                                        ? "text-[10px] font-semibold text-slate-500"
+                                        : "text-[9px] font-normal text-slate-400"
+                                    }`}
+                                  >
+                                    {item.label}
+                                  </p>
+                                  <p
+                                    className={`${
+                                      isCurrent
+                                        ? "text-[10px] font-extrabold text-rose-800"
+                                        : "text-[8px] text-slate-400"
+                                    }`}
+                                  >
+                                    {item.desc}
+                                  </p>
+                                </div>
                               </div>
-                              <p className="text-[11px] font-extrabold text-slate-900">{item.label}</p>
-                              <p className="text-[9px] text-slate-500">{item.desc}</p>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 

@@ -372,8 +372,8 @@ export default function PasienDashboard() {
             {/* Left Column (2 Cols): Live Consent Manager & Medical Timeline */}
             <div className="lg:col-span-2 space-y-8">
               {/* WIDGET 1: LIVE GRANULAR CONSENT MANAGER */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-7 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                       <ShieldCheck className="h-5 w-5 text-rose-600" />
@@ -383,7 +383,8 @@ export default function PasienDashboard() {
                       Berikan, tolak, atau cabut hak baca rekam medis Anda ke rumah sakit secara real-time.
                     </p>
                   </div>
-                  <span className="rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[10px] font-bold text-rose-700">
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[10px] font-bold text-emerald-700 flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                     Sovereignty Live
                   </span>
                 </div>
@@ -396,80 +397,86 @@ export default function PasienDashboard() {
                     hospitals.map((h) => (
                       <div
                         key={h.id}
-                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
+                        className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/50 to-rose-50/20 p-5 transition-all duration-300 hover:border-rose-300 hover:shadow-md group"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                          <div className="flex items-start gap-3">
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
-                              {h.name && typeof h.name === "string" ? `${h.name.charAt(0)}${h.name.substring(3, 4) || ""}` : "RS"}
-                            </span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
+                          <div className="flex items-center gap-3.5">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-900 to-red-800 text-white font-extrabold text-xs shadow-md border border-rose-700">
+                              <Building2 className="h-5 w-5 text-rose-100" />
+                            </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold text-slate-900">{h.name}</h4>
-                                <span className="text-[10px] font-mono text-slate-400">({h.code})</span>
+                                <h4 className="text-sm font-extrabold text-slate-900 tracking-tight">{h.name}</h4>
+                                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                                  STR/NPR: {h.code}
+                                </span>
                               </div>
-                              <p className="text-xs text-slate-500">{h.dept}</p>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5">{h.dept}</p>
                             </div>
                           </div>
 
                           {/* Status Badges */}
                           <div>
                             {h.status === "approved" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 px-3.5 py-1 text-xs font-bold text-emerald-700 shadow-2xs">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                                 Akses Disetujui
                               </span>
                             )}
                             {h.status === "pending" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
-                                <Clock className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1 text-xs font-bold text-amber-700 animate-pulse shadow-2xs">
+                                <Clock className="h-3.5 w-3.5" />
                                 Permintaan Baru
                               </span>
                             )}
                             {h.status === "rejected" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-500">
-                                <XCircle className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3.5 py-1 text-xs font-bold text-slate-600">
+                                <XCircle className="h-3.5 w-3.5" />
                                 Akses Ditolak
                               </span>
                             )}
                             {h.status === "revoked" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-bold text-rose-700">
-                                <Lock className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3.5 py-1 text-xs font-bold text-rose-700">
+                                <Lock className="h-3.5 w-3.5" />
                                 Akses Dicabut
                               </span>
                             )}
                           </div>
                         </div>
 
-                        {/* Details & Actions */}
-                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="space-y-1 font-mono text-[10px] text-slate-500">
-                            <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
-                            <p>
-                              Tx Hash:{" "}
+                        {/* Details & Actions Grid */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+                          <div className="space-y-1.5 font-mono text-[11px] text-slate-600">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tipe Izin:</span>
+                              <span className="font-bold text-rose-900 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200/70">{h.accessTypes.join(", ")}</span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap mt-1">
+                              <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tx Hash:</span>
                               {h.txHash ? (
-                                <TxHashLink txHash={h.txHash} className="text-rose-600 font-semibold inline-flex items-center gap-1" title={h.txHash}>
-                                  <span>{h.txHash}</span>
+                                <TxHashLink txHash={h.txHash} className="text-rose-700 font-bold font-mono inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:border-rose-300 transition" title={h.txHash}>
+                                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                  <span className="truncate max-w-[280px]">{h.txHash}</span>
                                 </TxHashLink>
                               ) : (
                                 <span className="text-slate-400 font-sans italic">Belum ada (Pending Blockchain)</span>
                               )}
-                            </p>
+                            </div>
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 shrink-0">
                             {h.status === "pending" && (
                               <>
                                 <button
                                   onClick={() => handleToggleConsent(h.id, "approved", h.status)}
                                   disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-xs ${actionInProgress === h.id ? "bg-emerald-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"}`}
+                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"}`}
                                 >
                                   {actionInProgress === h.id ? (
                                     <span className="inline-flex items-center gap-2">
                                       <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                      Menunggu konfirmasi...
+                                      Konfirmasi...
                                     </span>
                                   ) : (
                                     "Setujui Akses (Approve)"
@@ -478,16 +485,9 @@ export default function PasienDashboard() {
                                 <button
                                   onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
                                   disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer"}`}
                                 >
-                                  {actionInProgress === h.id ? (
-                                    <span className="inline-flex items-center gap-2">
-                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                      Sedang diproses...
-                                    </span>
-                                  ) : (
-                                    "Tolak"
-                                  )}
+                                  Tolak
                                 </button>
                               </>
                             )}
@@ -495,15 +495,16 @@ export default function PasienDashboard() {
                             {h.status === "approved" && (
                               <button
                                 onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
-                                className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-900 to-rose-800 hover:from-rose-800 hover:to-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer"
                               >
+                                <Lock className="h-3.5 w-3.5 text-rose-300" />
                                 Cabut Izin Akses (revokeAccess)
                               </button>
                             )}
 
                             {(h.status === "revoked" || h.status === "rejected") && (
-                              <div className="rounded-xl bg-slate-100 px-4 py-2 text-xs text-slate-600 border border-slate-200">
-                                Permintaan harus diajukan ulang oleh faskes untuk mendapatkan izin kembali.
+                              <div className="rounded-xl bg-slate-100 px-3.5 py-1.5 text-xs text-slate-500 border border-slate-200/80 font-medium">
+                                Izin Telah Non-Aktif
                               </div>
                             )}
                           </div>

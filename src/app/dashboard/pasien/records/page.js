@@ -301,34 +301,7 @@ export default function PatientNewRecordsPage() {
         <Sidebar role="pasien" />
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <Activity className="h-3.5 w-3.5 text-rose-400 animate-pulse" />
-                  Alur Kunjungan & Status Real-Time Aktif
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Rekam Medis Baru & Alur Pelayanan
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-                  Pantau setiap tahap kegiatan medis Anda dari Rekam Medis, Layanan Farmasi, hingga Rincian Jasa & Pelunasan Tagihan.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2.5">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Status Alur Pasien</p>
-                  <p className="font-bold text-emerald-400 mt-0.5 uppercase tracking-wider">
-                    {flowSteps[activeStage - 1]?.statusName}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* SECTION 1: INDIKATOR ALUR DOKUMEN REKAM MEDIS */}
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-8">
@@ -348,49 +321,78 @@ export default function PatientNewRecordsPage() {
               </span>
             </div>
 
-            {/* Stepper Progress Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-              {flowSteps.map((step) => {
-                const IconComponent = step.icon;
-                const isActive = activeStage === step.id;
-                const isDone = step.isCompleted;
+            {/* Read-Only Automatic Flow Stepper Bar (Horizontal Line) */}
+            <div className="py-3">
+              <div className="relative px-2 sm:px-8">
+                {/* Connecting Line Background */}
+                <div className="absolute top-[22px] left-10 right-10 h-1 -translate-y-1/2 bg-slate-100 rounded-full z-0" />
 
-                return (
-                  <div
-                    key={step.id}
-                    onClick={() => setActiveStage(step.id)}
-                    className={`cursor-pointer rounded-2xl border p-4 transition-all duration-200 relative ${
-                      isActive
-                        ? "border-rose-500 bg-rose-50/40 shadow-xs ring-2 ring-rose-500/20"
-                        : isDone
-                        ? "border-emerald-200 bg-emerald-50/30 hover:border-emerald-300"
-                        : "border-slate-200/80 bg-slate-50/40 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold text-xs ${
-                          isDone
-                            ? "bg-emerald-600 text-white"
-                            : isActive
-                            ? "bg-rose-600 text-white shadow-md animate-pulse"
-                            : "bg-slate-200 text-slate-600"
-                        }`}
+                {/* Active Connecting Progress Fill Line */}
+                <div
+                  className="absolute top-[22px] left-10 h-1 -translate-y-1/2 bg-gradient-to-r from-emerald-400 via-rose-700 to-rose-900 rounded-full transition-all duration-500 z-0"
+                  style={{ width: `calc(${((activeStage - 1) / (flowSteps.length - 1)) * 100}% - 0px)` }}
+                />
+
+                {/* 4 Step Nodes Grid */}
+                <div className="relative z-10 grid grid-cols-4 text-center">
+                  {flowSteps.map((step) => {
+                    const IconComponent = step.icon;
+                    const isActive = activeStage === step.id;
+                    const isDone = step.isCompleted && !isActive;
+
+                    return (
+                      <div
+                        key={step.id}
+                        onClick={() => setActiveStage(step.id)}
+                        className="flex flex-col items-center group cursor-pointer"
                       >
-                        {isDone ? <CheckCircle2 className="h-5 w-5" /> : <IconComponent className="h-5 w-5" />}
-                      </span>
-                      <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                        {step.docTag}
-                      </span>
-                    </div>
+                        {/* Circle Node Icon */}
+                        <div
+                          className={`flex items-center justify-center transition-all duration-300 rounded-full select-none ${
+                            isActive
+                              ? "h-11 w-11 bg-rose-900 text-white ring-4 ring-rose-900/20 shadow-md scale-110 -mt-1"
+                              : isDone
+                              ? "h-7 w-7 bg-emerald-500 text-white border-2 border-white shadow-2xs mt-1"
+                              : "h-6 w-6 bg-slate-100 text-slate-400 border border-slate-200 mt-1.5"
+                          }`}
+                        >
+                          {isActive ? (
+                            <IconComponent className="h-5 w-5 text-white animate-pulse" />
+                          ) : isDone ? (
+                            <CheckCircle2 className="h-4 w-4 text-white" />
+                          ) : (
+                            <span className="text-[9px] font-bold font-mono">{step.id}</span>
+                          )}
+                        </div>
 
-                    <h4 className="text-xs font-extrabold text-slate-900 mb-1">{step.title}</h4>
-                    <p className="text-[10px] font-bold text-rose-700 mb-1 font-mono">Status: {step.statusName}</p>
-                    <p className="text-[11px] text-slate-500 leading-snug">{step.desc}</p>
-                    <p className="text-[9px] font-mono text-slate-400 mt-2">{step.time}</p>
-                  </div>
-                );
-              })}
+                        {/* Text Labels */}
+                        <div className="mt-2 space-y-0.5 max-w-[140px] text-center">
+                          <p
+                            className={`transition-all duration-200 ${
+                              isActive
+                                ? "text-xs font-black text-rose-950 uppercase tracking-tight scale-105"
+                                : isDone
+                                ? "text-[10px] font-semibold text-slate-500"
+                                : "text-[9px] font-normal text-slate-400"
+                            }`}
+                          >
+                            {step.title}
+                          </p>
+                          <p
+                            className={`${
+                              isActive
+                                ? "text-[10px] font-extrabold text-rose-800"
+                                : "text-[8px] text-slate-400"
+                            }`}
+                          >
+                            {step.statusName}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -539,286 +541,7 @@ export default function PatientNewRecordsPage() {
             </div>
           )}
 
-          {/* SECTION 3: DOKUMEN BERDASARKAN STATUS ALUR KUNJUNGAN AKTIF */}
-          <div className="space-y-4 mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-rose-600" />
-                  Dokumen Kunjungan Aktif ({flowSteps[activeStage - 1]?.title || "Dokumen Kunjungan"})
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Menampilkan dokumen & data aktual sesuai posisi tahapan pelayanan Anda di Faskes saat ini.
-                </p>
-              </div>
-              <Link
-                href="/dashboard/pasien/records/history"
-                className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 transition shrink-0"
-              >
-                Lihat Semua Riwayat Medis ({records.length}) →
-              </Link>
-            </div>
 
-            {/* STAGE 1: DOKUMEN REGISTRASI / PENDAFTARAN */}
-            {activeStage === 1 && (
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs animate-fade-in space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 font-bold border border-blue-200">
-                      <Building2 className="h-6 w-6" />
-                    </span>
-                    <div>
-                      <h4 className="text-base font-extrabold text-slate-900">Berkas Pendaftaran Pasien RS Rotinsulu</h4>
-                      <p className="text-xs text-slate-500">Nomor Registrasi: #REG-2026-0806-024 • Waktu: 07.30 WIB</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-xs font-bold text-blue-700">
-                    Pendaftaran Terverifikasi
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Nomor Antrean</span>
-                    <span className="text-lg font-extrabold text-blue-700">A-024</span>
-                  </div>
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Poliklinik Tujuan</span>
-                    <span className="text-sm font-bold text-slate-800">Spesialis Paru & Pulmonologi</span>
-                  </div>
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Status Antrean</span>
-                    <span className="text-xs font-bold text-emerald-600">Dipanggil ke Ruang Periksa</span>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-blue-50/50 border border-blue-100 p-4 text-xs text-slate-700 flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-blue-600 shrink-0" />
-                  <p>
-                    Silakan menuju ke Ruang Periksa Spesialis Paru. Dokter sedang bersiap mengunggah Catatan Rekam Medis Anda (Step 02).
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* STAGE 2: DOKUMEN REKAM MEDIS DOKTER */}
-            {activeStage === 2 && filteredRecords.slice(0, 1).map((rec) => {
-              const isDecrypted = decryptedState[rec.id];
-              const isDecrypting = decryptingIds[rec.id];
-              const displayRec = decryptedDetails[rec.id] || rec;
-
-              return (
-                <div
-                  key={rec.id}
-                  className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs hover:border-rose-300 transition-all duration-200 animate-fade-in"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-                    <div className="flex items-start gap-3.5">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 border border-rose-200 font-bold text-rose-700 text-sm shadow-2xs">
-                        {rec.hospitalName.substring(0, 2).toUpperCase()}
-                      </span>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-extrabold text-slate-900">{rec.hospitalName}</h3>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 border border-slate-200">
-                            {rec.hospitalCode}
-                          </span>
-                          <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200">
-                            Pemeriksaan Dokter
-                          </span>
-                          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                            EHR Off-chain
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
-                          <Stethoscope className="h-3.5 w-3.5 text-slate-400" />
-                          {rec.doctorName} <span className="text-slate-300">•</span> {rec.specialty}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:items-end text-xs text-slate-500 font-mono">
-                      <span className="flex items-center gap-1 text-slate-600 font-bold">
-                        <Calendar className="h-3.5 w-3.5 text-slate-400" /> {rec.date}
-                      </span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">{rec.time}</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                        {isDecrypted ? "Catatan Medis (Terdekripsi AES-256)" : "Ciphertext Terenkripsi"}
-                      </span>
-
-                      <button
-                        onClick={() => toggleDecryptRecord(rec.id)}
-                        disabled={isDecrypting}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
-                      >
-                        {isDecrypting ? (
-                          <>
-                            <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" /> Mendekripsi...
-                          </>
-                        ) : isDecrypted ? (
-                          <>
-                            <EyeOff className="h-3.5 w-3.5 text-rose-600" /> Sembunyikan Data
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="h-3.5 w-3.5 text-emerald-600" /> Dekripsi Rekam Medis
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {isDecrypting ? (
-                      <div className="rounded-2xl bg-slate-50 p-6 flex flex-col items-center justify-center border border-slate-200">
-                        <RefreshCw className="h-6 w-6 animate-spin text-rose-600 mb-2" />
-                        <p className="text-xs font-bold text-slate-500">Mendekripsi data rekam medis dengan Kunci Privat Anda...</p>
-                      </div>
-                    ) : isDecrypted ? (
-                      <div className="rounded-2xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-5 text-slate-800 shadow-xs animate-fade-in space-y-4 text-xs">
-                        <div className="border-b border-rose-100 pb-3">
-                          <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama Dokter:</p>
-                          <p className="text-sm font-extrabold text-slate-900">{displayRec.diagnosis}</p>
-                        </div>
-
-                        {displayRec.vitals && (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-3 rounded-xl border border-rose-100/50 text-[11px] font-mono">
-                            <div>
-                              <span className="text-rose-600 block text-[9px] font-bold">Tekanan Darah</span>
-                              <span className="font-bold text-slate-800">{displayRec.vitals.bp}</span>
-                            </div>
-                            <div>
-                              <span className="text-rose-600 block text-[9px] font-bold">Nadi</span>
-                              <span className="font-bold text-slate-800">{displayRec.vitals.pulse}</span>
-                            </div>
-                            <div>
-                              <span className="text-rose-600 block text-[9px] font-bold">Suhu Tubuh</span>
-                              <span className="font-bold text-slate-800">{displayRec.vitals.temp}</span>
-                            </div>
-                            <div>
-                              <span className="text-rose-600 block text-[9px] font-bold">Berat Badan</span>
-                              <span className="font-bold text-slate-800">{displayRec.vitals.weight}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan & Anjuran Dokter:</p>
-                          <p className="text-slate-700 leading-relaxed text-[11px] bg-white/90 p-2.5 rounded-lg border border-rose-100/40 whitespace-pre-line">{displayRec.notes}</p>
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-3 border-t border-slate-100">
-                    <div className="font-mono text-[10px] text-slate-500">
-                      Blockchain Tx Hash:{" "}
-                      <TxHashLink txHash={rec.txHash} className="text-rose-600 font-bold font-mono inline-flex items-center gap-1" title={rec.txHash}>
-                        <span>{rec.txHash}</span>
-                      </TxHashLink>
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenDetailModal(rec)}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
-                    >
-                      Detail Lengkap & Audit Trail <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* STAGE 3: DOKUMEN RESEP FARMASI & APOTEK */}
-            {activeStage === 3 && (
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs animate-fade-in space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 font-bold border border-amber-200">
-                      <Pill className="h-6 w-6" />
-                    </span>
-                    <div>
-                      <h4 className="text-base font-extrabold text-slate-900">Lembar Resep Obat Apotek RS Rotinsulu</h4>
-                      <p className="text-xs text-slate-500">Dokter Penanggung Jawab: dr. Herudian Ahmadin, Sp.P(K)</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700">
-                    Resep Siap Diambil
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Daftar Obat & Aturan Pakai:</span>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 text-xs">
-                      <div>
-                        <span className="font-extrabold text-slate-900 block">Amoxicillin 500mg (Antibiotik)</span>
-                        <span className="text-[11px] text-slate-500">Diminum 3x sehari 1 tablet sesudah makan (Habiskan dalam 5 hari)</span>
-                      </div>
-                      <span className="font-mono text-xs font-bold text-rose-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">15 Tablet</span>
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 text-xs">
-                      <div>
-                        <span className="font-extrabold text-slate-900 block">Paracetamol 500mg (Analgesik / Demam)</span>
-                        <span className="text-[11px] text-slate-500">Diminum 3x sehari 1 tablet bila demam atau nyeri</span>
-                      </div>
-                      <span className="font-mono text-xs font-bold text-rose-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">10 Tablet</span>
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 text-xs">
-                      <div>
-                        <span className="font-extrabold text-slate-900 block">Multivitamin Komplit (Daya Tahan Tubuh)</span>
-                        <span className="text-[11px] text-slate-500">Diminum 1x sehari 1 tablet pada pagi hari</span>
-                      </div>
-                      <span className="font-mono text-xs font-bold text-rose-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">1 Strip</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-amber-50/60 border border-amber-200 p-4 text-xs text-amber-900 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-5 w-5 text-amber-600 shrink-0" />
-                    <span>Silakan ambil obat di <strong>Counter Apotek RS Rotinsulu (Loket 03)</strong>.</span>
-                  </div>
-                  <button
-                    onClick={() => setActiveStage(4)}
-                    className="rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-3.5 py-2 shadow-xs transition cursor-pointer shrink-0"
-                  >
-                    Lanjut ke Pelunasan (Step 04) →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* STAGE 4: DOKUMEN FAKTUR & PELUNASAN */}
-            {activeStage >= 4 && (
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs animate-fade-in space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-50 text-purple-700 font-bold border border-purple-200">
-                      <Receipt className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-900">Dokumen Faktur & Bukti Pelunasan RS Rotinsulu</h4>
-                      <p className="text-[11px] text-slate-500">Kode Billing Billing: BILL-2026-0806-9921</p>
-                    </div>
-                  </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    paymentStatus === "paid" ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-purple-50 border border-purple-200 text-purple-700"
-                  }`}>
-                    {paymentStatus === "paid" ? "Faktur Lunas (Verified)" : "Tagihan Siap Dilunasi"}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Semua layanan medis & resep obat telah selesai diproses. Rincian lengkap biaya dan opsi pembayaran online via Payment Gateway / Pendaftaran Faskes tersedia pada Section Pelunasan di atas.
-                </p>
-              </div>
-            )}
-          </div>
 
           {/* PAYMENT GATEWAY MODAL */}
           {showPaymentModal && (
