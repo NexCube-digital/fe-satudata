@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, getAccessToken } from "@/lib/api";
+import { getInvoicePatients, payInvoice, payInvoiceMidtrans } from "@/services/invoiceService";
 import { 
   ShoppingCart, 
   Search, 
@@ -19,7 +22,10 @@ import {
   DollarSign
 } from "lucide-react";
 
+const createReceiptId = () => `POS-${Date.now()}`;
+
 export default function PharmacyPOSPage() {
+  const router = useRouter();
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -30,6 +36,11 @@ export default function PharmacyPOSPage() {
   const [processing, setProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState(null);
   const [user, setUser] = useState(null);
+  const [registeredPatients, setRegisteredPatients] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [payingInvoiceId, setPayingInvoiceId] = useState(null);
+  const [midtransReady, setMidtransReady] = useState(false);
+  const [midtransError, setMidtransError] = useState(null);
 
   const fetchMedicines = async () => {
     setLoading(true);
@@ -45,12 +56,40 @@ export default function PharmacyPOSPage() {
     }
   };
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try { setUser(JSON.parse(userData)); } catch (e) {}
+  const fetchRegisteredPatients = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        console.warn("Tidak ada accessToken saat memuat pasien invoice.");
+      }
+      const res = await getInvoicePatients();
+      const patients = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      setRegisteredPatients(patients);
+    } catch (err) {
+      console.error("Gagal memuat pasien invoice:", err);
+      setRegisteredPatients([]);
     }
-    fetchMedicines();
+  };
+
+  useEffect(() => {
+    const initialize = async () => {
+      await fetchMedicines();
+      await fetchRegisteredPatients();
+    };
+
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (e) {
+      console.error("Gagal parse user dari localStorage", e);
+    }
   }, []);
 
   const addToCart = (med) => {
@@ -91,16 +130,93 @@ export default function PharmacyPOSPage() {
     if (cart.length === 0) return;
     setProcessing(true);
     try {
+      const normalizedPatientName = patientName?.trim() || "Pasien Umum / Walk-in";
+      const matchedPatient = registeredPatients.find((patient) => String(patient.id) === String(selectedPatientId))
+        || registeredPatients.find((patient) => patient.name?.toLowerCase() === normalizedPatientName.toLowerCase());
+
+      const note = `Pembelian obat${normalizedPatientName ? ` - ${normalizedPatientName}` : ""}`;
       const payload = {
-        patient_name: patientName,
+        patient_name: normalizedPatientName,
+        patient_id: matchedPatient?.id || null,
         items: cart.map(c => ({ medicine_id: c.medicine_id, qty: c.qty })),
         payment_method: paymentMethod,
-        amount_paid: paidVal
+        amount_paid: paymentMethod === "cash" ? paidVal : totalAmount,
+        notes: note,
       };
 
-      const res = await apiPost("/api/hospital/pharmacy/pos/checkout", payload);
-      if (res.success) {
-        setLastReceipt(res.data);
+      if (paymentMethod === "cash" && paidVal < totalAmount) {
+        window.alert("Jumlah uang diterima harus lebih besar atau sama dengan total belanja untuk pembayaran tunai.");
+        setProcessing(false);
+        return;
+      }
+
+      const checkoutRes = await apiPost("/api/hospital/pharmacy/pos/checkout", payload);
+      const invoiceId = checkoutRes?.data?.invoice_id || checkoutRes?.invoice_id || checkoutRes?.data?.id || checkoutRes?.id || null;
+
+      if (paymentMethod === "transfer") {
+        if (!process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY) {
+          window.alert("Midtrans client key belum dikonfigurasi. Hubungi admin sistem.");
+          setProcessing(false);
+          return;
+        }
+
+        if (!invoiceId) {
+          console.error("Invoice ID tidak ditemukan pasca checkout transfer", checkoutRes);
+          window.alert("Gagal membuat invoice untuk pembayaran transfer.");
+          setProcessing(false);
+          return;
+        }
+
+        const receiptItems = cart.map((item) => ({
+          name: item.name,
+          qty: item.qty,
+          subtotal: item.price * item.qty,
+        }));
+
+        const invoiceReceipt = {
+          id: checkoutRes?.data?.id || checkoutRes?.invoice_id || invoiceId || createReceiptId(),
+          created_at: checkoutRes?.data?.created_at || new Date().toISOString(),
+          items: receiptItems,
+          total_amount: checkoutRes?.data?.total_amount || totalAmount,
+          amount_paid: totalAmount,
+          change: 0,
+          patient_name: normalizedPatientName,
+          invoice_id: invoiceId,
+          note,
+          payment_method: paymentMethod,
+        };
+
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(`pharmacy-pos-invoice-${invoiceId}`, JSON.stringify(invoiceReceipt));
+        }
+
+        setCart([]);
+        setAmountPaid("");
+        fetchMedicines();
+        router.push(`/dashboard/faskes/pharmacy/pos/invoice/${encodeURIComponent(invoiceId)}`);
+        return;
+      }
+
+      if (checkoutRes.success) {
+        const receiptItems = cart.map((item) => ({
+          name: item.name,
+          qty: item.qty,
+          subtotal: item.price * item.qty,
+        }));
+
+        const receiptId = checkoutRes?.data?.id || checkoutRes?.invoice_id || invoiceId || createReceiptId();
+        setLastReceipt({
+          id: receiptId,
+          created_at: checkoutRes?.data?.created_at || new Date().toISOString(),
+          items: receiptItems,
+          total_amount: checkoutRes?.data?.total_amount || totalAmount,
+          amount_paid: paymentMethod === "cash" ? paidVal : totalAmount,
+          change: paymentMethod === "cash" ? changeVal : 0,
+          patient_name: normalizedPatientName,
+          invoice_id: invoiceId,
+          note,
+          payment_method: paymentMethod,
+        });
         setCart([]);
         setAmountPaid("");
         fetchMedicines();
@@ -118,8 +234,40 @@ export default function PharmacyPOSPage() {
     m.category.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handlePatientSelect = (value) => {
+    if (!value || value === "__walkin__") {
+      setSelectedPatientId("");
+      setPatientName("Pasien Umum / Walk-in");
+      return;
+    }
+
+    const matched = registeredPatients.find((patient) => String(patient.id) === String(value));
+    if (matched) {
+      setSelectedPatientId(String(matched.id));
+      setPatientName(matched.name || "Pasien Terdaftar");
+    }
+  };
+
+  const handlePayInvoiceFromReceipt = async (invoiceId) => {
+    if (!invoiceId) return;
+    router.push(`/dashboard/faskes/pharmacy/pos/invoice/${encodeURIComponent(invoiceId)}`);
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+      <Script
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="afterInteractive"
+        onLoad={() => {
+          setMidtransReady(true);
+          setMidtransError(null);
+        }}
+        onError={() => {
+          setMidtransReady(false);
+          setMidtransError("Gagal memuat Midtrans. Coba refresh halaman.");
+        }}
+      />
       <Sidebar role={user?.role || "staf_rs"} />
 
       <div className="flex flex-1 flex-col transition-all duration-300">
@@ -214,14 +362,38 @@ export default function PharmacyPOSPage() {
                 </div>
 
                 {/* Patient Info */}
-                <div className="space-y-1 text-xs">
+                <div className="space-y-2 text-xs">
                   <label className="block text-[11px] font-extrabold uppercase text-slate-400">Nama Pasien / Pembeli</label>
+                  <select
+                    value={selectedPatientId || "__walkin__"}
+                    onChange={(e) => handlePatientSelect(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none bg-white"
+                  >
+                    <option value="__walkin__">Pasien Umum / Walk-in</option>
+                    {registeredPatients.length === 0 ? (
+                      <option value="" disabled>Belum ada pasien terdaftar atau login belum dikenali</option>
+                    ) : (
+                      registeredPatients.map((patient) => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+
                   <input
                     type="text"
                     value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
+                    onChange={(e) => {
+                      setPatientName(e.target.value);
+                      if (e.target.value.trim() === "") {
+                        setSelectedPatientId("");
+                      }
+                    }}
+                    placeholder="Ketik nama pelanggan jika ingin menambah catatan khusus"
                     className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none"
                   />
+
                 </div>
 
                 {/* Cart Items List */}
@@ -257,18 +429,27 @@ export default function PharmacyPOSPage() {
 
                 {/* Calculation Summary */}
                 <div className="border-t border-slate-100 pt-4 space-y-3 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Metode Pembayaran</span>
-                    <select
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="font-bold text-slate-900 border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none"
-                    >
-                      <option value="cash font-bold">Tunai / Cash</option>
-                      <option value="qris">QRIS</option>
-                      <option value="transfer">Transfer Bank</option>
-                      <option value="debit">Kartu Debit</option>
-                    </select>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Metode Pembayaran</span>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="font-bold text-slate-900 border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none"
+                      >
+                        <option value="cash">Tunai / Cash</option>
+                        <option value="transfer">Transfer Bank</option>
+                      </select>
+                    </div>
+                    {paymentMethod === "transfer" && (
+                      <p className="text-[10px] text-rose-700">
+                        {midtransError
+                          ? midtransError
+                          : !midtransReady
+                          ? "Menunggu Midtrans siap... refresh halaman jika popup tidak muncul."
+                          : "Transfer akan menampilkan popup Midtrans setelah klik Bayar."}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -276,21 +457,29 @@ export default function PharmacyPOSPage() {
                     <span className="text-lg font-extrabold text-emerald-700">Rp {totalAmount.toLocaleString('id-ID')}</span>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-extrabold uppercase text-slate-400">Jumlah Uang Diterima (Rp)</label>
-                    <input
-                      type="number"
-                      placeholder={`Minimal Rp ${totalAmount.toLocaleString('id-ID')}`}
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 font-extrabold text-sm focus:border-rose-700 focus:outline-none"
-                    />
-                  </div>
+                  {paymentMethod === "cash" ? (
+                    <>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-extrabold uppercase text-slate-400">Jumlah Uang Diterima (Rp)</label>
+                        <input
+                          type="number"
+                          placeholder={`Minimal Rp ${totalAmount.toLocaleString('id-ID')}`}
+                          value={amountPaid}
+                          onChange={(e) => setAmountPaid(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 font-extrabold text-sm focus:border-rose-700 focus:outline-none"
+                        />
+                      </div>
 
-                  {amountPaid && (
-                    <div className="flex justify-between items-center pt-1 font-bold text-slate-700">
-                      <span>Kembalian</span>
-                      <span className="text-rose-800">Rp {changeVal.toLocaleString('id-ID')}</span>
+                      {amountPaid && (
+                        <div className="flex justify-between items-center pt-1 font-bold text-slate-700">
+                          <span>Kembalian</span>
+                          <span className="text-rose-800">Rp {changeVal.toLocaleString('id-ID')}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
+                      Transfer akan memproses pembayaran lewat Midtrans dan otomatis menagih sebesar total belanja.
                     </div>
                   )}
                 </div>
@@ -326,6 +515,12 @@ export default function PharmacyPOSPage() {
                 <span>Pembeli:</span>
                 <span className="font-bold text-slate-900">{lastReceipt.patient_name}</span>
               </div>
+              {lastReceipt.invoice_id ? (
+                <div className="flex justify-between text-slate-600">
+                  <span>Invoice:</span>
+                  <span className="font-bold text-slate-900">{lastReceipt.invoice_id}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between text-slate-600">
                 <span>Waktu:</span>
                 <span>{new Date(lastReceipt.created_at).toLocaleTimeString('id-ID')}</span>
@@ -369,6 +564,15 @@ export default function PharmacyPOSPage() {
             </div>
 
             <div className="pt-3 flex gap-2">
+              {lastReceipt.invoice_id ? (
+                <button
+                  onClick={() => handlePayInvoiceFromReceipt(lastReceipt.invoice_id)}
+                  disabled={payingInvoiceId === lastReceipt.invoice_id}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white transition disabled:opacity-60"
+                >
+                  <CreditCard className="h-4 w-4" /> {payingInvoiceId === lastReceipt.invoice_id ? "Memproses..." : "Bayar Sekarang"}
+                </button>
+              ) : null}
               <button
                 onClick={() => window.print()}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700 transition"

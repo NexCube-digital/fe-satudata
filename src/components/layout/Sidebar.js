@@ -28,7 +28,8 @@ import {
   Pill,
   ShoppingCart,
   Package,
-  Lock
+  Lock,
+  Coins
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -232,6 +233,7 @@ export default function Sidebar({ role }) {
             children: [
               { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
               { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/layanan", label: "Service Price", icon: Coins },
               { href: "/dashboard/faskes/medical-records/invoice", label: "Tagihan & Invoice", icon: ShoppingCart }
             ]
           },

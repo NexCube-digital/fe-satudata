@@ -639,7 +639,7 @@ const pollInvoiceStatus = (invoiceId, attempt = 0) => {
                                 onClick={() => handlePayMidtrans(invoice.id)}
                                 className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-rose-300 hover:text-rose-800"
                               >
-                                <ShoppingCart className="h-4 w-4" /> Midtrans
+                                <ShoppingCart className="h-4 w-4" /> Transfer
                               </button>
                             </>
                           ) : (
