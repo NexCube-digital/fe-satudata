@@ -49,12 +49,6 @@ function SearchableSelect({
 		}
 	}, [open]);
 
-	// BUG FIX #1: value dari state wizard SELALU string (mis. String(record.doctor.id)),
-	// sedangkan options.value untuk dokter/pasien seringkali number (langsung dari d.id
-	// hasil GET /api/doctor). Perbandingan strict "===" sebelumnya (5 === "5" -> false)
-	// membuat dropdown TIDAK PERNAH menemukan opsi yang cocok walau datanya benar,
-	// sehingga terlihat seperti "dokter yang sudah dipilih tidak muncul lagi" saat edit.
-	// Solusi: selalu bandingkan sebagai string di kedua sisi.
 	const normalize = (v) => String(v ?? "");
 	const selected = options.find((o) => normalize(o.value) === normalize(value));
 
@@ -79,7 +73,7 @@ function SearchableSelect({
 				type="button"
 				onClick={toggleOpen}
 				disabled={disabled || isLoading}
-				className="w-full flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none disabled:opacity-60 cursor-pointer"
+				className="w-full flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none disabled:opacity-60 cursor-pointer"
 			>
 				<span className={`truncate text-left ${selected ? "text-slate-900 font-medium" : "text-slate-400"}`}>
 					{isLoading ? loadingText : selected ? selected.label : placeholder}
@@ -103,7 +97,7 @@ function SearchableSelect({
 									}
 								}}
 								placeholder="Cari..."
-								className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+								className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 							/>
 						</div>
 					</div>
@@ -129,7 +123,7 @@ function SearchableSelect({
 							<li className="px-4 py-3 text-sm text-slate-400">{emptyText}</li>
 						) : (
 							filteredOptions.map((opt) => {
-								const isSelected = normalize(opt.value) === normalize(value); // BUG FIX #1
+								const isSelected = normalize(opt.value) === normalize(value);
 								return (
 									<li key={opt.value}>
 										<button
@@ -145,7 +139,7 @@ function SearchableSelect({
 												opt.disabled
 													? "text-slate-300 cursor-not-allowed"
 													: isSelected
-													? "bg-rose-50 text-rose-800 font-semibold cursor-pointer"
+													? "bg-teal-50 text-teal-800 font-semibold cursor-pointer"
 													: "text-slate-700 hover:bg-slate-50 cursor-pointer"
 											}`}
 										>
@@ -196,7 +190,7 @@ function ComboboxInput({ value, onChange, options, placeholder = "Ketik atau pil
 				onFocus={() => setOpen(true)}
 				type="text"
 				placeholder={placeholder}
-				className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+				className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 			/>
 
 			{open && (
@@ -216,7 +210,7 @@ function ComboboxInput({ value, onChange, options, placeholder = "Ketik atau pil
 										}}
 										className={`w-full text-left px-4 py-2 text-sm transition cursor-pointer ${
 											opt.toLowerCase() === (value || "").trim().toLowerCase()
-												? "bg-rose-50 text-rose-800 font-semibold"
+												? "bg-teal-50 text-teal-800 font-semibold"
 												: "text-slate-700 hover:bg-slate-50"
 										}`}
 									>
@@ -260,15 +254,15 @@ function StepIndicator({ steps, currentIndex, onStepClick, disabled, stepJenis, 
 							disabled={disabled}
 							className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
 								isActive
-									? "bg-rose-800 text-white shadow-md"
+									? "bg-teal-800 text-white shadow-md"
 									: isDone
-									? "bg-rose-100 text-rose-800"
+									? "bg-teal-100 text-teal-800"
 									: "bg-slate-100 text-slate-400"
 							} ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-90"}`}
 						>
 							<span
 								className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-									isActive ? "bg-white/20" : isDone ? "bg-rose-200" : "bg-white"
+									isActive ? "bg-white/20" : isDone ? "bg-teal-200" : "bg-white"
 								}`}
 							>
 								{isDone ? <Check className="h-3 w-3" /> : idx + 1}
@@ -358,13 +352,13 @@ export default function MedicalRecordMain(props) {
 			{isEditRoute ? "Memuat data rekam medis..." : "Memeriksa draft yang belum selesai..."}
 		</div>
 	) : loadError ? (
-		<div className="rounded-3xl bg-white border border-rose-200 p-10 shadow-xs flex flex-col items-center justify-center gap-3 text-center">
-			<AlertTriangle className="h-8 w-8 text-rose-500" />
-			<p className="text-sm font-semibold text-rose-700">{loadError}</p>
+		<div className="rounded-3xl bg-white border border-red-200 p-10 shadow-xs flex flex-col items-center justify-center gap-3 text-center">
+			<AlertTriangle className="h-8 w-8 text-[#DC2626]" />
+			<p className="text-sm font-semibold text-[#DC2626]">{loadError}</p>
 			<button
 				type="button"
 				onClick={onBackToList}
-				className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 transition"
+				className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-4 py-2.5 text-sm font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
 			>
 				Kembali ke Daftar Rekam Medis
 			</button>
@@ -373,14 +367,14 @@ export default function MedicalRecordMain(props) {
 		<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
 			{resumedFromDraft && !isEditRoute && (
 				<div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-					<p className="text-xs font-semibold text-amber-800 flex items-center gap-2">
+					<p className="text-xs font-semibold text-[#D97706] flex items-center gap-2">
 						<Info className="h-4 w-4 shrink-0" />
 						Melanjutkan draft yang belum selesai sebelumnya.
 					</p>
 					<button
 						type="button"
 						onClick={onResetWizard}
-						className="text-xs font-bold text-amber-800 underline underline-offset-2 hover:text-amber-900 self-start sm:self-auto"
+						className="text-xs font-bold text-[#D97706] underline underline-offset-2 hover:text-amber-800 self-start sm:self-auto"
 					>
 						Mulai draft baru
 					</button>
@@ -389,8 +383,8 @@ export default function MedicalRecordMain(props) {
 
 			{isEditRoute && !isFinalRecord && (
 				<div className="mb-5 flex items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3">
-					<Info className="h-4 w-4 shrink-0 text-sky-700" />
-					<p className="text-xs font-semibold text-sky-800">
+					<Info className="h-4 w-4 shrink-0 text-[#0284C7]" />
+					<p className="text-xs font-semibold text-[#0284C7]">
 						Mode edit draft -- semua data yang sudah ada terisi otomatis. Klik step di atas untuk lompat langsung, atau
 						lengkapi bagian yang kurang lalu lanjutkan sampai step terakhir untuk menyimpan perubahan.
 					</p>
@@ -399,8 +393,8 @@ export default function MedicalRecordMain(props) {
 
 			{isEditRoute && isFinalRecord && (
 				<div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
-					<AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 mt-0.5" />
-					<p className="text-xs font-semibold text-amber-800">
+					<AlertTriangle className="h-4 w-4 shrink-0 text-[#D97706] mt-0.5" />
+					<p className="text-xs font-semibold text-[#D97706]">
 						Rekam medis ini sudah <span className="underline">final</span> dan pernah di-anchor ke blockchain. Menyimpan
 						perubahan di sini adalah koreksi pasca-publish -- akan memotong 1 token tambahan dan membuat bukti transaksi
 						(tx hash) baru menggantikan yang lama.
@@ -435,8 +429,8 @@ export default function MedicalRecordMain(props) {
 										onClick={() => onToggleRecordType(option.value)}
 										className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition cursor-pointer ${
 											active
-												? "border-rose-700 bg-rose-800 text-white shadow-md"
-												: "border-slate-200 bg-slate-50 text-slate-700 hover:border-rose-300"
+												? "border-teal-700 bg-teal-800 text-white shadow-md"
+												: "border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300"
 										}`}
 									>
 										{active && <Check className="h-4 w-4" />}
@@ -497,7 +491,7 @@ export default function MedicalRecordMain(props) {
 									onChange={(e) => onTitleChange(e.target.value)}
 									type="text"
 									placeholder="Contoh: Pemeriksaan Gula Darah"
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 									required
 								/>
 							</div>
@@ -508,7 +502,7 @@ export default function MedicalRecordMain(props) {
 									onChange={(e) => onVisitDateChange(e.target.value)}
 									type="date"
 									min={isEditRoute ? undefined : todayStr}
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 									required
 								/>
 							</div>
@@ -520,7 +514,7 @@ export default function MedicalRecordMain(props) {
 								<select
 									value={typeOfTreatment}
 									onChange={(e) => onTypeOfTreatmentChange(e.target.value)}
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none cursor-pointer"
+									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none cursor-pointer"
 									required
 								>
 									<option value="">-- Pilih Jenis Perawatan --</option>
@@ -551,7 +545,7 @@ export default function MedicalRecordMain(props) {
 									</p>
 								)}
 								{!loadingDoctors && doctorsForSelection.length === 0 && (
-									<p className="mt-2 text-xs text-amber-700 font-medium">Belum ada dokter yang terhubung ke Faskes Anda.</p>
+									<p className="mt-2 text-xs text-[#D97706] font-medium">Belum ada dokter yang terhubung ke Faskes Anda.</p>
 								)}
 							</div>
 						</div>
@@ -563,7 +557,7 @@ export default function MedicalRecordMain(props) {
 								onChange={(e) => onSummaryChange(e.target.value)}
 								rows={3}
 								placeholder="Ringkasan singkat kondisi pasien"
-								className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+								className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 							/>
 						</div>
 					</div>
@@ -578,7 +572,7 @@ export default function MedicalRecordMain(props) {
 
 						return (
 							<div className="space-y-5">
-								<span className="text-xs font-extrabold uppercase tracking-wider text-rose-800">Data: {typeLabel}</span>
+								<span className="text-xs font-extrabold uppercase tracking-wider text-teal-800">Data: {typeLabel}</span>
 								<div className="grid gap-6">
 									{detailFields.map((field) => (
 										<div key={field.name}>
@@ -588,7 +582,7 @@ export default function MedicalRecordMain(props) {
 												onChange={(e) => onUpdateDetailField(type, field.name, e.target.value)}
 												rows={3}
 												placeholder={field.label}
-												className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-rose-700 focus:outline-none"
+												className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
 											/>
 										</div>
 									))}
@@ -617,17 +611,17 @@ export default function MedicalRecordMain(props) {
 											<div
 												key={item.id}
 												className={`rounded-2xl border p-4 transition ${
-													stockError ? "border-rose-300 bg-rose-50/40" : "border-slate-200 bg-slate-50/40"
+													stockError ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/40"
 												}`}
 											>
 												<div className="flex items-center justify-between mb-3">
 													<span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-														<Pill className="h-3 w-3" /> Obat #{idx + 1}
+														<Pill className="h-3 w-3 text-teal-700" /> Obat #{idx + 1}
 													</span>
 													<button
 														type="button"
 														onClick={() => onRemovePrescriptionRow(item.id)}
-														className="text-slate-400 hover:text-rose-700 transition cursor-pointer"
+														className="text-slate-400 hover:text-[#DC2626] transition cursor-pointer"
 														title="Hapus obat"
 													>
 														<X className="h-4 w-4" />
@@ -649,7 +643,7 @@ export default function MedicalRecordMain(props) {
 															emptyText="Obat tidak ditemukan."
 														/>
 														{!loadingMedicines && medicinesCatalog.length === 0 && (
-															<p className="mt-1.5 text-[10px] text-amber-700 font-medium">
+															<p className="mt-1.5 text-[10px] text-[#D97706] font-medium">
 																Katalog obat masih kosong. Tambahkan dulu di modul Apoteker.
 															</p>
 														)}
@@ -669,7 +663,7 @@ export default function MedicalRecordMain(props) {
 																disabled={!item.medicineId}
 																placeholder={item.medicineId ? "0" : "Pilih obat dulu"}
 																className={`w-full min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-																	stockError ? "border-rose-400 focus:border-rose-500" : "border-slate-200 focus:border-rose-700"
+																	stockError ? "border-red-400 focus:border-red-500" : "border-slate-200 focus:border-teal-600"
 																}`}
 															/>
 															{item.unit && (
@@ -699,7 +693,7 @@ export default function MedicalRecordMain(props) {
 													</p>
 												)}
 												{stockError && (
-													<p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-rose-600">
+													<p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-[#DC2626]">
 														<AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {stockError}
 													</p>
 												)}
@@ -712,7 +706,7 @@ export default function MedicalRecordMain(props) {
 							<button
 								type="button"
 								onClick={onAddPrescriptionRow}
-								className="mt-3 inline-flex items-center gap-2 rounded-xl border border-dashed border-rose-300 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+								className="mt-3 inline-flex items-center gap-2 rounded-xl border border-dashed border-teal-300 px-4 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50 transition cursor-pointer"
 							>
 								<Plus className="h-3.5 w-3.5" /> Tambah Obat
 							</button>
@@ -724,7 +718,7 @@ export default function MedicalRecordMain(props) {
 							</label>
 							<label
 								htmlFor="attachments-input"
-								className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-rose-300 bg-rose-50/40 px-4 py-6 text-sm font-semibold text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+								className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-teal-300 bg-teal-50/40 px-4 py-6 text-sm font-semibold text-teal-800 hover:bg-teal-50 transition cursor-pointer"
 							>
 								<Paperclip className="h-4 w-4" /> Klik untuk pilih file lampiran
 							</label>
@@ -756,7 +750,7 @@ export default function MedicalRecordMain(props) {
 											<button
 												type="button"
 												onClick={() => onRemoveAttachment(idx)}
-												className="text-slate-400 hover:text-rose-700 transition shrink-0"
+												className="text-slate-400 hover:text-[#DC2626] transition shrink-0 cursor-pointer"
 												title="Hapus lampiran"
 											>
 												<X className="h-4 w-4" />
@@ -767,7 +761,7 @@ export default function MedicalRecordMain(props) {
 							)}
 						</div>
 
-						<div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs text-rose-700 flex items-start gap-2">
+						<div className="rounded-2xl bg-teal-50 border border-teal-200 p-4 text-xs text-teal-800 flex items-start gap-2">
 							<Info className="h-4 w-4 mt-0.5 shrink-0" />
 							Klik &ldquo;Unggah &amp; Finalisasi&rdquo; untuk mengenkripsi dan menjangkarkan data ke blockchain. Atau simpan
 							sebagai draft dulu kalau belum yakin -- data yang sudah diisi (termasuk obat) tidak akan hilang.
@@ -777,12 +771,12 @@ export default function MedicalRecordMain(props) {
 			</div>
 
 			{successMessage && (
-				<div className="mt-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-sm font-medium text-emerald-700">
+				<div className="mt-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-sm font-medium text-[#16A34A]">
 					{successMessage}
 				</div>
 			)}
 			{errorMessage && (
-				<div className="mt-6 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm font-medium text-rose-700">
+				<div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm font-medium text-[#DC2626]">
 					{errorMessage}
 				</div>
 			)}

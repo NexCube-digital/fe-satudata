@@ -46,7 +46,7 @@ export default function MedicalRecordUpdateActions({
             type="button"
             onClick={onFinalSubmit}
             disabled={isUploading || !recordId}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-5 py-3 text-sm font-bold text-white hover:bg-rose-700 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-5 py-3 text-sm font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {isUploading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             {isFinalRecord ? "Simpan Koreksi & Anchor Ulang" : "Unggah & Finalisasi ke Blockchain"}
@@ -56,7 +56,7 @@ export default function MedicalRecordUpdateActions({
             type="button"
             onClick={onNext}
             disabled={isSavingStep}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-5 py-3 text-sm font-bold text-white hover:bg-rose-700 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-5 py-3 text-sm font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {isSavingStep ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
             Lanjutkan <ChevronRight className="h-4 w-4" />

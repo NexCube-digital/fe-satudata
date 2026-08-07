@@ -71,7 +71,7 @@ function ResetPasswordContent() {
         {/* Header Logo */}
         <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#7F1D1D] p-2 text-white shadow-xs">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 p-2 text-white shadow-xs">
               <Image src="/images/logo.png" alt="Satu Data logo" width={28} height={28} className="h-full w-full object-contain" />
             </span>
             <div>
@@ -90,15 +90,15 @@ function ResetPasswordContent() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700 font-medium">
-              <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-[#DC2626] font-medium">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#DC2626]" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-800 font-semibold">
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+            <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-[#16A34A] font-semibold">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-[#16A34A]" />
               <span>{success}</span>
             </div>
           )}
@@ -112,7 +112,7 @@ function ResetPasswordContent() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Min 8 karakter (huruf & angka)"
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs"
                 required
                 disabled={loading}
               />
@@ -136,7 +136,7 @@ function ResetPasswordContent() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ketik ulang password baru"
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs"
                 required
                 disabled={loading}
               />
@@ -154,7 +154,7 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-xs"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-md"
           >
             {loading ? (
               <>
@@ -178,7 +178,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader className="h-8 w-8 animate-spin text-[#7F1D1D]" />
+        <Loader className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     }>
       <ResetPasswordContent />

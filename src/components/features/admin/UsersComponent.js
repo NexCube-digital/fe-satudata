@@ -293,7 +293,7 @@ export default function UsersComponent({ forcedRole }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <Loader className="h-8 w-8 animate-spin text-rose-600" />
+        <Loader className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
@@ -310,7 +310,7 @@ export default function UsersComponent({ forcedRole }) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-800 border border-rose-200">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-100 text-teal-800 border border-teal-200">
                   <Users className="h-5 w-5" />
                 </span>
                 <div>
@@ -336,7 +336,7 @@ export default function UsersComponent({ forcedRole }) {
               {forcedRole === "rumah_sakit" && (
                 <button
                   onClick={openAddFaskesModal}
-                  className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-rose-800 text-xs font-bold text-white hover:bg-rose-700 transition cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-xs font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer shadow-xs"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Registrasi Faskes Baru</span>
@@ -345,9 +345,9 @@ export default function UsersComponent({ forcedRole }) {
               <button
                 onClick={fetchUsers}
                 disabled={fetchingData}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 transition cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-teal-50 hover:text-teal-800 transition cursor-pointer shadow-xs"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${fetchingData ? "animate-spin text-rose-600" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${fetchingData ? "animate-spin text-teal-600" : ""}`} />
                 <span>Segarkan Data</span>
               </button>
             </div>
@@ -377,7 +377,7 @@ export default function UsersComponent({ forcedRole }) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Password Sementara:</span>
-                  <span className="text-rose-900 font-mono font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">{registeredFaskesCredentials.password}</span>
+                  <span className="text-teal-900 font-mono font-bold bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-100">{registeredFaskesCredentials.password}</span>
                 </div>
               </div>
 
@@ -415,9 +415,9 @@ export default function UsersComponent({ forcedRole }) {
               <p className="text-[11px] font-semibold text-slate-500 mt-1">Pengguna Terverifikasi</p>
             </div>
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p className="text-[10px] font-extrabold uppercase text-rose-800">Akun Pasien</p>
-              <h3 className="text-2xl font-extrabold text-rose-900 mt-1">{totalPatients}</h3>
-              <p className="text-[11px] font-semibold text-rose-700 mt-1">Pasien Berdaulat</p>
+              <p className="text-[10px] font-extrabold uppercase text-teal-800">Akun Pasien</p>
+              <h3 className="text-2xl font-extrabold text-teal-900 mt-1">{totalPatients}</h3>
+              <p className="text-[11px] font-semibold text-teal-700 mt-1">Pasien Berdaulat</p>
             </div>
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
               <p className="text-[10px] font-extrabold uppercase text-emerald-700">Fasilitas Kesehatan</p>
@@ -440,7 +440,7 @@ export default function UsersComponent({ forcedRole }) {
                 placeholder="Cari nama, email, NIK/SIP, atau wallet..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden"
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:outline-hidden"
               />
             </div>
 
@@ -500,10 +500,10 @@ export default function UsersComponent({ forcedRole }) {
                     filteredUsers.map((u) => {
                       const avatar = getAvatarUrl(u);
                       return (
-                        <tr key={u.id} className="hover:bg-rose-50/40 transition-colors">
+                        <tr key={u.id} className="hover:bg-teal-50/40 transition-colors">
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                              <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-teal-700 to-cyan-800 ring-2 ring-teal-500/20 shrink-0">
                                 {avatar ? (
                                   <img src={avatar} alt={u.name} className="h-full w-full object-cover" />
                                 ) : (
@@ -520,12 +520,12 @@ export default function UsersComponent({ forcedRole }) {
                                       ? "bg-purple-50 text-purple-700 border-purple-200"
                                       : u.role === "rumah_sakit" || u.role === "faskes"
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                      : "bg-rose-50 text-rose-800 border-rose-200"
+                                      : "bg-teal-50 text-teal-800 border-teal-200"
                                   }`}>
                                     {u.role === "admin" ? "Admin" : u.role === "rumah_sakit" || u.role === "faskes" ? "Faskes / RS" : "Pasien"}
                                   </span>
                                   {(u.role === "rumah_sakit" || u.role === "faskes") && (
-                                    <span className="inline-block px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase border bg-amber-50 text-amber-700 border-amber-200 font-mono">
+                                    <span className="inline-block px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase border bg-amber-50 text-[#D97706] border-amber-200 font-mono">
                                       {u.hospital_profile?.tokens !== undefined ? u.hospital_profile.tokens : 20} Token
                                     </span>
                                   )}
@@ -544,11 +544,11 @@ export default function UsersComponent({ forcedRole }) {
                                 <button
                                   type="button"
                                   onClick={() => toggleShowNik(u.id)}
-                                  className="text-slate-400 hover:text-rose-700 transition cursor-pointer p-0.5"
+                                  className="text-slate-400 hover:text-teal-700 transition cursor-pointer p-0.5"
                                   title={showNikIds[u.id] ? "Sembunyikan" : "Tampilkan"}
                                 >
                                   {showNikIds[u.id] ? (
-                                    <EyeOff className="h-3.5 w-3.5 text-rose-600" />
+                                    <EyeOff className="h-3.5 w-3.5 text-teal-600" />
                                   ) : (
                                     <Eye className="h-3.5 w-3.5" />
                                   )}
@@ -653,7 +653,7 @@ export default function UsersComponent({ forcedRole }) {
             <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Building2 className="h-5.5 w-5.5 text-rose-800" />
+                  <Building2 className="h-5.5 w-5.5 text-teal-800" />
                   Registrasi Instansi Faskes Baru
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Daftarkan faskes baru ke sistem SatuData.</p>
@@ -677,7 +677,7 @@ export default function UsersComponent({ forcedRole }) {
                     placeholder="Contoh: RS Ibu dan Anak Sejahtera"
                     value={faskesForm.name}
                     onChange={(e) => setFaskesForm({ ...faskesForm, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                   />
                 </div>
                 <div>
@@ -688,7 +688,7 @@ export default function UsersComponent({ forcedRole }) {
                     placeholder="Contoh: info@rssantosa.com"
                     value={faskesForm.email}
                     onChange={(e) => setFaskesForm({ ...faskesForm, email: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                   />
                 </div>
               </div>
@@ -701,7 +701,7 @@ export default function UsersComponent({ forcedRole }) {
                     required
                     value={faskesForm.password}
                     onChange={(e) => setFaskesForm({ ...faskesForm, password: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden bg-slate-50 text-rose-900 font-bold"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-teal-800 focus:outline-hidden bg-teal-50 text-teal-900 font-bold"
                   />
                 </div>
                 <div>
@@ -712,7 +712,7 @@ export default function UsersComponent({ forcedRole }) {
                     placeholder="Contoh: SIP-RS-2026-98"
                     value={faskesForm.medical_license}
                     onChange={(e) => setFaskesForm({ ...faskesForm, medical_license: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                   />
                 </div>
               </div>
@@ -723,7 +723,7 @@ export default function UsersComponent({ forcedRole }) {
                   <select
                     value={faskesForm.hospital_type}
                     onChange={(e) => setFaskesForm({ ...faskesForm, hospital_type: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
                   >
                     <option value="Rumah Sakit">Rumah Sakit</option>
                     <option value="Klinik Pratama">Klinik Pratama</option>
@@ -737,7 +737,7 @@ export default function UsersComponent({ forcedRole }) {
                   <select
                     value={faskesForm.ownership}
                     onChange={(e) => setFaskesForm({ ...faskesForm, ownership: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
                   >
                     <option value="Swasta">Swasta</option>
                     <option value="Pemerintah">Pemerintah</option>
@@ -749,7 +749,7 @@ export default function UsersComponent({ forcedRole }) {
                   <select
                     value={faskesForm.accreditation}
                     onChange={(e) => setFaskesForm({ ...faskesForm, accreditation: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850 cursor-pointer"
                   >
                     <option value="Paripurna">Paripurna</option>
                     <option value="Utama">Utama</option>
@@ -767,7 +767,7 @@ export default function UsersComponent({ forcedRole }) {
                     placeholder="Contoh: 021XXXXXXXX"
                     value={faskesForm.phone}
                     onChange={(e) => setFaskesForm({ ...faskesForm, phone: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                   />
                 </div>
                 <div>
@@ -777,7 +777,7 @@ export default function UsersComponent({ forcedRole }) {
                     placeholder="Contoh: https://rssantosa.com"
                     value={faskesForm.website}
                     onChange={(e) => setFaskesForm({ ...faskesForm, website: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                   />
                 </div>
               </div>
@@ -789,7 +789,7 @@ export default function UsersComponent({ forcedRole }) {
                   placeholder="Contoh: Jl. Raya Jenderal Sudirman No. 12"
                   value={faskesForm.address}
                   onChange={(e) => setFaskesForm({ ...faskesForm, address: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                 />
               </div>
 
@@ -800,7 +800,7 @@ export default function UsersComponent({ forcedRole }) {
                   placeholder="Deskripsi singkat fasilitas faskes"
                   value={faskesForm.description}
                   onChange={(e) => setFaskesForm({ ...faskesForm, description: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-800 focus:outline-hidden bg-white text-slate-850"
                 />
               </div>
 
@@ -816,7 +816,7 @@ export default function UsersComponent({ forcedRole }) {
                 <button
                   type="submit"
                   disabled={submittingFaskes}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer shadow-md"
                 >
                   {submittingFaskes ? (
                     <Loader className="h-4 w-4 animate-spin" />
@@ -837,7 +837,7 @@ export default function UsersComponent({ forcedRole }) {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Coins className="h-5 w-5 text-rose-600 animate-pulse" />
+                <Coins className="h-5 w-5 text-[#D97706] animate-pulse" />
                 Kirim Token Ke Faskes
               </h3>
               <button
@@ -866,12 +866,12 @@ export default function UsersComponent({ forcedRole }) {
                   min="1"
                   value={tokenAmountToGrant}
                   onChange={(e) => setTokenAmountToGrant(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:border-rose-600 focus:outline-hidden text-slate-800"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:border-teal-600 focus:outline-hidden text-slate-800"
                 />
               </div>
 
-              {errorMsg && <p className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-100 p-2 rounded-lg">{errorMsg}</p>}
-              {successMsg && <p className="text-xs text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 p-2 rounded-lg">{successMsg}</p>}
+              {errorMsg && <p className="text-xs text-[#DC2626] font-medium bg-red-50 border border-red-100 p-2 rounded-lg">{errorMsg}</p>}
+              {successMsg && <p className="text-xs text-[#16A34A] font-medium bg-emerald-50 border border-emerald-100 p-2 rounded-lg">{successMsg}</p>}
 
               <div className="flex items-center gap-2 pt-2">
                 <button
@@ -887,7 +887,7 @@ export default function UsersComponent({ forcedRole }) {
                 <button
                   onClick={handleSendTokens}
                   disabled={isSubmittingToken}
-                  className="w-1/2 rounded-xl bg-rose-800 text-white py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-1/2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white py-2.5 text-xs font-bold shadow-sm hover:from-teal-800 hover:to-cyan-900 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingToken ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4" />}
                   Kirim Token
@@ -904,7 +904,7 @@ export default function UsersComponent({ forcedRole }) {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg p-6 sm:p-8 flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-800 border border-rose-200 shrink-0">
+                <div className="h-10 w-10 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-800 border border-teal-200 shrink-0">
                   <User className="h-5 w-5" />
                 </div>
                 <div>
@@ -934,7 +934,7 @@ export default function UsersComponent({ forcedRole }) {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-medium">Role Akun:</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-rose-100 text-rose-800 border border-rose-200">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-teal-100 text-teal-800 border border-teal-200">
                     {selectedUserDetail.role}
                   </span>
                 </div>
@@ -942,8 +942,8 @@ export default function UsersComponent({ forcedRole }) {
                   <span className="text-slate-400 font-medium">Status Akun:</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
                     selectedUserDetail.status_account === "active"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
+                      ? "bg-emerald-50 text-[#16A34A] border-emerald-200"
+                      : "bg-amber-50 text-[#D97706] border-amber-200"
                   }`}>
                     {selectedUserDetail.status_account === "active" ? "Aktif" : "Nonaktif"}
                   </span>
@@ -959,14 +959,14 @@ export default function UsersComponent({ forcedRole }) {
                     <span className="text-slate-900 font-mono font-bold">
                       {maskNik(selectedUserDetail.nik)}
                     </span>
-                    <span className="text-[9px] font-sans font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
+                    <span className="text-[9px] font-sans font-bold text-[#16A34A] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
                       🔒 AES-256
                     </span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-medium">Wallet Address Web3:</span>
-                  <span className="text-rose-900 font-mono font-bold text-[10px] bg-rose-50 px-2 py-1 rounded-lg border border-rose-100">
+                  <span className="text-teal-900 font-mono font-bold text-[10px] bg-teal-50 px-2 py-1 rounded-lg border border-teal-100">
                     {selectedUserDetail.wallet_address || "Belum ditautkan"}
                   </span>
                 </div>

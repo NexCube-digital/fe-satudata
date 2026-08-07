@@ -158,15 +158,15 @@ export default function PharmacyPOSInvoicePage() {
 
   if (!invoiceId) {
     return (
-      <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <AlertTriangle className="mx-auto h-12 w-12 text-rose-700" />
+          <AlertTriangle className="mx-auto h-12 w-12 text-[#DC2626]" />
           <h1 className="mt-4 text-xl font-bold text-slate-900">Invoice tidak ditemukan</h1>
           <p className="mt-2 text-sm text-slate-600">Param invoice tidak tersedia di URL.</p>
           <button
             type="button"
             onClick={() => router.push("/dashboard/faskes/pharmacy/pos")}
-            className="mt-6 inline-flex items-center gap-2 rounded-3xl bg-rose-900 px-5 py-3 text-sm font-bold text-white hover:bg-rose-800 transition"
+            className="mt-6 inline-flex items-center gap-2 rounded-3xl bg-gradient-to-r from-teal-700 to-cyan-800 px-5 py-3 text-sm font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition"
           >
             <ArrowLeft className="h-4 w-4" /> Kembali ke POS
           </button>
@@ -190,7 +190,7 @@ export default function PharmacyPOSInvoicePage() {
         <main className="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Invoice POS Farmasi</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">Invoice POS Farmasi</p>
               <h1 className="text-3xl font-extrabold text-slate-900">Bayar Invoice {invoiceId}</h1>
               <p className="text-sm text-slate-500">Pastikan data sudah benar sebelum melanjutkan ke Midtrans.</p>
             </div>
@@ -207,11 +207,11 @@ export default function PharmacyPOSInvoicePage() {
             <div
               className={`rounded-3xl border px-4 py-3 text-sm font-semibold ${
                 feedback.type === "error"
-                  ? "border-rose-200 bg-rose-50 text-rose-800"
+                  ? "border-red-200 bg-red-50 text-[#DC2626]"
                   : feedback.type === "success"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                  ? "border-emerald-200 bg-emerald-50 text-[#16A34A]"
                   : feedback.type === "warning"
-                  ? "border-amber-200 bg-amber-50 text-amber-900"
+                  ? "border-amber-200 bg-amber-50 text-[#D97706]"
                   : "border-slate-200 bg-slate-50 text-slate-700"
               }`}
             >
@@ -221,7 +221,7 @@ export default function PharmacyPOSInvoicePage() {
 
           {loading ? (
             <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <Loader2 className="h-10 w-10 animate-spin text-rose-600 mx-auto" />
+              <Loader2 className="h-10 w-10 animate-spin text-teal-700 mx-auto" />
               <p className="mt-4 text-sm text-slate-500">Memuat detail invoice...</p>
             </div>
           ) : invoice ? (
@@ -301,7 +301,7 @@ export default function PharmacyPOSInvoicePage() {
                     className={`mt-6 w-full inline-flex items-center justify-center gap-2 rounded-3xl px-4 py-3 text-sm font-bold text-white transition ${
                       !midtransReady || paying || invoice.status === "paid"
                         ? "bg-slate-300 cursor-not-allowed"
-                        : "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900"
                     }`}
                   >
                     {paying ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
@@ -325,7 +325,7 @@ export default function PharmacyPOSInvoicePage() {
             </div>
           ) : (
             <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-              <AlertTriangle className="mx-auto h-12 w-12 text-rose-700" />
+              <AlertTriangle className="mx-auto h-12 w-12 text-[#DC2626]" />
               <p className="mt-4 text-sm text-slate-500">Invoice tidak dapat ditampilkan.</p>
             </div>
           )}

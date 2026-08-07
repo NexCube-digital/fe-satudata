@@ -100,12 +100,12 @@ export default function FaskesRequestsHistory() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-800 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-teal-800 text-white font-bold text-sm shadow-md hover:bg-teal-700 transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -114,7 +114,7 @@ export default function FaskesRequestsHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -122,14 +122,14 @@ export default function FaskesRequestsHistory() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-rose-700/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-900 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-700/10 blur-3xl" />
             <div className="relative z-10">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                <Activity className="h-8 w-8 text-rose-400" />
+                <Activity className="h-8 w-8 text-teal-400" />
                 Histori Permintaan Akses
               </h1>
-              <p className="text-xs sm:text-sm text-rose-200 mt-2 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-teal-200 mt-2 max-w-2xl leading-relaxed">
                 Tinjau dan pantau seluruh histori pengajuan izin akses rekam medis (EHR) terenkripsi dari pihak pasien secara real-time.
               </p>
             </div>
@@ -141,7 +141,7 @@ export default function FaskesRequestsHistory() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-rose-800" />
+                  <Activity className="h-5 w-5 text-teal-800" />
                   Logs Otorisasi Akses
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Daftar permohonan akses data medis yang diajukan</p>
@@ -152,7 +152,7 @@ export default function FaskesRequestsHistory() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] focus:outline-hidden focus:border-rose-800 bg-slate-50 font-bold"
+                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] focus:outline-hidden focus:border-teal-800 bg-slate-50 font-bold"
                 >
                   <option value="all">Semua Status</option>
                   <option value="pending pasien">Pending</option>
@@ -199,9 +199,9 @@ export default function FaskesRequestsHistory() {
                           <p className="font-bold text-slate-900">{req.patientName}</p>
                           <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {maskNik(req.nik)}</p>
                         </td>
-                        <td className="py-4 px-4 font-mono text-[9px] text-rose-900 text-center max-w-[200px]" title={req.txHash}>
+                        <td className="py-4 px-4 font-mono text-[9px] text-teal-900 text-center max-w-[200px]" title={req.txHash}>
                           {req.txHash ? (
-                            <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-rose-700 mx-auto" title={req.txHash}>
+                            <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-teal-700 mx-auto" title={req.txHash}>
                               <span className="truncate max-w-[180px]">{req.txHash}</span>
                             </TxHashLink>
                           ) : (
@@ -210,16 +210,16 @@ export default function FaskesRequestsHistory() {
                         </td>
                         <td className="py-4 px-4 text-center">
                           {req.status === "Approved" ? (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[9px] font-bold text-emerald-700">
-                              <CheckCircle className="h-3 w-3 text-emerald-600" /> Approved
+                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[9px] font-bold text-[#16A34A]">
+                              <CheckCircle className="h-3 w-3 text-[#16A34A]" /> Approved
                             </span>
                           ) : req.status === "Pending Pasien" ? (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-250 px-3 py-1 text-[9px] font-bold text-amber-700 animate-pulse">
-                              <Clock className="h-3 w-3" /> Pending
+                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[9px] font-bold text-[#D97706] animate-pulse">
+                              <Clock className="h-3 w-3 text-[#D97706]" /> Pending Pasien
                             </span>
                           ) : (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-rose-50 border border-rose-250 px-3 py-1 text-[9px] font-bold text-rose-700">
-                              <AlertCircle className="h-3 w-3" /> {req.status}
+                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-[9px] font-bold text-[#DC2626]">
+                              <AlertCircle className="h-3 w-3 text-[#DC2626]" /> {req.status}
                             </span>
                           )}
                         </td>

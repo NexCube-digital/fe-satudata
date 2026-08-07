@@ -100,7 +100,7 @@ export default function PrescriptionsPage() {
           {/* Top Title Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-800 uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-teal-800 uppercase tracking-wider mb-1">
                 <Pill className="h-4 w-4" /> Modul Apoteker & Penyerahan Obat
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Antrean Resep Obat Dokter</h1>
@@ -111,7 +111,7 @@ export default function PrescriptionsPage() {
               onClick={fetchPrescriptions}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs shadow-xs hover:bg-slate-50 transition cursor-pointer"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-rose-700" : ""}`} /> Refresh Data
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-teal-700" : ""}`} /> Refresh Data
             </button>
           </div>
 
@@ -124,7 +124,7 @@ export default function PrescriptionsPage() {
                 placeholder="Cari pasien, obat, atau judul resep..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-rose-700 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-teal-600 focus:outline-none"
               />
             </div>
 
@@ -138,7 +138,7 @@ export default function PrescriptionsPage() {
                     onClick={() => setStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                       statusFilter === st
-                        ? "bg-rose-800 text-white shadow-xs"
+                        ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
@@ -153,7 +153,7 @@ export default function PrescriptionsPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
             {loading ? (
               <div className="py-16 text-center space-y-3">
-                <RefreshCw className="h-8 w-8 animate-spin text-rose-700 mx-auto" />
+                <RefreshCw className="h-8 w-8 animate-spin text-teal-700 mx-auto" />
                 <p className="text-xs font-bold text-slate-500">Memuat data resep obat...</p>
               </div>
             ) : filtered.length === 0 ? (
@@ -170,12 +170,12 @@ export default function PrescriptionsPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
                           item.status_resep === "Selesai"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-[#16A34A] border border-emerald-200"
                             : item.status_resep === "Siap Diambil"
-                            ? "bg-purple-50 text-purple-700 border border-purple-200"
+                            ? "bg-sky-50 text-[#0284C7] border border-sky-200"
                             : item.status_resep === "Diproses"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                            ? "bg-amber-50 text-[#D97706] border border-amber-200"
+                            : "bg-teal-50 text-teal-900 border border-teal-200"
                         }`}>
                           {item.status_resep}
                         </span>
@@ -190,7 +190,7 @@ export default function PrescriptionsPage() {
 
                       {item.tx_hash && (
                         <div className="pt-1">
-                          <TxHashLink txHash={item.tx_hash} className="text-[10px] text-rose-700 font-bold font-mono">
+                          <TxHashLink txHash={item.tx_hash} className="text-[10px] text-teal-800 font-bold font-mono">
                             <span>Tx: {item.tx_hash.slice(0, 20)}...</span>
                           </TxHashLink>
                         </div>
@@ -202,7 +202,7 @@ export default function PrescriptionsPage() {
                         <button
                           onClick={() => handleUpdateStatus(item.id, "Diproses")}
                           disabled={updatingId === item.id}
-                          className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
+                          className="px-3.5 py-2 rounded-xl bg-[#D97706] hover:bg-amber-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
                         >
                           Mulai Diproses →
                         </button>
@@ -212,7 +212,7 @@ export default function PrescriptionsPage() {
                         <button
                           onClick={() => handleUpdateStatus(item.id, "Siap Diambil")}
                           disabled={updatingId === item.id}
-                          className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
+                          className="px-3.5 py-2 rounded-xl bg-[#0284C7] hover:bg-sky-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
                         >
                           Tandai Siap Diambil →
                         </button>
@@ -222,14 +222,14 @@ export default function PrescriptionsPage() {
                         <button
                           onClick={() => handleUpdateStatus(item.id, "Selesai")}
                           disabled={updatingId === item.id}
-                          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
+                          className="px-3.5 py-2 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
                         >
                           Tandai Selesai & Diserahkan ✔
                         </button>
                       )}
 
                       {item.status_resep === "Selesai" && (
-                        <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs">
+                        <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[#16A34A] font-bold text-xs">
                           ✔ Selesai Diserahkan
                         </span>
                       )}
@@ -279,19 +279,19 @@ export default function PrescriptionsPage() {
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => handleUpdateStatus(selectedRecord.id, "Diproses")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Diproses" ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Diproses" ? "bg-[#D97706] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
                   >
                     Diproses
                   </button>
                   <button
                     onClick={() => handleUpdateStatus(selectedRecord.id, "Siap Diambil")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Siap Diambil" ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Siap Diambil" ? "bg-[#0284C7] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
                   >
                     Siap Diambil
                   </button>
                   <button
                     onClick={() => handleUpdateStatus(selectedRecord.id, "Selesai")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Selesai" ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${selectedRecord.status_resep === "Selesai" ? "bg-[#16A34A] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
                   >
                     Selesai
                   </button>
@@ -302,7 +302,7 @@ export default function PrescriptionsPage() {
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setSelectedRecord(null)}
-                className="px-4 py-2 rounded-xl bg-rose-800 text-white font-bold text-xs hover:bg-rose-900 transition"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-xs hover:from-teal-800 hover:to-cyan-900 transition"
               >
                 Tutup
               </button>

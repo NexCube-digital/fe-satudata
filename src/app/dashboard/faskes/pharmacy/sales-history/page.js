@@ -69,7 +69,7 @@ export default function PharmacySalesHistoryPage() {
           {/* Header Title */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-800 uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-teal-800 uppercase tracking-wider mb-1">
                 <History className="h-4 w-4" /> Modul Audit & Histori POS
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Riwayat Transaksi POS Obat</h1>
@@ -80,7 +80,7 @@ export default function PharmacySalesHistoryPage() {
               onClick={fetchSales}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs shadow-xs hover:bg-slate-50 transition cursor-pointer"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-rose-700" : ""}`} /> Refresh
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-teal-700" : ""}`} /> Refresh
             </button>
           </div>
 
@@ -93,7 +93,7 @@ export default function PharmacySalesHistoryPage() {
                 placeholder="Cari ID transaksi, nama pembeli, atau metode bayar..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-rose-700 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-teal-600 focus:outline-none"
               />
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function PharmacySalesHistoryPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
             {loading ? (
               <div className="py-16 text-center space-y-3">
-                <RefreshCw className="h-8 w-8 animate-spin text-rose-700 mx-auto" />
+                <RefreshCw className="h-8 w-8 animate-spin text-teal-700 mx-auto" />
                 <p className="text-xs font-bold text-slate-500">Memuat riwayat transaksi...</p>
               </div>
             ) : filtered.length === 0 ? (
@@ -128,7 +128,7 @@ export default function PharmacySalesHistoryPage() {
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                     {filtered.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                        <td className="px-5 py-4 font-mono font-extrabold text-rose-800">{item.id}</td>
+                        <td className="px-5 py-4 font-mono font-extrabold text-teal-800">{item.id}</td>
                         <td className="px-5 py-4 font-bold text-slate-900">{item.patient_name}</td>
                         <td className="px-5 py-4 text-slate-500">
                           {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • {new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -138,14 +138,14 @@ export default function PharmacySalesHistoryPage() {
                             {item.payment_method}
                           </span>
                         </td>
-                        <td className="px-5 py-4 font-extrabold text-emerald-700">
+                        <td className="px-5 py-4 font-extrabold text-[#16A34A]">
                           Rp {item.total_amount.toLocaleString('id-ID')}
                         </td>
                         <td className="px-5 py-4">{item.staff_name || "Staf Apoteker"}</td>
                         <td className="px-5 py-4 text-right">
                           <button
                             onClick={() => setSelectedTrx(item)}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 hover:text-rose-900 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-900 cursor-pointer"
                           >
                             <Eye className="h-3.5 w-3.5" /> Lihat Struk
                           </button>
@@ -211,13 +211,13 @@ export default function PharmacySalesHistoryPage() {
             <div className="space-y-1 text-xs font-mono pt-1">
               <div className="flex justify-between font-bold text-slate-900">
                 <span>Total:</span>
-                <span className="text-emerald-700">Rp {(Number(selectedTrx.total_amount) || 0).toLocaleString('id-ID')}</span>
+                <span className="text-[#16A34A]">Rp {(Number(selectedTrx.total_amount) || 0).toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Bayar:</span>
                 <span>Rp {(Number(selectedTrx.amount_paid) || 0).toLocaleString('id-ID')}</span>
               </div>
-              <div className="flex justify-between font-bold text-rose-800">
+              <div className="flex justify-between font-bold text-teal-800">
                 <span>Kembali:</span>
                 <span>Rp {(Number(selectedTrx.change) || 0).toLocaleString('id-ID')}</span>
               </div>
@@ -226,7 +226,7 @@ export default function PharmacySalesHistoryPage() {
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setSelectedTrx(null)}
-                className="px-5 py-2.5 rounded-xl bg-rose-800 text-white font-extrabold text-xs hover:bg-rose-900 transition"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-extrabold text-xs hover:from-teal-800 hover:to-cyan-900 transition"
               >
                 Tutup
               </button>

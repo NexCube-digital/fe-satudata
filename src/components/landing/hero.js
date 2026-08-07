@@ -25,7 +25,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
   return (
     <section
       id="top"
-      className="relative overflow-hidden rounded-3xl border border-rose-100/80 bg-white px-6 py-6 text-slate-900 shadow-[0_20px_70px_rgba(244,114,182,0.08)] sm:px-8 lg:min-h-[calc(100vh-7.5rem)] lg:px-12 lg:py-8 flex flex-col justify-center"
+      className="relative overflow-hidden rounded-3xl border border-teal-100/80 bg-white px-6 py-6 text-slate-900 shadow-[0_20px_70px_rgba(20,184,166,0.08)] sm:px-8 lg:min-h-[calc(100vh-7.5rem)] lg:px-12 lg:py-8 flex flex-col justify-center"
     >
       {/* Brand Partnership Logos (Separate frames per logo) */}
       <div className="absolute top-6 left-6 lg:top-8 lg:left-12 flex items-center gap-3 z-10">
@@ -43,24 +43,24 @@ export default function Hero({ walletConnected, setWalletConnected }) {
       </div>
 
       {/* Background glowing gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(244,63,94,0.08),transparent_40%),radial-gradient(circle_at_80%_80%,rgba(225,29,72,0.06),transparent_35%)]" />
-      <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-rose-800/10 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(20,184,166,0.08),transparent_40%),radial-gradient(circle_at_80%_80%,rgba(6,182,212,0.06),transparent_35%)]" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-teal-700/10 blur-[120px]" />
 
       <div className="relative grid h-full gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-10">
         {/* Left Column: Heading and Info */}
         <div className="space-y-6 reveal-left pt-20 lg:pt-24">
-          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/80 px-3.5 py-1 text-xs font-semibold tracking-wide text-rose-800 shadow-2xs">
-            <Sparkles className="h-3.5 w-3.5 text-rose-600 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50/80 px-3.5 py-1 text-xs font-semibold tracking-wide text-teal-800 shadow-2xs">
+            <Sparkles className="h-3.5 w-3.5 text-teal-600 animate-pulse" />
             Integrasi Official SATUSEHAT Kemenkes & Web3 Sovereign
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-extrabold uppercase tracking-[0.4em] text-rose-800">
+            <p className="text-xs font-extrabold uppercase tracking-[0.4em] text-teal-800">
               SatuData Healthcare Hub v2.5
             </p>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl/tight">
               Data Kesehatan Anda, <br />
-              <span className="bg-gradient-to-r from-rose-800 via-red-900 to-rose-950 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-800 bg-clip-text text-transparent">
                 100% Hak Kendali Anda.
               </span>
             </h1>
@@ -73,7 +73,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           <div className="flex flex-col gap-3.5 sm:flex-row">
             <a
               href="/auth/login"
-              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 px-7 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-rose-900/25 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-rose-900/30"
+              className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-700 px-7 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-teal-900/25 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-teal-900/30"
             >
               Mulai Sekarang
               <ArrowRight className="h-4 w-4" />
@@ -86,11 +86,11 @@ export default function Hero({ walletConnected, setWalletConnected }) {
           <div className="absolute inset-0 bg-radial-glow blur-2xl pointer-events-none" />
 
           {/* Base Mockup Container */}
-          <div className="glass-panel relative rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_24px_70px_rgba(244,114,182,0.14)] animate-float">
+          <div className="glass-panel relative rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_24px_70px_rgba(20,184,166,0.14)] animate-float">
             {/* Header elements */}
             <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3.5">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-800 border border-rose-100">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-800 border border-teal-100">
                   <Activity className="h-4.5 w-4.5" />
                 </span>
                 <div>
@@ -106,7 +106,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
               ) : (
                 <button 
                   onClick={() => setWalletConnected(true)}
-                  className="flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold text-rose-800 border border-rose-200 hover:bg-rose-100 transition cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-bold text-teal-800 border border-teal-200 hover:bg-teal-100 transition cursor-pointer"
                 >
                   <Wallet className="h-3 w-3" />
                   Konek MetaMask
@@ -119,8 +119,8 @@ export default function Hero({ walletConnected, setWalletConnected }) {
               {/* Patient Info Card */}
               <div className="rounded-2xl bg-slate-50/80 p-4 border border-slate-200/70">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] uppercase font-extrabold tracking-wider text-rose-800">Pasien Terverifikasi</p>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md border border-emerald-200/80 font-bold flex items-center gap-1">
+                  <p className="text-[10px] uppercase font-extrabold tracking-wider text-teal-800">Pasien Terverifikasi</p>
+                  <span className="text-[10px] bg-emerald-50 text-[#16A34A] px-2 py-0.5 rounded-md border border-emerald-200/80 font-bold flex items-center gap-1">
                     <ShieldCheck className="h-3 w-3" /> NIK Active
                   </span>
                 </div>
@@ -132,20 +132,20 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                   </div>
                   <div className="rounded-xl bg-white p-2 border border-slate-200/80">
                     <p className="text-slate-400 font-semibold">Alergi Obat</p>
-                    <p className="font-extrabold text-rose-600 mt-0.5">Penicillin</p>
+                    <p className="font-extrabold text-[#DC2626] mt-0.5">Penicillin</p>
                   </div>
                   <div className="rounded-xl bg-white p-2 border border-slate-200/80">
                     <p className="text-slate-400 font-semibold">Dokumen EHR</p>
-                    <p className="font-extrabold text-emerald-600 mt-0.5">14 Berkas</p>
+                    <p className="font-extrabold text-[#16A34A] mt-0.5">14 Berkas</p>
                   </div>
                 </div>
               </div>
 
               {/* Live Interactive Consent Request Box */}
-              <div className="relative overflow-hidden rounded-2xl border border-rose-200/80 bg-white p-4 shadow-sm">
+              <div className="relative overflow-hidden rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div className="flex gap-2.5">
-                    <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-xl bg-rose-50 text-rose-800 border border-rose-100">
+                    <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 text-teal-800 border border-teal-100">
                       <Key className="h-4 w-4" />
                     </span>
                     <div>
@@ -155,10 +155,10 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
                     consentStatus === "approved"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      ? "bg-emerald-50 text-[#16A34A] border border-emerald-200"
                       : consentStatus === "rejected"
-                      ? "bg-rose-50 text-rose-700 border border-rose-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                      ? "bg-red-50 text-[#DC2626] border border-red-200"
+                      : "bg-amber-50 text-[#D97706] border border-amber-200"
                   }`}>
                     {consentStatus === "approved" ? "Izin Diberikan" : consentStatus === "rejected" ? "Izin Ditolak" : "Pending Action"}
                   </span>
@@ -174,7 +174,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                     <>
                       <button
                         onClick={handleApprove}
-                        className="flex-1 rounded-xl bg-gradient-to-r from-rose-800 to-red-900 px-3 py-2 text-center text-[10px] font-extrabold text-white shadow-xs hover:opacity-95 transition cursor-pointer"
+                        className="flex-1 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-700 px-3 py-2 text-center text-[10px] font-extrabold text-white shadow-xs hover:opacity-95 transition cursor-pointer"
                       >
                         Setujui & Tandatangani (Web3)
                       </button>
@@ -199,10 +199,10 @@ export default function Hero({ walletConnected, setWalletConnected }) {
                 {txHash && (
                   <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200/80 p-2 text-[9px] font-mono text-emerald-800 animate-in fade-in duration-200">
                     <div className="flex items-center gap-1.5 font-bold">
-                      <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                      <CheckCircle className="h-3.5 w-3.5 text-[#16A34A]" />
                       Tx Hash Verified on Hardhat:
                     </div>
-                    <p className="mt-0.5 truncate text-emerald-700">{txHash}</p>
+                    <p className="mt-0.5 truncate text-[#16A34A]">{txHash}</p>
                   </div>
                 )}
               </div>
@@ -210,13 +210,13 @@ export default function Hero({ walletConnected, setWalletConnected }) {
               {/* Blockchain Audit Trail Log preview */}
               <div className="mt-2">
                 <p className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                  <Database className="h-3.5 w-3.5 text-rose-800" />
+                  <Database className="h-3.5 w-3.5 text-teal-800" />
                   Audit Trail Blockchain Real-time
                 </p>
                 <div className="space-y-1.5 text-[9px] font-mono">
                   <div className="flex items-center justify-between rounded-xl bg-slate-50 px-2.5 py-1.5 text-slate-600 border border-slate-200/60">
                     <span className="flex items-center gap-1.5 font-bold">
-                      <CheckCircle className="h-3 w-3 text-emerald-500" />
+                      <CheckCircle className="h-3 w-3 text-[#16A34A]" />
                       <span>{txHash || "0x9f12...a3bc"}</span>
                     </span>
                     <span className="truncate max-w-[140px] text-right">

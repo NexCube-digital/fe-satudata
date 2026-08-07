@@ -281,7 +281,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <Loader className="h-8 w-8 animate-spin text-rose-600" />
+        <Loader className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
@@ -290,10 +290,10 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <ShieldCheck className="h-12 w-12 text-rose-600 mx-auto mb-4" />
+          <ShieldCheck className="h-12 w-12 text-[#DC2626] mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Administrator Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan kredensial Administrator Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-600 text-white font-bold text-sm shadow-md hover:bg-rose-500 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-sm shadow-md hover:from-teal-800 hover:to-cyan-900 transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -310,19 +310,19 @@ export default function AdminDashboard() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Admin Command Center Banner Header */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <Zap className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
+                  <Zap className="h-3.5 w-3.5 text-teal-300" />
                   System Governance Command Center v2026
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                   Dashboard Administrator
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
                   Kelola registrasi pengguna, verifikasi lisensi fasilitas kesehatan, dan pantau infrastruktur node Hardhat serta database MySQL.
                 </p>
               </div>
@@ -337,16 +337,16 @@ export default function AdminDashboard() {
                   <span>Segarkan</span>
                 </button>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Node Status</p>
-                  <p className={`font-bold mt-0.5 ${nodeStatus.startsWith("Online") ? "text-emerald-400" : "text-rose-455 text-rose-400"}`}>{nodeStatus}</p>
+                  <p className="text-[10px] text-slate-300 uppercase font-bold">Node Status</p>
+                  <p className={`font-bold mt-0.5 ${nodeStatus.startsWith("Online") ? "text-[#16A34A]" : "text-[#DC2626]"}`}>{nodeStatus}</p>
                 </div>
                 {user?.wallet_address && (
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Admin</p>
-                    <p className="font-bold text-rose-300 mt-0.5 truncate max-w-[120px]" title={user.wallet_address}>
+                    <p className="text-[10px] text-slate-300 uppercase font-bold">Wallet Admin</p>
+                    <p className="font-bold text-teal-300 mt-0.5 truncate max-w-[120px]" title={user.wallet_address}>
                       {user.wallet_address.slice(0, 6) + "..." + user.wallet_address.slice(-4)}
                     </p>
-                    <p className="text-[9px] text-rose-400 font-bold mt-0.5">{walletBalance}</p>
+                    <p className="text-[9px] text-teal-200 font-bold mt-0.5">{walletBalance}</p>
                   </div>
                 )}
               </div>
@@ -358,14 +358,14 @@ export default function AdminDashboard() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Pengguna</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
                   <Users className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {stats.totalUsers || usersList.length} <span className="text-xs font-normal text-slate-500">Akun</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-teal-800 mt-1 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> {stats.totalPatients || usersList.filter(u => u.role === "pasien").length} Pasien | {stats.totalHospitals || usersList.filter(u => u.role === "rumah_sakit" || u.role === "faskes").length} Faskes
               </p>
             </div>
@@ -388,14 +388,14 @@ export default function AdminDashboard() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Akun Aktif</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-[#16A34A]">
                   <ShieldCheck className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {stats.totalActiveUsers || usersList.filter(u => u.status_account === "active").length} <span className="text-xs font-normal text-slate-500">Aktif</span>
               </p>
-              <p className="text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-[#16A34A] mt-1 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Terverifikasi Siap Akses
               </p>
             </div>
@@ -403,14 +403,14 @@ export default function AdminDashboard() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Penyimpanan Database</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-[#D97706]">
                   <Database className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 MySQL <span className="text-xs font-normal text-slate-500">Relational</span>
               </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-[#D97706] mt-1 flex items-center gap-1">
                 <Server className="h-3 w-3" /> Encrypted Storage Connected
               </p>
             </div>
@@ -424,7 +424,7 @@ export default function AdminDashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <Users className="h-5 w-5 text-rose-600" />
+                      <Users className="h-5 w-5 text-teal-800" />
                       Manajemen Pengguna & Verifikasi Faskes
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -434,7 +434,7 @@ export default function AdminDashboard() {
 
                   <Link
                     href="/dashboard/admin/users/pasien"
-                    className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-800 hover:bg-rose-100 transition cursor-pointer"
+                    className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-teal-50 border border-teal-200 text-xs font-bold text-teal-800 hover:bg-teal-100 transition cursor-pointer"
                   >
                     Lihat Semua Pengguna →
                   </Link>
@@ -449,14 +449,14 @@ export default function AdminDashboard() {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Cari berdasarkan Nama, Email, atau NIK..."
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:outline-hidden"
                     />
                   </div>
 
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold focus:border-rose-600 focus:outline-hidden"
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-hidden"
                   >
                     <option value="all">Semua Peran (All Roles)</option>
                     <option value="pasien">Pasien / Individu</option>
@@ -485,10 +485,10 @@ export default function AdminDashboard() {
                         </tr>
                       ) : (
                         filteredUsers.map((u) => (
-                          <tr key={u.id} className="hover:bg-slate-50/50 transition">
+                          <tr key={u.id} className="hover:bg-teal-50/40 transition">
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
-                                <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                                <div className="relative h-9 w-9 rounded-full overflow-hidden bg-gradient-to-br from-teal-800 to-cyan-950 ring-2 ring-teal-500/20 shrink-0">
                                   {getAvatarUrl(u) ? (
                                     <img
                                       src={getAvatarUrl(u)}
@@ -514,7 +514,7 @@ export default function AdminDashboard() {
                             </td>
                             <td className="py-3.5 px-4 font-semibold text-slate-700">
                               {u.role === "rumah_sakit" || u.role === "faskes" ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
+                                <span className="inline-flex items-center gap-1 text-[#16A34A] font-bold">
                                   <Building2 className="h-3.5 w-3.5" /> Faskes
                                 </span>
                               ) : u.role === "admin" ? (
@@ -522,18 +522,18 @@ export default function AdminDashboard() {
                                   <ShieldCheck className="h-3.5 w-3.5" /> Admin
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-rose-700 font-bold">
+                                <span className="inline-flex items-center gap-1 text-teal-800 font-bold">
                                   <Users className="h-3.5 w-3.5" /> Pasien
                                 </span>
                               )}
                             </td>
                             <td className="py-3.5 px-4">
                               {u.status_account === "active" ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-[#16A34A]">
                                   <CheckCircle className="h-3 w-3" /> Aktif
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-[#D97706]">
                                   <XCircle className="h-3 w-3" /> Nonaktif
                                 </span>
                               )}
@@ -563,8 +563,8 @@ export default function AdminDashboard() {
                                   disabled={actionLoadingId === u.id}
                                   className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 font-bold transition cursor-pointer ${
                                     u.status_account === "active"
-                                      ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                      ? "border-amber-200 bg-amber-50 text-[#D97706] hover:bg-amber-100"
+                                      : "border-emerald-200 bg-emerald-50 text-[#16A34A] hover:bg-emerald-100"
                                   }`}
                                 >
                                   {actionLoadingId === u.id ? (
@@ -595,20 +595,20 @@ export default function AdminDashboard() {
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2 font-mono">
-                    <Terminal className="h-4 w-4 text-rose-600" />
+                    <Terminal className="h-4 w-4 text-teal-800" />
                     Live System Event Stream
                   </h3>
                   <div className="flex items-center gap-2">
-                    <Link href="/dashboard/admin/logs" className="text-[10px] font-bold text-rose-800 hover:text-rose-900 transition">
+                    <Link href="/dashboard/admin/logs" className="text-[10px] font-bold text-teal-800 hover:text-teal-900 transition">
                       Detail Logs →
                     </Link>
-                    <span className="flex h-2 w-2 rounded-full bg-rose-600 animate-ping" />
+                    <span className="flex h-2 w-2 rounded-full bg-teal-600 animate-ping" />
                   </div>
                 </div>
 
                 <div className="space-y-2 font-mono text-[10px] text-slate-600 max-h-96 overflow-y-auto leading-relaxed">
                   {terminalLogs.map((log, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-rose-50/20 border border-rose-100/50 break-all text-slate-700 font-medium">
+                    <div key={idx} className="p-2.5 rounded-xl bg-teal-50/30 border border-teal-100/50 break-all text-slate-700 font-medium">
                       {log}
                     </div>
                   ))}
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md mx-4 overflow-hidden">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-6 py-5 text-white">
+            <div className="bg-gradient-to-r from-teal-700 to-cyan-800 px-6 py-5 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
@@ -632,7 +632,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <h3 className="text-base font-extrabold">Kirim Token</h3>
-                    <p className="text-[10px] text-violet-200 font-medium">Transfer token ke akun Faskes</p>
+                    <p className="text-[10px] text-teal-100 font-medium">Transfer token ke akun Faskes</p>
                   </div>
                 </div>
                 <button
@@ -650,13 +650,13 @@ export default function AdminDashboard() {
               <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Penerima</p>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-rose-800 to-red-900 flex items-center justify-center text-white text-sm font-bold">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-teal-800 to-cyan-950 flex items-center justify-center text-white text-sm font-bold">
                     {tokenModal.user?.name?.charAt(0) || "F"}
                   </div>
                   <div>
                     <p className="text-sm font-extrabold text-slate-900">{tokenModal.user?.name}</p>
                     <p className="text-[10px] text-slate-400 font-mono">
-                      Saldo saat ini: <span className="text-violet-600 font-bold">{tokenModal.user?.hospitalProfile?.tokens ?? 20} Token</span>
+                      Saldo saat ini: <span className="text-teal-800 font-bold">{tokenModal.user?.hospitalProfile?.tokens ?? 20} Token</span>
                     </p>
                   </div>
                 </div>
@@ -666,7 +666,7 @@ export default function AdminDashboard() {
               <div>
                 <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 block">Jumlah Token</label>
                 <div className="relative">
-                  <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400" />
+                  <Coins className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
                   <input
                     type="number"
                     min="1"
@@ -674,7 +674,7 @@ export default function AdminDashboard() {
                     value={tokenAmount}
                     onChange={(e) => setTokenAmount(e.target.value)}
                     placeholder="Masukkan jumlah token..."
-                    className="w-full pl-11 pr-20 py-3 rounded-xl border border-slate-200 text-sm font-bold focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-hidden transition"
+                    className="w-full pl-11 pr-20 py-3 rounded-xl border border-slate-200 text-sm font-bold focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-hidden transition"
                     autoFocus
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold uppercase">Token</span>
@@ -689,7 +689,7 @@ export default function AdminDashboard() {
                     onClick={() => setTokenAmount(String(amt))}
                     className={`flex-1 py-2 rounded-xl border text-xs font-bold transition cursor-pointer ${
                       tokenAmount === String(amt)
-                        ? "border-violet-500 bg-violet-50 text-violet-700"
+                        ? "border-teal-600 bg-teal-50 text-teal-800"
                         : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
@@ -710,7 +710,7 @@ export default function AdminDashboard() {
               <button
                 onClick={handleSendToken}
                 disabled={tokenSending || !tokenAmount || parseInt(tokenAmount) <= 0}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {tokenSending ? (
                   <RefreshCw className="h-3.5 w-3.5 animate-spin" />

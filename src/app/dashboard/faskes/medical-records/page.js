@@ -103,7 +103,7 @@ function TxHashPill({ txHash, compact = false, truncate = true }) {
   return (
     <TxHashLink
       txHash={txHash}
-      className={`font-mono font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm rounded-xl inline-flex items-center gap-1 max-w-full ${
+      className={`font-mono font-bold text-teal-900 bg-teal-50 border border-teal-200 shadow-sm rounded-xl inline-flex items-center gap-1 max-w-full ${
         compact ? "text-[10px] px-2.5 py-1" : "text-xs px-3 py-1.5"
       } ${truncate ? "whitespace-nowrap" : "whitespace-normal break-all"}`}
       title={txHash}
@@ -230,14 +230,14 @@ export default function FaskesMedicalRecordsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
@@ -245,7 +245,7 @@ export default function FaskesMedicalRecordsPage() {
           {/* Header */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Dashboard Faskes</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">Dashboard Faskes</p>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Direktori Rekam Medis</h1>
               <p className="max-w-2xl text-sm text-slate-500 mt-1.5">
                 Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.
@@ -264,7 +264,7 @@ export default function FaskesMedicalRecordsPage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
               >
                 <Plus className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Upload Rekam Medis Baru</span>
@@ -292,7 +292,7 @@ export default function FaskesMedicalRecordsPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Cari pasien, judul, tx hash..."
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-9 py-3 text-sm text-slate-800 focus:border-rose-700 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-9 py-3 text-sm text-slate-800 focus:border-teal-600 focus:outline-none"
                   />
                   {searchTerm && (
                     <button
@@ -306,10 +306,10 @@ export default function FaskesMedicalRecordsPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 border border-amber-100 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-[#D97706] border border-amber-200 whitespace-nowrap">
                     {draftCount} Draft
                   </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 border border-rose-100 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 border border-teal-200 whitespace-nowrap">
                     {onChainCount} On-chain
                   </span>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 whitespace-nowrap">
@@ -398,7 +398,7 @@ export default function FaskesMedicalRecordsPage() {
                                       e.stopPropagation();
                                       handleDownloadPdf(item);
                                     }}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-900 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
                                   >
                                     <Download className="h-3.5 w-3.5" /> Download PDF
                                   </button>
@@ -466,7 +466,7 @@ export default function FaskesMedicalRecordsPage() {
                                   e.stopPropagation();
                                   handleDownloadPdf(item);
                                 }}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-900 text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
                               >
                                 <Download className="h-3.5 w-3.5" /> Download PDF
                               </button>
@@ -492,7 +492,7 @@ export default function FaskesMedicalRecordsPage() {
             className="w-full max-w-2xl my-6 sm:my-0 max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-5 sm:px-6 py-5 text-white">
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 px-5 sm:px-6 py-5 text-white">
               <button
                 type="button"
                 onClick={closeRecordDetail}
@@ -502,16 +502,16 @@ export default function FaskesMedicalRecordsPage() {
               >
                 <X className="h-4 w-4" />
               </button>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-rose-200 font-bold">Detail Rekam Medis</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-teal-200 font-bold">Detail Rekam Medis</p>
               <h3 className="mt-2 text-xl sm:text-2xl font-extrabold tracking-tight pr-10 break-words">
                 {selectedRecord.patientName}
               </h3>
-              <p className="mt-1 text-xs text-rose-100 break-words">{selectedRecord.title}</p>
+              <p className="mt-1 text-xs text-teal-100 break-words">{selectedRecord.title}</p>
             </div>
 
             <div className="p-5 sm:p-6 space-y-4 text-sm">
               {selectedRecord.decryptError && (
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-[#DC2626]">
                   {selectedRecord.decryptError}
                 </div>
               )}
@@ -572,8 +572,8 @@ export default function FaskesMedicalRecordsPage() {
                     );
                     if (entries.length === 0) return null;
                     return (
-                      <div key={type} className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4">
-                        <p className="text-xs font-bold text-rose-800 uppercase tracking-wide">
+                      <div key={type} className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
+                        <p className="text-xs font-bold text-teal-800 uppercase tracking-wide">
                           {DETAIL_TYPE_LABELS[type] || type}
                         </p>
                         <div className="mt-2.5 space-y-3">
@@ -624,7 +624,7 @@ export default function FaskesMedicalRecordsPage() {
                           href={att.filePath}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 hover:text-rose-800 shrink-0"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-teal-800 hover:text-teal-900 shrink-0"
                         >
                           <Download className="h-3.5 w-3.5" /> Unduh
                         </a>
@@ -647,7 +647,7 @@ export default function FaskesMedicalRecordsPage() {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                 >
                   <Download className="h-4 w-4" /> Unduh Dokumen PDF
                 </button>

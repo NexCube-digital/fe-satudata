@@ -983,21 +983,21 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     : 'Satu rekam medis mewakili satu kunjungan pasien. Isi bertahap per langkah -- progres otomatis tersimpan sebagai draft setiap kali Anda menekan "Lanjut", atau klik langsung step yang dituju di atas.';
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Dashboard Faskes</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">Dashboard Faskes</p>
               <h1 className="text-3xl font-extrabold text-slate-900 mt-3">{pageTitle}</h1>
               <p className="max-w-2xl text-sm text-slate-500 mt-2">{pageSubtitle}</p>
             </div>
             <button
               type="button"
               onClick={() => router.push("/dashboard/faskes/medical-records")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:from-teal-800 hover:to-cyan-900 transition"
             >
               <ArrowUpRight className="h-4 w-4" /> Semua Rekam Medis
             </button>
@@ -1104,7 +1104,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             >
               <X className="h-4 w-4" />
             </button>
-            <div className="bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-8 text-white text-center relative overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-6 py-8 text-white text-center relative overflow-hidden">
               <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-xl" />
               <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-lg ring-4 ring-white/30">
                 <CheckCircle className="h-9 w-9 text-white" />
@@ -1121,16 +1121,16 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-rose-600" />
+                    <Hash className="h-3.5 w-3.5 text-teal-700" />
                     {uploadedResult.title || "Rekam Medis"}
                   </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full border border-rose-200">
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
                     {uploadedResult.recordType}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 p-3 gap-2">
-                  <span className="font-mono text-xs font-bold text-rose-900 break-all select-all">
+                  <span className="font-mono text-xs font-bold text-teal-900 break-all select-all">
                     {uploadedResult.txHash || "Belum di-anchor (draft)"}
                   </span>
                   {uploadedResult.txHash && (
@@ -1141,7 +1141,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
                         setCopiedTx(true);
                         setTimeout(() => setCopiedTx(false), 2000);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold text-xs transition cursor-pointer shrink-0 border border-rose-200"
+                      className="px-3 py-1.5 rounded-lg bg-teal-50 text-teal-800 hover:bg-teal-100 font-bold text-xs transition cursor-pointer shrink-0 border border-teal-200"
                     >
                       {copiedTx ? "Tersalin!" : "Salin Hash"}
                     </button>
@@ -1153,7 +1153,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
                 <button
                   type="button"
                   onClick={() => router.push("/dashboard/faskes/medical-records")}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 px-5 py-3 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-3 text-xs font-bold text-white shadow-md transition cursor-pointer"
                 >
                   <FileText className="h-4 w-4" />
                   Lihat Semua Rekam Medis

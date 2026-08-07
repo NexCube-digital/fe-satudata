@@ -248,11 +248,11 @@ export default function FaskesPatientFlowPage() {
   };
 
   const stageConfigs = {
-    1: { name: "1. Pendaftaran Faskes", badgeClass: "bg-blue-50 text-blue-700 border-blue-200", icon: Building2 },
-    2: { name: "2. Rekam Medis (Dokter)", badgeClass: "bg-rose-50 text-rose-700 border-rose-200", icon: Stethoscope },
-    3: { name: "3. Layanan Farmasi", badgeClass: "bg-amber-50 text-amber-700 border-amber-200", icon: Pill },
-    4: { name: "4. Tagihan & Pelunasan", badgeClass: "bg-purple-50 text-purple-700 border-purple-200", icon: Receipt },
-    5: { name: "5. Selesai & Lunas", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 }
+    1: { name: "1. Pendaftaran Faskes", badgeClass: "bg-sky-50 text-[#0284C7] border-sky-200", icon: Building2 },
+    2: { name: "2. Rekam Medis (Dokter)", badgeClass: "bg-amber-50 text-[#D97706] border-amber-200", icon: Stethoscope },
+    3: { name: "3. Layanan Farmasi", badgeClass: "bg-amber-50 text-[#D97706] border-amber-200", icon: Pill },
+    4: { name: "4. Tagihan & Pelunasan", badgeClass: "bg-sky-50 text-[#0284C7] border-sky-200", icon: Receipt },
+    5: { name: "5. Selesai & Lunas", badgeClass: "bg-emerald-50 text-[#16A34A] border-emerald-200", icon: CheckCircle2 }
   };
 
   const filteredPatients = patients.filter((p) => {
@@ -266,14 +266,14 @@ export default function FaskesPatientFlowPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Staf Rumah Sakit / Faskes" onLogout={() => router.push("/auth/login")} />
 
       <div className="flex flex-1">
@@ -283,19 +283,19 @@ export default function FaskesPatientFlowPage() {
           {/* Toast Alert Notification */}
           {toastMessage && (
             <div className="fixed top-20 right-6 z-50 rounded-2xl bg-emerald-900 text-white px-5 py-3.5 shadow-2xl border border-emerald-700 flex items-center gap-3 animate-fade-in text-xs font-bold">
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="h-5 w-5 text-[#16A34A] shrink-0" />
               <span>{toastMessage}</span>
             </div>
           )}
 
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-900 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <Activity className="h-3.5 w-3.5 text-rose-400 animate-pulse" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-300 mb-3">
+                  <Activity className="h-3.5 w-3.5 text-teal-400 animate-pulse" />
                   Live Real-Time Patient Journey Monitoring (Automatic)
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -332,7 +332,7 @@ export default function FaskesPatientFlowPage() {
                 placeholder="Cari nama pasien, NIK, atau dokter..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-rose-500 focus:bg-white focus:outline-hidden transition"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-500 focus:bg-white focus:outline-hidden transition"
               />
             </div>
 
@@ -340,7 +340,7 @@ export default function FaskesPatientFlowPage() {
               <select
                 value={stageFilter}
                 onChange={(e) => setStageFilter(e.target.value)}
-                className="rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-bold text-slate-700 focus:border-rose-500 focus:bg-white focus:outline-hidden transition cursor-pointer w-full sm:w-auto"
+                className="rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-bold text-slate-700 focus:border-teal-500 focus:bg-white focus:outline-hidden transition cursor-pointer w-full sm:w-auto"
               >
                 <option value="all">Semua Tahap Alur ({patients.length})</option>
                 <option value="1">Step 1: Pendaftaran Faskes</option>
@@ -366,12 +366,12 @@ export default function FaskesPatientFlowPage() {
                 return (
                   <div
                     key={p.id}
-                    className="rounded-2xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-rose-300 transition-all duration-200 space-y-4"
+                    className="rounded-2xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-2xs hover:border-teal-300 transition-all duration-200 space-y-4"
                   >
                     {/* Top Row Info */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                       <div className="flex items-start gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 border border-rose-200 font-bold text-rose-700 text-xs shadow-2xs">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 font-bold text-teal-700 text-xs shadow-2xs">
                           <User className="h-5 w-5" />
                         </span>
                         <div>
@@ -380,7 +380,7 @@ export default function FaskesPatientFlowPage() {
                             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600 border border-slate-200">
                               NIK: {p.nik}
                             </span>
-                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-700 border border-emerald-200">
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-mono font-bold text-[#16A34A] border border-emerald-200">
                               Status BE: {p.beStatus}
                             </span>
                           </div>
@@ -414,7 +414,7 @@ export default function FaskesPatientFlowPage() {
 
                         {/* Active Connecting Progress Fill Line */}
                         <div
-                          className="absolute top-[20px] left-8 h-1 -translate-y-1/2 bg-gradient-to-r from-emerald-400 via-rose-700 to-rose-900 rounded-full transition-all duration-500 z-0"
+                          className="absolute top-[20px] left-8 h-1 -translate-y-1/2 bg-gradient-to-r from-teal-500 via-teal-700 to-cyan-800 rounded-full transition-all duration-500 z-0"
                           style={{ width: `calc(${((p.stage - 1) / 4) * 100}% - 0px)` }}
                         />
 
@@ -437,9 +437,9 @@ export default function FaskesPatientFlowPage() {
                                 <div
                                   className={`flex items-center justify-center transition-all duration-300 rounded-full select-none ${
                                     isCurrent
-                                      ? "h-11 w-11 bg-rose-900 text-white ring-4 ring-rose-900/20 shadow-md scale-110 -mt-1"
+                                      ? "h-11 w-11 bg-teal-800 text-white ring-4 ring-teal-800/20 shadow-md scale-110 -mt-1"
                                       : isPassed
-                                      ? "h-7 w-7 bg-emerald-500 text-white border-2 border-white shadow-2xs mt-1"
+                                      ? "h-7 w-7 bg-[#16A34A] text-white border-2 border-white shadow-2xs mt-1"
                                       : "h-6 w-6 bg-slate-100 text-slate-400 border border-slate-200 mt-1.5"
                                   }`}
                                 >
@@ -457,7 +457,7 @@ export default function FaskesPatientFlowPage() {
                                   <p
                                     className={`transition-all duration-200 ${
                                       isCurrent
-                                        ? "text-xs font-black text-rose-950 uppercase tracking-tight scale-105"
+                                        ? "text-xs font-black text-teal-950 uppercase tracking-tight scale-105"
                                         : isPassed
                                         ? "text-[10px] font-semibold text-slate-500"
                                         : "text-[9px] font-normal text-slate-400"
@@ -468,7 +468,7 @@ export default function FaskesPatientFlowPage() {
                                   <p
                                     className={`${
                                       isCurrent
-                                        ? "text-[10px] font-extrabold text-rose-800"
+                                        ? "text-[10px] font-extrabold text-teal-800"
                                         : "text-[8px] text-slate-400"
                                     }`}
                                   >
@@ -488,14 +488,14 @@ export default function FaskesPatientFlowPage() {
                         {p.stage >= 4 ? (
                           <>
                             <span>Kode Billing RS: <strong className="text-slate-800">{p.billingCode}</strong></span>
-                            <span>• Tagihan: <strong className="text-rose-700">Rp {p.totalBill.toLocaleString("id-ID")}</strong></span>
+                            <span>• Tagihan: <strong className="text-teal-700">Rp {p.totalBill.toLocaleString("id-ID")}</strong></span>
                           </>
                         ) : (
                           <span className="text-slate-400 italic font-sans text-[11px]">Billing & Tagihan muncul pada Step 04 (Pelunasan)</span>
                         )}
                         {p.txHash && (
                           <span className="inline-flex items-center gap-1 text-[10px]">
-                            • Tx: <TxHashLink txHash={p.txHash} className="text-rose-600 font-bold" title={p.txHash}><span>{p.txHash.slice(0, 10)}...</span></TxHashLink>
+                            • Tx: <TxHashLink txHash={p.txHash} className="text-teal-600 font-bold" title={p.txHash}><span>{p.txHash.slice(0, 10)}...</span></TxHashLink>
                           </span>
                         )}
                       </div>
@@ -512,7 +512,7 @@ export default function FaskesPatientFlowPage() {
                         {p.stage >= 3 && (
                           <button
                             onClick={() => router.push("/dashboard/faskes/pharmacy/prescriptions")}
-                            className="rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 font-bold text-rose-700 transition flex items-center gap-1 text-[11px] cursor-pointer"
+                            className="rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 font-bold text-teal-700 transition flex items-center gap-1 text-[11px] cursor-pointer"
                           >
                             Lihat Farmasi / Resep →
                           </button>

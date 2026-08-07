@@ -746,7 +746,7 @@ export default function SettingPage() {
               onClick={() => setActiveTab("profile")}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
                 activeTab === "profile"
-                  ? "border-pink-600 text-pink-600"
+                  ? "border-teal-700 text-teal-800"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -758,7 +758,7 @@ export default function SettingPage() {
               onClick={() => setActiveTab("security")}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
                 activeTab === "security"
-                  ? "border-pink-600 text-pink-600"
+                  ? "border-teal-700 text-teal-800"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -770,7 +770,7 @@ export default function SettingPage() {
               onClick={() => setActiveTab("wallet")}
               className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
                 activeTab === "wallet"
-                  ? "border-pink-600 text-pink-600"
+                  ? "border-teal-700 text-teal-800"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -784,7 +784,7 @@ export default function SettingPage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <User className="h-5 w-5 text-pink-600" />
+                  <User className="h-5 w-5 text-teal-800" />
                   Informasi Profil
                 </h2>
               </div>
@@ -792,10 +792,10 @@ export default function SettingPage() {
               {profileMsg.text && (
                 <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
                   profileMsg.type === "success" 
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                    : "bg-red-50 text-red-700 border border-red-200"
+                    ? "bg-emerald-50 text-[#16A34A] border border-emerald-200" 
+                    : "bg-red-50 text-[#DC2626] border border-red-200"
                 }`}>
-                  {profileMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                  {profileMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" /> : <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />}
                   <span>{profileMsg.text}</span>
                 </div>
               )}
@@ -809,7 +809,7 @@ export default function SettingPage() {
                         setIsPhotoModalOpen(true);
                       }
                     }}
-                    className={`group relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-rose-800 to-red-900 ring-4 ring-rose-500/20 shrink-0 shadow-md ${
+                    className={`group relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-teal-700 to-cyan-800 ring-4 ring-teal-500/20 shrink-0 shadow-md ${
                       isEditMode ? "cursor-pointer hover:brightness-95 transition" : ""
                     }`}
                     title={isEditMode ? "Klik untuk mengubah foto profil" : undefined}
@@ -862,7 +862,7 @@ export default function SettingPage() {
                         disabled={!isFieldEditable("name")}
                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                           isFieldEditable("name")
-                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                         }`}
                         required
@@ -879,15 +879,15 @@ export default function SettingPage() {
                       
                       {statusAccount !== "active" && (
                         <div className="flex items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
-                            <AlertCircle className="h-3 w-3 text-amber-600" />
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#D97706] bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
+                            <AlertCircle className="h-3 w-3 text-[#D97706]" />
                             Belum Terverifikasi
                           </span>
                           <button
                             type="button"
                             onClick={handleResendVerification}
                             disabled={resendLoading}
-                            className="text-[10px] font-bold text-pink-600 hover:text-pink-700 underline transition cursor-pointer disabled:opacity-50"
+                            className="text-[10px] font-bold text-teal-800 hover:text-teal-900 underline transition cursor-pointer disabled:opacity-50"
                           >
                             {resendLoading ? "Mengirim..." : "Kirim Ulang Link"}
                           </button>
@@ -902,7 +902,7 @@ export default function SettingPage() {
                         className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium cursor-not-allowed font-mono"
                       />
                       {statusAccount === "active" && (
-                        <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
+                        <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-[#16A34A] animate-pulse" />
                       )}
                     </div>
                   </div>
@@ -924,13 +924,13 @@ export default function SettingPage() {
                            disabled={isNikFilledOnLoad || !isFieldEditable("nik")}
                            className={`w-full pl-4 pr-10 py-2.5 rounded-xl border text-sm font-mono transition ${
                              !isNikFilledOnLoad && isFieldEditable("nik")
-                               ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                               ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                                : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                            }`}
                            placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Masukkan Nomor Izin Operasional" : "3171010509840002"}
                          />
                          {isNikFilledOnLoad && (
-                           <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-emerald-500 animate-pulse" />
+                           <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-[#16A34A] animate-pulse" />
                          )}
                        </div>
                      </div>
@@ -954,7 +954,7 @@ export default function SettingPage() {
                            placeholder="+62 812 3456 7890"
                            className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                              isFieldEditable("phone")
-                               ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                               ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                                : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                            }`}
                          />
@@ -994,7 +994,7 @@ export default function SettingPage() {
                             }}
                             className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                               isFieldEditable("dateOfBirth")
-                                ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden cursor-pointer"
+                                ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden cursor-pointer"
                                 : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                             }`}
                           />
@@ -1069,9 +1069,9 @@ export default function SettingPage() {
                                         setDateOfBirth(`${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`);
                                         setShowDatePicker(false);
                                       }}
-                                      className={`py-1.5 rounded-lg font-semibold hover:bg-pink-50 transition cursor-pointer ${
+                                      className={`py-1.5 rounded-lg font-semibold hover:bg-teal-50 transition cursor-pointer ${
                                         isSelected
-                                          ? "bg-pink-600 text-white hover:bg-pink-600"
+                                          ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white hover:from-teal-800 hover:to-cyan-900"
                                           : "text-slate-700"
                                       }`}
                                     >
@@ -1098,7 +1098,7 @@ export default function SettingPage() {
                           disabled={!isFieldEditable("sex")}
                           className={`w-full px-4 py-2.5 rounded-xl border text-sm transition ${
                             isFieldEditable("sex")
-                              ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                              ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                               : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                           }`}
                         >
@@ -1128,7 +1128,7 @@ export default function SettingPage() {
                         placeholder={user?.role === "rumah_sakit" || user?.role === "faskes" ? "Jl. Bukit Jarian No. 40, Bandung" : "Jl. Raya Kebon Jeruk No. 12"}
                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
                           isFieldEditable("address")
-                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                         }`}
                       />
@@ -1153,7 +1153,7 @@ export default function SettingPage() {
                         placeholder="-6.8837"
                         className={`w-full px-4 py-2.5 rounded-xl border text-sm transition font-mono ${
                           isFieldEditable("latitude")
-                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                         }`}
                       />
@@ -1172,7 +1172,7 @@ export default function SettingPage() {
                         placeholder="107.6049"
                         className={`w-full px-4 py-2.5 rounded-xl border text-sm transition font-mono ${
                           isFieldEditable("longitude")
-                            ? "border-pink-600 bg-white text-slate-900 focus:ring-2 focus:ring-pink-600/20 outline-hidden"
+                            ? "border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden"
                             : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                         }`}
                       />
@@ -1185,7 +1185,7 @@ export default function SettingPage() {
                      <button
                        type="button"
                        onClick={() => setIsEditMode(true)}
-                       className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-pink-500 transition cursor-pointer"
+                       className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-md transition cursor-pointer"
                      >
                        <Edit3 className="h-4 w-4" />
                        Ubah Data
@@ -1202,7 +1202,7 @@ export default function SettingPage() {
                        <button
                          type="submit"
                          disabled={profileLoading || !hasChanges}
-                         className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                         className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                        >
                          {profileLoading ? (
                            <Loader className="h-4 w-4 animate-spin" />
@@ -1222,17 +1222,17 @@ export default function SettingPage() {
           {activeTab === "security" && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
               <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-pink-600" />
+                <Lock className="h-5 w-5 text-teal-800" />
                 Ganti Kata Sandi
               </h2>
 
               {passwordMsg.text && (
                 <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
                   passwordMsg.type === "success" 
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                    : "bg-red-50 text-red-700 border border-red-200"
+                    ? "bg-emerald-50 text-[#16A34A] border border-emerald-200" 
+                    : "bg-red-50 text-[#DC2626] border border-red-200"
                 }`}>
-                  {passwordMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                  {passwordMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" /> : <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />}
                   <span>{passwordMsg.text}</span>
                 </div>
               )}
@@ -1247,7 +1247,7 @@ export default function SettingPage() {
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
                   </div>
@@ -1262,7 +1262,7 @@ export default function SettingPage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Minimal 6 karakter"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
                   </div>
@@ -1277,7 +1277,7 @@ export default function SettingPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ulangi kata sandi baru"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
                   </div>
@@ -1287,7 +1287,7 @@ export default function SettingPage() {
                   <button
                     type="submit"
                     disabled={passwordLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50"
                   >
                     {passwordLoading ? (
                       <Loader className="h-4 w-4 animate-spin" />
@@ -1309,7 +1309,7 @@ export default function SettingPage() {
               {user?.role === "admin" ? (
                 <>
                   <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <Server className="h-5 w-5 text-pink-600" />
+                    <Server className="h-5 w-5 text-teal-800" />
                     Dompet Sistem (Admin Wallet)
                   </h2>
                   <p className="text-sm text-slate-500 mb-6">
@@ -1323,8 +1323,8 @@ export default function SettingPage() {
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Sistem</span>
                       <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
                         systemWallet?.onChainReady
-                          ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                          : "bg-amber-100 text-amber-700 border-amber-200"
+                          ? "bg-emerald-100 text-[#16A34A] border-emerald-200"
+                          : "bg-amber-100 text-[#D97706] border-amber-200"
                       }`}>
                         <Zap className="h-3.5 w-3.5" />
                         {systemWallet?.onChainReady ? "On-Chain Ready ✅" : "Offline / Simulation Mode"}
@@ -1373,7 +1373,7 @@ export default function SettingPage() {
                   </div>
 
                   {parseFloat(systemWalletBalance) < 0.001 && !systemWalletLoading && (
-                    <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-700">
+                    <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-[#D97706]">
                       <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                       <div>
                         <p className="font-bold">Saldo hampir habis!</p>
@@ -1386,7 +1386,7 @@ export default function SettingPage() {
                 /* ── NON-ADMIN: tampilkan personal MetaMask connect ── */
                 <>
                   <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-pink-600" />
+                    <Wallet className="h-5 w-5 text-teal-800" />
                     Penautan Dompet MetaMask (Web3 Identity)
                   </h2>
                   <p className="text-sm text-slate-500 mb-6">
@@ -1396,10 +1396,10 @@ export default function SettingPage() {
                   {walletMsg.text && (
                     <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
                       walletMsg.type === "success" 
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                        : "bg-red-50 text-red-700 border border-red-200"
+                        ? "bg-emerald-50 text-[#16A34A] border border-emerald-200" 
+                        : "bg-red-50 text-[#DC2626] border border-red-200"
                     }`}>
-                      {walletMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                      {walletMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" /> : <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />}
                       <span>{walletMsg.text}</span>
                     </div>
                   )}
@@ -1408,11 +1408,11 @@ export default function SettingPage() {
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Kredensial Wallet</span>
                       {walletAddress ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-[#16A34A] border border-emerald-200">
                           <ShieldCheck className="h-4 w-4" /> Terverifikasi &amp; Ditautkan
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-[#D97706] border border-amber-200">
                           Belum Ditautkan
                         </span>
                       )}
@@ -1434,7 +1434,7 @@ export default function SettingPage() {
                     <button
                       onClick={handleConnectWallet}
                       disabled={walletLoading}
-                      className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-600 px-6 py-2.5 text-sm font-bold text-slate-900 shadow-sm hover:from-amber-400 hover:to-orange-500 transition cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50"
                     >
                       {walletLoading ? (
                         <Loader className="h-4 w-4 animate-spin" />
@@ -1458,7 +1458,7 @@ export default function SettingPage() {
             {/* Modal Header */}
             <div className="flex justify-between items-center w-full border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-rose-800" />
+                <Camera className="h-4 w-4 text-teal-800" />
                 Atur Foto Profil
               </h3>
               <button
@@ -1478,9 +1478,9 @@ export default function SettingPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 text-rose-900 font-bold hover:bg-rose-50 transition text-xs cursor-pointer"
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/30 text-teal-900 font-bold hover:bg-teal-50 transition text-xs cursor-pointer"
                 >
-                  <Upload className="h-5 w-5 text-rose-800" />
+                  <Upload className="h-5 w-5 text-teal-800" />
                   Pilih File Foto
                 </button>
                 <input
@@ -1517,7 +1517,7 @@ export default function SettingPage() {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-850 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-xs transition cursor-pointer"
                   >
                     Ambil Foto
                   </button>
@@ -1582,7 +1582,7 @@ export default function SettingPage() {
                     step="0.05"
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-800"
+                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-800"
                   />
                 </div>
 
@@ -1590,7 +1590,7 @@ export default function SettingPage() {
                   <button
                     type="button"
                     onClick={handleCropSave}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle className="h-4 w-4" /> Simpan Foto
                   </button>

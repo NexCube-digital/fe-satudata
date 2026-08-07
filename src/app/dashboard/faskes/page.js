@@ -334,7 +334,7 @@ export default function FaskesDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
@@ -343,10 +343,10 @@ export default function FaskesDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-800 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-sm shadow-md hover:from-teal-800 hover:to-cyan-900 transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -363,19 +363,19 @@ export default function FaskesDashboard() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Faskes Banner Header */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-500/30 bg-linear-to-r from-rose-600 via-rose-700 to-rose-800 p-6 sm:p-8 text-white shadow-lg shadow-rose-900/10 mb-8">
+          <div className="relative overflow-hidden rounded-3xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-cyan-900 p-6 sm:p-8 text-white shadow-lg shadow-teal-900/10 mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-3.5 py-1 text-xs font-extrabold text-white backdrop-blur-md mb-3 shadow-xs">
-                  <Stethoscope className="h-3.5 w-3.5 text-rose-200" />
+                  <Stethoscope className="h-3.5 w-3.5 text-teal-200" />
                   {isStaff ? `Akses Staf: ${user?.staff_profile?.role_name || "Staf RS"}` : "Sistem HIS & Integrated Medis POS Active"}
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                   {hospitalProfile?.name || user?.name || "RS Cipto Mangunkusumo"}
                 </h1>
-                <p className="text-xs sm:text-sm text-rose-100 mt-1 max-w-xl font-medium leading-relaxed">
+                <p className="text-xs sm:text-sm text-teal-100 mt-1 max-w-xl font-medium leading-relaxed">
                   {isStaff
                     ? `Selamat Datang ${user?.name || ""}. Tampilan modul dan fitur di halaman ini disesuaikan dengan wewenang hak akses aktif Anda.`
                     : "Portal Fasilitas Kesehatan & Dokter Penanggung Jawab. Ajukan permohonan rekam medis eksternal secara terlisensi dan cetak billing kasir."}
@@ -384,8 +384,8 @@ export default function FaskesDashboard() {
 
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/25 bg-white/15 p-3 text-xs font-mono backdrop-blur-md shadow-xs">
-                  <p className="text-[10px] text-rose-100 uppercase font-extrabold flex items-center gap-1"><Coins className="h-3 w-3" /> Token Akun</p>
-                  <p className="font-black text-amber-300 mt-0.5 text-lg">{hospitalProfile?.tokens ?? 0} <span className="text-[10px] text-rose-100 font-bold">token</span></p>
+                  <p className="text-[10px] text-teal-100 uppercase font-extrabold flex items-center gap-1"><Coins className="h-3 w-3" /> Token Akun</p>
+                  <p className="font-black text-amber-300 mt-0.5 text-lg">{hospitalProfile?.tokens ?? 0} <span className="text-[10px] text-teal-100 font-bold">token</span></p>
                 </div>
               </div>
             </div>
@@ -397,14 +397,14 @@ export default function FaskesDashboard() {
               <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kunjungan Hari Ini</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-800">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
                     <Users className="h-4 w-4" />
                   </span>
                 </div>
                 <p className="text-2xl font-extrabold text-slate-900 mt-3">
                   {stats.kunjungan_hari_ini} <span className="text-xs font-normal text-slate-500">Pasien</span>
                 </p>
-                <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
+                <p className="text-[10px] font-medium text-[#16A34A] mt-1 flex items-center gap-1">
                   <CheckCircle className="h-3 w-3" /> Antrean Rawat Jalan Operasional
                 </p>
               </div>
@@ -413,14 +413,14 @@ export default function FaskesDashboard() {
                 <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Izin Akses Disetujui</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-800">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
                       <ShieldCheck className="h-4 w-4" />
                     </span>
                   </div>
                   <p className="text-2xl font-extrabold text-slate-900 mt-3">
                     {stats.izin_akses_disetujui} <span className="text-xs font-normal text-slate-500">Berkas Medis</span>
                   </p>
-                  <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] font-medium text-teal-800 mt-1 flex items-center gap-1">
                     <Unlock className="h-3 w-3" /> Dekripsi Diotorisasi Pasien
                   </p>
                 </div>
@@ -430,14 +430,14 @@ export default function FaskesDashboard() {
                 <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Request Pending</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-[#D97706]">
                       <Clock className="h-4 w-4" />
                     </span>
                   </div>
                   <p className="text-2xl font-extrabold text-slate-900 mt-3">
                     {stats.request_pending} <span className="text-xs font-normal text-slate-500">Menunggu</span>
                   </p>
-                  <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] font-medium text-[#D97706] mt-1 flex items-center gap-1">
                     <Activity className="h-3 w-3" /> Notifikasi Dikirim ke Patient Wallet
                   </p>
                 </div>
@@ -472,7 +472,7 @@ export default function FaskesDashboard() {
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <Send className="h-5 w-5 text-rose-800" />
+                        <Send className="h-5 w-5 text-teal-800" />
                         Pengajuan Izin Akses Rekam Medis (requestAccess)
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -493,7 +493,7 @@ export default function FaskesDashboard() {
                           value={nikInput}
                           onChange={(e) => setNikInput(e.target.value)}
                           placeholder="Masukkan NIK Pasien"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-rose-800 focus:outline-hidden"
+                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-teal-600 focus:outline-hidden"
                           required
                         />
                       </div>
@@ -521,7 +521,7 @@ export default function FaskesDashboard() {
                         value={purposeInput}
                         onChange={(e) => setPurposeInput(e.target.value)}
                         placeholder="Masukkan Tujuan Pemeriksaan (Contoh: Pemeriksaan Rutin & Resep Obat)"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-rose-800 focus:outline-hidden"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-teal-600 focus:outline-hidden"
                       />
                     </div>
 
@@ -529,7 +529,7 @@ export default function FaskesDashboard() {
                       <button
                         type="submit"
                         disabled={submittingRequest}
-                        className="inline-flex items-center gap-2 rounded-xl bg-rose-800 hover:bg-rose-700 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50"
                       >
                         {submittingRequest ? (
                           <RefreshCw className="h-4 w-4 animate-spin" />
@@ -549,7 +549,7 @@ export default function FaskesDashboard() {
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-rose-800" />
+                        <FileText className="h-5 w-5 text-teal-800" />
                         Rekam Medis & Upload Baru
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -566,7 +566,7 @@ export default function FaskesDashboard() {
                         <button
                           type="button"
                           onClick={() => router.push("/dashboard/faskes/medical-records")}
-                          className="inline-flex items-center gap-2 rounded-xl bg-rose-800 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 transition"
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 px-4 py-2 text-xs font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition shadow-xs"
                         >
                           <FileText className="h-4 w-4" /> Buka Semua Rekam Medis
                         </button>
@@ -579,7 +579,7 @@ export default function FaskesDashboard() {
                         <button
                           type="button"
                           onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-                          className="inline-flex items-center gap-2 rounded-xl border border-rose-800 bg-white px-4 py-2 text-xs font-bold text-rose-800 hover:bg-rose-50 transition"
+                          className="inline-flex items-center gap-2 rounded-xl border border-teal-700 bg-white px-4 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50 transition"
                         >
                           <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
                         </button>
@@ -595,7 +595,7 @@ export default function FaskesDashboard() {
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-rose-800" />
+                        <FileText className="h-5 w-5 text-teal-800" />
                         Tabel Permintaan Rekam Medis
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -616,16 +616,16 @@ export default function FaskesDashboard() {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {requestsList.map((req) => (
-                          <tr key={req.id} className="hover:bg-slate-50/50 transition">
+                          <tr key={req.id} className="hover:bg-teal-50/50 transition">
                             <td className="py-3.5 px-4 text-slate-500 font-semibold text-center">{req.requestedAt}</td>
                             <td className="py-3.5 px-4 text-center">
                               <p className="font-bold text-slate-900">{req.patientName}</p>
                               <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900 text-center">
+                            <td className="py-3.5 px-4 font-mono text-[10px] text-teal-900 text-center">
                               {req.txHash ? (
-                                <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-rose-900 mx-auto" title={req.txHash}>
-                                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-teal-900 mx-auto" title={req.txHash}>
+                                  <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A] shrink-0" />
                                   <span className="truncate max-w-[150px]">{req.txHash}</span>
                                 </TxHashLink>
                               ) : req.status === "Approved" ? (
@@ -633,10 +633,10 @@ export default function FaskesDashboard() {
                                   type="button"
                                   onClick={() => handleSyncBlockchain(req.id)}
                                   disabled={syncingReqId === req.id}
-                                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 px-2 py-1 text-[10px] font-bold transition cursor-pointer"
+                                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-[#D97706] px-2 py-1 text-[10px] font-bold transition cursor-pointer"
                                   title="Upload Ulang ke Blockchain (bc-satudata)"
                                 >
-                                  <RefreshCw className={`h-3 w-3 text-amber-700 ${syncingReqId === req.id ? "animate-spin" : ""}`} />
+                                  <RefreshCw className={`h-3 w-3 text-[#D97706] ${syncingReqId === req.id ? "animate-spin" : ""}`} />
                                   Sync Blockchain
                                 </button>
                               ) : (
@@ -645,11 +645,11 @@ export default function FaskesDashboard() {
                             </td>
                             <td className="py-3.5 px-4 text-center">
                               {req.status === "Approved" ? (
-                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                                  <CheckCircle className="h-3 w-3 text-emerald-600" /> Approved
+                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-[#16A34A]">
+                                  <CheckCircle className="h-3 w-3 text-[#16A34A]" /> Approved
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse">
+                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-[#D97706] animate-pulse">
                                   <Clock className="h-3 w-3" /> Pending Pasien
                                 </span>
                               )}
@@ -662,11 +662,11 @@ export default function FaskesDashboard() {
 
                   {/* Modal View Decrypted Record */}
                   {selectedRecord && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-sky-950/40 p-4 backdrop-blur-sm">
-                      <div className="w-full max-w-3xl rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-slate-50 via-sky-50 to-white p-6 shadow-2xl shadow-sky-400/20 text-slate-900">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-teal-950/40 p-4 backdrop-blur-sm">
+                      <div className="w-full max-w-3xl rounded-[32px] border border-teal-200/80 bg-gradient-to-br from-slate-50 via-teal-50 to-white p-6 shadow-2xl shadow-teal-400/20 text-slate-900">
                         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
                           <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-semibold text-sky-800">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-sm font-semibold text-teal-800">
                               <Unlock className="h-4 w-4" />
                               Rekam Medis Terdekripsi
                             </div>
@@ -682,7 +682,7 @@ export default function FaskesDashboard() {
                         </div>
 
                         <div className="space-y-4 text-sm">
-                          <div className="rounded-3xl bg-sky-50 border border-sky-200 p-4">
+                          <div className="rounded-3xl bg-teal-50 border border-teal-200 p-4">
                             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
                             <TxHashLink txHash={selectedRecord.txHash} className="mt-2 font-mono text-slate-900 break-all inline-flex" title={selectedRecord.txHash}>
                               <span>{selectedRecord.txHash}</span>
@@ -707,14 +707,14 @@ export default function FaskesDashboard() {
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div>
                       <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <Pill className="h-5 w-5 text-rose-700" />
+                        <Pill className="h-5 w-5 text-teal-800" />
                         Workspace Staf Apoteker & Kasir POS
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
                         Pusat kendali transaksi kasir, penyerahan resep dokter, dan inventaris obat fasilitas kesehatan.
                       </p>
                     </div>
-                    <span className="text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 px-3 py-1 rounded-full">
                       {user?.staff_profile?.role_name || "Staf Apoteker"}
                     </span>
                   </div>
@@ -723,12 +723,12 @@ export default function FaskesDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Kartu 1: Kasir POS Obat */}
                     {hasPermission("pharmacy:pos") && (
-                      <div className="rounded-2xl border border-rose-100 bg-linear-to-br from-rose-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
+                      <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="p-2.5 rounded-xl bg-rose-700 text-white shadow-xs group-hover:scale-105 transition-transform">
+                          <span className="p-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs group-hover:scale-105 transition-transform">
                             <ShoppingCart className="h-5 w-5" />
                           </span>
-                          <span className="text-xs font-mono font-bold text-rose-900 bg-white border border-rose-200 px-2.5 py-0.5 rounded-full">
+                          <span className="text-xs font-mono font-bold text-teal-900 bg-white border border-teal-200 px-2.5 py-0.5 rounded-full">
                             Rp {sessionOmzet.toLocaleString("id-ID")}
                           </span>
                         </div>
@@ -736,7 +736,7 @@ export default function FaskesDashboard() {
                         <p className="text-xs text-slate-500 mt-1 mb-4">Transaksi penjualan obat dan cetak struk billing kasir.</p>
                         <Link
                           href="/dashboard/faskes/pharmacy/pos"
-                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-rose-700 hover:bg-rose-800 py-2 text-xs font-bold text-white transition shadow-xs"
+                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 py-2 text-xs font-bold text-white transition shadow-xs"
                         >
                           <ShoppingCart className="h-3.5 w-3.5" /> Buka Kasir POS
                         </Link>
@@ -745,12 +745,12 @@ export default function FaskesDashboard() {
 
                     {/* Kartu 2: Antrean Resep */}
                     {hasPermission("pharmacy:manage") && (
-                      <div className="rounded-2xl border border-rose-100 bg-linear-to-br from-rose-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
+                      <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="p-2.5 rounded-xl bg-rose-700 text-white shadow-xs group-hover:scale-105 transition-transform">
+                          <span className="p-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs group-hover:scale-105 transition-transform">
                             <FileText className="h-5 w-5" />
                           </span>
-                          <span className="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                          <span className="text-xs font-extrabold text-[#D97706] bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
                             {pharmacyStats.pending_prescriptions || 0} Menunggu
                           </span>
                         </div>
@@ -767,12 +767,12 @@ export default function FaskesDashboard() {
 
                     {/* Kartu 3: Katalog & Stok Obat */}
                     {hasPermission("pharmacy:manage") && (
-                      <div className="rounded-2xl border border-rose-100 bg-linear-to-br from-rose-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
+                      <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="p-2.5 rounded-xl bg-rose-700 text-white shadow-xs group-hover:scale-105 transition-transform">
+                          <span className="p-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs group-hover:scale-105 transition-transform">
                             <Package className="h-5 w-5" />
                           </span>
-                          <span className="text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                          <span className="text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-full">
                             {pharmacyStats.total_medicines || 0} Jenis Obat
                           </span>
                         </div>
@@ -780,7 +780,7 @@ export default function FaskesDashboard() {
                         <p className="text-xs text-slate-500 mt-1 mb-4">Kelola data obat, harga, dan peringatan sisa stok.</p>
                         <Link
                           href="/dashboard/faskes/pharmacy/inventory"
-                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-white border border-rose-200 text-rose-800 hover:bg-rose-50 py-2 text-xs font-bold transition shadow-2xs"
+                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-white border border-teal-200 text-teal-800 hover:bg-teal-50 py-2 text-xs font-bold transition shadow-2xs"
                         >
                           <Package className="h-3.5 w-3.5" /> Kelola Stok Obat
                         </Link>
@@ -789,9 +789,9 @@ export default function FaskesDashboard() {
 
                     {/* Kartu 4: Riwayat POS */}
                     {hasPermission("pharmacy:pos") && (
-                      <div className="rounded-2xl border border-rose-100 bg-linear-to-br from-rose-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
+                      <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50/60 via-white to-slate-50 p-4 hover:shadow-md transition group">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="p-2.5 rounded-xl bg-rose-700 text-white shadow-xs group-hover:scale-105 transition-transform">
+                          <span className="p-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs group-hover:scale-105 transition-transform">
                             <History className="h-5 w-5" />
                           </span>
                           <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
@@ -802,7 +802,7 @@ export default function FaskesDashboard() {
                         <p className="text-xs text-slate-500 mt-1 mb-4">Laporan audit transaksi penjualan dan cetak ulang struk.</p>
                         <Link
                           href="/dashboard/faskes/pharmacy/sales-history"
-                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-white border border-rose-200 text-rose-800 hover:bg-rose-50 py-2 text-xs font-bold transition shadow-2xs"
+                          className="inline-flex items-center gap-1.5 w-full justify-center rounded-xl bg-white border border-teal-200 text-teal-800 hover:bg-teal-50 py-2 text-xs font-bold transition shadow-2xs"
                         >
                           <History className="h-3.5 w-3.5" /> Riwayat Transaksi
                         </Link>
@@ -815,7 +815,7 @@ export default function FaskesDashboard() {
               {/* Notice for Staff RS with NO medical or pharmacy permissions */}
               {isStaff && !hasPermission("access_request:create") && !hasPermission("access_request:read") && !hasPermission("medical_record:read") && !hasPermission("medical_record:upload") && !hasPermission("pharmacy:pos") && !hasPermission("pharmacy:manage") && (
                 <div className="rounded-3xl bg-white border border-slate-200/80 p-8 text-center shadow-xs">
-                  <ShieldCheck className="h-12 w-12 text-rose-800 mx-auto mb-3" />
+                  <ShieldCheck className="h-12 w-12 text-teal-800 mx-auto mb-3" />
                   <h3 className="text-base font-extrabold text-slate-900">Hak Akses Modul Utama Terbatas</h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                     Role staf Anda ({user?.staff_profile?.role_name || "Staf RS"}) belum memiliki wewenang aktif. Silakan hubungi Admin RS jika memerlukan akses.
@@ -830,17 +830,17 @@ export default function FaskesDashboard() {
                 <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                     <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Receipt className="h-4.5 w-4.5 text-rose-800" />
+                      <Receipt className="h-4.5 w-4.5 text-teal-800" />
                       Kasir & POS Billing Medis
                     </h3>
                     <div className="flex items-center gap-2">
                       <Link
                         href="/dashboard/faskes/pharmacy/pos"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-linear-to-r from-rose-800 via-rose-900 to-red-950 text-white text-[11px] font-extrabold shadow-md shadow-rose-950/20 hover:shadow-lg hover:from-rose-700 hover:to-rose-900 hover:scale-[1.02] transition-all duration-200 group cursor-pointer border border-rose-700/30"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white text-[11px] font-extrabold shadow-md shadow-teal-950/20 hover:shadow-lg hover:from-teal-800 hover:to-cyan-900 hover:scale-[1.02] transition-all duration-200 group cursor-pointer border border-teal-700/30"
                       >
-                        <ShoppingCart className="h-3.5 w-3.5 text-rose-200 group-hover:scale-110 transition-transform" />
+                        <ShoppingCart className="h-3.5 w-3.5 text-teal-200 group-hover:scale-110 transition-transform" />
                         <span>Apoteker POS</span>
-                        <ArrowRight className="h-3 w-3 text-rose-200 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="h-3 w-3 text-teal-200 group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   </div>
@@ -856,10 +856,10 @@ export default function FaskesDashboard() {
                         <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs border border-slate-100">
                           <span className="font-semibold text-slate-800">{item.name}</span>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-rose-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
+                            <span className="font-mono text-teal-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
                             <button
                               onClick={() => handleRemoveBillItem(item.id)}
-                              className="text-slate-400 hover:text-red-500 transition cursor-pointer"
+                              className="text-slate-400 hover:text-[#DC2626] transition cursor-pointer"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -876,7 +876,7 @@ export default function FaskesDashboard() {
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
                       placeholder="Nama Layanan Medis"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-teal-600 focus:outline-hidden"
                     />
                     <div className="flex gap-2">
                       <input
@@ -884,7 +884,7 @@ export default function FaskesDashboard() {
                         value={newItemPrice}
                         onChange={(e) => setNewItemPrice(e.target.value)}
                         placeholder="Harga (Rp)"
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-teal-600 focus:outline-hidden"
                       />
                       <button
                         type="submit"
@@ -899,16 +899,16 @@ export default function FaskesDashboard() {
                   <div className="border-t border-slate-100 pt-4">
                     <div className="flex items-center justify-between text-sm font-bold mb-3">
                       <span className="text-slate-700">Total Tagihan:</span>
-                      <span className="text-rose-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
+                      <span className="text-teal-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
                     </div>
 
                     {receiptSuccess && (
-                      <div className="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 font-medium space-y-1">
+                      <div className="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-[#16A34A] font-medium space-y-1">
                         <div className="flex items-center gap-2 font-bold">
-                          <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-[#16A34A] shrink-0" />
                           <span>Transaksi kasir sukses & tercatat di Apoteker/POS!</span>
                         </div>
-                        <Link href="/dashboard/faskes/pharmacy/sales-history" className="text-[11px] font-bold text-emerald-700 underline block pt-0.5">
+                        <Link href="/dashboard/faskes/pharmacy/sales-history" className="text-[11px] font-bold text-[#16A34A] underline block pt-0.5">
                           → Lihat Struk & Riwayat Penjualan Kasir
                         </Link>
                       </div>
@@ -917,7 +917,7 @@ export default function FaskesDashboard() {
                     <button
                       type="button"
                       onClick={handleProcessTransaction}
-                      className="w-full rounded-xl bg-rose-800 hover:bg-rose-700 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-rose-950/10 cursor-pointer"
+                      className="w-full rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-teal-950/10 cursor-pointer"
                     >
                       Proses Transaksi Kasir
                     </button>
@@ -927,10 +927,10 @@ export default function FaskesDashboard() {
 
               {/* WIDGET 4: RINGKASAN APOTEKER & STOK FARMASI */}
               {(hasPermission("pharmacy:pos") || hasPermission("pharmacy:manage")) && (
-                <div className="rounded-3xl bg-linear-to-br from-rose-600 via-rose-700 to-rose-800 border border-rose-500/30 p-6 text-white shadow-lg shadow-rose-900/10 space-y-4">
+                <div className="rounded-3xl bg-gradient-to-br from-teal-700 via-teal-800 to-cyan-900 border border-teal-500/30 p-6 text-white shadow-lg shadow-teal-900/10 space-y-4">
                   <div className="flex items-center justify-between border-b border-white/20 pb-3">
                     <div className="flex items-center gap-2">
-                      <Pill className="h-5 w-5 text-rose-100" />
+                      <Pill className="h-5 w-5 text-teal-100" />
                       <h3 className="font-black text-sm uppercase tracking-wider text-white">Apoteker & Stok Obat</h3>
                     </div>
                     <span className="text-[10px] font-extrabold bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full text-white backdrop-blur-md">Farmasi Integrated</span>
@@ -938,37 +938,37 @@ export default function FaskesDashboard() {
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
-                      <span className="text-[10px] text-rose-100 uppercase font-extrabold block">Antrean Resep</span>
+                      <span className="text-[10px] text-teal-100 uppercase font-extrabold block">Antrean Resep</span>
                       <p className="text-xl font-black text-white mt-0.5">{pharmacyStats.pending_prescriptions || 0}</p>
-                      <span className="text-[10px] text-rose-100 font-medium">Perlu Penyerahan</span>
+                      <span className="text-[10px] text-teal-100 font-medium">Perlu Penyerahan</span>
                     </div>
 
                     <div className="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
-                      <span className="text-[10px] text-rose-100 uppercase font-extrabold block">Peringatan Stok</span>
+                      <span className="text-[10px] text-teal-100 uppercase font-extrabold block">Peringatan Stok</span>
                       <p className="text-xl font-black text-amber-300 mt-0.5">{pharmacyStats.low_stock_count || 0}</p>
-                      <span className="text-[10px] text-rose-100 font-medium">Stok Menipis</span>
+                      <span className="text-[10px] text-teal-100 font-medium">Stok Menipis</span>
                     </div>
                   </div>
 
                   <div className="pt-1 flex flex-col gap-2">
                     <Link
                       href="/dashboard/faskes/pharmacy/prescriptions"
-                      className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white text-rose-800 text-xs font-black shadow-md hover:bg-rose-50 transition cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white text-teal-800 text-xs font-black shadow-md hover:bg-teal-50 transition cursor-pointer"
                     >
-                      <FileText className="h-3.5 w-3.5 text-rose-700" /> Antrean Resep Doctor
+                      <FileText className="h-3.5 w-3.5 text-teal-700" /> Antrean Resep Doctor
                     </Link>
                     <div className="grid grid-cols-2 gap-2">
                       <Link
                         href="/dashboard/faskes/pharmacy/inventory"
-                        className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-rose-800/80 border border-white/25 text-white text-xs font-extrabold hover:bg-rose-900 transition cursor-pointer shadow-2xs"
+                        className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-teal-800/80 border border-white/25 text-white text-xs font-extrabold hover:bg-teal-900 transition cursor-pointer shadow-2xs"
                       >
-                        <Package className="h-3.5 w-3.5 text-rose-200" /> Stok Obat
+                        <Package className="h-3.5 w-3.5 text-teal-200" /> Stok Obat
                       </Link>
                       <Link
                         href="/dashboard/faskes/pharmacy/sales-history"
-                        className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-rose-800/80 border border-white/25 text-white text-xs font-extrabold hover:bg-rose-900 transition cursor-pointer shadow-2xs"
+                        className="inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-teal-800/80 border border-white/25 text-white text-xs font-extrabold hover:bg-teal-900 transition cursor-pointer shadow-2xs"
                       >
-                        <History className="h-3.5 w-3.5 text-rose-200" /> Riwayat POS
+                        <History className="h-3.5 w-3.5 text-teal-200" /> Riwayat POS
                       </Link>
                     </div>
                   </div>
@@ -979,11 +979,11 @@ export default function FaskesDashboard() {
           {toast.show && (
             <div className="fixed right-4 bottom-4 z-50 max-w-sm rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
               <div className="flex items-start gap-3">
-                <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-[#16A34A]" : "bg-red-100 text-[#DC2626]"}`}>
                   {toast.type === "success" ? (
-                    <CheckCircle className="h-5 w-5" />
+                    <CheckCircle className="h-5 w-5 text-[#16A34A]" />
                   ) : (
-                    <AlertCircle className="h-5 w-5" />
+                    <AlertCircle className="h-5 w-5 text-[#DC2626]" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">

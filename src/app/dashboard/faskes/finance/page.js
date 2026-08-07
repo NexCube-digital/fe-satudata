@@ -187,22 +187,22 @@ export default function FaskesFinanceMasterPricePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-8">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1 text-xs font-bold text-rose-700 mb-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
+            <div className="flex-1 min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
                 <DollarSign className="h-3.5 w-3.5" /> Modul Master Keuangan RS
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -213,18 +213,18 @@ export default function FaskesFinanceMasterPricePage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2.5 self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
               <button
                 onClick={handleOpenAddModal}
-                className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" /> Tambah Master Biaya Awal
               </button>
               <button
                 onClick={() => router.push("/dashboard/faskes/finance/invoice")}
-                className="inline-flex items-center gap-2 rounded-2xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 px-4 py-2.5 text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 px-4 py-2.5 text-xs font-bold transition cursor-pointer whitespace-nowrap"
               >
-                <CreditCard className="h-4 w-4 text-rose-700" /> Buat Tagihan Invoice Pasien <ArrowRight className="h-3.5 w-3.5" />
+                <CreditCard className="h-4 w-4 text-teal-800" /> Buat Tagihan Invoice Pasien <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
@@ -233,8 +233,8 @@ export default function FaskesFinanceMasterPricePage() {
             <div
               className={`mb-6 p-4 rounded-2xl text-xs font-bold border flex items-center justify-between shadow-2xs ${
                 feedback.type === "success"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  : "bg-rose-50 border-rose-200 text-rose-800"
+                  ? "bg-emerald-50 border-emerald-200 text-[#16A34A]"
+                  : "bg-red-50 border-red-200 text-[#DC2626]"
               }`}
             >
               <span>{feedback.message}</span>
@@ -251,7 +251,7 @@ export default function FaskesFinanceMasterPricePage() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Komponen Biaya</p>
                 <p className="text-2xl font-extrabold text-slate-900 mt-1">{servicePrices.length}</p>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-700 font-bold">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 font-bold">
                 <FileText className="h-6 w-6" />
               </span>
             </div>
@@ -259,9 +259,9 @@ export default function FaskesFinanceMasterPricePage() {
             <div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Biaya Aktif</p>
-                <p className="text-2xl font-extrabold text-emerald-600 mt-1">{activeCount} Layanan</p>
+                <p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Layanan</p>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 font-bold">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A] font-bold">
                 <CheckCircle2 className="h-6 w-6" />
               </span>
             </div>
@@ -271,7 +271,7 @@ export default function FaskesFinanceMasterPricePage() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rata-Rata Tarif RS</p>
                 <p className="text-2xl font-extrabold text-slate-900 font-mono mt-1">{formatRupiah(averagePrice)}</p>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 font-bold">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-[#D97706] font-bold">
                 <DollarSign className="h-6 w-6" />
               </span>
             </div>
@@ -287,7 +287,7 @@ export default function FaskesFinanceMasterPricePage() {
                   placeholder="Cari nama layanan atau kode biaya awal..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-rose-600 focus:bg-white focus:outline-hidden font-medium"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
                 />
               </div>
 
@@ -295,7 +295,7 @@ export default function FaskesFinanceMasterPricePage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-rose-600 focus:bg-white focus:outline-hidden font-medium"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
                 >
                   <option value="all">Semua Status (Aktif & Non-Aktif)</option>
                   <option value="active">✔ Aktif</option>
@@ -309,10 +309,10 @@ export default function FaskesFinanceMasterPricePage() {
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <SlidersHorizontal className="h-5 w-5 text-rose-600" />
+                <SlidersHorizontal className="h-5 w-5 text-teal-800" />
                 Katalog Biaya Awal RS ({filteredPrices.length})
               </h3>
-              <button onClick={fetchData} className="text-slate-400 hover:text-slate-600 transition">
+              <button onClick={fetchData} className="text-slate-400 hover:text-slate-600 transition cursor-pointer">
                 <RefreshCw className="h-4 w-4" />
               </button>
             </div>
@@ -338,7 +338,7 @@ export default function FaskesFinanceMasterPricePage() {
                       const isActive = item.status === "active";
                       return (
                         <tr key={item.id} className="hover:bg-slate-50/60 transition">
-                          <td className="py-4 px-4 font-mono font-bold text-rose-900 whitespace-nowrap">
+                          <td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">
                             {item.code || "-"}
                           </td>
                           <td className="py-4 px-4 font-bold text-slate-900">
@@ -351,11 +351,11 @@ export default function FaskesFinanceMasterPricePage() {
                             <span
                               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                                 isActive
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  ? "bg-emerald-50 text-[#16A34A] border border-emerald-200"
                                   : "bg-slate-100 text-slate-600 border border-slate-200"
                               }`}
                             >
-                              {isActive ? <CheckCircle2 className="h-3 w-3 text-emerald-600" /> : <XCircle className="h-3 w-3 text-slate-400" />}
+                              {isActive ? <CheckCircle2 className="h-3 w-3 text-[#16A34A]" /> : <XCircle className="h-3 w-3 text-slate-400" />}
                               {isActive ? "Aktif" : "Non-Aktif"}
                             </span>
                           </td>
@@ -368,9 +368,9 @@ export default function FaskesFinanceMasterPricePage() {
                             </button>
                             <button
                               onClick={() => handleDelete(item.id, item.name)}
-                              className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 px-2.5 py-1.5 font-bold transition cursor-pointer"
+                              className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-2.5 py-1.5 font-bold transition cursor-pointer"
                             >
-                              <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                              <Trash2 className="h-3.5 w-3.5 text-[#DC2626]" />
                             </button>
                           </td>
                         </tr>
@@ -388,7 +388,7 @@ export default function FaskesFinanceMasterPricePage() {
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-rose-600" />
+                    <DollarSign className="h-5 w-5 text-teal-800" />
                     {editingItem ? "Edit Komponen Biaya Awal" : "Tambah Master Biaya Awal"}
                   </h3>
                   <button
@@ -407,7 +407,7 @@ export default function FaskesFinanceMasterPricePage() {
                       placeholder="Contoh: umum, lab, admin, registrasi"
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 font-mono focus:border-rose-600 focus:bg-white focus:outline-hidden"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden"
                     />
                   </div>
 
@@ -419,7 +419,7 @@ export default function FaskesFinanceMasterPricePage() {
                       placeholder="Contoh: Konsultasi Dokter Umum"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 focus:border-rose-600 focus:bg-white focus:outline-hidden"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden"
                     />
                   </div>
 
@@ -431,7 +431,7 @@ export default function FaskesFinanceMasterPricePage() {
                       placeholder="Contoh: 150000"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 font-mono focus:border-rose-600 focus:bg-white focus:outline-hidden"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden"
                     />
                   </div>
 
@@ -440,7 +440,7 @@ export default function FaskesFinanceMasterPricePage() {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 focus:border-rose-600 focus:bg-white focus:outline-hidden"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden"
                     >
                       <option value="active">✔ Aktif</option>
                       <option value="inactive">✖ Non-Aktif</option>
@@ -458,7 +458,7 @@ export default function FaskesFinanceMasterPricePage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="rounded-2xl bg-rose-800 hover:bg-rose-900 text-white px-5 py-2.5 text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+                      className="rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
                     >
                       {submitting && <RefreshCw className="h-4 w-4 animate-spin" />}
                       Simpan Biaya Awal

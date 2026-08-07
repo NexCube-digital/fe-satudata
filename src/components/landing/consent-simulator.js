@@ -197,7 +197,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   type="text"
                   value={nikInput}
                   onChange={(e) => setNikInput(e.target.value)}
-                  className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:outline-hidden focus:border-rose-500 font-mono shadow-inner-sm"
+                  className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:outline-hidden focus:border-teal-500 font-mono shadow-inner-sm"
                   placeholder="Masukkan NIK Pasien"
                   disabled={simulatorState !== "idle"}
                 />
@@ -207,7 +207,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   className={`rounded-xl px-5 py-2.5 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                     simulatorState !== "idle" || !walletConnected
                       ? "bg-slate-300 cursor-not-allowed text-slate-500"
-                      : "bg-linear-to-r from-pink-500 to-fuchsia-500 hover:from-pink-400 hover:to-fuchsia-400 hover:scale-[1.02]"
+                      : "bg-linear-to-r from-teal-700 to-cyan-700 hover:from-teal-600 hover:to-cyan-600 hover:scale-[1.02]"
                   }`}
                 >
                   <Send className="h-3.5 w-3.5" />
@@ -215,22 +215,21 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                 </button>
               </div>
               {!walletConnected && (
-                <p className="mt-2 text-[10px] text-amber-600 font-medium flex items-center gap-1">
+                <p className="mt-2 text-[10px] text-[#D97706] font-medium flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
                   Harap hubungkan MetaMask Pasien terlebih dahulu di sebelah kanan.
                 </p>
               )}
             </div>
 
-            {/* High Tech Terminal for Data Display */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Database className="h-4 w-4 text-rose-500" />
+                  <Database className="h-4 w-4 text-teal-600" />
                   Data EHR Terenkripsi (MySQL Cold Storage)
                 </p>
                 {simulatorState === "approved" ? (
-                  <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1 font-mono">
+                  <span className="text-[9px] text-[#16A34A] font-bold flex items-center gap-1 font-mono">
                     <Unlock className="h-3 w-3" /> AES-256 Decrypted Successfully
                   </span>
                 ) : (
@@ -248,12 +247,12 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                     simulatorState === "approved" ? "bg-emerald-400" : "bg-red-400"
                   }`} />
                   <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                    simulatorState === "approved" ? "bg-emerald-500" : "bg-red-500"
+                    simulatorState === "approved" ? "bg-[#16A34A]" : "bg-[#DC2626]"
                   }`} />
                 </div>
                 
                 <pre className={`text-[10px] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap select-all max-h-[220px] transition-colors duration-300 ${
-                  simulatorState === "approved" ? "text-emerald-400" : "text-rose-500/70"
+                  simulatorState === "approved" ? "text-emerald-400" : "text-teal-400/80"
                 }`}>
                   <code>{displayedText}</code>
                 </pre>
@@ -266,15 +265,13 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
           </p>
         </div>
 
-        {/* Right Side: MetaMask Wallet Mockup */}
         <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 p-5 text-white shadow-2xl flex flex-col justify-between">
-          <div className="absolute inset-x-0 top-0 h-1.5 bg-amber-500" />
+          <div className="absolute inset-x-0 top-0 h-1.5 bg-teal-500" />
           
           <div>
-            {/* MetaMask Header */}
             <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-5">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-500">
                   <Wallet className="h-5 w-5" />
                 </span>
                 <div>
@@ -289,38 +286,32 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   Hardhat Node
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[9px] font-bold text-rose-400 border border-rose-500/20">
-                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                <div className="flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-0.5 text-[9px] font-bold text-teal-400 border border-teal-500/20">
+                  <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
                   Offline
                 </div>
               )}
             </div>
 
-            {/* Wallet Not Connected Screen */}
             {!walletConnected && (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="relative mb-4">
-                  <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-md animate-pulse" />
-                  <Wallet className="relative h-14 w-14 text-amber-500" />
-                </div>
-                <h5 className="text-sm font-bold text-white">Hubungkan MetaMask Pasien</h5>
-                <p className="text-[10px] text-slate-400 mt-2 max-w-[240px] leading-relaxed">
-                  Untuk mencoba simulasi persetujuan rekam medis, pasien harus menautkan dompet MetaMask.
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <ShieldCheck className="h-12 w-12 text-slate-700 mb-3" />
+                <h5 className="text-xs font-bold text-slate-300">Simulasi Memerlukan Wallet Pasien</h5>
+                <p className="text-[10px] text-slate-500 mt-1 mb-5 max-w-[220px]">
+                  Klik tombol di bawah untuk mengaktifkan dompet MetaMask pasien dan memproses otorisasi digital.
                 </p>
                 <button
                   onClick={() => {
                     setWalletConnected(true);
                     addLog("Pasien menyambungkan dompet MetaMask (Status Terhubung)", "success");
                   }}
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-500 hover:bg-amber-400 px-6 py-2.5 text-xs font-bold text-slate-900 transition-all duration-200 cursor-pointer hover:scale-[1.02] shadow-lg shadow-amber-500/10"
+                  className="rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-amber-400 cursor-pointer shadow-md"
                 >
-                  <Wallet className="h-3.5 w-3.5" />
-                  Hubungkan Wallet
+                  Konek MetaMask Pasien
                 </button>
               </div>
             )}
 
-            {/* Connected & Waiting in Idle state */}
             {walletConnected && simulatorState === "idle" && (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 text-slate-400 mb-3 border border-white/5">
@@ -339,54 +330,38 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
               </div>
             )}
 
-            {/* Requested state - Signature Prompt (THE CRITICAL PIECE) */}
-            {walletConnected && simulatorState === "requested" && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 shadow-[0_0_30px_rgba(245,158,11,0.06)] animate-fade-in">
-                <div className="flex items-center gap-2 border-b border-white/5 pb-2.5 mb-3">
-                  <RefreshCw className="h-4.5 w-4.5 text-amber-500 animate-spin" />
-                  <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider">Persetujuan Transaksi (Signature)</h5>
-                </div>
-                
-                <div className="space-y-2.5 text-[10px] font-mono text-slate-300">
-                  <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-slate-500">Method</span>
-                    <span className="text-amber-400 font-bold">grantAccess(address,uint256)</span>
+            {walletConnected && simulatorState === "pending" && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold mb-2">
+                    <Clock className="h-4 w-4 animate-spin" />
+                    <span>Permintaan Consent Medis Masuk</span>
                   </div>
-                  <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-slate-500">Faskes Pemohon</span>
-                    <span className="text-white">RS Cipto Mangunkusumo</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-slate-500">Gas Fee Estimasi</span>
-                    <span className="text-emerald-400 font-bold">0 ETH (Gasless - EIP-2771)</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-1">
-                    <span className="text-slate-500">Subsidi Oleh</span>
-                    <span className="text-slate-400">Kas Faskes RSCM (Relayer)</span>
-                  </div>
+                  <p className="text-[10px] text-slate-300 leading-normal">
+                    Faskes <strong className="text-white">RS Cipto Mangunkusumo</strong> meminta hak akses rekam medis digital NIK Anda.
+                  </p>
                 </div>
 
-                <div className="mt-4.5 flex gap-2">
+                <div className="space-y-2">
                   <button
-                    onClick={handleGrantAccess}
-                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2 text-center text-xs font-bold text-white transition-all cursor-pointer shadow-sm shadow-emerald-950/20"
+                    onClick={handleApproveAccess}
+                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-center text-xs font-bold text-white transition cursor-pointer shadow-sm"
                   >
-                    Approve Transaksi
+                    Setujui & Tandatangani (Sign EIP-2771)
                   </button>
                   <button
-                    onClick={handleRejectRequest}
-                    className="rounded-xl bg-white/5 border border-white/10 px-4 py-2 text-center text-xs font-semibold text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                    onClick={handleRejectAccess}
+                    className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-center text-xs font-bold text-slate-400 transition cursor-pointer"
                   >
-                    Tolak
+                    Tolak Permintaan
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Signing Transaction screen */}
             {walletConnected && simulatorState === "signing" && (
               <div className="flex flex-col items-center justify-center py-10 text-center animate-fade-in">
-                <RefreshCw className="h-10 w-10 text-amber-500 animate-spin mb-4" />
+                <RefreshCw className="h-10 w-10 text-teal-500 animate-spin mb-4" />
                 <h5 className="text-xs font-bold text-slate-300">Menandatangani & Merekam ke Blockchain...</h5>
                 <p className="text-[9px] text-slate-500 mt-1 max-w-[220px]">
                   Smart contract memvalidasi tanda tangan digital dan memperbarui Access Control List.
@@ -394,9 +369,8 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
               </div>
             )}
 
-            {/* Approved state - Dashboard for revoking */}
             {walletConnected && simulatorState === "approved" && (
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 shadow-[0_0_35px_rgba(16,185,129,0.06)] animate-fade-in">
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs animate-fade-in">
                 <div className="flex items-center gap-2 border-b border-white/5 pb-2.5 mb-3 text-emerald-400">
                   <ShieldCheck className="h-5 w-5" />
                   <h5 className="text-xs font-bold uppercase tracking-wider">Hak Akses RSCM Aktif</h5>
@@ -413,17 +387,16 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
 
                 <button
                   onClick={handleRevokeAccess}
-                  className="w-full rounded-xl bg-linear-to-r from-pink-500 to-fuchsia-500 py-2.5 text-center text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-pink-200/40 hover:from-pink-400 hover:to-fuchsia-400"
+                  className="w-full rounded-xl bg-linear-to-r from-teal-700 to-cyan-700 py-2.5 text-center text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-teal-900/40 hover:from-teal-600 hover:to-cyan-600"
                 >
                   Cabut Izin Akses (revokeAccess)
                 </button>
               </div>
             )}
 
-            {/* Revoking state */}
             {walletConnected && simulatorState === "revoking" && (
               <div className="flex flex-col items-center justify-center py-10 text-center animate-fade-in">
-                <RefreshCw className="h-10 w-10 text-rose-500 animate-spin mb-4" />
+                <RefreshCw className="h-10 w-10 text-teal-500 animate-spin mb-4" />
                 <h5 className="text-xs font-bold text-slate-300">Memproses Pencabutan Hak Akses...</h5>
                 <p className="text-[9px] text-slate-500 mt-1 max-w-[200px]">
                   Mengirimkan transaksi ke blockchain untuk membatalkan hak akses RSCM seketika.
@@ -439,10 +412,9 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
         </div>
       </div>
 
-      {/* Ledger Audit Trail Section */}
       <div className="mt-8">
         <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-          <Database className="h-4.5 w-4.5 text-pink-600" />
+          <Database className="h-4.5 w-4.5 text-teal-600" />
           Audit Trail Ledger Blockchain (Real-time Logs)
         </p>
         <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 shadow-inner-sm max-h-40 overflow-y-auto space-y-2">
@@ -450,11 +422,11 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
             <div key={idx} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between text-[11px] font-mono rounded-lg border border-slate-100 bg-white p-2.5 shadow-xs">
               <div className="flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full shrink-0 ${
-                  log.type === "success" ? "bg-emerald-500" :
-                  log.type === "warning" ? "bg-amber-500" :
-                  log.type === "error" ? "bg-rose-500" : "bg-blue-500"
+                  log.type === "success" ? "bg-[#16A34A]" :
+                  log.type === "warning" ? "bg-[#D97706]" :
+                  log.type === "error" ? "bg-[#DC2626]" : "bg-[#0284C7]"
                 }`} />
-                <span className="text-pink-600 font-semibold">{log.hash}</span>
+                <span className="text-teal-700 font-semibold">{log.hash}</span>
                 <span className="text-slate-700">{log.action}</span>
               </div>
               <span className="text-[10px] text-slate-400 self-end sm:self-center shrink-0">{log.timestamp}</span>

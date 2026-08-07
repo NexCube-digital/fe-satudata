@@ -82,7 +82,7 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
         className={`
           w-full flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition-all duration-200 cursor-pointer
           ${open
-            ? "border-rose-500 bg-rose-50/30 ring-2 ring-rose-200/50 shadow-sm"
+            ? "border-teal-600 bg-teal-50/30 ring-2 ring-teal-500/20 shadow-sm"
             : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
           }
           ${!value && !open ? "text-slate-400" : "text-slate-900"}
@@ -92,7 +92,7 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
           {/* Icon */}
           <span className={`shrink-0 h-8 w-8 rounded-xl flex items-center justify-center border transition-colors
             ${selectedDoctor
-              ? "bg-rose-50 text-rose-700 border-rose-200"
+              ? "bg-teal-50 text-teal-800 border-teal-200"
               : "bg-slate-100 text-slate-400 border-slate-200"
             }`}>
             <Stethoscope className="h-4 w-4" />
@@ -168,7 +168,7 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
                       className={`
                         w-full flex items-center gap-3 px-3 py-2.5 mx-1 text-left rounded-xl transition-all duration-100 cursor-pointer
                         ${isSelected
-                          ? "bg-rose-50 text-rose-900"
+                          ? "bg-teal-50 text-teal-900 font-bold"
                           : "hover:bg-slate-50 text-slate-700"
                         }
                       `}
@@ -176,14 +176,14 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
                     >
                       {/* Specialist icon */}
                       <span className={`shrink-0 h-8 w-8 rounded-xl border flex items-center justify-center text-xs font-bold
-                        ${isSelected ? "bg-rose-100 text-rose-700 border-rose-200" : "bg-slate-100 text-slate-500 border-slate-200"}
+                        ${isSelected ? "bg-teal-100 text-teal-800 border-teal-200" : "bg-slate-100 text-slate-500 border-slate-200"}
                       `}>
                         <Stethoscope className="h-3.5 w-3.5" />
                       </span>
 
                       {/* Labels */}
                       <span className="flex-1 min-w-0">
-                        <span className={`block text-xs font-bold truncate ${isSelected ? "text-rose-900" : "text-slate-800"}`}>
+                        <span className={`block text-xs font-bold truncate ${isSelected ? "text-teal-900" : "text-slate-800"}`}>
                           {d.name}
                         </span>
                         <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full border mt-0.5 ${getSpecialistBadgeColor(d.specialist)}`}>
@@ -193,7 +193,7 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
 
                       {/* Checkmark */}
                       {isSelected && (
-                        <Check className="h-4 w-4 text-rose-600 shrink-0" />
+                        <Check className="h-4 w-4 text-teal-700 shrink-0" />
                       )}
                     </button>
                   );

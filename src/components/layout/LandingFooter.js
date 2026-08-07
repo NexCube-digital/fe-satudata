@@ -4,7 +4,7 @@ import { ShieldCheck, Lock, Radio, Server, FileText, Activity } from "lucide-rea
 
 export default function Footer() {
   return (
-    <footer className="border-t border-rose-100 bg-linear-to-b from-slate-50 to-slate-100/80 pt-16 pb-10 text-xs text-slate-500">
+    <footer className="border-t border-teal-100 bg-linear-to-b from-slate-50 to-slate-100/80 pt-16 pb-10 text-xs text-slate-500">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Grid */}
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5 mb-12">
@@ -22,7 +22,7 @@ export default function Footer() {
               </span>
               <div>
                 <span className="text-sm font-extrabold uppercase tracking-widest text-slate-900 block">Satu Data</span>
-                <span className="text-[10px] font-bold text-rose-800">Sovereign Health Infrastructure</span>
+                <span className="text-[10px] font-bold text-teal-800">Sovereign Health Infrastructure</span>
               </div>
             </a>
 
@@ -31,12 +31,12 @@ export default function Footer() {
             </p>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <div className="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-800">
-                <ShieldCheck className="h-4 w-4 text-rose-700" />
+              <div className="flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-1.5 text-[11px] font-bold text-teal-800">
+                <ShieldCheck className="h-4 w-4 text-teal-700" />
                 Sesuai UU PDP No. 27/2022
               </div>
-              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-800">
-                <Radio className="h-3.5 w-3.5 text-emerald-600 animate-pulse" />
+              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-[#16A34A]">
+                <Radio className="h-3.5 w-3.5 text-[#16A34A] animate-pulse" />
                 SATUSEHAT v2.5 Ready
               </div>
             </div>
@@ -47,19 +47,19 @@ export default function Footer() {
             <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Navigasi Utama</h4>
             <ul className="space-y-2.5 font-medium">
               <li>
-                <Link href="/" className="hover:text-rose-800 transition">Beranda Utama</Link>
+                <Link href="/" className="hover:text-teal-800 transition">Beranda Utama</Link>
               </li>
               <li>
-                <Link href="/faskes" className="hover:text-rose-800 transition">Peta Sebaran Faskes</Link>
+                <Link href="/faskes" className="hover:text-teal-800 transition">Peta Sebaran Faskes</Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-rose-800 transition">Tanya Jawab (FAQ)</Link>
+                <Link href="/faq" className="hover:text-teal-800 transition">Tanya Jawab (FAQ)</Link>
               </li>
               <li>
-                <Link href="/#fitur" className="hover:text-rose-800 transition">Fitur Infrastruktur</Link>
+                <Link href="/#fitur" className="hover:text-teal-800 transition">Fitur Infrastruktur</Link>
               </li>
               <li>
-                <Link href="/#alur" className="hover:text-rose-800 transition">Alur Pendaftaran</Link>
+                <Link href="/#alur" className="hover:text-teal-800 transition">Alur Pendaftaran</Link>
               </li>
             </ul>
           </div>
@@ -69,13 +69,13 @@ export default function Footer() {
             <h4 className="font-extrabold text-slate-900 mb-3.5 uppercase tracking-wider text-[11px]">Akses Portal</h4>
             <ul className="space-y-2.5 font-medium">
               <li>
-                <Link href="/auth/login" className="hover:text-rose-800 transition">Masuk Portal (Login)</Link>
+                <Link href="/auth/login" className="hover:text-teal-800 transition">Masuk Portal (Login)</Link>
               </li>
               <li>
-                <Link href="/auth/register" className="hover:text-rose-800 transition">Daftar Pasien Baru</Link>
+                <Link href="/auth/register" className="hover:text-teal-800 transition">Daftar Pasien Baru</Link>
               </li>
               <li>
-                <Link href="/auth/forgot-password" className="hover:text-rose-800 transition">Lupa Kata Sandi</Link>
+                <Link href="/auth/forgot-password" className="hover:text-teal-800 transition">Lupa Kata Sandi</Link>
               </li>
             </ul>
           </div>
@@ -88,7 +88,7 @@ export default function Footer() {
               <li><span className="text-slate-650">Off-chain Enkripsi AES-256</span></li>
               <li><span className="text-slate-650">Sovereign Data Storage</span></li>
               <li>
-                <Link href="/faq" className="text-rose-800 font-bold hover:underline transition">Bantuan & FAQ (/faq)</Link>
+                <Link href="/faq" className="text-teal-800 font-bold hover:underline transition">Bantuan & FAQ (/faq)</Link>
               </li>
             </ul>
           </div>
@@ -104,7 +104,7 @@ export default function Footer() {
             <span>•</span>
             <span>Next.js 16 App Router</span>
             <span>•</span>
-            <span className="text-rose-800 font-bold">SATUSEHAT Integrated</span>
+            <span className="text-teal-800 font-bold">SATUSEHAT Integrated</span>
           </div>
         </div>
       </div>

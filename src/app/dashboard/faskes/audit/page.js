@@ -118,29 +118,29 @@ export default function FaskesAuditLogPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-6">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-rose-700/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-6">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-600/15 blur-3xl" />
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-rose-300 font-bold">Audit Trail Faskes</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-teal-300 font-bold">Audit Trail Faskes</p>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3 mt-1">
-                  <Activity className="h-7 w-7 text-rose-400" /> Log Aktivitas & Blockchain
+                  <Activity className="h-7 w-7 text-teal-300" /> Log Aktivitas & Blockchain
                 </h1>
-                <p className="text-xs text-rose-200 mt-1.5 max-w-xl leading-relaxed">
+                <p className="text-xs text-slate-300 mt-1.5 max-w-xl leading-relaxed">
                   Rekam jejak seluruh aktivitas rekam medis, permohonan izin akses, dan transaksi blockchain.
                 </p>
               </div>
@@ -162,9 +162,9 @@ export default function FaskesAuditLogPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-100">
               {[
                 { label: "Total Log", value: totalLogs, color: "text-slate-900", sub: "Semua Aktivitas" },
-                { label: "Berhasil", value: successLogs, color: "text-emerald-700", sub: "Status SUCCESS" },
-                { label: "Gagal", value: failedLogs, color: "text-amber-700", sub: "Status FAILED" },
-                { label: "On-Chain", value: onChainLogs, color: "text-rose-800", sub: "Punya Tx Hash" },
+                { label: "Berhasil", value: successLogs, color: "text-[#16A34A]", sub: "Status SUCCESS" },
+                { label: "Gagal", value: failedLogs, color: "text-[#D97706]", sub: "Status FAILED" },
+                { label: "On-Chain", value: onChainLogs, color: "text-teal-800", sub: "Punya Tx Hash" },
               ].map((stat, i) => (
                 <div key={i} className="p-4 sm:p-5 border-r border-slate-100 last:border-r-0">
                   <p className={`text-[10px] font-extrabold uppercase tracking-wider ${stat.color}`}>{stat.label}</p>
@@ -186,7 +186,7 @@ export default function FaskesAuditLogPage() {
                     handleFilter(e.target.value, filterAction);
                   }}
                   placeholder="Cari aksi, jenis data, tx hash..."
-                  className="w-full rounded-xl border border-slate-200 bg-white px-10 py-2.5 text-xs text-slate-800 focus:border-rose-700 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-10 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:outline-none"
                 />
               </div>
 
@@ -198,7 +198,7 @@ export default function FaskesAuditLogPage() {
                     setFilterAction(e.target.value);
                     handleFilter(searchTerm, e.target.value);
                   }}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 font-semibold focus:border-rose-700 focus:outline-none cursor-pointer"
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 font-semibold focus:border-teal-600 focus:outline-none cursor-pointer"
                 >
                   <option value="all">Semua Jenis Aksi</option>
                   <option value="upload">Upload Rekam Medis</option>
@@ -238,7 +238,7 @@ export default function FaskesAuditLogPage() {
                     </tr>
                   ) : (
                     filteredLogs.map((item) => (
-                      <tr key={item.id} className="hover:bg-rose-50/30 transition-colors">
+                      <tr key={item.id} className="hover:bg-teal-50/30 transition-colors">
                         <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <Clock className="h-3.5 w-3.5 text-slate-300 shrink-0" />
@@ -258,11 +258,11 @@ export default function FaskesAuditLogPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           {item.status === "success" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[9px] font-bold text-emerald-800">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[9px] font-bold text-[#16A34A]">
                               <CheckCircle className="h-3 w-3" /> SUCCESS
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[9px] font-bold text-rose-800">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-[9px] font-bold text-[#DC2626]">
                               <XCircle className="h-3 w-3" /> FAILED
                             </span>
                           )}
@@ -270,10 +270,10 @@ export default function FaskesAuditLogPage() {
                         <td className="px-5 py-3.5">
                           {item.txHash ? (
                             <div className="flex items-center gap-1.5">
-                              <Hash className="h-3 w-3 text-rose-400 shrink-0" />
+                              <Hash className="h-3 w-3 text-teal-600 shrink-0" />
                               <TxHashLink
                                 txHash={item.txHash}
-                                className="font-mono text-[10px] text-rose-800 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md max-w-[120px] truncate"
+                                className="font-mono text-[10px] text-teal-800 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-md max-w-[120px] truncate"
                                 title={item.txHash}
                               >
                                 <span title={item.txHash}>
@@ -285,7 +285,7 @@ export default function FaskesAuditLogPage() {
                                 className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
                                 title="Salin Tx Hash"
                               >
-                                {copiedTx === item.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                                {copiedTx === item.id ? <Check className="h-3.5 w-3.5 text-[#16A34A]" /> : <Copy className="h-3.5 w-3.5" />}
                               </button>
                             </div>
                           ) : (

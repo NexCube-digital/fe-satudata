@@ -152,7 +152,7 @@ export default function LogsComponent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <Loader className="h-8 w-8 animate-spin text-rose-600" />
+        <Loader className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
@@ -169,7 +169,7 @@ export default function LogsComponent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-800 border border-rose-200">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-100 text-teal-800 border border-teal-200">
                   <FileText className="h-5 w-5" />
                 </span>
                 <div>
@@ -186,9 +186,9 @@ export default function LogsComponent() {
             <button
               onClick={fetchLogs}
               disabled={fetchingData}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 transition cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-teal-50 hover:text-teal-800 transition cursor-pointer shadow-xs"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${fetchingData ? "animate-spin text-rose-600" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${fetchingData ? "animate-spin text-teal-600" : ""}`} />
               <span>Segarkan Log</span>
             </button>
           </div>
@@ -200,9 +200,9 @@ export default function LogsComponent() {
             <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-100">
               {[
                 { label: "Total Audit Log", value: totalLogs, color: "text-slate-900", sub: "Sistem & Blockchain" },
-                { label: "Transaksi Berhasil", value: successLogs, color: "text-emerald-700", sub: "Status SUCCESS" },
-                { label: "Gagal / Ditolak", value: failedLogs, color: "text-amber-700", sub: "Status FAILED" },
-                { label: "On-Chain Tx", value: onChainLogs, color: "text-rose-800", sub: "Punya Tx Hash" },
+                { label: "Transaksi Berhasil", value: successLogs, color: "text-[#16A34A]", sub: "Status SUCCESS" },
+                { label: "Gagal / Ditolak", value: failedLogs, color: "text-[#D97706]", sub: "Status FAILED" },
+                { label: "On-Chain Tx", value: onChainLogs, color: "text-teal-800", sub: "Punya Tx Hash" },
               ].map((stat, i) => (
                 <div key={i} className="p-4 sm:p-5 border-r border-slate-100 last:border-r-0">
                   <p className={`text-[10px] font-extrabold uppercase tracking-wider ${stat.color}`}>{stat.label}</p>
@@ -221,7 +221,7 @@ export default function LogsComponent() {
                   placeholder="Cari aksi, pengguna, faskes, atau tx hash..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-rose-600 focus:outline-hidden"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
                 />
               </div>
 
@@ -286,7 +286,7 @@ export default function LogsComponent() {
                     </tr>
                   ) : (
                     filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-rose-50/40 transition-colors">
+                      <tr key={log.id} className="hover:bg-teal-50/40 transition-colors">
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1.5 text-slate-700">
                             <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -302,7 +302,7 @@ export default function LogsComponent() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <span className="font-mono text-[11px] font-extrabold text-rose-900 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg">
+                          <span className="font-mono text-[11px] font-extrabold text-teal-900 bg-teal-50 border border-teal-200 px-2 py-1 rounded-lg">
                             {log.action}
                           </span>
                         </td>
@@ -329,7 +329,7 @@ export default function LogsComponent() {
                                 className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
                                 title="Salin Tx Hash"
                               >
-                                {copiedTx === log.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                                {copiedTx === log.id ? <Check className="h-3.5 w-3.5 text-[#16A34A]" /> : <Copy className="h-3.5 w-3.5" />}
                               </button>
                             </div>
                           ) : (
@@ -340,13 +340,13 @@ export default function LogsComponent() {
                         <td className="px-5 py-4 text-center">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
                             log.status === "success" || log.status === "approved"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-red-50 text-red-700 border-red-200"
+                              ? "bg-emerald-50 text-[#16A34A] border-emerald-200"
+                              : "bg-red-50 text-[#DC2626] border-red-200"
                           }`}>
                             {log.status === "success" || log.status === "approved" ? (
-                              <><CheckCircle className="h-3 w-3 text-emerald-600" /> SUCCESS</>
+                              <><CheckCircle className="h-3 w-3 text-[#16A34A]" /> SUCCESS</>
                             ) : (
-                              <><XCircle className="h-3 w-3 text-red-600" /> FAILED</>
+                              <><XCircle className="h-3 w-3 text-[#DC2626]" /> FAILED</>
                             )}
                           </span>
                         </td>
@@ -377,7 +377,7 @@ export default function LogsComponent() {
           <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Terminal className="h-5 w-5 text-rose-600" />
+                <Terminal className="h-5 w-5 text-teal-700" />
                 Audit Trail Inspector Log #{selectedLog.id}
               </h3>
               <button
@@ -391,7 +391,7 @@ export default function LogsComponent() {
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">Jenis Aksi (Action)</span>
-                <span className="font-mono font-extrabold text-rose-900 text-sm">{selectedLog.action}</span>
+                <span className="font-mono font-extrabold text-teal-900 text-sm">{selectedLog.action}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -402,7 +402,7 @@ export default function LogsComponent() {
                 </div>
                 <div className="p-3 rounded-xl border border-slate-200 bg-white">
                   <span className="text-[10px] text-slate-400 font-bold uppercase block">Status Transaksi</span>
-                  <span className={`font-extrabold uppercase ${selectedLog.status === "success" ? "text-emerald-600" : "text-red-600"}`}>
+                  <span className={`font-extrabold uppercase ${selectedLog.status === "success" ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
                     {selectedLog.status}
                   </span>
                 </div>
@@ -439,7 +439,7 @@ export default function LogsComponent() {
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-5 py-2 rounded-xl bg-rose-800 text-white font-bold text-xs hover:bg-rose-900 transition cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-xs transition cursor-pointer"
               >
                 Tutup Inspector
               </button>

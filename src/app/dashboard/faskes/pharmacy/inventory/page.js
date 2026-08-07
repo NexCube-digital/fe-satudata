@@ -129,7 +129,7 @@ export default function PharmacyInventoryPage() {
           {/* Title Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-800 uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-teal-800 uppercase tracking-wider mb-1">
                 <Package className="h-4 w-4" /> Manajemen Inventaris Obat
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Katalog & Stok Obat Farmasi</h1>
@@ -141,11 +141,11 @@ export default function PharmacyInventoryPage() {
                 onClick={fetchMedicines}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs shadow-xs hover:bg-slate-50 transition cursor-pointer"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-rose-700" : ""}`} /> Refresh
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-teal-700" : ""}`} /> Refresh
               </button>
               <button
                 onClick={handleOpenAdd}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-800 text-white font-extrabold text-xs shadow-md hover:bg-rose-900 transition cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-extrabold text-xs shadow-md hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
               >
                 <Plus className="h-4 w-4" /> Tambah Obat Baru
               </button>
@@ -161,7 +161,7 @@ export default function PharmacyInventoryPage() {
                 placeholder="Cari obat berdasarkan nama, SKU, atau kategori..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-rose-700 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-xs font-medium focus:border-teal-600 focus:outline-none"
               />
             </div>
 
@@ -171,7 +171,7 @@ export default function PharmacyInventoryPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-rose-700"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-teal-600"
               >
                 <option value="all">Semua Kategori</option>
                 {categories.map(c => (
@@ -185,7 +185,7 @@ export default function PharmacyInventoryPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
             {loading ? (
               <div className="py-16 text-center space-y-3">
-                <RefreshCw className="h-8 w-8 animate-spin text-rose-700 mx-auto" />
+                <RefreshCw className="h-8 w-8 animate-spin text-teal-700 mx-auto" />
                 <p className="text-xs font-bold text-slate-500">Memuat katalog obat...</p>
               </div>
             ) : filtered.length === 0 ? (
@@ -217,16 +217,16 @@ export default function PharmacyInventoryPage() {
                         <td className="px-5 py-4 font-bold text-slate-900">
                           {item.stock} {item.unit}
                         </td>
-                        <td className="px-5 py-4 font-extrabold text-emerald-700">
+                        <td className="px-5 py-4 font-extrabold text-[#16A34A]">
                           Rp {item.price.toLocaleString('id-ID')} / {item.unit}
                         </td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex items-center gap-1 font-extrabold px-2.5 py-1 rounded-full text-[10px] uppercase ${
                             item.status === "Habis"
-                              ? "bg-red-50 text-red-700 border border-red-200"
+                              ? "bg-red-50 text-[#DC2626] border border-red-200"
                               : item.status === "Stok Menipis"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              ? "bg-amber-50 text-[#D97706] border border-amber-200"
+                              : "bg-emerald-50 text-[#16A34A] border border-emerald-200"
                           }`}>
                             {item.status}
                           </span>
@@ -234,7 +234,7 @@ export default function PharmacyInventoryPage() {
                         <td className="px-5 py-4 text-right">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 hover:text-rose-900 cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-900 cursor-pointer"
                           >
                             <Edit3 className="h-3.5 w-3.5" /> Edit / Update
                           </button>
@@ -269,7 +269,7 @@ export default function PharmacyInventoryPage() {
                   placeholder="Contoh: Paracetamol 500mg"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 font-medium focus:border-rose-700 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 font-medium focus:border-teal-600 focus:outline-none"
                 />
               </div>
 
@@ -281,7 +281,7 @@ export default function PharmacyInventoryPage() {
                     required
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-mono font-bold focus:border-rose-700 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-mono font-bold focus:border-teal-600 focus:outline-none"
                   />
                 </div>
 
@@ -290,7 +290,7 @@ export default function PharmacyInventoryPage() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none bg-white"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none bg-white"
                   >
                     <option value="Analgesik / Anti-Piretik">Analgesik / Anti-Piretik</option>
                     <option value="Antibiotik">Antibiotik</option>
@@ -311,7 +311,7 @@ export default function PharmacyInventoryPage() {
                     required
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none"
                   />
                 </div>
 
@@ -320,7 +320,7 @@ export default function PharmacyInventoryPage() {
                   <select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none bg-white"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none bg-white"
                   >
                     <option value="Tablet">Tablet</option>
                     <option value="Kaplet">Kaplet</option>
@@ -340,7 +340,7 @@ export default function PharmacyInventoryPage() {
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none"
                   />
                 </div>
               </div>
@@ -355,7 +355,7 @@ export default function PharmacyInventoryPage() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-rose-800 text-white font-extrabold hover:bg-rose-900 transition"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-extrabold hover:from-teal-800 hover:to-cyan-900 transition"
                 >
                   <Save className="h-4 w-4" /> Simpan Data
                 </button>

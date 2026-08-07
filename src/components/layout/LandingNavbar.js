@@ -194,12 +194,12 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
 
   return (
     <header className="fixed left-0 right-0 top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-md shadow-rose-950/5 transition-all duration-300">
+      <div className="rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-md shadow-teal-950/5 transition-all duration-300">
         <div className="flex items-center justify-between px-5 py-3 sm:px-8">
           
           {/* Logo Section */}
           <Link href="/" className="group flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-200 bg-white shadow-2xs transition-transform duration-300 group-hover:scale-105">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-200 bg-white shadow-2xs transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/images/logo.png"
                 alt="Satu Data logo"
@@ -211,7 +211,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-rose-800 transition-colors duration-300">
+                <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-teal-800 transition-colors duration-300">
                   Satu Data
                 </span>
               </div>
@@ -233,11 +233,11 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   href={targetHref}
                   onClick={() => !isRoute && setActiveSection(link.href)}
                   className={`group relative px-4 py-2 transition-colors duration-200 ${
-                    isActive ? "text-rose-900 font-extrabold" : "text-slate-600 hover:text-rose-900 font-bold"
+                    isActive ? "text-teal-900 font-extrabold" : "text-slate-600 hover:text-teal-900 font-bold"
                   }`}
                 >
                   <span>{link.label}</span>
-                  <span className={`absolute bottom-0 left-4 right-4 h-[2px] rounded-full bg-gradient-to-r from-rose-800 to-red-600 transition-transform duration-300 ease-out origin-left ${
+                  <span className={`absolute bottom-0 left-4 right-4 h-[2px] rounded-full bg-gradient-to-r from-teal-700 to-cyan-600 transition-transform duration-300 ease-out origin-left ${
                     isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                   }`} />
                 </Component>
@@ -251,11 +251,11 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 pr-3 transition hover:bg-rose-50/60 hover:border-rose-200"
+                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 pr-3 transition hover:bg-teal-50/60 hover:border-teal-200"
                   aria-expanded={isDropdownOpen}
                 >
                   {/* Avatar Photo / Placeholder */}
-                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-rose-800 to-red-900 ring-2 ring-rose-500/20 shrink-0">
+                  <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-teal-700 to-cyan-800 ring-2 ring-teal-500/20 shrink-0">
                     {getAvatarUrl(user) ? (
                       <img
                         src={getAvatarUrl(user)}
@@ -277,7 +277,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                     <div className="text-xs font-extrabold text-slate-900">
                       {user?.name || "Pengguna"}
                     </div>
-                    <div className="text-[10px] font-bold text-rose-800">{getRoleLabel()}</div>
+                    <div className="text-[10px] font-bold text-teal-800">{getRoleLabel()}</div>
                   </div>
 
                   <ChevronDown
@@ -301,9 +301,9 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                       <Link
                         href={getDashboardHref()}
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 transition hover:bg-rose-50 hover:text-rose-900"
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 transition hover:bg-teal-50 hover:text-teal-900"
                       >
-                        <LayoutDashboard className="h-4 w-4 text-rose-800" />
+                        <LayoutDashboard className="h-4 w-4 text-teal-800" />
                         Buka Dashboard
                       </Link>
 
@@ -311,7 +311,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                       <Link
                         href={getSettingsHref()}
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-rose-50 hover:text-rose-900"
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-teal-50 hover:text-teal-900"
                       >
                         <Settings className="h-4 w-4 text-slate-500" />
                         Setting Akun & Wallet
@@ -324,9 +324,9 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                     {/* Tombol Logout */}
                     <button
                       onClick={handleLogout}
-                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-rose-600 transition hover:bg-rose-50"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-red-600 transition hover:bg-red-50"
                     >
-                      <LogOut className="h-4 w-4 text-rose-600" />
+                      <LogOut className="h-4 w-4 text-red-600" />
                       Logout
                     </button>
                   </div>
@@ -336,22 +336,22 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
               <div className="flex items-center gap-2 sm:gap-2.5">
                 <Link
                   href="/auth/register"
-                  className="group hidden sm:inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-rose-900 hover:bg-rose-50/80 transition-all duration-200"
+                  className="group hidden sm:inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-teal-900 hover:bg-teal-50/80 transition-all duration-200"
                 >
-                  <RiUserAddLine className="h-4 w-4 text-slate-400 group-hover:text-rose-800 group-hover:scale-110 transition-all duration-200" />
+                  <RiUserAddLine className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:scale-110 transition-all duration-200" />
                   <span>Daftar</span>
                 </Link>
 
                 <Link
                   href="/auth/login"
-                  className="group relative inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 via-rose-700 to-red-800 px-4.5 py-2 text-xs font-bold text-white shadow-md shadow-rose-900/25 hover:shadow-xl hover:shadow-rose-700/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 border border-rose-500/30 overflow-hidden"
+                  className="group relative inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-700 px-4.5 py-2 text-xs font-bold text-white shadow-md shadow-teal-900/25 hover:shadow-xl hover:shadow-teal-700/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 border border-teal-500/30 overflow-hidden"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
-                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/20 text-white shadow-xs group-hover:bg-white group-hover:text-rose-900 group-hover:rotate-6 transition-all duration-300">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/20 text-white shadow-xs group-hover:bg-white group-hover:text-teal-900 group-hover:rotate-6 transition-all duration-300">
                     <RiLoginCircleLine className="h-3.5 w-3.5" />
                   </span>
                   <span className="tracking-wide">Masuk</span>
-                  <RiArrowRightSLine className="h-3.5 w-3.5 -ml-1 text-rose-200 group-hover:translate-x-0.5 transition-transform duration-300" />
+                  <RiArrowRightSLine className="h-3.5 w-3.5 -ml-1 text-teal-200 group-hover:translate-x-0.5 transition-transform duration-300" />
                 </Link>
               </div>
             )}
@@ -360,7 +360,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
           {/* Mobile Hamburger Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-rose-50 hover:text-rose-800 lg:hidden"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-teal-50 hover:text-teal-800 lg:hidden"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -385,12 +385,12 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                     }}
                     className={`rounded-xl px-4 py-2.5 text-xs font-bold transition flex items-center justify-between ${
                       isActive
-                        ? "bg-rose-50 text-rose-900 border border-rose-200/60"
-                        : "text-slate-700 hover:bg-rose-50/50 hover:text-rose-800"
+                        ? "bg-teal-50 text-teal-900 border border-teal-200/60"
+                        : "text-slate-700 hover:bg-teal-50/50 hover:text-teal-800"
                     }`}
                   >
                     <span>{link.label}</span>
-                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-rose-700" />}
+                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-teal-700" />}
                   </Component>
                 );
               })}
@@ -406,7 +406,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   <Link
                     href={getDashboardHref()}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 to-red-900 py-2.5 text-xs font-bold text-white shadow-sm"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-700 py-2.5 text-xs font-bold text-white shadow-sm"
                   >
                     <LayoutDashboard className="h-4 w-4" /> Buka Dashboard
                   </Link>
@@ -419,7 +419,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 py-2.5 text-xs font-bold text-rose-700"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-teal-200 bg-teal-50 py-2.5 text-xs font-bold text-teal-700"
                   >
                     <LogOut className="h-4 w-4" /> Logout
                   </button>
@@ -429,7 +429,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   <Link
                     href="/auth/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="group relative flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-800 via-rose-700 to-red-800 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-900/20 active:scale-[0.98] transition-all overflow-hidden"
+                    className="group relative flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-700 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-900/20 active:scale-[0.98] transition-all overflow-hidden"
                   >
                     <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-white/20 text-white">
                       <RiLoginCircleLine className="h-3.5 w-3.5" />
@@ -439,7 +439,7 @@ export default function Navbar({ walletConnected, setWalletConnected }) {
                   <Link
                     href="/auth/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2.5 text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-900 transition-colors"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2.5 text-xs font-bold text-slate-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
                   >
                     <RiUserAddLine className="h-3.5 w-3.5 text-slate-500" />
                     <span>Daftar</span>

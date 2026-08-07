@@ -270,19 +270,19 @@ export default function FaskesStaffManagementPage() {
             <div className={`fixed top-20 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-xs font-bold transition-all duration-300 ${
               notification.type === "success" 
                 ? "bg-emerald-900 text-emerald-100 border border-emerald-700" 
-                : "bg-rose-900 text-rose-100 border border-rose-700"
+                : "bg-red-900 text-red-100 border border-red-700"
             }`}>
-              {notification.type === "success" ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <AlertCircle className="h-4 w-4 text-rose-400" />}
+              {notification.type === "success" ? <CheckCircle2 className="h-4 w-4 text-[#16A34A]" /> : <AlertCircle className="h-4 w-4 text-[#DC2626]" />}
               <span>{notification.message}</span>
             </div>
           )}
 
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900 p-6 md:p-8 text-white shadow-xl">
-            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-rose-500/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 md:p-8 text-white shadow-xl">
+            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-teal-500/10 blur-3xl" />
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-200 text-xs font-bold mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-200 text-xs font-bold mb-3">
                   <ShieldCheck className="h-3.5 w-3.5" />
                   <span>Role-Based Access Control (RBAC)</span>
                 </div>
@@ -295,7 +295,7 @@ export default function FaskesStaffManagementPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsAddStaffOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-lg shadow-rose-950/40 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white text-xs font-bold transition-all shadow-lg shadow-teal-950/40 cursor-pointer"
                 >
                   <UserPlus className="h-4 w-4" />
                   <span>Tambah Staf Baru</span>
@@ -308,7 +308,7 @@ export default function FaskesStaffManagementPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-800 border border-rose-100">
+                <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-800 border border-teal-100">
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
@@ -320,7 +320,7 @@ export default function FaskesStaffManagementPage() {
 
             <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-800 border border-emerald-100">
+                <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-[#16A34A] border border-emerald-100">
                   <UserCheck className="h-5 w-5" />
                 </div>
                 <div>
@@ -332,7 +332,7 @@ export default function FaskesStaffManagementPage() {
 
             <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-800 border border-blue-100">
+                <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0284C7] border border-blue-100">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
@@ -362,7 +362,7 @@ export default function FaskesStaffManagementPage() {
                 onClick={() => setActiveTab("staffs")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === "staffs"
-                    ? "bg-rose-900 text-white shadow-md shadow-rose-900/20"
+                    ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -375,7 +375,7 @@ export default function FaskesStaffManagementPage() {
                 onClick={() => setActiveTab("matrix")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === "matrix"
-                    ? "bg-rose-900 text-white shadow-md shadow-rose-900/20"
+                    ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -405,7 +405,7 @@ export default function FaskesStaffManagementPage() {
                     placeholder="Cari nama staf, email, jabatan, atau role..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-xl text-xs border border-slate-200 focus:outline-none focus:border-rose-800 transition-colors"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl text-xs border border-slate-200 focus:outline-none focus:border-teal-600 transition-colors"
                   />
                 </div>
 
@@ -416,7 +416,7 @@ export default function FaskesStaffManagementPage() {
 
               {loading ? (
                 <div className="py-12 text-center text-xs text-slate-400 space-y-2">
-                  <RefreshCw className="h-6 w-6 animate-spin mx-auto text-rose-800" />
+                  <RefreshCw className="h-6 w-6 animate-spin mx-auto text-teal-800" />
                   <p>Memuat data staf Faskes...</p>
                 </div>
               ) : filteredStaffs.length === 0 ? (
@@ -425,7 +425,7 @@ export default function FaskesStaffManagementPage() {
                   <p className="font-semibold text-slate-600">Belum ada akun staf Faskes yang terdaftar</p>
                   <button
                     onClick={() => setIsAddStaffOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-rose-900 text-white text-xs font-bold cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white text-xs font-bold cursor-pointer"
                   >
                     + Tambah Akun Staf Pertama
                   </button>
@@ -444,10 +444,10 @@ export default function FaskesStaffManagementPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                       {filteredStaffs.map((staff) => (
-                        <tr key={staff.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={staff.id} className="hover:bg-teal-50/40 transition-colors">
                           <td className="p-3.5">
                             <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-xl bg-rose-100 border border-rose-200 text-rose-900 flex items-center justify-center font-bold">
+                              <div className="h-9 w-9 rounded-xl bg-teal-100 border border-teal-200 text-teal-900 flex items-center justify-center font-bold">
                                 {staff.user?.name ? staff.user.name.charAt(0).toUpperCase() : "S"}
                               </div>
                               <div>
@@ -462,7 +462,7 @@ export default function FaskesStaffManagementPage() {
                           </td>
 
                           <td className="p-3.5">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-900 border border-rose-200 font-bold text-[11px]">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-50 text-teal-900 border border-teal-200 font-bold text-[11px]">
                               <ShieldCheck className="h-3 w-3" />
                               <span>{staff.role?.name || "Role Karyawan"}</span>
                             </span>
@@ -470,7 +470,7 @@ export default function FaskesStaffManagementPage() {
 
                           <td className="p-3.5">
                             {staff.status === "active" ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-[#16A34A] text-[10px] font-bold border border-emerald-200">
                                 <CheckCircle2 className="h-3 w-3" /> Aktif
                               </span>
                             ) : (
@@ -516,7 +516,7 @@ export default function FaskesStaffManagementPage() {
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Pilih Role RS</h3>
                   <button
                     onClick={() => setIsAddRoleOpen(true)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-900 text-[11px] font-bold transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 text-[11px] font-bold transition-colors cursor-pointer"
                   >
                     <Plus className="h-3 w-3" />
                     <span>Custom Role</span>
@@ -532,7 +532,7 @@ export default function FaskesStaffManagementPage() {
                         onClick={() => setSelectedRole(roleItem)}
                         className={`w-full text-left p-3.5 rounded-2xl transition-all cursor-pointer border ${
                           isSelected
-                            ? "bg-rose-900 text-white border-rose-900 shadow-md shadow-rose-900/20"
+                            ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white border-teal-700 shadow-md shadow-teal-900/20"
                             : "bg-slate-50/50 hover:bg-slate-100 text-slate-700 border-slate-200/60"
                         }`}
                       >
@@ -540,13 +540,13 @@ export default function FaskesStaffManagementPage() {
                           <span className="font-extrabold text-xs">{roleItem.name}</span>
                           {roleItem.is_default && (
                             <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase ${
-                              isSelected ? "bg-rose-800 text-rose-200" : "bg-slate-200 text-slate-600"
+                              isSelected ? "bg-teal-800 text-teal-200" : "bg-slate-200 text-slate-600"
                             }`}>
                               Bawaan
                             </span>
                           )}
                         </div>
-                        <p className={`text-[10px] line-clamp-2 ${isSelected ? "text-rose-200" : "text-slate-400"}`}>
+                        <p className={`text-[10px] line-clamp-2 ${isSelected ? "text-teal-200" : "text-slate-400"}`}>
                           {roleItem.description || "Peran staf RS"}
                         </p>
                       </button>
@@ -564,7 +564,7 @@ export default function FaskesStaffManagementPage() {
                         <div className="flex items-center gap-2">
                           <h2 className="text-lg font-black text-slate-900">{selectedRole.name}</h2>
                           {selectedRole.is_default && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-[#D97706] text-[10px] font-bold border border-amber-200">
                               Template Default Sistem
                             </span>
                           )}
@@ -577,7 +577,7 @@ export default function FaskesStaffManagementPage() {
                       <button
                         onClick={handleSaveMatrix}
                         disabled={savingMatrix}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-900 hover:bg-rose-800 text-white text-xs font-bold transition-all shadow-lg shadow-rose-900/20 cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white text-xs font-bold transition-all shadow-lg shadow-teal-900/20 cursor-pointer disabled:opacity-50"
                       >
                         <Save className="h-4 w-4" />
                         <span>{savingMatrix ? "Menyimpan..." : "Simpan Hak Akses Role"}</span>
@@ -594,14 +594,14 @@ export default function FaskesStaffManagementPage() {
                           <div key={categoryName} className="rounded-2xl border border-slate-200 p-4 space-y-3 bg-slate-50/30">
                             <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                               <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-rose-800" />
+                                <Building2 className="h-4 w-4 text-teal-800" />
                                 <span>{categoryName}</span>
                               </h4>
 
                               <button
                                 type="button"
                                 onClick={() => toggleCategoryCheck(perms)}
-                                className="text-[11px] font-bold text-rose-900 hover:underline cursor-pointer"
+                                className="text-[11px] font-bold text-teal-800 hover:underline cursor-pointer"
                               >
                                 {allCategoryChecked ? "Uncheck Semua" : "Pilih Semua Kategori"}
                               </button>
@@ -617,13 +617,13 @@ export default function FaskesStaffManagementPage() {
                                     onClick={() => togglePermissionCheck(perm.id)}
                                     className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
                                       isChecked
-                                        ? "bg-rose-50/80 border-rose-200 text-slate-900"
+                                        ? "bg-teal-50/80 border-teal-200 text-slate-900"
                                         : "bg-white border-slate-200 hover:border-slate-300 text-slate-600"
                                     }`}
                                   >
                                     <div className="mt-0.5">
                                       {isChecked ? (
-                                        <CheckSquare className="h-5 w-5 text-rose-900" />
+                                        <CheckSquare className="h-5 w-5 text-teal-800" />
                                       ) : (
                                         <Square className="h-5 w-5 text-slate-300" />
                                       )}
@@ -664,7 +664,7 @@ export default function FaskesStaffManagementPage() {
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-rose-800" />
+                <UserPlus className="h-5 w-5 text-teal-800" />
                 <span>Tambah Akun Staf Faskes</span>
               </h3>
               <button onClick={() => setIsAddStaffOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -681,7 +681,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Contoh: drg. Anita Wijaya / Budi Santoso"
                   value={staffForm.name}
                   onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -693,7 +693,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="staf.pendaftaran@rs.com"
                   value={staffForm.email}
                   onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -705,7 +705,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Minimal 6 karakter"
                   value={staffForm.password}
                   onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -715,7 +715,7 @@ export default function FaskesStaffManagementPage() {
                   required
                   value={staffForm.hospital_role_id}
                   onChange={(e) => setStaffForm({ ...staffForm, hospital_role_id: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800 font-medium"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600 font-medium"
                 >
                   <option value="">-- Pilih Role Sub-Akun --</option>
                   {roles.map((r) => (
@@ -733,7 +733,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Contoh: Petugas Pendaftaran Shift Pagi"
                   value={staffForm.position}
                   onChange={(e) => setStaffForm({ ...staffForm, position: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -747,7 +747,7 @@ export default function FaskesStaffManagementPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-rose-900 hover:bg-rose-800 text-white font-bold"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold"
                 >
                   Simpan Staf
                 </button>
@@ -763,7 +763,7 @@ export default function FaskesStaffManagementPage() {
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Edit3 className="h-5 w-5 text-rose-800" />
+                <Edit3 className="h-5 w-5 text-teal-800" />
                 <span>Edit Role & Staf</span>
               </h3>
               <button onClick={() => setIsEditStaffOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -779,7 +779,7 @@ export default function FaskesStaffManagementPage() {
                   required
                   value={editStaffForm.name}
                   onChange={(e) => setEditStaffForm({ ...editStaffForm, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -789,7 +789,7 @@ export default function FaskesStaffManagementPage() {
                   required
                   value={editStaffForm.hospital_role_id}
                   onChange={(e) => setEditStaffForm({ ...editStaffForm, hospital_role_id: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800 font-medium"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600 font-medium"
                 >
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -805,7 +805,7 @@ export default function FaskesStaffManagementPage() {
                   type="text"
                   value={editStaffForm.position}
                   onChange={(e) => setEditStaffForm({ ...editStaffForm, position: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -814,7 +814,7 @@ export default function FaskesStaffManagementPage() {
                 <select
                   value={editStaffForm.status}
                   onChange={(e) => setEditStaffForm({ ...editStaffForm, status: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800 font-medium"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600 font-medium"
                 >
                   <option value="active">Aktif</option>
                   <option value="inactive">Nonaktif</option>
@@ -828,7 +828,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Kosongkan jika tidak ingin mengubah password"
                   value={editStaffForm.password}
                   onChange={(e) => setEditStaffForm({ ...editStaffForm, password: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -842,7 +842,7 @@ export default function FaskesStaffManagementPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-rose-900 hover:bg-rose-800 text-white font-bold"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold"
                 >
                   Simpan Perubahan
                 </button>
@@ -858,7 +858,7 @@ export default function FaskesStaffManagementPage() {
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-rose-800" />
+                <ShieldCheck className="h-5 w-5 text-teal-800" />
                 <span>Buat Role Custom RS Baru</span>
               </h3>
               <button onClick={() => setIsAddRoleOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -875,7 +875,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Contoh: Petugas Laboratorium Khusus"
                   value={roleForm.name}
                   onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -886,7 +886,7 @@ export default function FaskesStaffManagementPage() {
                   placeholder="Jelaskan peran staf pemilik role ini..."
                   value={roleForm.description}
                   onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-800"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
               </div>
 
@@ -900,7 +900,7 @@ export default function FaskesStaffManagementPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-rose-900 hover:bg-rose-800 text-white font-bold"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold"
                 >
                   Buat Role
                 </button>

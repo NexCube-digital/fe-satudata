@@ -215,11 +215,11 @@ export default function PharmacyPOSPage() {
 
       <div className="flex flex-1 flex-col transition-all duration-300">
         <Navbar />
-
+        
         <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-800 uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-teal-800 uppercase tracking-wider mb-1">
                 <ShoppingCart className="h-4 w-4" /> Kasir Penjualan Obat POS
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Point of Sale (POS) Obat</h1>
@@ -230,7 +230,7 @@ export default function PharmacyPOSPage() {
               onClick={fetchMedicines}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs shadow-xs hover:bg-slate-50 transition cursor-pointer"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-rose-700" : ""}`} /> Refresh Obat
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-teal-700" : ""}`} /> Refresh Obat
             </button>
           </div>
 
@@ -244,13 +244,13 @@ export default function PharmacyPOSPage() {
                   placeholder="Ketik untuk mencari produk obat atau SKU..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-xs font-medium focus:border-rose-700 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:outline-none"
                 />
               </div>
 
               {loading ? (
                 <div className="bg-white rounded-3xl p-12 text-center border border-slate-200">
-                  <RefreshCw className="h-8 w-8 animate-spin text-rose-700 mx-auto" />
+                  <RefreshCw className="h-8 w-8 animate-spin text-teal-700 mx-auto" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -261,14 +261,14 @@ export default function PharmacyPOSPage() {
                       className={`p-4 rounded-2xl border bg-white transition cursor-pointer flex flex-col justify-between space-y-3 shadow-xs ${
                         med.stock === 0
                           ? "opacity-50 border-slate-200 cursor-not-allowed"
-                          : "border-slate-200 hover:border-rose-700 hover:shadow-md"
+                          : "border-slate-200 hover:border-teal-600 hover:shadow-md"
                       }`}
                     >
                       <div>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-mono font-bold text-slate-400">{med.sku}</span>
                           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                            med.stock === 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"
+                            med.stock === 0 ? "bg-red-50 text-[#DC2626]" : "bg-emerald-50 text-[#16A34A]"
                           }`}>
                             Stok: {med.stock} {med.unit}
                           </span>
@@ -278,10 +278,10 @@ export default function PharmacyPOSPage() {
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="font-extrabold text-emerald-700 text-sm">
+                        <span className="font-extrabold text-[#16A34A] text-sm">
                           Rp {med.price.toLocaleString("id-ID")}
                         </span>
-                        <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1">
+                        <span className="text-[11px] font-bold text-teal-800 flex items-center gap-1">
                           <Plus className="h-3.5 w-3.5" /> Tambah
                         </span>
                       </div>
@@ -296,7 +296,7 @@ export default function PharmacyPOSPage() {
               <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-md space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5 text-rose-800" />
+                    <ShoppingCart className="h-5 w-5 text-teal-800" />
                     <h3 className="font-extrabold text-slate-900 text-base">Keranjang Kasir</h3>
                   </div>
                   <span className="text-xs font-bold text-slate-500">{cart.length} Item</span>
@@ -311,7 +311,7 @@ export default function PharmacyPOSPage() {
                       type="button"
                       onClick={() => handleBuyerTypeChange("walkin")}
                       className={`flex-1 py-2 rounded-lg text-[11px] font-extrabold transition ${
-                        buyerType === "walkin" ? "bg-white shadow-xs text-rose-800" : "text-slate-500"
+                        buyerType === "walkin" ? "bg-white shadow-xs text-teal-800" : "text-slate-500"
                       }`}
                     >
                       Input Nama Manual
@@ -320,7 +320,7 @@ export default function PharmacyPOSPage() {
                       type="button"
                       onClick={() => handleBuyerTypeChange("registered")}
                       className={`flex-1 py-2 rounded-lg text-[11px] font-extrabold transition ${
-                        buyerType === "registered" ? "bg-white shadow-xs text-rose-800" : "text-slate-500"
+                        buyerType === "registered" ? "bg-white shadow-xs text-teal-800" : "text-slate-500"
                       }`}
                     >
                       Pilih Pasien Terdaftar
@@ -331,7 +331,7 @@ export default function PharmacyPOSPage() {
                     <select
                       value={selectedPatientId}
                       onChange={(e) => handlePatientSelect(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none bg-white"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none bg-white"
                     >
                       <option value="">-- Pilih pasien terdaftar --</option>
                       {registeredPatients.length === 0 ? (
@@ -348,7 +348,7 @@ export default function PharmacyPOSPage() {
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
                       placeholder="Ketik nama pembeli (kosongkan untuk Pasien Umum/Walk-in)"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-rose-700 focus:outline-none"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none"
                     />
                   )}
                 </div>
@@ -365,7 +365,7 @@ export default function PharmacyPOSPage() {
                       <div key={item.medicine_id} className="flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="space-y-0.5 max-w-[160px]">
                           <p className="font-bold text-slate-900 truncate">{item.name}</p>
-                          <p className="text-[11px] text-emerald-700 font-extrabold">Rp {item.price.toLocaleString("id-ID")}</p>
+                          <p className="text-[11px] text-[#16A34A] font-extrabold">Rp {item.price.toLocaleString("id-ID")}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex items-center border border-slate-200 rounded-lg bg-white">
@@ -396,14 +396,14 @@ export default function PharmacyPOSPage() {
                     </select>
                   </div>
                   {paymentMethod === "transfer" && (
-                    <p className="text-[10px] text-rose-700">
+                    <p className="text-[10px] text-teal-800 font-medium">
                       Invoice akan dibuat lalu diarahkan ke halaman pembayaran Midtrans.
                     </p>
                   )}
 
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-slate-600">Total Belanja</span>
-                    <span className="text-lg font-extrabold text-emerald-700">Rp {totalAmount.toLocaleString("id-ID")}</span>
+                    <span className="text-lg font-extrabold text-[#16A34A]">Rp {totalAmount.toLocaleString("id-ID")}</span>
                   </div>
 
                   {paymentMethod === "cash" ? (
@@ -415,13 +415,13 @@ export default function PharmacyPOSPage() {
                           placeholder={`Minimal Rp ${totalAmount.toLocaleString("id-ID")}`}
                           value={amountPaid}
                           onChange={(e) => setAmountPaid(e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-2 font-extrabold text-sm focus:border-rose-700 focus:outline-none"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 font-extrabold text-sm focus:border-teal-600 focus:outline-none"
                         />
                       </div>
                       {amountPaid && (
                         <div className="flex justify-between items-center pt-1 font-bold text-slate-700">
                           <span>Kembalian</span>
-                          <span className="text-rose-800">Rp {changeVal.toLocaleString("id-ID")}</span>
+                          <span className="text-teal-800">Rp {changeVal.toLocaleString("id-ID")}</span>
                         </div>
                       )}
                     </>
@@ -436,7 +436,7 @@ export default function PharmacyPOSPage() {
                   onClick={handleCheckout}
                   disabled={cart.length === 0 || processing}
                   className={`w-full py-3 rounded-2xl text-white font-extrabold text-xs shadow-lg transition cursor-pointer flex items-center justify-center gap-2 ${
-                    cart.length === 0 || processing ? "bg-slate-300 cursor-not-allowed shadow-none" : "bg-emerald-600 hover:bg-emerald-700"
+                    cart.length === 0 || processing ? "bg-slate-300 cursor-not-allowed shadow-none" : "bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900"
                   }`}
                 >
                   {processing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
@@ -453,7 +453,7 @@ export default function PharmacyPOSPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-sm w-full space-y-4 shadow-2xl">
             <div className="text-center space-y-1 pb-3 border-b border-dashed border-slate-200">
-              <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto" />
+              <CheckCircle2 className="h-10 w-10 text-[#16A34A] mx-auto" />
               <h3 className="font-extrabold text-slate-900 text-lg">Transaksi Berhasil</h3>
               <p className="text-xs text-slate-500 font-mono">{lastReceipt.id}</p>
             </div>
@@ -486,7 +486,7 @@ export default function PharmacyPOSPage() {
                 <span>Bayar:</span>
                 <span>Rp {lastReceipt.amount_paid.toLocaleString("id-ID")}</span>
               </div>
-              <div className="flex justify-between font-bold text-emerald-700">
+              <div className="flex justify-between font-bold text-[#16A34A]">
                 <span>Kembali:</span>
                 <span>Rp {lastReceipt.change.toLocaleString("id-ID")}</span>
               </div>
@@ -501,7 +501,7 @@ export default function PharmacyPOSPage() {
               </button>
               <button
                 onClick={() => setLastReceipt(null)}
-                className="flex-1 py-2.5 rounded-xl bg-rose-800 text-white font-extrabold text-xs hover:bg-rose-900 transition"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-extrabold text-xs hover:from-teal-800 hover:to-cyan-900 transition"
               >
                 Selesai
               </button>

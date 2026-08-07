@@ -160,13 +160,13 @@ export default function RegisterPage() {
           className="object-cover object-center"
         />
 
-        {/* Gradient Maroon Overlay - Thinner Transparency */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7F1D1D]/60 via-[#A61B2D]/45 to-[#4C0B14]/70" />
+        {/* Gradient Teal/Cyan Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-900/80 via-teal-800/70 to-cyan-950/85" />
 
         {/* Decorative Light Glows */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-rose-500 blur-3xl" />
-          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-red-600 blur-3xl" />
+          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-teal-500 blur-3xl" />
+          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-cyan-600 blur-3xl" />
         </div>
 
         {/* Top Logo & Brand Header */}
@@ -193,8 +193,8 @@ export default function RegisterPage() {
         {/* Main Hero Content */}
         <div className="relative z-10 space-y-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-1 text-xs font-semibold text-rose-200 backdrop-blur-md mb-4">
-              <Zap className="h-3.5 w-3.5 text-rose-300" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-1 text-xs font-semibold text-teal-200 backdrop-blur-md mb-4">
+              <Zap className="h-3.5 w-3.5 text-teal-300" />
               Platform Integritas Rekam Medis Indonesia
             </div>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 leading-tight text-white tracking-tight">
@@ -248,7 +248,7 @@ export default function RegisterPage() {
               href="/" 
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold transition shadow-2xs"
             >
-              <Home className="h-4 w-4 text-[#7F1D1D]" />
+              <Home className="h-4 w-4 text-teal-800" />
               <span>Beranda</span>
             </Link>
           </div>
@@ -256,9 +256,9 @@ export default function RegisterPage() {
           {/* STEP 1: ROLE SELECTION SCREEN */}
           {step === 1 && (
             <div className="flex-1 lg:min-h-0 flex flex-col justify-between rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 bg-white">
-              <div className="bg-[#7F1D1D] px-8 py-8 text-white">
+              <div className="bg-gradient-to-r from-teal-800 to-cyan-900 px-8 py-8 text-white">
                 <h2 className="text-2xl font-bold">Pilih Kategori Pendaftaran</h2>
-                <p className="text-rose-100 mt-2 text-sm font-medium">Tentukan peran pendaftaran akun SatuData Anda</p>
+                <p className="text-teal-100 mt-2 text-sm font-medium">Tentukan peran pendaftaran akun SatuData Anda</p>
               </div>
 
               <div className="bg-slate-50 px-8 py-8 border-t border-slate-200 flex flex-col flex-1 justify-between space-y-6">
@@ -267,10 +267,10 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => handleSelectRole("pasien")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all duration-300">
                         <User className="h-6 w-6" />
                       </span>
                       <div>
@@ -278,17 +278,17 @@ export default function RegisterPage() {
                         <p className="text-[11px] text-slate-500 mt-0.5">Dapatkan kontrol penuh & kedaulatan data rekam medis terenkripsi</p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:translate-x-1 transition-all" />
                   </button>
 
                   {/* Option 2: Faskes */}
                   <button
                     type="button"
                     onClick={() => handleSelectRole("rumah_sakit")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all duration-300">
                         <Building2 className="h-6 w-6" />
                       </span>
                       <div>
@@ -296,7 +296,7 @@ export default function RegisterPage() {
                         <p className="text-[11px] text-slate-500 mt-0.5">Daftarkan instansi untuk terintegrasi dengan SATUSEHAT API & Blockchain</p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:translate-x-1 transition-all" />
                   </button>
                 </div>
 
@@ -304,7 +304,7 @@ export default function RegisterPage() {
                   Sudah memiliki akun?{" "}
                   <Link 
                     href="/auth/login" 
-                    className="text-[#7F1D1D] hover:text-[#A61B2D] font-bold transition hover:underline"
+                    className="text-teal-800 hover:text-teal-700 font-bold transition hover:underline"
                   >
                     Login di sini
                   </Link>
@@ -323,7 +323,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setStep(step - 1)}
-                    className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-500 hover:text-[#7F1D1D] cursor-pointer transition"
+                    className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-500 hover:text-teal-800 cursor-pointer transition"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     <span>{step === 2 ? "Ubah Peran Pendaftaran" : "Ubah Informasi Utama"}</span>
@@ -351,15 +351,15 @@ export default function RegisterPage() {
               {/* Inner Scrollable Form Body */}
               <form onSubmit={handleSubmit} className="flex-1 lg:overflow-y-auto p-5 sm:px-7 space-y-4 lg:min-h-0">
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3.5 text-xs text-red-700 font-semibold animate-in fade-in duration-150">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                  <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3.5 text-xs text-[#DC2626] font-semibold animate-in fade-in duration-150">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-[#DC2626]" />
                     <span>{error}</span>
                   </div>
                 )}
 
                 {success && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-800 font-bold animate-in fade-in duration-150">
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-[#16A34A] font-bold animate-in fade-in duration-150">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[#16A34A]" />
                     <span>{success}</span>
                   </div>
                 )}
@@ -378,7 +378,7 @@ export default function RegisterPage() {
                         onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
                         placeholder="Masukkan 16 digit NIK Anda"
                         maxLength={16}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-mono font-medium"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-mono font-medium"
                         required
                       />
                     </div>
@@ -395,7 +395,7 @@ export default function RegisterPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s.,']/g, ""))}
                           placeholder="Masukkan nama lengkap Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium"
                           required
                         />
                       </div>
@@ -416,7 +416,7 @@ export default function RegisterPage() {
                           autoCorrect="off"
                           spellCheck="false"
                           placeholder="Masukkan alamat email aktif Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium lowercase"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium lowercase"
                           required
                         />
                       </div>
@@ -439,7 +439,7 @@ export default function RegisterPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9\s.,'()\-]/g, ""))}
                           placeholder="Masukkan nama fasilitas kesehatan / RS Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium"
                           required
                         />
                       </div>
@@ -453,7 +453,7 @@ export default function RegisterPage() {
                       <select
                         value={hospitalType}
                         onChange={(e) => setHospitalType(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium cursor-pointer"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium cursor-pointer"
                       >
                         <option value="umum">Rumah Sakit Umum</option>
                         <option value="khusus">Rumah Sakit Khusus</option>
@@ -476,7 +476,7 @@ export default function RegisterPage() {
                           autoCorrect="off"
                           spellCheck="false"
                           placeholder="Masukkan alamat email aktif instansi Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium lowercase"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium lowercase"
                           required
                         />
                       </div>
@@ -490,7 +490,7 @@ export default function RegisterPage() {
                       <select
                         value={ownership}
                         onChange={(e) => setOwnership(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium cursor-pointer"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium cursor-pointer"
                       >
                         <option value="swasta">Swasta</option>
                         <option value="pemerintah">Pemerintah</option>
@@ -515,7 +515,7 @@ export default function RegisterPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Masukkan kata sandi (minimal 8 karakter)"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium"
                           required
                         />
                         <button
@@ -545,7 +545,7 @@ export default function RegisterPage() {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Ulangi kata sandi Anda"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-none transition text-xs font-medium"
                           required
                         />
                         <button
@@ -576,14 +576,14 @@ export default function RegisterPage() {
                             setIsContractAccepted(false);
                           }
                         }}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#7F1D1D] focus:ring-[#7F1D1D]/20 cursor-pointer"
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-800 focus:ring-teal-600/20 cursor-pointer"
                       />
                       <label htmlFor="contract-checkbox" className="text-xs text-slate-600 font-medium leading-relaxed select-none">
                         Saya menyetujui ketentuan{" "}
                         <button
                           type="button"
                           onClick={openContractModal}
-                          className="text-[#7F1D1D] hover:underline font-bold focus:outline-none cursor-pointer"
+                          className="text-teal-800 hover:underline font-bold focus:outline-none cursor-pointer"
                         >
                           Kontrak Digital SatuData
                         </button>{" "}
@@ -595,8 +595,8 @@ export default function RegisterPage() {
 
                 {/* Optional Info Banner */}
                 {step === 2 && (
-                  <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3.5 text-xs text-amber-800 flex items-start gap-2.5 mt-4">
-                    <Sparkles className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                  <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3.5 text-xs text-[#D97706] flex items-start gap-2.5 mt-4">
+                    <Sparkles className="h-4 w-4 shrink-0 text-[#D97706] mt-0.5" />
                     <p className="leading-relaxed text-[11px] font-semibold">
                       <strong>Catatan:</strong> Data pendukung lainnya (seperti Tempat/Tanggal Lahir, Alamat, No. Telepon, Lisensi Medis, Website, dll) bersifat <em>opsional</em> dan dapat Anda lengkapi kapan saja pada fitur <strong>Setting Akun</strong> setelah masuk.
                     </p>
@@ -609,7 +609,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={handleNextStep2}
-                      className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
                     >
                       <span>Lanjut</span>
                       <ArrowRight className="h-4 w-4" />
@@ -618,7 +618,7 @@ export default function RegisterPage() {
                     <button
                       type="submit"
                       disabled={loading || !isContractAccepted}
-                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#7F1D1D] to-[#A61B2D] hover:from-[#A61B2D] hover:to-[#7F1D1D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                     >
                       {loading ? (
                         <>
@@ -639,7 +639,7 @@ export default function RegisterPage() {
               {/* Form Footer */}
               <div className="shrink-0 p-3 sm:px-7 border-t border-slate-100 bg-slate-50/60 text-center text-xs text-slate-500 font-medium">
                 Sudah memiliki akun terdaftar?{" "}
-                <Link href="/auth/login" className="text-[#7F1D1D] hover:underline font-bold">
+                <Link href="/auth/login" className="text-teal-800 hover:underline font-bold">
                   Masuk di sini
                 </Link>
               </div>
@@ -654,12 +654,12 @@ export default function RegisterPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="relative w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
             {/* Modal Ambient Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
             
             {/* Header */}
             <div className="relative z-10 shrink-0 p-6 border-b border-slate-100 flex items-center gap-3 bg-white">
-              <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-[#7F1D1D] flex items-center justify-center shadow-xs">
-                <ShieldCheck className="h-6 w-6" />
+              <div className="h-10 w-10 rounded-xl bg-teal-500/10 text-teal-800 flex items-center justify-center shadow-xs">
+                <ShieldCheck className="h-6 w-6 text-teal-700" />
               </div>
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900 leading-none">Kontrak Digital & Syarat Ketentuan</h3>
@@ -723,7 +723,7 @@ export default function RegisterPage() {
                   Batal
                 </button>
                 {!hasReadContract && (
-                  <span className="text-[10px] text-amber-600 font-semibold animate-pulse hidden sm:inline">
+                  <span className="text-[10px] text-[#D97706] font-semibold animate-pulse hidden sm:inline">
                     * Gulir ke bawah untuk menyetujui
                   </span>
                 )}
@@ -736,7 +736,7 @@ export default function RegisterPage() {
                   setShowContractModal(false);
                 }}
                 disabled={!hasReadContract}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#7F1D1D] to-[#A61B2D] hover:from-[#A61B2D] hover:to-[#7F1D1D] text-white font-extrabold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center gap-1.5"
               >
                 <ShieldCheck className="h-4 w-4" />
                 <span>Setujui & Setuju Ketentuan</span>
@@ -754,9 +754,9 @@ export default function RegisterPage() {
             <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
             
             {/* Animated Check/Mail Icon */}
-            <div className="relative mx-auto h-16 w-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 shadow-sm border border-emerald-100 animate-bounce">
+            <div className="relative mx-auto h-16 w-16 rounded-full bg-emerald-50 text-[#16A34A] flex items-center justify-center mb-4 shadow-sm border border-emerald-100 animate-bounce">
               <Mail className="h-8 w-8" />
-              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-xs">✓</span>
+              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#16A34A] text-white text-[10px] font-bold shadow-xs">✓</span>
             </div>
 
             <h3 className="text-xl font-extrabold text-slate-900 mb-2">Registrasi Berhasil!</h3>
@@ -766,9 +766,9 @@ export default function RegisterPage() {
             </p>
 
             {/* Spam Folder Alert */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-left text-xs text-amber-800 space-y-1.5 mb-6">
-              <div className="flex items-center gap-1.5 font-extrabold text-[11px] uppercase tracking-wider text-amber-900">
-                <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-left text-xs text-[#D97706] space-y-1.5 mb-6">
+              <div className="flex items-center gap-1.5 font-extrabold text-[11px] uppercase tracking-wider text-[#D97706]">
+                <AlertCircle className="h-4 w-4 shrink-0 text-[#D97706]" />
                 <span>Penting: Periksa Folder Spam</span>
               </div>
               <p className="leading-relaxed font-semibold">
@@ -783,7 +783,7 @@ export default function RegisterPage() {
                 setShowSuccessModal(false);
                 router.push("/auth/login");
               }}
-              className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
             >
               <span>Lanjut ke Halaman Login</span>
               <ArrowRight className="h-4 w-4" />

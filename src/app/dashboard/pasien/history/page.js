@@ -410,14 +410,14 @@ function PatientUnifiedHistoryContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Pasien Terdaftar" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -425,13 +425,13 @@ function PatientUnifiedHistoryContent() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <History className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
+                  <History className="h-3.5 w-3.5 text-teal-300" />
                   Pusat Riwayat & Ledger Audit Terpadu Pasien
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -444,12 +444,12 @@ function PatientUnifiedHistoryContent() {
 
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Total Rekam Medis</p>
+                  <p className="text-[10px] text-slate-300 uppercase font-bold">Total Rekam Medis</p>
                   <p className="font-extrabold text-white text-base mt-0.5">{records.length} Berkas</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Otorisasi Disetujui</p>
-                  <p className="font-bold text-emerald-400 text-base mt-0.5">{requests.filter(r => r.status === "approved").length} Faskes</p>
+                  <p className="text-[10px] text-slate-300 uppercase font-bold">Otorisasi Disetujui</p>
+                  <p className="font-bold text-[#16A34A] text-base mt-0.5">{requests.filter(r => r.status === "approved").length} Faskes</p>
                 </div>
               </div>
             </div>
@@ -461,7 +461,7 @@ function PatientUnifiedHistoryContent() {
               onClick={() => changeTab("records")}
               className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                 activeMainTab === "records"
-                  ? "bg-gradient-to-r from-rose-900 to-rose-800 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -473,7 +473,7 @@ function PatientUnifiedHistoryContent() {
               onClick={() => changeTab("consent")}
               className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                 activeMainTab === "consent"
-                  ? "bg-gradient-to-r from-rose-900 to-rose-800 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -485,7 +485,7 @@ function PatientUnifiedHistoryContent() {
               onClick={() => changeTab("audit")}
               className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
                 activeMainTab === "audit"
-                  ? "bg-gradient-to-r from-rose-900 to-rose-800 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -507,7 +507,7 @@ function PatientUnifiedHistoryContent() {
                       placeholder="Cari RS, Dokter, atau Diagnosa..."
                       value={searchTermRecords}
                       onChange={(e) => setSearchTermRecords(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:bg-white focus:outline-hidden transition"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
                     />
                   </div>
 
@@ -515,7 +515,7 @@ function PatientUnifiedHistoryContent() {
                     <select
                       value={hospitalFilter}
                       onChange={(e) => setHospitalFilter(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-rose-500 focus:bg-white focus:outline-hidden transition"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
                     >
                       <option value="all">Semua Rumah Sakit ({records.length})</option>
                       {uniqueHospitals.map((h, i) => (
@@ -528,13 +528,13 @@ function PatientUnifiedHistoryContent() {
                     <select
                       value={categoryFilter}
                       onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-rose-500 focus:bg-white focus:outline-hidden transition"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
                     >
-                      <option value="all">Semua Jenis Layanan</option>
-                      <option value="umum">Rawat Jalan / Umum</option>
-                      <option value="lab">Laboratorium</option>
-                      <option value="radiologi">Radiologi</option>
-                      <option value="resep">Resep Obat</option>
+                      <option value="all">Semua Kategori Pemeriksaan</option>
+                      <option value="Rawat Jalan">Rawat Jalan</option>
+                      <option value="Pemeriksaan Lab">Pemeriksaan Lab</option>
+                      <option value="Radiologi / Rontgen">Radiologi / Rontgen</option>
+                      <option value="UGD / Emergency">UGD / Emergency</option>
                     </select>
                   </div>
                 </div>
@@ -543,10 +543,10 @@ function PatientUnifiedHistoryContent() {
               {/* Records List Container */}
               <div className="space-y-4">
                 {filteredRecords.length === 0 ? (
-                  <div className="rounded-3xl bg-white border border-slate-200 p-12 text-center">
-                    <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                    <h3 className="text-base font-bold text-slate-800">Tidak ada riwayat rekam medis</h3>
-                    <p className="text-xs text-slate-500 mt-1">Coba ubah kata kunci atau filter pencarian Anda.</p>
+                  <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center shadow-xs">
+                    <FileText className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm font-extrabold text-slate-700">Tidak Ada Rekam Medis Ditemukan</p>
+                    <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter rumah sakit Anda.</p>
                   </div>
                 ) : (
                   filteredRecords.map((rec) => {
@@ -557,12 +557,12 @@ function PatientUnifiedHistoryContent() {
                     return (
                       <div
                         key={rec.id}
-                        className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs hover:border-rose-300 hover:shadow-md transition-all duration-200"
+                        className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs hover:border-teal-300 hover:shadow-md transition-all duration-200"
                       >
                         {/* Header Info */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
                           <div className="flex items-start gap-3.5 min-w-0">
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 border border-rose-200 font-bold text-rose-700 text-sm shadow-2xs">
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200 font-bold text-teal-800 text-sm shadow-2xs">
                               {rec.hospitalName.substring(0, 2).toUpperCase()}
                             </span>
                             <div className="min-w-0">
@@ -571,11 +571,11 @@ function PatientUnifiedHistoryContent() {
                                 <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">
                                   {rec.hospitalCode}
                                 </span>
-                                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200 uppercase shrink-0">
+                                <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-bold text-teal-800 border border-teal-200 uppercase shrink-0">
                                   {rec.category}
                                 </span>
-                                <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3 text-emerald-600" /> SELESAI & LUNAS
+                                <span className="rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3 text-[#16A34A]" /> SELESAI & LUNAS
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 truncate">
@@ -607,15 +607,15 @@ function PatientUnifiedHistoryContent() {
                             >
                               {isDecrypting ? (
                                 <>
-                                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" /> Mendekripsi...
+                                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-teal-700" /> Mendekripsi...
                                 </>
                               ) : isDecrypted ? (
                                 <>
-                                  <EyeOff className="h-3.5 w-3.5 text-rose-600" /> Sembunyikan Data
+                                  <EyeOff className="h-3.5 w-3.5 text-teal-800" /> Sembunyikan Data
                                 </>
                               ) : (
                                 <>
-                                  <Eye className="h-3.5 w-3.5 text-emerald-600" /> Dekripsi Rekam Medis
+                                  <Eye className="h-3.5 w-3.5 text-[#16A34A]" /> Dekripsi Rekam Medis
                                 </>
                               )}
                             </button>
@@ -623,33 +623,33 @@ function PatientUnifiedHistoryContent() {
 
                           {isDecrypting ? (
                             <div className="rounded-2xl bg-slate-50 p-6 flex flex-col items-center justify-center border border-slate-200">
-                              <RefreshCw className="h-6 w-6 animate-spin text-rose-600 mb-2" />
+                              <RefreshCw className="h-6 w-6 animate-spin text-teal-800 mb-2" />
                               <p className="text-xs font-bold text-slate-500">Mendekripsi data rekam medis dengan Kunci Privat Anda...</p>
                             </div>
                           ) : isDecrypted ? (() => {
                             return (
-                              <div className="rounded-2xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-5 text-slate-800 shadow-xs animate-fade-in space-y-4 text-xs">
-                                <div className="border-b border-rose-100 pb-3">
-                                  <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama:</p>
+                              <div className="rounded-2xl bg-teal-50/40 border border-teal-100 p-5 text-slate-800 shadow-xs animate-fade-in space-y-4 text-xs">
+                                <div className="border-b border-teal-100 pb-3">
+                                  <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama:</p>
                                   <p className="text-sm font-extrabold text-slate-900">{displayRec.diagnosis}</p>
                                 </div>
 
                                 {displayRec.vitals && (
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-3 rounded-xl border border-rose-100/50 text-[11px] font-mono">
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-3 rounded-xl border border-teal-100/50 text-[11px] font-mono">
                                     <div>
-                                      <span className="text-rose-600 block text-[9px] font-bold">Tekanan Darah</span>
+                                      <span className="text-teal-800 block text-[9px] font-bold">Tekanan Darah</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.bp}</span>
                                     </div>
                                     <div>
-                                      <span className="text-rose-600 block text-[9px] font-bold">Nadi</span>
+                                      <span className="text-teal-800 block text-[9px] font-bold">Nadi</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.pulse}</span>
                                     </div>
                                     <div>
-                                      <span className="text-rose-600 block text-[9px] font-bold">Suhu Tubuh</span>
+                                      <span className="text-teal-800 block text-[9px] font-bold">Suhu Tubuh</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.temp}</span>
                                     </div>
                                     <div>
-                                      <span className="text-rose-600 block text-[9px] font-bold">Berat Badan</span>
+                                      <span className="text-teal-800 block text-[9px] font-bold">Berat Badan</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.weight}</span>
                                     </div>
                                   </div>
@@ -657,10 +657,10 @@ function PatientUnifiedHistoryContent() {
 
                                 {displayRec.prescriptions && displayRec.prescriptions.length > 0 && (
                                   <div>
-                                    <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-2">Resep Obat & Aturan Pakai:</p>
+                                    <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-2">Resep Obat & Aturan Pakai:</p>
                                     <div className="space-y-1.5">
                                       {displayRec.prescriptions.map((rx, idx) => (
-                                        <div key={idx} className="flex items-center justify-between rounded-lg bg-white/90 px-3 py-1.5 border border-rose-100/40">
+                                        <div key={idx} className="flex items-center justify-between rounded-lg bg-white/90 px-3 py-1.5 border border-teal-100/40">
                                           <span className="font-bold text-slate-800">{rx.medicine}</span>
                                           <span className="text-[10px] text-slate-500 font-medium">{rx.dosage}</span>
                                         </div>
@@ -670,8 +670,8 @@ function PatientUnifiedHistoryContent() {
                                 )}
 
                                 <div>
-                                  <p className="text-rose-700 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
-                                  <p className="text-slate-700 leading-relaxed text-[11px] bg-white/90 p-2.5 rounded-lg border border-rose-100/40 whitespace-pre-line">{displayRec.notes}</p>
+                                  <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
+                                  <p className="text-slate-700 leading-relaxed text-[11px] bg-white/90 p-2.5 rounded-lg border border-teal-100/40 whitespace-pre-line">{displayRec.notes}</p>
                                 </div>
                               </div>
                             );
@@ -683,7 +683,7 @@ function PatientUnifiedHistoryContent() {
                           <div className="font-mono text-[10px] text-slate-500 min-w-0">
                             Blockchain Tx Hash:{" "}
                             {rec.txHash ? (
-                              <TxHashLink txHash={rec.txHash} className="text-rose-600 font-bold font-mono inline-flex items-center gap-1 max-w-full" title={rec.txHash}>
+                              <TxHashLink txHash={rec.txHash} className="text-teal-800 font-bold font-mono inline-flex items-center gap-1 max-w-full" title={rec.txHash}>
                                 <span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{rec.txHash}</span>
                               </TxHashLink>
                             ) : (
@@ -693,7 +693,7 @@ function PatientUnifiedHistoryContent() {
 
                           <button
                             onClick={() => handleOpenDetailModal(rec)}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer shrink-0"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-800 hover:text-teal-900 cursor-pointer shrink-0"
                           >
                             Detail Lengkap & Audit Trail <ChevronRight className="h-4 w-4" />
                           </button>
@@ -712,7 +712,7 @@ function PatientUnifiedHistoryContent() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <ShieldCheck className="h-4.5 w-4.5 text-rose-600" />
+                    <ShieldCheck className="h-4.5 w-4.5 text-teal-800" />
                     Riwayat & Status Persetujuan ({historyRequestsList.length})
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">Daftar izin akses yang telah Anda putuskan sebelumnya.</p>
@@ -730,7 +730,7 @@ function PatientUnifiedHistoryContent() {
                   <button
                     onClick={() => setConsentTab("approved")}
                     className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                      consentTab === "approved" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      consentTab === "approved" ? "bg-[#16A34A] text-white" : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >
                     Aktif
@@ -738,7 +738,7 @@ function PatientUnifiedHistoryContent() {
                   <button
                     onClick={() => setConsentTab("revoked")}
                     className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                      consentTab === "revoked" ? "bg-rose-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                      consentTab === "revoked" ? "bg-[#DC2626] text-white" : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >
                     Dicabut
@@ -754,7 +754,7 @@ function PatientUnifiedHistoryContent() {
                   value={searchTermConsent}
                   onChange={(e) => setSearchTermConsent(e.target.value)}
                   placeholder="Cari dalam histori otorisasi..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden bg-slate-50/50"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:outline-hidden bg-slate-50/50"
                 />
               </div>
 
@@ -769,7 +769,7 @@ function PatientUnifiedHistoryContent() {
                   filteredConsentHistory.map((req) => (
                     <div
                       key={req.id}
-                      className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-white"
+                      className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-white"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div className="flex items-start gap-3 min-w-0">
@@ -787,14 +787,14 @@ function PatientUnifiedHistoryContent() {
 
                         <div className="shrink-0">
                           {req.status === "approved" && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
-                              <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-[#16A34A]">
+                              <CheckCircle className="h-3.5 w-3.5 text-[#16A34A]" />
                               Akses Disetujui
                             </span>
                           )}
                           {(req.status === "revoked" || req.status === "rejected") && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-xs font-bold text-rose-700">
-                              <Lock className="h-3.5 w-3.5 text-rose-600" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-bold text-[#DC2626]">
+                              <Lock className="h-3.5 w-3.5 text-[#DC2626]" />
                               Izin Akses Dicabut
                             </span>
                           )}
@@ -820,7 +820,7 @@ function PatientUnifiedHistoryContent() {
                       {/* Actions */}
                       <div className="border-t border-slate-100 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs min-w-0">
                         <div className="font-mono text-[9px] text-slate-400 min-w-0">
-                          Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1 max-w-full" title={req.txHash}><span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{req.txHash}</span></TxHashLink>
+                          Tx Hash: <TxHashLink txHash={req.txHash} className="text-teal-800 font-bold inline-flex items-center gap-1 max-w-full" title={req.txHash}><span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{req.txHash}</span></TxHashLink>
                         </div>
 
                         <div className="shrink-0 w-full sm:w-auto">
@@ -828,7 +828,7 @@ function PatientUnifiedHistoryContent() {
                             <button
                               onClick={() => handleConsentAction(req.id, "revoked")}
                               disabled={submittingId === req.id}
-                              className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                              className="rounded-xl bg-red-50 border border-red-200 text-[#DC2626] hover:bg-red-100 px-4 py-2 font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
                             >
                               {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
                               Cabut Akses
@@ -839,7 +839,7 @@ function PatientUnifiedHistoryContent() {
                             <button
                               onClick={() => handleConsentAction(req.id, "approved")}
                               disabled={submittingId === req.id}
-                              className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                              className="rounded-xl bg-emerald-50 border border-emerald-200 text-[#16A34A] hover:bg-emerald-100 px-4 py-2 font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
                             >
                               {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
                               Izinkan Kembali
@@ -860,15 +860,15 @@ function PatientUnifiedHistoryContent() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <Database className="h-5 w-5 text-rose-600" />
+                    <Database className="h-5 w-5 text-teal-800" />
                     Console Audit Trail Blockchain Real-time ({auditLogs.length})
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Seluruh mutasi hak akses, dekripsi rekam medis, dan aksi transaksi terikat secara tak-terubahkan (immutable) pada ledger blockchain.
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 self-start sm:self-auto shrink-0">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-[#16A34A] self-start sm:self-auto shrink-0">
+                  <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-ping" />
                   Ledger Sync Active
                 </span>
               </div>
@@ -882,18 +882,18 @@ function PatientUnifiedHistoryContent() {
                   </div>
                 ) : (
                   auditLogs.map((log) => (
-                    <div key={log.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 text-xs hover:border-rose-200 hover:bg-white transition shadow-2xs space-y-2">
+                    <div key={log.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 text-xs hover:border-teal-200 hover:bg-white transition shadow-2xs space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className={`font-extrabold text-xs flex items-center gap-1.5 ${log.status === "success" ? "text-emerald-700" : "text-rose-700"}`}>
-                          {log.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <XCircle className="h-3.5 w-3.5 text-rose-600" />}
+                        <span className={`font-extrabold text-xs flex items-center gap-1.5 ${log.status === "success" ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
+                          {log.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5 text-[#16A34A]" /> : <XCircle className="h-3.5 w-3.5 text-[#DC2626]" />}
                           {log.action}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">{log.timestamp}</span>
+                        <span className="text-[9px] font-mono text-slate-400">{log.timestamp}</span>
                       </div>
                       <p className="text-slate-700 font-semibold text-xs leading-relaxed">{log.hospital}</p>
                       <div className="pt-1.5 border-t border-slate-200/50 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-500">
                         <span>Blockchain Tx Hash:</span>
-                        <TxHashLink txHash={log.txHash} className="text-rose-600 font-bold font-mono inline-flex items-center gap-1" title={log.txHash}>
+                        <TxHashLink txHash={log.txHash} className="text-teal-800 font-bold font-mono inline-flex items-center gap-1" title={log.txHash}>
                           <span className="truncate max-w-[220px] sm:max-w-[340px]">{log.txHash}</span>
                         </TxHashLink>
                       </div>
@@ -913,7 +913,7 @@ function PatientUnifiedHistoryContent() {
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 font-bold text-xs">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-800 font-bold text-xs">
                         {displaySelected.hospitalName.substring(0, 2).toUpperCase()}
                       </span>
                       <div>
@@ -932,7 +932,7 @@ function PatientUnifiedHistoryContent() {
 
                   {isModalDecrypting ? (
                     <div className="py-12 flex flex-col items-center justify-center">
-                      <RefreshCw className="h-8 w-8 animate-spin text-rose-600 mb-3" />
+                      <RefreshCw className="h-8 w-8 animate-spin text-teal-800 mb-3" />
                       <p className="text-xs font-bold text-slate-500">Mendekripsi rekam medis...</p>
                     </div>
                   ) : (
@@ -964,7 +964,7 @@ function PatientUnifiedHistoryContent() {
                       )}
 
                       <div className="rounded-2xl bg-slate-50 p-4 text-[10px] font-mono text-slate-600 space-y-1 border border-slate-200/80">
-                        <p className="text-rose-700 font-bold">VERIFIKASI BLOCKCHAIN & ENKRIPSI:</p>
+                        <p className="text-teal-800 font-bold">VERIFIKASI BLOCKCHAIN & ENKRIPSI:</p>
                         <p className="text-slate-700 min-w-0">Tx Hash: <TxHashLink txHash={displaySelected.txHash} className="inline-flex items-center gap-1 max-w-full" title={displaySelected.txHash}><span className="truncate max-w-[200px] sm:max-w-[320px]">{displaySelected.txHash}</span></TxHashLink></p>
                         <p className="text-slate-500">Enkripsi: Off-chain AES-256 CBC Mode</p>
                       </div>
@@ -974,7 +974,7 @@ function PatientUnifiedHistoryContent() {
                   <div className="pt-6 border-t border-slate-100 mt-6 flex justify-end gap-3">
                     <button
                       onClick={() => window.print()}
-                      className="inline-flex items-center gap-2 rounded-xl bg-rose-800 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-rose-900 transition cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
                     >
                       <Download className="h-4 w-4" /> Unduh Dokumen PDF
                     </button>
@@ -992,8 +992,8 @@ function PatientUnifiedHistoryContent() {
 export default function PatientUnifiedHistoryPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     }>
       <PatientUnifiedHistoryContent />

@@ -3,6 +3,18 @@
 :root {
   --background: #fdfdff;
   --foreground: #0f172a;
+
+  /* Standard Hospital / Medical Status Colors */
+  --status-success: #16A34A; /* Hijau - Success / Normal / Disetujui */
+  --status-warning: #D97706; /* Amber - Warning / Pending / Observasi */
+  --status-danger: #DC2626;  /* Merah - Danger / Critical / IGD / Alergi */
+  --status-info: #0284C7;    /* Biru Muda - Info / Routine */
+
+  /* Secondary & Accent Colors (Higienitas, Kebersihan Klinis, Scrubs) */
+  --teal-primary: #0f766e;
+  --teal-secondary: #14b8a6;
+  --cyan-accent: #06b6d4;
+  --mint-green: #2dd4bf;
 }
 
 @theme inline {
@@ -10,6 +22,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-status-success: #16A34A;
+  --color-status-warning: #D97706;
+  --color-status-danger: #DC2626;
+  --color-status-info: #0284C7;
+
+  --color-teal-primary: #0f766e;
+  --color-teal-secondary: #14b8a6;
+  --color-cyan-accent: #06b6d4;
+  --color-mint-green: #2dd4bf;
 }
 
 html {
@@ -20,9 +42,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(244, 114, 182, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(251, 191, 36, 0.08), transparent 25%),
-    radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.04), transparent 40%),
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 35%),
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.08), transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.05), transparent 45%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
@@ -33,11 +55,11 @@ body {
 }
 
 ::selection {
-  background: rgba(244, 114, 182, 0.2);
-  color: #be185d;
+  background: rgba(20, 184, 166, 0.2);
+  color: #0f766e;
 }
 
-/* Custom utilities for modern premium feel */
+/* Custom utilities for modern medical premium feel */
 @utility animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -46,14 +68,38 @@ body {
   animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@utility text-gradient-red {
-  background: linear-gradient(135deg, #fb7185 0%, #ec4899 50%, #db2777 100%);
+@utility text-gradient-teal {
+  background: linear-gradient(135deg, #0d9488 0%, #06b6d4 50%, #2dd4bf 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 @utility bg-radial-glow {
-  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.18) 0%, rgba(14, 165, 233, 0.08) 45%, transparent 75%);
+  background: radial-gradient(circle at center, rgba(20, 184, 166, 0.18) 0%, rgba(6, 182, 212, 0.08) 45%, transparent 75%);
+}
+
+@utility badge-success {
+  background-color: #f0fdf4;
+  color: #16A34A;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+@utility badge-warning {
+  background-color: #fffbeb;
+  color: #D97706;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+@utility badge-danger {
+  background-color: #fef2f2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+@utility badge-info {
+  background-color: #f0f9ff;
+  color: #0284C7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
 @keyframes float {
@@ -68,11 +114,11 @@ body {
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 12px rgba(225, 29, 72, 0.4);
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
   }
   50% {
     opacity: .7;
-    box-shadow: 0 0 4px rgba(225, 29, 72, 0.1);
+    box-shadow: 0 0 4px rgba(20, 184, 166, 0.1);
   }
 }
 
@@ -81,7 +127,7 @@ body {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 114, 182, 0.14);
+  border: 1px solid rgba(20, 184, 166, 0.14);
 }
 
 .glass-panel-dark {
@@ -147,6 +193,7 @@ body {
 
 .hover-premium-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(244, 114, 182, 0.12);
+  box-shadow: 0 20px 40px rgba(20, 184, 166, 0.12);
 }
+
 

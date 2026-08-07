@@ -292,20 +292,20 @@ export default function FaskesRequests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-850 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
             Kembali ke Halaman Login
           </button>
         </div>
@@ -314,7 +314,7 @@ export default function FaskesRequests() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -322,14 +322,14 @@ export default function FaskesRequests() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-rose-700/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-700/10 blur-3xl" />
             <div className="relative z-10">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                <UserPlus className="h-8 w-8 text-rose-400" />
+                <UserPlus className="h-8 w-8 text-teal-300" />
                 Tambah & Request Akses Pasien
               </h1>
-              <p className="text-xs sm:text-sm text-rose-200 mt-2 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-teal-100 mt-2 max-w-2xl leading-relaxed">
                 Gunakan NIK KTP untuk memeriksa data pasien. Daftarkan pasien baru secara instan jika belum terdaftar, atau ajukan permintaan akses EHR blockchain jika akun sudah aktif.
               </p>
             </div>
@@ -340,7 +340,7 @@ export default function FaskesRequests() {
             {showCredentialsBanner && generatedCredentials && (
               <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-600/10 to-teal-500/5 rounded-3xl border-2 border-emerald-500/30 p-6 shadow-xs animate-fade-in space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-800 border border-emerald-250 shrink-0">
+                  <div className="h-10 w-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-[#16A34A] border border-emerald-200 shrink-0">
                     <Key className="h-5 w-5" />
                   </div>
                   <div>
@@ -360,14 +360,14 @@ export default function FaskesRequests() {
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-400 font-medium">Password Sementara:</span>
-                    <span className="text-rose-900 font-mono font-bold bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100/50">{generatedCredentials.password}</span>
+                    <span className="text-teal-900 font-mono font-bold bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">{generatedCredentials.password}</span>
                   </div>
                 </div>
 
                 <div className="flex gap-2.5">
                   <button
                     onClick={handleCopyCredentials}
-                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-emerald-850 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-2xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer"
                   >
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {copied ? "Tersalin!" : "Salin Kredensial"}
@@ -386,7 +386,7 @@ export default function FaskesRequests() {
             <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-xs">
               <div className="border-b border-slate-100 pb-4 mb-5">
                 <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-rose-800" />
+                  <Activity className="h-5 w-5 text-teal-800" />
                   Identifikasi NIK Pasien
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">Lakukan pengecekan NIK pasien pada sistem SatuData</p>
@@ -408,13 +408,13 @@ export default function FaskesRequests() {
                         setPatientData(null);
                       }}
                       placeholder="Masukkan 16 digit NIK"
-                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden bg-slate-50 focus:bg-white transition"
+                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:outline-hidden bg-slate-50 focus:bg-white transition"
                     />
                     <button
                       type="button"
                       onClick={handleCheckNik}
                       disabled={nikInput.length !== 16 || searchStatus === "searching"}
-                      className="rounded-xl border border-rose-800 text-rose-800 hover:bg-rose-50 px-5 py-2.5 text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-2xs"
+                      className="rounded-xl border border-teal-700 text-teal-800 hover:bg-teal-50 px-5 py-2.5 text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-2xs"
                     >
                       {searchStatus === "searching" ? (
                         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -429,7 +429,7 @@ export default function FaskesRequests() {
                 {searchStatus === "found" && patientData && (
                   <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-500/20 p-4 text-xs text-emerald-800 space-y-2 animate-fade-in shadow-2xs">
                     <p className="font-bold flex items-center gap-1.5 text-[13px]">
-                      <CheckCircle className="h-4.5 w-4.5 text-emerald-600" />
+                      <CheckCircle className="h-4.5 w-4.5 text-[#16A34A]" />
                       Pasien Terdaftar Ditemukan
                     </p>
                     <p className="text-slate-650">Pasien atas nama <strong className="text-slate-800">{patientData.name}</strong> dengan NIK {nikInput} terdaftar aktif di SatuData. Silakan isi form di bawah untuk meminta akses rekam medis.</p>
@@ -437,9 +437,9 @@ export default function FaskesRequests() {
                 )}
 
                 {searchStatus === "not_found" && (
-                  <div className="rounded-2xl bg-amber-50/70 border-2 border-amber-500/20 p-4 text-xs text-amber-900 space-y-2 animate-fade-in shadow-2xs">
+                  <div className="rounded-2xl bg-amber-50/70 border-2 border-amber-500/20 p-4 text-xs text-[#D97706] space-y-2 animate-fade-in shadow-2xs">
                     <p className="font-bold flex items-center gap-1.5 text-[13px]">
-                      <AlertCircle className="h-4.5 w-4.5 text-amber-600" />
+                      <AlertCircle className="h-4.5 w-4.5 text-[#D97706]" />
                       NIK Belum Terdaftar
                     </p>
                     <p className="text-slate-650">NIK {nikInput} belum terdaftar di SatuData. Silakan isi form pembuatan akun pasien baru di bawah. Sistem akan mendaftarkan pasien sekaligus mengirimkan pengajuan izin akses.</p>
@@ -447,7 +447,7 @@ export default function FaskesRequests() {
                 )}
 
                 {searchStatus === "error" && (
-                  <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs text-red-700 flex items-center gap-2">
+                  <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs text-[#DC2626] flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>Terjadi kesalahan saat memeriksa database. Coba lagi atau hubungi administrator.</span>
                   </div>
@@ -462,12 +462,12 @@ export default function FaskesRequests() {
                   <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                     {searchStatus === "not_found" ? (
                       <>
-                        <UserPlus className="h-5 w-5 text-rose-800" />
+                        <UserPlus className="h-5 w-5 text-teal-800" />
                         Form Pendaftaran Pasien Baru
                       </>
                     ) : (
                       <>
-                        <Send className="h-5 w-5 text-rose-800" />
+                        <Send className="h-5 w-5 text-teal-800" />
                         Form Request Akses Medis
                       </>
                     )}
@@ -484,7 +484,7 @@ export default function FaskesRequests() {
                   {searchStatus === "not_found" && (
                     <div className="space-y-4 bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-200/60">
                       <h4 className="text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2 flex items-center gap-1.5 uppercase tracking-wider mb-3">
-                        <Info className="h-4 w-4 text-rose-850" />
+                        <Info className="h-4 w-4 text-teal-800" />
                         Informasi Biodata Pasien
                       </h4>
 
@@ -497,7 +497,7 @@ export default function FaskesRequests() {
                             value={registerName}
                             onChange={(e) => setRegisterName(e.target.value)}
                             placeholder="Sesuai KTP"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -508,7 +508,7 @@ export default function FaskesRequests() {
                             value={registerEmail}
                             onChange={(e) => setRegisterEmail(e.target.value)}
                             placeholder="emailpasien@example.com"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -522,7 +522,7 @@ export default function FaskesRequests() {
                             value={registerPhone}
                             onChange={(e) => setRegisterPhone(e.target.value)}
                             placeholder="0812xxxxxxxx"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -530,7 +530,7 @@ export default function FaskesRequests() {
                           <select
                             value={registerSex}
                             onChange={(e) => setRegisterSex(e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           >
                             <option value="laki-laki">Laki-laki</option>
                             <option value="perempuan">Perempuan</option>
@@ -547,7 +547,7 @@ export default function FaskesRequests() {
                             value={registerPob}
                             onChange={(e) => setRegisterPob(e.target.value)}
                             placeholder="Kota Kelahiran"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -557,7 +557,7 @@ export default function FaskesRequests() {
                             required
                             value={registerDob}
                             onChange={(e) => setRegisterDob(e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -570,7 +570,7 @@ export default function FaskesRequests() {
                             value={registerBloodType}
                             onChange={(e) => setRegisterBloodType(e.target.value)}
                             placeholder="Contoh: A / B / O / AB"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -581,7 +581,7 @@ export default function FaskesRequests() {
                             value={registerAddress}
                             onChange={(e) => setRegisterAddress(e.target.value)}
                             placeholder="Alamat lengkap beserta RT/RW"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -594,7 +594,7 @@ export default function FaskesRequests() {
                             value={registerEmergencyName}
                             onChange={(e) => setRegisterEmergencyName(e.target.value)}
                             placeholder="Contoh: Ayah / Ibu / Istri"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -604,7 +604,7 @@ export default function FaskesRequests() {
                             value={registerEmergencyPhone}
                             onChange={(e) => setRegisterEmergencyPhone(e.target.value)}
                             placeholder="08xxxxxxxx"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -635,14 +635,14 @@ export default function FaskesRequests() {
                         value={purposeInput}
                         onChange={(e) => setPurposeInput(e.target.value)}
                         placeholder="Contoh: Pemeriksaan Jantung Rutin / Rujukan Rawat Inap"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-slate-50 focus:bg-white transition"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-slate-50 focus:bg-white transition"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={submittingRequest}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-rose-800 hover:bg-rose-700 px-6 py-3 text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-3 text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50"
                     >
                       {submittingRequest ? (
                         <RefreshCw className="h-4.5 w-4.5 animate-spin" />

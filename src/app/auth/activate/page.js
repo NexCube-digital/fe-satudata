@@ -133,7 +133,7 @@ function ActivateContent() {
         
         {/* Logo */}
         <Link href="/" className="inline-flex items-center gap-3.5 mx-auto">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7F1D1D] p-2 text-white shadow-xs">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 p-2 text-white shadow-xs">
             <Image src="/images/logo.png" alt="Satu Data logo" width={32} height={32} className="h-full w-full object-contain" />
           </span>
           <div className="text-left">
@@ -144,7 +144,7 @@ function ActivateContent() {
 
         {loading && (
           <div className="py-8 space-y-3">
-            <Loader className="h-10 w-10 animate-spin text-[#7F1D1D] mx-auto" />
+            <Loader className="h-10 w-10 animate-spin text-teal-800 mx-auto" />
             <h4 className="text-sm font-bold text-slate-700">Memverifikasi Token Aktivasi...</h4>
             <p className="text-xs text-slate-500">Mohon tunggu sebentar, sistem sedang mengaktifkan akun Anda.</p>
           </div>
@@ -152,8 +152,8 @@ function ActivateContent() {
 
         {!loading && status === "success" && (
           <div className="space-y-4 py-4">
-            <div className="h-16 w-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="h-10 w-10" />
+            <div className="h-16 w-16 rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="h-10 w-10 text-[#16A34A]" />
             </div>
 
             <div className="space-y-1">
@@ -165,13 +165,13 @@ function ActivateContent() {
               <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 text-left text-xs space-y-1">
                 <p className="font-bold text-slate-800">{user.name}</p>
                 <p className="text-slate-500 font-mono">{user.email}</p>
-                <p className="text-[10px] text-emerald-700 font-bold uppercase pt-1">Status: Aktif ✓</p>
+                <p className="text-[10px] text-[#16A34A] font-bold uppercase pt-1">Status: Aktif ✓</p>
               </div>
             )}
 
             {needsPassword ? (
               <form onSubmit={handleSetPassword} className="space-y-4 text-left">
-                <div className="rounded-xl bg-rose-50 border border-rose-100 p-3 text-[11px] text-rose-800 leading-normal font-medium">
+                <div className="rounded-xl bg-teal-50 border border-teal-100 p-3 text-[11px] text-teal-800 leading-normal font-medium">
                   Akun Anda belum memiliki kata sandi (dibuat oleh Faskes). Silakan atur kata sandi baru untuk mengamankan akun Anda.
                 </div>
                 <div>
@@ -182,7 +182,7 @@ function ActivateContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 8 karakter"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-[#7F1D1D] outline-none"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-teal-600 outline-none"
                   />
                 </div>
                 <div>
@@ -193,16 +193,16 @@ function ActivateContent() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Ulangi kata sandi baru"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-[#7F1D1D] outline-none"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-teal-600 outline-none"
                   />
                 </div>
                 {passMsg && (
-                  <p className={`text-[10px] font-bold ${passMsg.includes("berhasil") ? "text-emerald-700" : "text-rose-700"}`}>{passMsg}</p>
+                  <p className={`text-[10px] font-bold ${passMsg.includes("berhasil") ? "text-[#16A34A]" : "text-[#DC2626]"}`}>{passMsg}</p>
                 )}
                 <button
                   type="submit"
                   disabled={passLoading}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7F1D1D] hover:bg-[#A61B2D] px-6 py-3 text-xs font-extrabold text-white shadow-md transition cursor-pointer disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-3 text-xs font-extrabold text-white shadow-md transition cursor-pointer disabled:opacity-50"
                 >
                   {passLoading ? "Menyimpan..." : "Simpan & Lanjut ke Dasbor"}
                   <ArrowRight className="h-4 w-4" />
@@ -211,7 +211,7 @@ function ActivateContent() {
             ) : (
               <Link
                 href="/auth/login"
-                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7F1D1D] hover:bg-[#A61B2D] px-6 py-3 text-xs font-extrabold text-white shadow-md transition"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-3 text-xs font-extrabold text-white shadow-md transition"
               >
                 Masuk Sekarang
                 <ArrowRight className="h-4 w-4" />
@@ -222,13 +222,13 @@ function ActivateContent() {
 
         {!loading && status === "error" && (
           <div className="space-y-4 py-4">
-            <div className="h-16 w-16 rounded-full bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto">
-              <XCircle className="h-10 w-10" />
+            <div className="h-16 w-16 rounded-full bg-red-50 text-[#DC2626] border border-red-200 flex items-center justify-center mx-auto">
+              <XCircle className="h-10 w-10 text-[#DC2626]" />
             </div>
 
             <div className="space-y-1">
               <h3 className="text-xl font-extrabold text-slate-900">Aktivasi Gagal</h3>
-              <p className="text-xs text-rose-600 font-medium max-w-xs mx-auto">{message}</p>
+              <p className="text-xs text-[#DC2626] font-medium max-w-xs mx-auto">{message}</p>
             </div>
 
             {/* Form Resend Email */}
@@ -239,7 +239,7 @@ function ActivateContent() {
                 placeholder="Masukkan email terdaftar Anda"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs focus:border-[#7F1D1D] outline-none"
+                className="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-xs focus:border-teal-600 outline-none"
                 required
               />
               <button
@@ -250,13 +250,13 @@ function ActivateContent() {
                 {resendLoading ? "Mengirim..." : "Kirim Email Aktivasi Baru"}
               </button>
               {resendMsg && (
-                <p className="text-[10px] font-semibold text-emerald-700 pt-1">{resendMsg}</p>
+                <p className="text-[10px] font-semibold text-[#16A34A] pt-1">{resendMsg}</p>
               )}
             </form>
 
             <Link
               href="/auth/login"
-              className="inline-block text-xs font-bold text-[#7F1D1D] hover:underline"
+              className="inline-block text-xs font-bold text-teal-800 hover:underline"
             >
               Kembali ke Halaman Login
             </Link>
@@ -271,7 +271,7 @@ export default function ActivatePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader className="h-8 w-8 animate-spin text-[#7F1D1D]" />
+        <Loader className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     }>
       <ActivateContent />

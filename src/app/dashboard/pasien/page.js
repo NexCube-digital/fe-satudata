@@ -202,7 +202,7 @@ export default function PasienDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
@@ -211,10 +211,10 @@ export default function PasienDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <ShieldAlert className="h-12 w-12 text-rose-600 mx-auto mb-4" />
+          <ShieldAlert className="h-12 w-12 text-[#DC2626] mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk ke akun Anda terlebih dahulu untuk mengakses Portal Pasien.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-600 text-white font-bold text-sm shadow-md hover:bg-rose-500 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-sm shadow-md hover:from-teal-800 hover:to-cyan-900 transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -231,43 +231,43 @@ export default function PasienDashboard() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header & Patient Identity Banner */}
-          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <ShieldCheck className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
+                  <ShieldCheck className="h-3.5 w-3.5 text-teal-300" />
                   Identitas Digital SATUSEHAT & Web3 Active
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                   Selamat Datang, {user.name}!
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
                   Portal Pasien Terdesentralisasi SatuData. Kedaulatan rekam medis Anda 100% berada di bawah kendali persetujuan digital Anda.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2.5">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">NIK Pasien</p>
-                  <p className="font-bold text-rose-300 mt-0.5">{user.nik || "Belum Dilengkapi"}</p>
+                  <p className="text-[10px] text-slate-300 uppercase font-bold">NIK Pasien</p>
+                  <p className="font-bold text-teal-300 mt-0.5">{user.nik || "Belum Dilengkapi"}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {!user.nik && (
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-2xs">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-[#D97706] shadow-2xs">
               <div className="flex items-center gap-2 min-w-0">
-                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                <AlertCircle className="h-5 w-5 text-[#D97706] shrink-0" />
                 <span className="font-medium text-xs sm:text-sm">
                   <strong>Profil Belum Lengkap!</strong> Silakan lengkapi NIK Anda di menu Pengaturan agar Rumah Sakit dapat mencocokkan rekam medis Anda.
                 </span>
               </div>
               <Link
                 href="/dashboard/pasien/settings"
-                className="rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs text-center"
+                className="rounded-xl bg-[#D97706] hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs text-center"
               >
                 Lengkapi Profil
               </Link>
@@ -279,14 +279,14 @@ export default function PasienDashboard() {
             <div className="rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Faskes Terkoneksi</span>
-                <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#16A34A]">
                   <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </span>
               </div>
               <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2 sm:mt-3">
                 {hospitals.filter((h) => h.status === "approved").length} <span className="text-[11px] sm:text-xs font-normal text-slate-500">Rumah Sakit</span>
               </p>
-              <p className="text-[9px] sm:text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1 truncate">
+              <p className="text-[9px] sm:text-[10px] font-medium text-[#16A34A] mt-1 flex items-center gap-1 truncate">
                 <CheckCircle className="h-3 w-3 shrink-0" /> Hak Akses Real-time
               </p>
             </div>
@@ -294,14 +294,14 @@ export default function PasienDashboard() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Berkas Medis EHR</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
                   <FileText className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {medicalRecords.length} <span className="text-xs font-normal text-slate-500">Dokumen</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-teal-800 mt-1 flex items-center gap-1">
                 <Lock className="h-3 w-3" /> Terenkripsi Off-chain AES-256
               </p>
             </div>
@@ -309,14 +309,14 @@ export default function PasienDashboard() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Permintaan Pending</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-[#D97706]">
                   <Clock className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {hospitals.filter((h) => h.status === "pending").length} <span className="text-xs font-normal text-slate-500">Permintaan</span>
               </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-[#D97706] mt-1 flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" /> Memerlukan Tindakan Pasien
               </p>
             </div>
@@ -346,15 +346,15 @@ export default function PasienDashboard() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <ShieldCheck className="h-5 w-5 text-rose-600" />
+                      <ShieldCheck className="h-5 w-5 text-teal-800" />
                       Manajemen Persetujuan Akses Faskes (Consent Control)
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Berikan, tolak, atau cabut hak baca rekam medis Anda ke rumah sakit secara real-time.
                     </p>
                   </div>
-                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[10px] font-bold text-emerald-700 flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[10px] font-bold text-[#16A34A] flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-ping" />
                     Sovereignty Live
                   </span>
                 </div>
@@ -367,12 +367,12 @@ export default function PasienDashboard() {
                     hospitals.map((h) => (
                       <div
                         key={h.id}
-                        className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/50 to-rose-50/20 p-5 transition-all duration-300 hover:border-rose-300 hover:shadow-md group"
+                        className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/50 to-teal-50/20 p-5 transition-all duration-300 hover:border-teal-300 hover:shadow-md group"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
                           <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-900 to-red-800 text-white font-extrabold text-xs shadow-md border border-rose-700">
-                              <Building2 className="h-5 w-5 text-rose-100" />
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-800 to-cyan-900 text-white font-extrabold text-xs shadow-md border border-teal-700">
+                              <Building2 className="h-5 w-5 text-teal-100" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
@@ -388,13 +388,13 @@ export default function PasienDashboard() {
                           {/* Status Badges */}
                           <div className="shrink-0">
                             {h.status === "approved" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 px-3.5 py-1 text-xs font-bold text-emerald-700 shadow-2xs">
-                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 px-3.5 py-1 text-xs font-bold text-[#16A34A] shadow-2xs">
+                                <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-ping" />
                                 Akses Disetujui
                               </span>
                             )}
                             {h.status === "pending" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1 text-xs font-bold text-amber-700 animate-pulse shadow-2xs">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1 text-xs font-bold text-[#D97706] animate-pulse shadow-2xs">
                                 <Clock className="h-3.5 w-3.5" />
                                 Permintaan Baru
                               </span>
@@ -406,7 +406,7 @@ export default function PasienDashboard() {
                               </span>
                             )}
                             {h.status === "revoked" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3.5 py-1 text-xs font-bold text-rose-700">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3.5 py-1 text-xs font-bold text-[#DC2626]">
                                 <Lock className="h-3.5 w-3.5" />
                                 Akses Dicabut
                               </span>
@@ -419,13 +419,13 @@ export default function PasienDashboard() {
                           <div className="space-y-1.5 font-mono text-[11px] text-slate-600 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tipe Izin:</span>
-                              <span className="font-bold text-rose-900 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200/70">{h.accessTypes.join(", ")}</span>
+                              <span className="font-bold text-teal-900 bg-teal-50 px-2.5 py-0.5 rounded-lg border border-teal-200/70">{h.accessTypes.join(", ")}</span>
                             </div>
                             <div className="flex items-center gap-2 flex-wrap mt-1 min-w-0">
                               <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tx Hash:</span>
                               {h.txHash ? (
-                                <TxHashLink txHash={h.txHash} className="text-rose-700 font-bold font-mono inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:border-rose-300 transition max-w-full" title={h.txHash}>
-                                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                <TxHashLink txHash={h.txHash} className="text-teal-800 font-bold font-mono inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:border-teal-300 transition max-w-full" title={h.txHash}>
+                                  <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A] shrink-0" />
                                   <span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{h.txHash}</span>
                                 </TxHashLink>
                               ) : (
@@ -441,7 +441,7 @@ export default function PasienDashboard() {
                                 <button
                                   onClick={() => handleToggleConsent(h.id, "approved", h.status)}
                                   disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"}`}
+                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-[#16A34A] hover:bg-emerald-700 cursor-pointer"}`}
                                 >
                                   {actionInProgress === h.id ? (
                                     <span className="inline-flex items-center justify-center gap-2">
@@ -465,9 +465,9 @@ export default function PasienDashboard() {
                             {h.status === "approved" && (
                               <button
                                 onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
-                                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-900 to-rose-800 hover:from-rose-800 hover:to-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer w-full sm:w-auto"
+                                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#DC2626] hover:bg-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer w-full sm:w-auto"
                               >
-                                <Lock className="h-3.5 w-3.5 text-rose-300 shrink-0" />
+                                <Lock className="h-3.5 w-3.5 text-red-200 shrink-0" />
                                 Cabut Izin Akses (revokeAccess)
                               </button>
                             )}
@@ -493,14 +493,14 @@ export default function PasienDashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-5 gap-2">
                   <div>
                     <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-rose-600" />
+                      <Clock className="h-4 w-4 text-teal-800" />
                       Linimasa Medis Terpadu
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Encrypted EHR Timeline off-chain.
                     </p>
                   </div>
-                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer">
+                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-800 hover:text-teal-700 cursor-pointer">
                     <Download className="h-3.5 w-3.5" /> Resume PDF
                   </button>
                 </div>
@@ -511,10 +511,10 @@ export default function PasienDashboard() {
                   ) : (
                     medicalRecords.slice(0, 3).map((rec) => (
                       <div key={rec.id} className="relative group">
-                        <span className="absolute -left-[27px] top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 ring-4 ring-white" />
+                        <span className="absolute -left-[27px] top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-teal-700 ring-4 ring-white" />
                         <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 transition-all hover:bg-white hover:shadow-xs">
                           <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-                            <span className="font-bold text-rose-700 text-[11px] truncate max-w-[140px]">{rec.hospitalName}</span>
+                            <span className="font-bold text-teal-800 text-[11px] truncate max-w-[140px]">{rec.hospitalName}</span>
                             <span className="font-mono text-[9px]">{rec.date}</span>
                           </div>
 
@@ -527,15 +527,15 @@ export default function PasienDashboard() {
                               onClick={() => toggleDecrypt(rec.id)}
                               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer w-full"
                             >
-                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-rose-600" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
+                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-[#DC2626]" /> : <Eye className="h-3.5 w-3.5 text-[#16A34A]" />}
                               {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi Data"}
                             </button>
                           </div>
 
                           {/* Decrypted Content Preview */}
                           {decryptedRecords[rec.id] && (
-                            <div className="mt-2.5 rounded-xl bg-gradient-to-br from-rose-50/70 via-pink-50/40 to-slate-50 border border-rose-100/80 p-2.5 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
-                              <p className="font-bold text-rose-700 mb-1 text-[10px]">✔ TERDEKRIPSI LOKAL:</p>
+                            <div className="mt-2.5 rounded-xl bg-gradient-to-br from-teal-50/70 via-cyan-50/40 to-slate-50 border border-teal-100/80 p-2.5 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
+                              <p className="font-bold text-teal-800 mb-1 text-[10px]">✔ TERDEKRIPSI LOKAL:</p>
                               <p className="leading-relaxed">{rec.details}</p>
                             </div>
                           )}
@@ -549,7 +549,7 @@ export default function PasienDashboard() {
                   <div className="mt-5 border-t border-slate-100 pt-3 text-center">
                     <Link
                       href="/dashboard/pasien/records"
-                      className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 transition"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-700 transition"
                     >
                       Lihat Semua Rekam Medis ({medicalRecords.length}) →
                     </Link>

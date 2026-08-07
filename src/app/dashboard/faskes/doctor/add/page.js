@@ -323,20 +323,20 @@ export default function FaskesAddDoctor() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-850 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
             Kembali ke Halaman Login
           </button>
         </div>
@@ -345,7 +345,7 @@ export default function FaskesAddDoctor() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -355,7 +355,7 @@ export default function FaskesAddDoctor() {
           {/* Header Navigation */}
           <div className="mb-6">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-800 border border-rose-200">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-800 border border-teal-200">
                 <UserPlus className="h-6 w-6" />
               </span>
               <div>
@@ -380,13 +380,13 @@ export default function FaskesAddDoctor() {
                     <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/60 w-fit">
                       <div 
                         onClick={() => setIsPhotoModalOpen(true)}
-                        className="group relative h-24 w-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs shrink-0 cursor-pointer hover:border-rose-800 transition duration-200"
+                        className="group relative h-24 w-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs shrink-0 cursor-pointer hover:border-teal-600 transition duration-200"
                         title="Klik untuk mengubah foto"
                       >
                         {imagePreview ? (
                           <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-rose-50/50 text-rose-800 text-[10px] font-bold">
+                          <div className="flex h-full w-full items-center justify-center bg-teal-50/50 text-teal-800 text-[10px] font-bold">
                             No Photo
                           </div>
                         )}
@@ -409,7 +409,7 @@ export default function FaskesAddDoctor() {
                       placeholder="Masukkan nama lengkap dokter"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                     />
                   </div>
 
@@ -422,7 +422,7 @@ export default function FaskesAddDoctor() {
                         placeholder="Masukkan spesialisasi / poliklinik dokter"
                         value={formData.specialist}
                         onChange={(e) => setFormData({ ...formData, specialist: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                       />
                     </div>
 
@@ -434,7 +434,7 @@ export default function FaskesAddDoctor() {
                         placeholder="Masukkan nomor SIP dokter"
                         value={formData.medical_license}
                         onChange={(e) => setFormData({ ...formData, medical_license: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                       />
                     </div>
                   </div>
@@ -447,7 +447,7 @@ export default function FaskesAddDoctor() {
                         placeholder="Masukkan nomor telepon dokter"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                       />
                     </div>
 
@@ -456,7 +456,7 @@ export default function FaskesAddDoctor() {
                       <select
                         value={formData.sex}
                         onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                       >
                         <option value="pilihan">Pilih Jenis Kelamin</option>
                         <option value="laki-laki">Laki-laki</option>
@@ -470,7 +470,7 @@ export default function FaskesAddDoctor() {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
                     >
                       <option value="status">Pilih Status</option>
                       <option value="Aktif">Aktif</option>
@@ -496,7 +496,7 @@ export default function FaskesAddDoctor() {
                               onClick={() => handleDayToggle(day.key)}
                               className={`h-8 px-4 rounded-full text-xs font-bold transition border cursor-pointer select-none ${
                                 sched.active
-                                  ? "bg-rose-800 text-white border-rose-900 shadow-xs"
+                                  ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white border-teal-700 shadow-xs"
                                   : "bg-white text-slate-400 border-slate-200 hover:bg-slate-50"
                               }`}
                             >
@@ -509,14 +509,14 @@ export default function FaskesAddDoctor() {
                                   type="time"
                                   value={sched.start}
                                   onChange={(e) => handleTimeChange(day.key, "start", e.target.value)}
-                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-rose-800 focus:outline-hidden bg-white font-semibold text-slate-700"
+                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-teal-600 focus:outline-hidden bg-white font-semibold text-slate-700"
                                 />
                                 <span className="text-slate-400 text-xs">-</span>
                                 <input
                                   type="time"
                                   value={sched.end}
                                   onChange={(e) => handleTimeChange(day.key, "end", e.target.value)}
-                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-rose-800 focus:outline-hidden bg-white font-semibold text-slate-700"
+                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-teal-600 focus:outline-hidden bg-white font-semibold text-slate-700"
                                 />
                               </div>
                             ) : (
@@ -529,7 +529,7 @@ export default function FaskesAddDoctor() {
 
                     <div className="text-[11px] text-slate-500 font-medium pt-3.5 border-t border-slate-200/60 flex items-center flex-wrap gap-1.5">
                       <span className="font-bold text-slate-700">Hasil Format Jadwal:</span>
-                      <span className="font-mono text-rose-900 font-bold bg-rose-50/50 px-2.5 py-0.5 rounded-lg border border-rose-100/50 text-[10px] break-all leading-normal">
+                      <span className="font-mono text-teal-900 font-bold bg-teal-50 px-2.5 py-0.5 rounded-lg border border-teal-200 text-[10px] break-all leading-normal">
                         {formatSchedule(dailySchedules)}
                       </span>
                     </div>
@@ -549,7 +549,7 @@ export default function FaskesAddDoctor() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {submitting ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
@@ -571,7 +571,7 @@ export default function FaskesAddDoctor() {
             {/* Modal Header */}
             <div className="flex justify-between items-center w-full border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-rose-800" />
+                <Camera className="h-4 w-4 text-teal-800" />
                 Atur Foto Dokter
               </h3>
               <button
@@ -591,9 +591,9 @@ export default function FaskesAddDoctor() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 text-rose-900 font-bold hover:bg-rose-50 transition text-xs cursor-pointer"
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/30 text-teal-900 font-bold hover:bg-teal-50 transition text-xs cursor-pointer"
                 >
-                  <Upload className="h-5 w-5 text-rose-800" />
+                  <Upload className="h-5 w-5 text-teal-800" />
                   Pilih File Foto
                 </button>
                 <input
@@ -630,7 +630,7 @@ export default function FaskesAddDoctor() {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-850 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-xs transition cursor-pointer"
                   >
                     Ambil Foto
                   </button>
@@ -695,7 +695,7 @@ export default function FaskesAddDoctor() {
                     step="0.05"
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-800"
+                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-800"
                   />
                 </div>
 
@@ -703,7 +703,7 @@ export default function FaskesAddDoctor() {
                   <button
                     type="button"
                     onClick={handleCropSave}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle className="h-4 w-4" /> Simpan Foto
                   </button>

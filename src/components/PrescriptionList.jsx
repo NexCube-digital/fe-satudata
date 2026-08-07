@@ -47,10 +47,10 @@ export default function PrescriptionList({ rawListOfMedicines }) {
         >
           <div className="flex items-start justify-between gap-3">
             <span className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
-              <Pill className="h-3.5 w-3.5 text-rose-700 shrink-0" />
+              <Pill className="h-3.5 w-3.5 text-teal-700 shrink-0" />
               {item.medicine || "Obat tanpa nama"}
             </span>
-            <span className="shrink-0 text-xs font-semibold text-rose-800 bg-rose-50 border border-rose-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
+            <span className="shrink-0 text-xs font-semibold text-teal-900 bg-teal-50 border border-teal-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
               {item.quantity || "-"}
             </span>
           </div>
