@@ -302,6 +302,9 @@ export default function PatientNewRecordsPage() {
     );
   });
 
+  const isCompletedVisit = activeStage >= 5 || paymentStatus === "paid";
+  const progressWidthPercent = Math.max(0, Math.min(100, ((activeStage - 1) / Math.max(1, flowSteps.length - 1)) * 100));
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
@@ -319,9 +322,31 @@ export default function PatientNewRecordsPage() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
-
-          {/* SECTION 1: INDIKATOR ALUR DOKUMEN REKAM MEDIS */}
-          <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-8">
+          {/* Check if all active visits & billing are finished & paid */}
+          {isCompletedVisit ? (
+            <div className="rounded-3xl bg-white border border-slate-200/80 p-8 sm:p-12 text-center space-y-5 shadow-xs my-6">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 shadow-2xs">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <div className="max-w-md mx-auto space-y-2">
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Tidak Ada Kunjungan & Tagihan Aktif</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Seluruh alur pemeriksaan rekam medis dan pelunasan tagihan Anda telah <span className="font-bold text-emerald-700">SELESAI & LUNAS</span>. Seluruh berkas rekam medis dan kuitansi pembayaran tersimpan aman di menu Riwayat.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  href="/dashboard/pasien/history"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 text-white px-6 py-3 text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <FileText className="h-4 w-4" /> Lihat Riwayat Medis & Invoice <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* SECTION 1: INDIKATOR ALUR DOKUMEN REKAM MEDIS */}
+              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
               <div>
                 <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -347,7 +372,7 @@ export default function PatientNewRecordsPage() {
                 {/* Active Connecting Progress Fill Line */}
                 <div
                   className="absolute top-[22px] left-10 h-1 -translate-y-1/2 bg-gradient-to-r from-emerald-400 via-rose-700 to-rose-900 rounded-full transition-all duration-500 z-0"
-                  style={{ width: `calc(${((activeStage - 1) / (flowSteps.length - 1)) * 100}% - 0px)` }}
+                  style={{ width: `${progressWidthPercent}%` }}
                 />
 
                 {/* 4 Step Nodes Grid */}
@@ -585,6 +610,8 @@ export default function PatientNewRecordsPage() {
               </button>
             </div>
           )}
+        </div>
+      )}
 
 
 

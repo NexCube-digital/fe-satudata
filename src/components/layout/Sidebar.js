@@ -28,8 +28,7 @@ import {
   Pill,
   ShoppingCart,
   Package,
-  Lock,
-  Coins
+  Lock
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -66,7 +65,8 @@ export default function Sidebar({ role }) {
     doctors: pathname.startsWith("/dashboard/faskes/doctor"),
     geotagging: pathname.startsWith("/dashboard/admin/faskes"),
     consent: pathname.startsWith("/dashboard/pasien/consent"),
-    pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy")
+    pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy"),
+    finance: pathname.startsWith("/dashboard/faskes/finance")
   });
 
   // Enable CSS transitions after initial render mount
@@ -233,7 +233,6 @@ export default function Sidebar({ role }) {
             children: [
               { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
               { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/layanan", label: "Service Price", icon: Coins },
               { href: "/dashboard/faskes/medical-records/invoice", label: "Tagihan & Invoice", icon: ShoppingCart }
             ]
           },
@@ -248,6 +247,18 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
               { href: "/dashboard/faskes/pharmacy/inventory", label: "Katalog & Stok Obat", icon: Package, permission: "pharmacy:manage" },
               { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi POS", icon: History, permission: "pharmacy:pos" }
+            ]
+          },
+          { 
+            label: "Keuangan & Invoice", 
+            icon: DollarSign,
+            dropdownKey: "finance",
+            badge: "Finance",
+            permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
+            children: [
+              { href: "/dashboard/faskes/finance", label: "Atur Biaya Layanan", icon: DollarSign, permission: "finance:read" },
+              { href: "/dashboard/faskes/finance/invoice", label: "Buat Invoice Tagihan", icon: CreditCard, permission: "finance:manage" },
+              { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
           { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: Activity, permissionRequired: ["staff:manage", "role:manage"] },
@@ -373,6 +384,9 @@ export default function Sidebar({ role }) {
       "/dashboard/faskes/pharmacy/sales-history",
       "/dashboard/faskes/doctor/list",
       "/dashboard/faskes/doctor/add",
+      "/dashboard/faskes/finance",
+      "/dashboard/faskes/finance/invoice",
+      "/dashboard/faskes/finance/history",
       "/dashboard/pasien",
       "/dashboard/pasien/records",
       "/dashboard/pasien/records/history",

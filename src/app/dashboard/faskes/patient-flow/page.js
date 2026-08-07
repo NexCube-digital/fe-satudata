@@ -95,12 +95,32 @@ export default function FaskesPatientFlowPage() {
         console.error("Error fetching pharmacy prescription status:", e);
       }
 
+      // 3. Fetch real Invoices status from BE
+      let invoiceMap = {};
+      try {
+        const invRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/invoice/list`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const invData = await invRes.json();
+        if (invRes.ok && Array.isArray(invData.data)) {
+          invData.data.forEach(inv => {
+            if (inv.patient_id) {
+              invoiceMap[inv.patient_id] = inv.status;
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Error fetching invoice status in patient flow:", e);
+      }
+
       if (recRes?.success && Array.isArray(recRes.data) && recRes.data.length > 0) {
         bePatients = recRes.data.map((item) => {
           const patientObj = item.patient || {};
           const doctorObj = item.doctor || {};
           const pName = patientObj.name || item.patientName || "pasien 1";
+          const patientId = item.user_id || patientObj.id;
           const pStatusResep = prescriptionMap[item.id] || item.detailResep?.status_resep;
+          const pInvoiceStatus = invoiceMap[patientId];
 
           let calculatedStage = 1;
           let beStatusText = "Pendaftaran (Step 1)";
@@ -109,9 +129,14 @@ export default function FaskesPatientFlowPage() {
             calculatedStage = 2; // Step 2: Draft Dokter
             beStatusText = "DRAFT (Step 2 Dokter)";
           } else if (item.status === "final" || item.status === "terverifikasi") {
-            if (pStatusResep === "Selesai" || pStatusResep === "Siap Diambil") {
-              calculatedStage = 4; // Step 4: Resep Selesai / Siap Diambil -> Maju ke Tagihan Pelunasan
-              beStatusText = `Resep ${pStatusResep} (Auto → Step 4 Tagihan Pelunasan)`;
+            if (pInvoiceStatus === "paid") {
+              calculatedStage = 5; // Step 5: Selesai & Lunas (Di Histori Invoice)
+              beStatusText = "Selesai & Lunas (Step 5 Kasir)";
+            } else if (pInvoiceStatus === "unpaid" || pStatusResep === "Selesai" || pStatusResep === "Siap Diambil") {
+              calculatedStage = 4; // Step 4: Resep Siap Diambil / Tagihan Diterbitkan Kasir
+              beStatusText = pInvoiceStatus === "unpaid"
+                ? "Tagihan Diterbitkan - Menunggu Bayar (Step 4)"
+                : `Resep ${pStatusResep} (Auto → Step 4 Tagihan Pelunasan)`;
             } else {
               calculatedStage = 3; // Step 3: Layanan Farmasi / Apotek
               beStatusText = `FINAL - Resep ${pStatusResep || "Menunggu"} (Step 3 Farmasi)`;
@@ -129,7 +154,7 @@ export default function FaskesPatientFlowPage() {
             beStatus: beStatusText,
             billingCode: `BILL-2026-0806-${9920 + item.id}`,
             totalBill: item.record_type === "resep" ? 325000 : 250000,
-            paymentStatus: "pending",
+            paymentStatus: pInvoiceStatus === "paid" ? "paid" : "pending",
             txHash: item.tx_hash || null,
             title: item.title || "Konsultasi Medis"
           };
