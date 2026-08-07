@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
@@ -39,6 +39,7 @@ import {
 
 export default function PatientNewRecordsPage() {
   const router = useRouter();
+  const stepperContainerRef = useRef(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
@@ -87,6 +88,22 @@ export default function PatientNewRecordsPage() {
       clearInterval(interval);
     };
   }, []);
+
+  // Auto-center active stage node in horizontal stepper scroll container
+  useEffect(() => {
+    if (!loading && stepperContainerRef.current) {
+      const activeEl = stepperContainerRef.current.querySelector(`[data-stage="${activeStage}"]`);
+      if (activeEl) {
+        const container = stepperContainerRef.current;
+        const nodeCenter = activeEl.offsetLeft + activeEl.offsetWidth / 2;
+        const containerCenter = container.offsetWidth / 2;
+        container.scrollTo({
+          left: Math.max(0, nodeCenter - containerCenter),
+          behavior: "smooth"
+        });
+      }
+    }
+  }, [activeStage, loading]);
 
   const fetchHistoryFromBE = async () => {
     const token = localStorage.getItem("accessToken");
@@ -305,25 +322,25 @@ export default function PatientNewRecordsPage() {
 
           {/* SECTION 1: INDIKATOR ALUR DOKUMEN REKAM MEDIS */}
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
               <div>
                 <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-rose-600" />
+                  <FileText className="h-5 w-5 text-rose-600 shrink-0" />
                   Indikator Alur Dokumen Rekam Medis & Layanan
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Indikator progres dokumen medis, status pengunggahan oleh dokter, resep farmasi, dan faktur pelunasan faskes secara real-time.
                 </p>
               </div>
-              <span className="rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-bold text-rose-700 flex items-center gap-1.5">
+              <span className="rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-bold text-rose-700 flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
                 <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
                 Indikator Dokumen Active
               </span>
             </div>
 
             {/* Read-Only Automatic Flow Stepper Bar (Horizontal Line) */}
-            <div className="py-3">
-              <div className="relative px-2 sm:px-8">
+            <div ref={stepperContainerRef} className="py-3 overflow-x-auto pb-4">
+              <div className="relative px-2 sm:px-8 min-w-[540px] sm:min-w-0">
                 {/* Connecting Line Background */}
                 <div className="absolute top-[22px] left-10 right-10 h-1 -translate-y-1/2 bg-slate-100 rounded-full z-0" />
 
@@ -343,6 +360,7 @@ export default function PatientNewRecordsPage() {
                     return (
                       <div
                         key={step.id}
+                        data-stage={step.id}
                         onClick={() => setActiveStage(step.id)}
                         className="flex flex-col items-center group cursor-pointer"
                       >
@@ -398,47 +416,61 @@ export default function PatientNewRecordsPage() {
 
           {/* SECTION 2: NOTIFIKASI RINCIAN JASA & PELUNASAN (BILLING DETAILS) */}
           {activeStage === 4 ? (
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-xs mb-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-5 mb-6 gap-4">
-                <div className="flex items-start gap-3">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shadow-2xs font-bold">
-                    <Receipt className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-extrabold text-slate-900">Rincian Tagihan & Pelunasan Jasa Medis</h3>
-                      {paymentStatus === "paid" ? (
-                        <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-xs font-bold text-emerald-700">
-                          ✔ LUNAS
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-xs font-bold text-amber-700 animate-pulse">
-                          Menunggu Pelunasan
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Bukti rincian jasa dokter, pemeriksaan laboratorium, dan resep obat RS Rotinsulu.
-                    </p>
+            <div className="rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-8 shadow-xs mb-8 animate-fade-in">
+              <div className="flex items-start gap-3 border-b border-slate-100 pb-4 mb-5">
+                <span className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 shadow-2xs font-bold">
+                  <Receipt className="h-5 w-5 sm:h-6 sm:w-6" />
+                </span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Rincian Tagihan & Pelunasan Jasa Medis</h3>
+                    {paymentStatus === "paid" ? (
+                      <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
+                        ✔ LUNAS
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-[11px] font-bold text-amber-700 animate-pulse">
+                        Menunggu Pelunasan
+                      </span>
+                    )}
                   </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Bukti rincian jasa dokter, pemeriksaan laboratorium, dan resep obat RS Rotinsulu.
+                  </p>
                 </div>
-
-                {paymentStatus !== "paid" && (
-                  <button
-                    onClick={() => setShowPaymentModal(true)}
-                    className="rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-5 py-3 shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
-                  >
-                    <CreditCard className="h-4 w-4" />
-                    Bayar Tagihan Sekarang
-                  </button>
-                )}
               </div>
 
-              {/* Billing Items Table */}
-              <div className="overflow-x-auto mb-6">
+              {/* Mobile List Card View (< sm) */}
+              <div className="block sm:hidden space-y-2.5 mb-6">
+                {billingItems.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-1.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-bold text-slate-800 text-xs leading-snug">{item.name}</p>
+                      <span className="font-mono font-extrabold text-slate-900 text-xs shrink-0">
+                        {item.price === 0 ? "GRATIS" : `Rp ${item.price.toLocaleString("id-ID")}`}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="inline-block rounded-md bg-white px-2 py-0.5 font-mono text-[10px] text-slate-600 border border-slate-200/80">
+                        {item.category}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 flex items-center justify-between text-xs">
+                  <span className="font-extrabold text-slate-900 text-xs">TOTAL PELUNASAN</span>
+                  <span className="font-mono font-extrabold text-rose-700 text-base">
+                    Rp {totalAmount.toLocaleString("id-ID")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Desktop Table View (>= sm) */}
+              <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 mb-6">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                    <tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50">
                       <th className="py-3 px-4">Deskripsi Layanan / Obat</th>
                       <th className="py-3 px-4">Kategori</th>
                       <th className="py-3 px-4 text-right">Biaya (Rp)</th>
@@ -471,6 +503,19 @@ export default function PatientNewRecordsPage() {
                   </tfoot>
                 </table>
               </div>
+
+              {/* Action Button: Bayar Tagihan Sekarang (Hijau, Pindah ke Bawah Tabel) */}
+              {paymentStatus !== "paid" && (
+                <div className="flex justify-end mb-6">
+                  <button
+                    onClick={() => setShowPaymentModal(true)}
+                    className="w-full sm:w-auto rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-6 py-3.5 shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Bayar Tagihan Sekarang
+                  </button>
+                </div>
+              )}
 
               {/* Opsi Pelunasan Section (Online & Pendaftaran/Informasi) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

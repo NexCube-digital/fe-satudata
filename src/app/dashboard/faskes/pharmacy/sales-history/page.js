@@ -175,27 +175,44 @@ export default function PharmacySalesHistoryPage() {
                 <span className="uppercase font-bold">{selectedTrx.payment_method}</span>
               </div>
               <div className="pt-2 divide-y divide-slate-100">
-                {selectedTrx.items?.map((it, idx) => (
-                  <div key={idx} className="py-1 flex justify-between">
-                    <span>{it.name} x{it.qty}</span>
-                    <span>Rp {it.subtotal.toLocaleString('id-ID')}</span>
-                  </div>
-                ))}
+                {(() => {
+                  const rawItems = selectedTrx.items;
+                  let itemList = [];
+                  if (Array.isArray(rawItems)) {
+                    itemList = rawItems;
+                  } else if (typeof rawItems === "string") {
+                    try {
+                      const parsed = JSON.parse(rawItems);
+                      if (Array.isArray(parsed)) itemList = parsed;
+                    } catch (e) {}
+                  }
+
+                  if (itemList.length === 0) {
+                    return <div className="py-1 text-slate-400 italic">Tidak ada rincian item</div>;
+                  }
+
+                  return itemList.map((it, idx) => (
+                    <div key={idx} className="py-1 flex justify-between">
+                      <span>{it.name || "Obat"} x{it.qty || 1}</span>
+                      <span>Rp {(Number(it.subtotal) || 0).toLocaleString('id-ID')}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
             <div className="space-y-1 text-xs font-mono pt-1">
               <div className="flex justify-between font-bold text-slate-900">
                 <span>Total:</span>
-                <span className="text-emerald-700">Rp {selectedTrx.total_amount.toLocaleString('id-ID')}</span>
+                <span className="text-emerald-700">Rp {(Number(selectedTrx.total_amount) || 0).toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Bayar:</span>
-                <span>Rp {selectedTrx.amount_paid?.toLocaleString('id-ID')}</span>
+                <span>Rp {(Number(selectedTrx.amount_paid) || 0).toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between font-bold text-rose-800">
                 <span>Kembali:</span>
-                <span>Rp {selectedTrx.change?.toLocaleString('id-ID')}</span>
+                <span>Rp {(Number(selectedTrx.change) || 0).toLocaleString('id-ID')}</span>
               </div>
             </div>
 

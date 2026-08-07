@@ -11,7 +11,7 @@ export default function TxHashLink({ txHash, className = "", children, title = "
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 transition hover:opacity-80 ${className}`.trim()}
+      className={`inline-flex items-center gap-1.5 transition hover:opacity-80 max-w-full min-w-0 ${className}`.trim()}
       title={title}
     >
       {children || txHash}

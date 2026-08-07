@@ -201,7 +201,7 @@ export default function Sidebar({ role }) {
 
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
-          { href: "/dashboard/faskes/patient-flow", label: "Alur & Status Pasien", badge: "Live", icon: Activity },
+          { href: "/dashboard/faskes/patient-flow", label: "Alur & Status Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
           { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { 
             label: "Kelola Dokter", 
@@ -292,10 +292,9 @@ export default function Sidebar({ role }) {
       default:
         return [
           { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
-          { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: FileText, badge: badgeCounts.records || "EHR" },
-          { href: "/dashboard/pasien/records/history", label: "Riwayat Rekam Medis", icon: History, badge: "Histori" },
           { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: ShieldCheck, badge: badgeCounts.pendingConsent },
-          { href: "/dashboard/pasien/consent/history", label: "Riwayat Otorisasi", icon: Lock, badge: badgeCounts.consent || "Aktif" }
+          { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: FileText, badge: badgeCounts.records || "EHR" },
+          { href: "/dashboard/pasien/history", label: "Riwayat Terpadu", icon: History, badge: "Histori" }
         ];
     }
   };

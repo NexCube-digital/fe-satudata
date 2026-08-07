@@ -21,6 +21,7 @@ import {
   Download,
   Pencil,
   Inbox,
+  ChevronRight,
 } from "lucide-react";
 import { getHospitalMedicalRecords } from "@/services/hospitalService";
 
@@ -89,9 +90,8 @@ function StatusBadge({ status }) {
   );
 }
 
-// Potong hash jadi "depan...belakang" biar baris tabel/kartu nggak melar ke bawah.
-// Hash lengkap tetap ada di title (tooltip) dan di modal detail (truncate=false).
-function shortenHash(hash, head = 8, tail = 6) {
+// Potong hash jadi "depan...belakang" biar baris tabel/kartu tetap rapi.
+function shortenHash(hash, head = 14, tail = 8) {
   if (!hash || hash.length <= head + tail + 3) return hash;
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }
@@ -104,12 +104,12 @@ function TxHashPill({ txHash, compact = false, truncate = true }) {
     <TxHashLink
       txHash={txHash}
       className={`font-mono font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm rounded-xl inline-flex items-center gap-1 max-w-full ${
-        compact ? "text-[10px] px-2 py-1" : "text-xs px-3 py-1.5"
+        compact ? "text-[10px] px-2.5 py-1" : "text-xs px-3 py-1.5"
       } ${truncate ? "whitespace-nowrap" : "whitespace-normal break-all"}`}
       title={txHash}
     >
       <span className="tracking-[0.03em] leading-tight">
-        {truncate ? shortenHash(txHash, compact ? 6 : 10, compact ? 4 : 8) : txHash}
+        {truncate ? shortenHash(txHash, 14, 8) : txHash}
       </span>
     </TxHashLink>
   );
@@ -210,6 +210,13 @@ export default function FaskesMedicalRecordsPage() {
   const openRecordDetail = (record) => setSelectedRecord(record);
   const closeRecordDetail = () => setSelectedRecord(null);
   const goToEditDraft = (recordId) => router.push(`/dashboard/faskes/medical-records/${recordId}/edit`);
+
+  const handleDownloadPdf = (record) => {
+    setSelectedRecord(record);
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  };
 
   // Draft -> langsung ke wizard edit (lebih berguna daripada modal view karena
   // datanya memang belum lengkap). Final -> tetap buka modal detail seperti biasa.
@@ -320,20 +327,17 @@ export default function FaskesMedicalRecordsPage() {
                 </div>
               ) : (
                 <>
-                  {/* Desktop besar: table. Di bawah lg pakai card supaya tidak sesak. */}
+                  {/* Desktop besar & sedang: table 6 kolom ringkas */}
                   <div className="hidden lg:block overflow-x-auto">
                     <table className="min-w-full border-separate border-spacing-y-3 text-left text-sm">
                       <thead>
                         <tr className="text-xs uppercase tracking-[0.2em] text-slate-500">
                           <th className="px-4 py-2 font-semibold whitespace-nowrap">Visit Date</th>
                           <th className="px-4 py-2 font-semibold">Pasien</th>
-                          <th className="px-4 py-2 font-semibold">Judul</th>
+                          <th className="px-4 py-2 font-semibold">Judul & Tx Hash</th>
                           <th className="px-4 py-2 font-semibold">Jenis</th>
                           <th className="px-4 py-2 font-semibold">Status</th>
-                          <th className="px-4 py-2 font-semibold">Tx Hash</th>
-                          <th className="hidden xl:table-cell px-4 py-2 font-semibold">Dokter</th>
-                          <th className="hidden xl:table-cell px-4 py-2 font-semibold">Lampiran</th>
-                          <th className="px-4 py-2 font-semibold text-right">Aksi</th>
+                          <th className="px-4 py-2 font-semibold text-right">Tombol Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -356,37 +360,24 @@ export default function FaskesMedicalRecordsPage() {
                               <td className="px-4 py-4 text-slate-700 whitespace-nowrap bg-slate-50 group-hover:bg-slate-100 transition rounded-l-2xl border-y border-l border-slate-200/80">
                                 {formatDate(item.visitDate)}
                               </td>
-                              <td className="px-4 py-4 font-semibold text-slate-900 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 max-w-[160px] truncate">
+                              <td className="px-4 py-4 font-bold text-slate-900 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 max-w-[150px] truncate">
                                 {item.patientName}
                               </td>
-                              <td
-                                className="px-4 py-4 text-slate-700 max-w-[160px] xl:max-w-[220px] truncate bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80"
-                                title={item.title}
-                              >
-                                {item.title || "-"}
+                              <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
+                                <div className="flex flex-col gap-1.5 min-w-0">
+                                  <span className="font-bold text-slate-900 truncate max-w-[280px]" title={item.title}>
+                                    {item.title || "-"}
+                                  </span>
+                                  <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                                    <TxHashPill txHash={item.txHash} compact />
+                                  </div>
+                                </div>
                               </td>
                               <td className="px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
                                 {formatRecordType(item.recordType)}
                               </td>
-                               <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
-                                 <StatusBadge status={item.status} />
-                               </td>
                               <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <TxHashPill txHash={item.txHash} compact />
-                                </div>
-                              </td>
-                              <td className="hidden xl:table-cell px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
-                                {item.doctorName}
-                              </td>
-                              <td className="hidden xl:table-cell px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
-                                {item.attachments.length > 0 ? (
-                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 whitespace-nowrap">
-                                    <Paperclip className="h-3.5 w-3.5" /> {item.attachments.length}
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-slate-300">-</span>
-                                )}
+                                <StatusBadge status={item.status} />
                               </td>
                               <td className="px-4 py-4 text-right bg-slate-50 group-hover:bg-slate-100 transition rounded-r-2xl border-y border-r border-slate-200/80">
                                 {isDraft ? (
@@ -396,12 +387,21 @@ export default function FaskesMedicalRecordsPage() {
                                       e.stopPropagation();
                                       goToEditDraft(item.id);
                                     }}
-                                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer whitespace-nowrap"
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer whitespace-nowrap shadow-2xs"
                                   >
-                                    <Pencil className="h-3.5 w-3.5" /> Lanjutkan
+                                    <Pencil className="h-3.5 w-3.5" /> Lanjutkan Draft
                                   </button>
                                 ) : (
-                                  <span className="text-xs text-slate-300">-</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownloadPdf(item);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-900 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
+                                  >
+                                    <Download className="h-3.5 w-3.5" /> Download PDF
+                                  </button>
                                 )}
                               </td>
                             </tr>
@@ -411,7 +411,7 @@ export default function FaskesMedicalRecordsPage() {
                     </table>
                   </div>
 
-                  {/* Mobile & tablet (< lg): stacked cards, menghindari tabel sesak / scroll horizontal canggung */}
+                  {/* Mobile & tablet (< lg): stacked cards */}
                   <div className="lg:hidden space-y-3">
                     {filteredRecords.map((item) => {
                       const isDraft = item.status === "draft";
@@ -427,12 +427,12 @@ export default function FaskesMedicalRecordsPage() {
                               handleRowActivate(item);
                             }
                           }}
-                          className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 space-y-2.5 active:bg-slate-100 transition cursor-pointer"
+                          className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 space-y-3 active:bg-slate-100 transition cursor-pointer"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="font-semibold text-slate-900 truncate">{item.patientName}</p>
-                              <p className="text-xs text-slate-500 truncate">{item.title || "-"}</p>
+                              <p className="font-bold text-slate-900 truncate">{item.patientName}</p>
+                              <p className="text-xs font-semibold text-slate-700 mt-0.5">{item.title || "-"}</p>
                             </div>
                             <StatusBadge status={item.status} />
                           </div>
@@ -441,24 +441,14 @@ export default function FaskesMedicalRecordsPage() {
                             <span className="inline-flex items-center gap-1">
                               <CalendarDays className="h-3.5 w-3.5 text-slate-400" /> {formatDate(item.visitDate)}
                             </span>
-                            <span className="inline-flex items-center gap-1 min-w-0">
-                              <Stethoscope className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{item.doctorName}</span>
-                            </span>
-                            {item.attachments.length > 0 && (
-                              <span className="inline-flex items-center gap-1">
-                                <Paperclip className="h-3.5 w-3.5 text-slate-400" /> {item.attachments.length}
-                              </span>
-                            )}
+                            <span className="font-medium text-slate-500">{formatRecordType(item.recordType)}</span>
                           </div>
 
-                          <p className="text-xs text-slate-500">{formatRecordType(item.recordType)}</p>
-
-                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
                             <div onClick={(e) => e.stopPropagation()} className="min-w-0">
                               <TxHashPill txHash={item.txHash} compact />
                             </div>
-                            {isDraft && (
+                            {isDraft ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -468,6 +458,17 @@ export default function FaskesMedicalRecordsPage() {
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700 transition cursor-pointer whitespace-nowrap"
                               >
                                 <Pencil className="h-3.5 w-3.5" /> Lanjutkan
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadPdf(item);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-900 text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap shadow-2xs"
+                              >
+                                <Download className="h-3.5 w-3.5" /> Download PDF
                               </button>
                             )}
                           </div>
@@ -642,11 +643,18 @@ export default function FaskesMedicalRecordsPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-4">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                >
+                  <Download className="h-4 w-4" /> Unduh Dokumen PDF
+                </button>
                 <button
                   type="button"
                   onClick={closeRecordDetail}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 transition cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 transition cursor-pointer"
                 >
                   <X className="h-4 w-4" /> Tutup
                 </button>

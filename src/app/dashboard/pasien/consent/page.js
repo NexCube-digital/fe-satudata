@@ -196,7 +196,7 @@ export default function PatientConsentPage() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
+          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -257,20 +257,20 @@ export default function PatientConsentPage() {
                         className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-3 min-w-0">
                             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
                               {req.hospitalName.charAt(0)}{req.hospitalName.charAt(3)}
                             </span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold text-slate-900">{req.hospitalName}</h4>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-bold text-slate-900 truncate">{req.hospitalName}</h4>
                                 <span className="text-[10px] font-mono text-slate-400">({req.hospitalCode})</span>
                               </div>
-                              <p className="text-xs text-slate-500">{req.department}</p>
+                              <p className="text-xs text-slate-500 truncate">{req.department}</p>
                             </div>
                           </div>
 
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse shrink-0">
                             <Clock className="h-3.5 w-3.5 text-amber-600" />
                             Menunggu Persetujuan
                           </span>
@@ -296,16 +296,16 @@ export default function PatientConsentPage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="font-mono text-[9px] text-slate-400">
-                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
+                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs min-w-0">
+                          <div className="font-mono text-[9px] text-slate-400 min-w-0">
+                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1 max-w-full" title={req.txHash}><span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{req.txHash}</span></TxHashLink>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
                             <button
                               onClick={() => handleAction(req.id, "approved")}
                               disabled={submittingId === req.id}
-                              className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-bold text-white transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                              className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-bold text-white transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 flex-1 sm:flex-none"
                             >
                               {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
                               Setujui Akses (Approve)
@@ -313,7 +313,7 @@ export default function PatientConsentPage() {
                             <button
                               onClick={() => handleAction(req.id, "rejected")}
                               disabled={submittingId === req.id}
-                              className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3.5 py-2 font-semibold text-slate-700 transition cursor-pointer disabled:opacity-50"
+                              className="rounded-xl bg-slate-200 hover:bg-slate-300 px-3.5 py-2 font-semibold text-slate-700 transition cursor-pointer disabled:opacity-50 flex-1 sm:flex-none text-center"
                             >
                               Tolak
                             </button>

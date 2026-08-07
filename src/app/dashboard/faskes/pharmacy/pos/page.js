@@ -331,12 +331,25 @@ export default function PharmacyPOSPage() {
                 <span>{new Date(lastReceipt.created_at).toLocaleTimeString('id-ID')}</span>
               </div>
               <div className="pt-2 divide-y divide-slate-100">
-                {lastReceipt.items.map((it, idx) => (
-                  <div key={idx} className="py-1 flex justify-between">
-                    <span>{it.name} x{it.qty}</span>
-                    <span>Rp {it.subtotal.toLocaleString('id-ID')}</span>
-                  </div>
-                ))}
+                {(() => {
+                  const rawItems = lastReceipt.items;
+                  let itemList = [];
+                  if (Array.isArray(rawItems)) {
+                    itemList = rawItems;
+                  } else if (typeof rawItems === "string") {
+                    try {
+                      const parsed = JSON.parse(rawItems);
+                      if (Array.isArray(parsed)) itemList = parsed;
+                    } catch (e) {}
+                  }
+
+                  return itemList.map((it, idx) => (
+                    <div key={idx} className="py-1 flex justify-between">
+                      <span>{it.name || "Obat"} x{it.qty || 1}</span>
+                      <span>Rp {(Number(it.subtotal) || 0).toLocaleString('id-ID')}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 

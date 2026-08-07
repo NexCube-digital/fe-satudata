@@ -37,7 +37,6 @@ export default function PasienDashboard() {
   const [hospitals, setHospitals] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [decryptedRecords, setDecryptedRecords] = useState({});
-  const [auditLogs, setAuditLogs] = useState([]);
   const [actionInProgress, setActionInProgress] = useState(null);
 
   useEffect(() => {
@@ -129,35 +128,6 @@ export default function PasienDashboard() {
       }
     } catch (err) {
       console.log("Error fetching history", err);
-    }
-
-    // 3. Fetch audit logs list
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/audit`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const mapped = result.data.map((item) => {
-          let actionText = item.action;
-          if (item.action === "approve_akses") actionText = "Consent Granted";
-          if (item.action === "reject_akses") actionText = "Request Rejected";
-          if (item.action === "revoke_akses") actionText = "Consent Revoked";
-          if (item.action === "lihat_detail_rekam_medis") actionText = "EHR Decrypted Access";
-
-          return {
-            id: item.id,
-            action: actionText,
-            hospital: item.information || "SatuData Core",
-            hash: item.tx_hash ? `${item.tx_hash.substring(0, 6)}...${item.tx_hash.substring(item.tx_hash.length - 4)}` : "0x0000...0000",
-            time: new Date(item.created_at || Date.now()).toLocaleDateString("id-ID", { day: "numeric", month: "long" }),
-            type: item.status === "success" ? "success" : "info"
-          };
-        });
-        setAuditLogs(mapped);
-      }
-    } catch (err) {
-      console.log("Error fetching audit logs", err);
     }
   };
 
@@ -261,7 +231,7 @@ export default function PasienDashboard() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header & Patient Identity Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
+          <div className="hidden sm:block relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -288,16 +258,16 @@ export default function PasienDashboard() {
           </div>
 
           {!user.nik && (
-            <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-2xs">
-              <div className="flex items-center gap-2">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
                 <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-                <span className="font-medium">
+                <span className="font-medium text-xs sm:text-sm">
                   <strong>Profil Belum Lengkap!</strong> Silakan lengkapi NIK Anda di menu Pengaturan agar Rumah Sakit dapat mencocokkan rekam medis Anda.
                 </span>
               </div>
               <Link
                 href="/dashboard/pasien/settings"
-                className="rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs"
+                className="rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs text-center"
               >
                 Lengkapi Profil
               </Link>
@@ -305,19 +275,19 @@ export default function PasienDashboard() {
           )}
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Faskes Terkoneksi</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <Building2 className="h-4 w-4" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+            <div className="rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+              <div className="flex items-center justify-between min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Faskes Terkoneksi</span>
+                <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {hospitals.filter((h) => h.status === "approved").length} <span className="text-xs font-normal text-slate-500">Rumah Sakit</span>
+              <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2 sm:mt-3">
+                {hospitals.filter((h) => h.status === "approved").length} <span className="text-[11px] sm:text-xs font-normal text-slate-500">Rumah Sakit</span>
               </p>
-              <p className="text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Hak Akses Real-time Aktif
+              <p className="text-[9px] sm:text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1 truncate">
+                <CheckCircle className="h-3 w-3 shrink-0" /> Hak Akses Real-time
               </p>
             </div>
 
@@ -400,23 +370,23 @@ export default function PasienDashboard() {
                         className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/50 to-rose-50/20 p-5 transition-all duration-300 hover:border-rose-300 hover:shadow-md group"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
-                          <div className="flex items-center gap-3.5">
+                          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
                             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-900 to-red-800 text-white font-extrabold text-xs shadow-md border border-rose-700">
                               <Building2 className="h-5 w-5 text-rose-100" />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-extrabold text-slate-900 tracking-tight">{h.name}</h4>
-                                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-extrabold text-slate-900 tracking-tight truncate">{h.name}</h4>
+                                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
                                   STR/NPR: {h.code}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500 font-medium mt-0.5">{h.dept}</p>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">{h.dept}</p>
                             </div>
                           </div>
 
                           {/* Status Badges */}
-                          <div>
+                          <div className="shrink-0">
                             {h.status === "approved" && (
                               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 px-3.5 py-1 text-xs font-bold text-emerald-700 shadow-2xs">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
@@ -446,17 +416,17 @@ export default function PasienDashboard() {
 
                         {/* Details & Actions Grid */}
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-                          <div className="space-y-1.5 font-mono text-[11px] text-slate-600">
+                          <div className="space-y-1.5 font-mono text-[11px] text-slate-600 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tipe Izin:</span>
                               <span className="font-bold text-rose-900 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200/70">{h.accessTypes.join(", ")}</span>
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap mt-1">
+                            <div className="flex items-center gap-2 flex-wrap mt-1 min-w-0">
                               <span className="text-slate-400 font-sans font-semibold text-[10px] uppercase tracking-wider">Tx Hash:</span>
                               {h.txHash ? (
-                                <TxHashLink txHash={h.txHash} className="text-rose-700 font-bold font-mono inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:border-rose-300 transition" title={h.txHash}>
+                                <TxHashLink txHash={h.txHash} className="text-rose-700 font-bold font-mono inline-flex items-center gap-1 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:border-rose-300 transition max-w-full" title={h.txHash}>
                                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                                  <span className="truncate max-w-[280px]">{h.txHash}</span>
+                                  <span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{h.txHash}</span>
                                 </TxHashLink>
                               ) : (
                                 <span className="text-slate-400 font-sans italic">Belum ada (Pending Blockchain)</span>
@@ -465,16 +435,16 @@ export default function PasienDashboard() {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
                             {h.status === "pending" && (
                               <>
                                 <button
                                   onClick={() => handleToggleConsent(h.id, "approved", h.status)}
                                   disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"}`}
+                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"}`}
                                 >
                                   {actionInProgress === h.id ? (
-                                    <span className="inline-flex items-center gap-2">
+                                    <span className="inline-flex items-center justify-center gap-2">
                                       <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                                       Konfirmasi...
                                     </span>
@@ -485,7 +455,7 @@ export default function PasienDashboard() {
                                 <button
                                   onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
                                   disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer"}`}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer"}`}
                                 >
                                   Tolak
                                 </button>
@@ -495,52 +465,20 @@ export default function PasienDashboard() {
                             {h.status === "approved" && (
                               <button
                                 onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-900 to-rose-800 hover:from-rose-800 hover:to-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer"
+                                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-900 to-rose-800 hover:from-rose-800 hover:to-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer w-full sm:w-auto"
                               >
-                                <Lock className="h-3.5 w-3.5 text-rose-300" />
+                                <Lock className="h-3.5 w-3.5 text-rose-300 shrink-0" />
                                 Cabut Izin Akses (revokeAccess)
                               </button>
                             )}
 
                             {(h.status === "revoked" || h.status === "rejected") && (
-                              <div className="rounded-xl bg-slate-100 px-3.5 py-1.5 text-xs text-slate-500 border border-slate-200/80 font-medium">
+                              <div className="rounded-xl bg-slate-100 px-3.5 py-1.5 text-xs text-slate-500 border border-slate-200/80 font-medium w-full sm:w-auto text-center">
                                 Izin Telah Non-Aktif
                               </div>
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* WIDGET 2: AUDIT TRAIL BLOCKCHAIN LOG */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="border-b border-slate-100 pb-4 mb-5">
-                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <Database className="h-5 w-5 text-rose-600" />
-                    Audit Trail Blockchain Log
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Riwayat aktivitas mutasi persetujuan dan verifikasi akses terikat pada ledger immutable.
-                  </p>
-                </div>
-
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                  {auditLogs.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada log aktivitas blockchain.</p>
-                  ) : (
-                    auditLogs.map((log) => (
-                      <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-bold ${log.type === "success" ? "text-emerald-700" : "text-rose-700"}`}>
-                            {log.action}
-                          </span>
-                          <span className="text-[9px] font-mono text-slate-400">{log.time}</span>
-                        </div>
-                        <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                        <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: <TxHashLink txHash={log.hash} className="inline-flex items-center gap-1" title={log.hash}><span>{log.hash}</span></TxHashLink></p>
                       </div>
                     ))
                   )}
