@@ -7,6 +7,7 @@ import Footer from "@/components/layout/LandingFooter";
 import Navbar from "@/components/layout/LandingNavbar";
 import Hero from "@/components/landing/hero";
 import WorkflowSection from "@/components/landing/workflow-section";
+import DoctorsShowcase from "@/components/landing/doctors-showcase";
 import CTASection from "@/components/landing/cta-section";
 
 export default function Home() {
@@ -51,6 +52,7 @@ export default function Home() {
           <FeatureGrid />
           <AudienceSwitcher walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
           <WorkflowSection />
+          <DoctorsShowcase />
           <CTASection />
           <Footer />
         </div>
