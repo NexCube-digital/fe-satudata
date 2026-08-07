@@ -103,6 +103,7 @@ export default function FaskesCreateInvoicePage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const [midtransReady, setMidtransReady] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -348,9 +349,21 @@ export default function FaskesCreateInvoicePage() {
     setSubmitting(true);
     try {
       const res = await payInvoiceMidtrans(invoiceId);
-      if (res?.success && res.data?.snap_token) {
-        if (window.snap) {
-          window.snap.pay(res.data.snap_token, {
+      const snapToken =
+        res?.data?.snap_token || res?.data?.snapToken || res?.snapToken || res?.snap_token;
+
+      if (!snapToken) {
+        setFeedback({ type: "error", message: res?.message || "Gagal mengambil token Midtrans." });
+        return;
+      }
+
+      if (!midtransReady || typeof window === "undefined" || !window.snap) {
+        setFeedback({ type: "error", message: "Midtrans Snap SDK belum siap. Refresh halaman." });
+        return;
+      }
+
+      if (window.snap) {
+        window.snap.pay(snapToken, {
             onSuccess: function () {
               setFeedback({
                 type: "success",
@@ -378,11 +391,6 @@ export default function FaskesCreateInvoicePage() {
               fetchInvoiceList(selectedPatientId);
             },
           });
-        } else {
-          setFeedback({ type: "error", message: "Midtrans Snap SDK belum siap. Refresh halaman." });
-        }
-      } else {
-        setFeedback({ type: "error", message: res?.message || "Gagal mengambil token Midtrans." });
       }
     } catch (err) {
       console.error(err);
@@ -421,6 +429,11 @@ export default function FaskesCreateInvoicePage() {
         src={process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""}
         strategy="lazyOnload"
+        onLoad={() => setMidtransReady(true)}
+        onError={(e) => {
+          console.error("Gagal memuat Midtrans Snap SDK", e);
+          setMidtransReady(false);
+        }}
       />
       <Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
@@ -820,8 +833,8 @@ export default function FaskesCreateInvoicePage() {
                                   <button
                                     type="button"
                                     onClick={() => handlePayMidtrans(inv.id)}
-                                    disabled={submitting}
-                                    className="rounded-xl bg-rose-600 text-white font-bold text-[10px] py-2 hover:bg-rose-500 transition cursor-pointer"
+                                    disabled={submitting || !midtransReady}
+                                    className={`rounded-xl bg-rose-600 text-white font-bold text-[10px] py-2 hover:bg-rose-500 transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
                                   >
                                     Midtrans QRIS
                                   </button>
