@@ -28,7 +28,9 @@ import {
   Pill,
   ShoppingCart,
   Package,
-  Lock
+  Lock,
+  DollarSign,
+  CreditCard
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
