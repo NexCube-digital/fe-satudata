@@ -204,8 +204,8 @@ export default function Sidebar({ role }) {
 
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
-          { href: "/dashboard/faskes/patient-flow", label: "Alur & Status Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
-          { href: "/dashboard/faskes/staffs", label: "Kelola Staf & Hak Akses", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/patient-flow", label: "Indikator Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
+          { href: "/dashboard/faskes/staffs", label: "Kelola Staf", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { 
             label: "Kelola Dokter", 
             icon: Stethoscope,
@@ -235,7 +235,6 @@ export default function Sidebar({ role }) {
             children: [
               { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
               { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/invoice", label: "Tagihan & Invoice", icon: ShoppingCart }
             ]
           },
           { 
@@ -252,7 +251,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Keuangan & Invoice", 
+            label: "Keuangan", 
             icon: DollarSign,
             dropdownKey: "finance",
             badge: "Finance",
@@ -263,7 +262,7 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
-          { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: Activity, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 
         if (Array.isArray(userPerms)) {

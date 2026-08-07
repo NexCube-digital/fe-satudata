@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import { apiGet, apiPost } from "@/lib/api";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function PharmacyInventoryPage() {
+  const router = useRouter();
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -26,6 +28,11 @@ export default function PharmacyInventoryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [user, setUser] = useState(null);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/auth/login");
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -112,13 +119,13 @@ export default function PharmacyInventoryPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Sidebar role={user?.role || "staf_rs"} />
+    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0 font-sans text-slate-900">
+      <Navbar user={user} roleLabel="Staf Farmasi & Apotek" onLogout={handleLogout} />
 
-      <div className="flex flex-1 flex-col transition-all duration-300">
-        <Navbar />
+      <div className="flex flex-1">
+        <Sidebar role="faskes" />
 
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+        <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6">
           {/* Title Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
