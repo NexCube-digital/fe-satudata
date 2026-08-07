@@ -32,6 +32,10 @@ export const payInvoiceMidtrans = async (invoiceId) => {
   return await apiPost(`/api/invoice/${invoiceId}/pay/midtrans`);
 };
 
+export const checkoutPOS = async (payload) => {
+  return await apiPost("/api/hospital/pharmacy/pos/checkout", payload);
+};
+
 export default {
   getInvoicePatients,
   getAdditionalCharges,
@@ -41,4 +45,5 @@ export default {
   payInvoice,
   payInvoiceMidtrans,
   getInvoiceById,
+  checkoutPOS
 };

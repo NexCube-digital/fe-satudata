@@ -176,8 +176,8 @@ export default function PharmacyPOSInvoicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Script
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+        <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
         strategy="afterInteractive"
@@ -238,7 +238,7 @@ export default function PharmacyPOSInvoicePage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                  <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3">
                     <div className="rounded-3xl bg-slate-50 p-4 border border-slate-200">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Pasien</p>
                       <p className="mt-2 font-semibold text-slate-900">{invoice.patient_name || invoice.patient_name || "Pasien Umum / Walk-in"}</p>
