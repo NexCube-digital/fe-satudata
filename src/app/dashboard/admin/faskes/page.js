@@ -295,7 +295,7 @@ function AdminGeotaggingContent() {
 
       const hospitalIcon = window.L.divIcon({
         html: `
-          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-rose-800 text-white shadow-md border-2 border-white hover:scale-110 transition-transform">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-teal-800 text-white shadow-md border-2 border-white hover:scale-110 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 22V11A2 2 0 0 0 17 9H7a2 2 0 0 0-2 2v11"/>
               <path d="M4 22h16"/>
@@ -317,7 +317,7 @@ function AdminGeotaggingContent() {
           .addTo(map)
           .bindPopup(`
             <div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
-              <b style="color: #6b0c0c; font-size: 12px;">${f.name || "Faskes"}</b><br/>
+              <b style="color: #115e59; font-size: 12px;">${f.name || "Faskes"}</b><br/>
               <span style="color: #666;">${f.address || "-"}</span><br/>
               <div style="margin-top: 5px; font-weight: bold; color: #333;">Koordinat: ${f.latitude}, ${f.longitude}</div>
             </div>
@@ -344,26 +344,57 @@ function AdminGeotaggingContent() {
 
   const hasCoordinates = latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude));
 
-  return (
-    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-      <Sidebar role="admin" activePath="/dashboard/admin/faskes" />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar user={user} onLogout={handleLogout} title="Manajemen Geotagging Faskes" />
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
+      </div>
+    );
+  }
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 space-y-6">
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0 font-sans">
+      <Navbar user={user} roleLabel="Administrator System" onLogout={handleLogout} />
+      <div className="flex flex-1">
+        <Sidebar role="admin" />
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+          {/* Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
+                <MapPin className="h-3.5 w-3.5" /> Modul Administrasi Geotagging RS
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Manajemen Geotagging Faskes
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+                Kelola data titik koordinat GPS dan lokasi geografis seluruh Fasilitas Kesehatan yang terintegrasi di jaringan SatuData.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0 sm:ml-auto">
+              <button
+                onClick={openAddModal}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="h-4 w-4" /> Tambah Geotagging Faskes
+              </button>
+            </div>
+          </div>
+
           {/* Feedback message */}
           {message.text && (
             <div
               className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs font-semibold ${
                 message.type === "success"
-                  ? "bg-emerald-50 border-emerald-250 text-emerald-800"
-                  : "bg-rose-50 border-rose-250 text-rose-800"
+                  ? "bg-emerald-50 border-emerald-200 text-[#16A34A]"
+                  : "bg-red-50 border-red-200 text-[#DC2626]"
               }`}
             >
               {message.type === "success" ? (
-                <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <CheckCircle className="h-4 w-4 text-[#16A34A] shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                <AlertCircle className="h-4 w-4 text-[#DC2626] shrink-0 mt-0.5" />
               )}
               <span>{message.text}</span>
             </div>
@@ -372,19 +403,19 @@ function AdminGeotaggingContent() {
           {/* Search & Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-455 text-slate-400" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Cari faskes berdasarkan nama atau alamat..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden bg-white"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-teal-600 focus:outline-hidden bg-white font-medium"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold focus:border-rose-600 focus:outline-hidden bg-white cursor-pointer"
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold focus:border-teal-600 focus:outline-hidden bg-white cursor-pointer"
             >
               <option value="all">Semua Tipe Geotagging</option>
               <option value="linked">Terhubung ke Akun RS</option>
@@ -396,7 +427,7 @@ function AdminGeotaggingContent() {
           <div className="bg-white border border-slate-200/85 rounded-3xl p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-rose-600 animate-pulse" />
+                <div className="h-2 w-2 rounded-full bg-teal-600 animate-pulse" />
                 <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Visualisasi Peta Geotagging</h2>
               </div>
               <span className="text-[10px] text-slate-400 font-bold">Peta Sebaran Faskes Terdaftar</span>
@@ -412,7 +443,7 @@ function AdminGeotaggingContent() {
           <div className="bg-white border border-slate-200/85 rounded-3xl overflow-hidden shadow-xs">
             {loading ? (
               <div className="flex h-48 items-center justify-center text-xs text-slate-500 font-bold gap-2">
-                <RefreshCw className="h-4 w-4 animate-spin text-rose-600" />
+                <RefreshCw className="h-4 w-4 animate-spin text-teal-800" />
                 Memuat data faskes...
               </div>
             ) : filteredFaskes.length === 0 ? (
@@ -435,7 +466,7 @@ function AdminGeotaggingContent() {
                       <tr key={f.id} className="hover:bg-slate-50/50 transition">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 font-extrabold text-sm shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-800 font-extrabold text-sm shrink-0">
                               {f.name ? f.name.charAt(0).toUpperCase() : "F"}
                             </div>
                             <div>
@@ -446,7 +477,7 @@ function AdminGeotaggingContent() {
                         </td>
                         <td className="px-5 py-4">
                           {f.hospital_id ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px]">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#16A34A] border border-emerald-200 font-bold text-[10px]">
                               <Link2 className="h-3 w-3" /> Terverifikasi
                             </span>
                           ) : (
@@ -470,7 +501,7 @@ function AdminGeotaggingContent() {
                             <button
                               onClick={() => handleDelete(f.id)}
                               disabled={actionLoadingId === f.id}
-                              className="p-1.5 rounded-lg border border-slate-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer disabled:opacity-50"
+                              className="p-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] transition cursor-pointer disabled:opacity-50"
                               title="Hapus"
                             >
                               {actionLoadingId === f.id ? (
@@ -496,8 +527,8 @@ function AdminGeotaggingContent() {
         <div className="fixed top-6 right-6 z-55 flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md shadow-lg transition-all animate-in slide-in-from-top-5 duration-300">
           <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${
             toast.type === "success" 
-              ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-              : "bg-rose-50 text-rose-600 border border-rose-100"
+              ? "bg-emerald-50 text-[#16A34A] border border-emerald-100" 
+              : "bg-red-50 text-[#DC2626] border border-red-100"
           }`}>
             {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           </div>
@@ -524,7 +555,7 @@ export default function AdminGeotagging() {
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center bg-slate-50 text-xs font-bold text-slate-500 gap-2">
-        <RefreshCw className="h-4 w-4 animate-spin text-rose-600" />
+        <RefreshCw className="h-4 w-4 animate-spin text-teal-800" />
         Memuat...
       </div>
     }>
