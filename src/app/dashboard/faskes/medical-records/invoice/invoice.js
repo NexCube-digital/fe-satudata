@@ -48,6 +48,7 @@ export default function FaskesInvoicePage() {
   const [invoices, setInvoices] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const [midtransReady, setMidtransReady] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -236,8 +237,8 @@ export default function FaskesInvoicePage() {
       setFeedback({ type: "error", message: "Gagal mendapatkan token pembayaran." });
       return;
     }
-    if (typeof window === "undefined" || !window.snap) {
-      setFeedback({ type: "error", message: "Snap.js belum siap, coba lagi sebentar." });
+    if (!midtransReady || typeof window === "undefined" || !window.snap) {
+      setFeedback({ type: "error", message: "Midtrans belum siap. Coba refresh halaman." });
       return;
     }
 
@@ -287,6 +288,8 @@ const pollInvoiceStatus = (invoiceId, attempt = 0) => {
             src="https://app.sandbox.midtrans.com/snap/snap.js"
             data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
             strategy="afterInteractive"
+            onLoad={() => setMidtransReady(true)}
+            onError={(e) => console.error("Gagal memuat Midtrans Snap SDK", e)}
             />
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
@@ -637,7 +640,8 @@ const pollInvoiceStatus = (invoiceId, attempt = 0) => {
                               <button
                                 type="button"
                                 onClick={() => handlePayMidtrans(invoice.id)}
-                                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-rose-300 hover:text-rose-800"
+                                disabled={!midtransReady}
+                                className={`inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:border-rose-300 hover:text-rose-800 disabled:cursor-not-allowed disabled:opacity-60`}
                               >
                                 <ShoppingCart className="h-4 w-4" /> Transfer
                               </button>
