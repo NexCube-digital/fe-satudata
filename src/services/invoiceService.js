@@ -29,7 +29,25 @@ export const getInvoiceById = async (invoiceId, payload = {}) => {
 };
 
 export const payInvoiceMidtrans = async (invoiceId) => {
-  return await apiPost(`/api/invoice/${invoiceId}/pay/midtrans`);
+  const response = await apiPost(`/api/invoice/${invoiceId}/pay/midtrans`);
+  const snapToken =
+    response?.data?.snap_token ||
+    response?.data?.snapToken ||
+    response?.data?.token ||
+    response?.snap_token ||
+    response?.snapToken ||
+    response?.token;
+
+  if (!snapToken) return response;
+
+  return {
+    ...response,
+    data: {
+      ...(response.data || {}),
+      snap_token: snapToken,
+      snapToken,
+    },
+  };
 };
 
 export const checkoutPOS = async (payload) => {
