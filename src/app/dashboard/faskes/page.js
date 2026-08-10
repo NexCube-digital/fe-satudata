@@ -87,6 +87,23 @@ export default function FaskesDashboard() {
     return userPerms.includes(code);
   };
 
+  // Recent Invoices State for Kasir / Finance Card
+  const [recentInvoices, setRecentInvoices] = useState([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
+
+  const fetchRecentInvoices = async () => {
+    setLoadingInvoices(true);
+    try {
+      const res = await apiGet("/api/invoice/list");
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setRecentInvoices(list);
+    } catch (err) {
+      console.error("Error loading recent invoices:", err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -99,6 +116,7 @@ export default function FaskesDashboard() {
     fetchRequestsList();
     fetchDoctorsList();
     fetchDashboardStats();
+    fetchRecentInvoices();
     setLoading(false);
   }, []);
 
@@ -558,117 +576,7 @@ export default function FaskesDashboard() {
                 </div>
               )}
 
-              {/* WIDGET 3: TABEL PERMINTAAN REKAM MEDIS */}
-              {hasPermission("access_request:read") && (
-                <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-teal-800" />
-                        Tabel Permintaan Rekam Medis
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Daftar permohonan rekam medis eksternal yang diajukan oleh dokter rumah sakit.
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-center text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                          <th className="py-3 px-4 rounded-l-xl text-center">Tgl Pengajuan</th>
-                          <th className="py-3 px-4 text-center">Pasien</th>
-                          <th className="py-3 px-4 text-center">Tx Hash</th>
-                          <th className="py-3 px-4 rounded-r-xl text-center">Status Consent</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {requestsList.map((req) => (
-                          <tr key={req.id} className="hover:bg-teal-50/50 transition">
-                            <td className="py-3.5 px-4 text-slate-500 font-semibold text-center">{req.requestedAt}</td>
-                            <td className="py-3.5 px-4 text-center">
-                              <p className="font-bold text-slate-900">{req.patientName}</p>
-                              <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-[10px] text-teal-900 text-center">
-                              {req.txHash ? (
-                                <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-teal-900 mx-auto" title={req.txHash}>
-                                  <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A] shrink-0" />
-                                  <span className="truncate max-w-[150px]">{req.txHash}</span>
-                                </TxHashLink>
-                              ) : req.status === "Approved" ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleSyncBlockchain(req.id)}
-                                  disabled={syncingReqId === req.id}
-                                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-[#D97706] px-2 py-1 text-[10px] font-bold transition cursor-pointer"
-                                  title="Upload Ulang ke Blockchain (bc-satudata)"
-                                >
-                                  <RefreshCw className={`h-3 w-3 text-[#D97706] ${syncingReqId === req.id ? "animate-spin" : ""}`} />
-                                  Sync Blockchain
-                                </button>
-                              ) : (
-                                <span className="text-slate-300 italic font-sans">-</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              {req.status === "Approved" ? (
-                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-[#16A34A]">
-                                  <CheckCircle className="h-3 w-3 text-[#16A34A]" /> Approved
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-[#D97706] animate-pulse">
-                                  <Clock className="h-3 w-3" /> Pending Pasien
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Modal View Decrypted Record */}
-                  {selectedRecord && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-teal-950/40 p-4 backdrop-blur-sm">
-                      <div className="w-full max-w-3xl rounded-[32px] border border-teal-200/80 bg-gradient-to-br from-slate-50 via-teal-50 to-white p-6 shadow-2xl shadow-teal-400/20 text-slate-900">
-                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
-                          <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-sm font-semibold text-teal-800">
-                              <Unlock className="h-4 w-4" />
-                              Rekam Medis Terdekripsi
-                            </div>
-                            <h4 className="mt-3 text-lg font-extrabold text-slate-900">{selectedRecord.patientName}</h4>
-                            <p className="text-sm text-slate-500">NIK: <span className="font-mono text-slate-700">{maskNik(selectedRecord.nik)}</span></p>
-                          </div>
-                          <button
-                            onClick={() => setSelectedRecord(null)}
-                            className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
-                          >
-                            Tutup
-                          </button>
-                        </div>
-
-                        <div className="space-y-4 text-sm">
-                          <div className="rounded-3xl bg-teal-50 border border-teal-200 p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
-                            <TxHashLink txHash={selectedRecord.txHash} className="mt-2 font-mono text-slate-900 break-all inline-flex" title={selectedRecord.txHash}>
-                              <span>{selectedRecord.txHash}</span>
-                            </TxHashLink>
-                          </div>
-                          <div className="rounded-[28px] border border-slate-200 bg-white p-4 text-slate-700 shadow-sm">
-                            <p className="text-sm font-semibold text-slate-900 mb-3">Ringkasan Rekam Medis</p>
-                            <div className="leading-relaxed text-slate-700 whitespace-pre-line">
-                              {selectedRecord.decryptedData}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* WIDGET UTAMA STAF APOTEKER & POS (Tampil jika staf memiliki izin pharmacy) */}
               {isStaff && (hasPermission("pharmacy:pos") || hasPermission("pharmacy:manage")) && (
@@ -793,103 +701,84 @@ export default function FaskesDashboard() {
               )}
             </div>
 
-            {/* Right Column (1 Col): POS Billing Kasir Simulator */}
+            {/* Right Column (1 Col): List Tagihan Invoice */}
             <div className="space-y-8">
-              {(hasPermission("pharmacy:pos") || hasPermission("pharmacy:manage")) ? (
-                <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                    <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Receipt className="h-4.5 w-4.5 text-teal-800" />
-                      Kasir & POS Billing Medis
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href="/dashboard/faskes/pharmacy/pos"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white text-[11px] font-extrabold shadow-md shadow-teal-950/20 hover:shadow-lg hover:from-teal-800 hover:to-cyan-900 hover:scale-[1.02] transition-all duration-200 group cursor-pointer border border-teal-700/30"
-                      >
-                        <ShoppingCart className="h-3.5 w-3.5 text-teal-200 group-hover:scale-110 transition-transform" />
-                        <span>Apoteker POS</span>
-                        <ArrowRight className="h-3 w-3 text-teal-200 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Bill items list */}
-                  <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-                    {billItems.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-4 text-center italic border border-dashed border-slate-200 rounded-xl">
-                        Belum ada item tagihan. Tambahkan layanan medis di bawah.
+              {(hasPermission("pharmacy:pos") || hasPermission("pharmacy:manage") || hasPermission("finance:manage")) ? (
+                <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <Receipt className="h-4.5 w-4.5 text-teal-800" />
+                        Tagihan & Faktur Invoice
+                      </h3>
+                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                        Ringkasan invoice & status pembayaran faskes
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Invoice list */}
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-0.5">
+                    {loadingInvoices ? (
+                      <div className="py-8 text-center space-y-2">
+                        <RefreshCw className="h-5 w-5 animate-spin text-teal-700 mx-auto" />
+                        <p className="text-xs text-slate-400 font-medium">Memuat tagihan invoice...</p>
+                      </div>
+                    ) : recentInvoices.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-200/80 p-6 text-center bg-slate-50/50">
+                        <Receipt className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs font-bold text-slate-600">Belum Ada Tagihan Invoice</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Tagihan invoice pasien akan tercatat secara otomatis di sini.</p>
+                      </div>
                     ) : (
-                      billItems.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs border border-slate-100">
-                          <span className="font-semibold text-slate-800">{item.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-teal-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
-                            <button
-                              onClick={() => handleRemoveBillItem(item.id)}
-                              className="text-slate-400 hover:text-[#DC2626] transition cursor-pointer"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                      recentInvoices.slice(0, 3).map((inv) => {
+                        const isPaid = inv.status === "paid";
+                        const isPendingCash = inv.status === "pending_cash";
+                        return (
+                          <div
+                            key={inv.id}
+                            className="rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-teal-300 p-3.5 transition-all duration-200 shadow-2xs group"
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <span className="font-mono text-xs font-extrabold text-slate-900 truncate">
+                                {inv.id}
+                              </span>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase shrink-0 border ${
+                                  isPaid
+                                    ? "bg-emerald-50 text-[#16A34A] border-emerald-200"
+                                    : isPendingCash
+                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    : "bg-rose-50 text-rose-700 border-rose-200"
+                                }`}
+                              >
+                                {isPaid ? "Lunas" : isPendingCash ? "Menunggu Kasir" : "Belum Lunas"}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/50">
+                              <span className="text-slate-500 font-medium text-[11px] truncate max-w-[140px]">
+                                {inv.patient_name || inv.patient?.name || inv.Patient?.name || "Pasien Faskes"}
+                              </span>
+                              <span className="font-mono font-extrabold text-teal-800 text-xs">
+                                Rp {Number(inv.total_amount || 0).toLocaleString("id-ID")}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
 
-                  {/* Add Custom Item Form */}
-                  <form onSubmit={handleAddBillItem} className="space-y-2 mb-4">
-                    <input
-                      type="text"
-                      value={newItemName}
-                      onChange={(e) => setNewItemName(e.target.value)}
-                      placeholder="Nama Layanan Medis"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-teal-600 focus:outline-hidden"
-                    />
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        value={newItemPrice}
-                        onChange={(e) => setNewItemPrice(e.target.value)}
-                        placeholder="Harga (Rp)"
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-teal-600 focus:outline-hidden"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 cursor-pointer"
-                      >
-                        <Plus className="h-3.5 w-3.5" /> Tambah
-                      </button>
-                    </div>
-                  </form>
-
-                  {/* Total & Checkout */}
-                  <div className="border-t border-slate-100 pt-4">
-                    <div className="flex items-center justify-between text-sm font-bold mb-3">
-                      <span className="text-slate-700">Total Tagihan:</span>
-                      <span className="text-teal-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
-                    </div>
-
-                    {receiptSuccess && (
-                      <div className="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-[#16A34A] font-medium space-y-1">
-                        <div className="flex items-center gap-2 font-bold">
-                          <CheckCircle className="h-4 w-4 text-[#16A34A] shrink-0" />
-                          <span>Transaksi kasir sukses & tercatat di Apoteker/POS!</span>
-                        </div>
-                        <Link href="/dashboard/faskes/pharmacy/sales-history" className="text-[11px] font-bold text-[#16A34A] underline block pt-0.5">
-                          → Lihat Struk & Riwayat Penjualan Kasir
-                        </Link>
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleProcessTransaction}
-                      className="w-full rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-teal-950/10 cursor-pointer"
+                  {/* Button Navigate to /dashboard/faskes/finance/invoice */}
+                  <div className="border-t border-slate-100 pt-3">
+                    <Link
+                      href="/dashboard/faskes/finance/invoice"
+                      className="w-full rounded-2xl bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 hover:from-teal-800 hover:to-cyan-950 py-3.5 px-4 text-center text-xs font-extrabold text-white shadow-md shadow-teal-950/20 hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer group"
                     >
-                      Proses Transaksi Kasir
-                    </button>
+                      <Receipt className="h-4 w-4 text-teal-200 group-hover:scale-110 transition-transform" />
+                      <span>Kelola Tagihan & Faktur Invoice</span>
+                      <ArrowRight className="h-4 w-4 text-teal-200 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
                 </div>
               ) : null}
