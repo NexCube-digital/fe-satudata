@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { maskSip } from "@/utils/masking";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   FileText,
   Search,
@@ -89,7 +91,6 @@ function PatientUnifiedHistoryContent() {
       return;
     }
 
-    // 1. Fetch Medical Records History (Hanya Dokumen yang SELESAI & LUNAS)
     try {
       const [historyRes, invoicesRes] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history`, {
@@ -110,7 +111,6 @@ function PatientUnifiedHistoryContent() {
         }
       });
 
-      // Tampilkan HANYA rekam medis yang status dokumennya sudah SELESAI & LUNAS
       const finishedLunasRecords = rawRecords.filter(item => {
         return paidInvoiceRecIds.has(item.id) || item.already_invoiced || item.status === "final";
       });
@@ -118,7 +118,7 @@ function PatientUnifiedHistoryContent() {
       const beRecords = finishedLunasRecords.map((item) => ({
         id: item.id,
         hospitalName: item.hospital?.user?.name || item.hospital_name || item.hospital?.name || "Rumah Sakit Terdaftar",
-        hospitalCode: item.hospital?.medical_license || "RS-N/A",
+        hospitalCode: maskSip(item.hospital?.medical_license),
         doctorName: item.doctor?.name || "Dokter Terdaftar",
         specialty: item.doctor?.specialist || "Poli Kesehatan",
         category: item.record_type || "umum",
@@ -140,7 +140,6 @@ function PatientUnifiedHistoryContent() {
       console.log("Error fetching history", err);
     }
 
-    // 2. Fetch Consent Requests
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/access-requests`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -150,7 +149,7 @@ function PatientUnifiedHistoryContent() {
         const beRequests = result.data.map((item) => ({
           id: item.id,
           hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
-          hospitalCode: item.hospital?.medical_license || "RS-N/A",
+          hospitalCode: maskSip(item.hospital?.medical_license),
           department: "Unit Pelayanan Medis",
           doctorName: "Dokter Penanggung Jawab",
           accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],
@@ -166,7 +165,6 @@ function PatientUnifiedHistoryContent() {
       console.log("Error loading consent requests", err);
     }
 
-    // 3. Fetch Audit Logs
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/audit`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -200,7 +198,6 @@ function PatientUnifiedHistoryContent() {
         });
         setAuditLogs(mapped);
       } else {
-        // Fallback default blockchain audit trail if no log entries yet
         setAuditLogs([
           {
             id: 1,
@@ -208,14 +205,6 @@ function PatientUnifiedHistoryContent() {
             hospital: "RS Rotinsulu - Izin Akses Rekam Medis Disetujui Pasien",
             txHash: "0x5baf92a1f4b2c8a3e7d91f2c4e6b8a0d92e4f6a8c1d3e5f7a9b0c2d4e6f8a0b2",
             timestamp: "7 Agustus 2026, 08.15 WIB",
-            status: "success"
-          },
-          {
-            id: 2,
-            action: "decryptEHR() Accessed",
-            hospital: "Dokter Spesialis - Dekripsi Rekam Medis Terenkripsi AES-256",
-            txHash: "0x3e7d91f2c4e6b8a0d92e4f6a8c1d3e5f7a9b0c2d4e6f8a0b25baf92a1f4b2c8a",
-            timestamp: "7 Agustus 2026, 08.30 WIB",
             status: "success"
           }
         ]);
@@ -237,20 +226,20 @@ function PatientUnifiedHistoryContent() {
   // Record Decryption Logic
   const mapBackendDetailToFrontend = (rec, backendData) => {
     const detail = backendData.detail || {};
-    const summary = backendData.summary || backendData.title || rec.diagnosis;
+    const summary = backendData.summary || backendData.title || rec?.diagnosis;
     
     let diagnosis = summary;
     let prescriptions = [];
     let vitals = null;
     let notes = "Telah didekripsi secara aman.";
 
-    if (rec.category === "umum") {
+    if (rec?.category === "umum") {
       diagnosis = detail.diagnosis || summary;
       notes = detail.note_doctor || "Tidak ada catatan tambahan.";
       if (detail.complaint || detail.action) {
         notes = `Keluhan: ${detail.complaint || '-'}\nTindakan: ${detail.action || '-'}\nCatatan: ${notes}`;
       }
-    } else if (rec.category === "resep") {
+    } else if (rec?.category === "resep") {
       diagnosis = "Resep Obat";
       notes = detail.note || "Aturan pakai terlampir.";
       if (detail.list_of_medicines) {
@@ -263,11 +252,11 @@ function PatientUnifiedHistoryContent() {
         });
         prescriptions = meds;
       }
-    } else if (rec.category === "lab") {
+    } else if (rec?.category === "lab") {
       diagnosis = `Pemeriksaan Laboratorium: ${summary}`;
       notes = `Kesimpulan: ${detail.conclusion || "-"}\nNilai Rujukan: ${detail.reference_values || "-"}`;
       vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Lab: " + (detail.checkup_result || "-") };
-    } else if (rec.category === "radiologi") {
+    } else if (rec?.category === "radiologi") {
       diagnosis = `Pemeriksaan Radiologi: ${summary}`;
       notes = `Kesimpulan: ${detail.conclusion || "-"}`;
       vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Radiologi: " + (detail.checkup_result || "-") };
@@ -408,12 +397,10 @@ function PatientUnifiedHistoryContent() {
     router.push(`/dashboard/pasien/history?tab=${tab}`, { scroll: false });
   };
 
+
+
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Riwayat Rekam Medis & Aktivitas..." fullScreen={false} />;
   }
 
   return (
@@ -991,11 +978,7 @@ function PatientUnifiedHistoryContent() {
 
 export default function PatientUnifiedHistoryPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    }>
+    <Suspense fallback={<LoadingScreen message="Memuat Riwayat Kesehatan..." fullScreen={false} />}>
       <PatientUnifiedHistoryContent />
     </Suspense>
   );

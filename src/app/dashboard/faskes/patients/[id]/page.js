@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import Toast from "@/components/ui/Toast";
+import ModernSelect from "@/components/ui/ModernSelect";
 import notify from "@/lib/notify";
 import { getDoctors } from "@/services/doctorService";
 import {
@@ -124,18 +125,27 @@ export default function PatientEhrDetailPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const accessResult = await accessRes.json();
+      let foundPatient = null;
       if (accessRes.ok && accessResult.data) {
-        const found = accessResult.data.find(item => String(item.patient_id) === String(patientId));
-        if (found) {
-          setPatientInfo({
-            patientId: found.patient_id,
-            patientName: found.patient_name || found.Patient?.name || found.patient?.name || "Pasien Terdaftar",
-            nik: found.patient_nik || found.Patient?.profil?.nik || found.patient?.profil?.nik || "-",
-            walletAddress: found.Patient?.wallet_address || found.patient?.wallet_address || "0x0000...0000",
-            poli: found.requested_data || "Klinik Umum",
-            approvedAt: new Date(found.updated_at || found.created_at).toLocaleDateString("id-ID")
-          });
-        }
+        foundPatient = accessResult.data.find(item => String(item.patient_id) === String(patientId));
+      }
+
+      if (foundPatient) {
+        setPatientInfo({
+          patientId: foundPatient.patient_id,
+          patientName: foundPatient.patient_name || foundPatient.Patient?.name || foundPatient.patient?.name || "Pasien Terdaftar",
+          nik: foundPatient.patient_nik || foundPatient.Patient?.profil?.nik || foundPatient.patient?.profil?.nik || "-",
+          walletAddress: foundPatient.Patient?.wallet_address || foundPatient.patient?.wallet_address || "0x0000...0000",
+          approvedAt: new Date(foundPatient.updated_at || foundPatient.created_at).toLocaleDateString("id-ID")
+        });
+      } else {
+        setPatientInfo({
+          patientId: patientId,
+          patientName: `Pasien #${patientId}`,
+          nik: "-",
+          walletAddress: "0x0000...0000",
+          approvedAt: new Date().toLocaleDateString("id-ID")
+        });
       }
 
       // 2. Fetch medical records for this patient
@@ -215,50 +225,61 @@ export default function PatientEhrDetailPage() {
     router.push("/auth/login");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
+        <div className="relative flex items-center justify-center">
+          <div className="h-16 w-16 rounded-full border-4 border-teal-100 border-t-teal-700 animate-spin" />
+          <Stethoscope className="h-7 w-7 text-teal-700 absolute" />
+        </div>
+        <p className="text-xs font-bold text-slate-600 tracking-wider uppercase animate-pulse">Memuat Detail Pasien & Rekam Medis...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Instansi Faskes" onLogout={handleLogout} />
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
+      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
-        <Sidebar role={user?.role || "rumah_sakit"} />
+        <Sidebar role="faskes" />
 
         <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Top Navigation & Back Button */}
           <div className="mb-6 flex items-center justify-between">
             <Link
               href="/dashboard/faskes/patients"
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-rose-800 bg-white border border-slate-200/80 px-4 py-2 rounded-2xl shadow-xs transition hover:border-rose-300"
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-teal-800 bg-white border border-slate-200/80 px-4 py-2 rounded-2xl shadow-xs transition hover:border-teal-300"
             >
               <ChevronLeft className="h-4 w-4" /> Kembali ke Daftar Pasien
             </Link>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-700 text-white px-4 py-2.5 text-xs font-bold transition shadow-md shadow-rose-950/10 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-4 py-2.5 text-xs font-bold transition shadow-md cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Tambah Rekam Medis Baru
             </button>
           </div>
 
           {/* Patient Detail Header Card */}
-          <div className="rounded-[2.5rem] bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900 text-white p-6 sm:p-8 shadow-xl relative overflow-hidden mb-8">
+          <div className="rounded-[2.5rem] bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 text-white p-6 sm:p-8 shadow-xl relative overflow-hidden mb-8">
             <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
               <div className="flex items-start gap-4">
-                <div className="h-16 w-16 rounded-3xl bg-white/10 text-rose-200 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                <div className="h-16 w-16 rounded-3xl bg-white/10 text-teal-200 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
                   <User className="h-8 w-8" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-rose-300 font-extrabold bg-white/10 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-teal-200 font-extrabold bg-white/10 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
                       <ShieldCheck className="h-3 w-3" /> Pasien Terotorisasi Web3
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
                     {patientInfo?.patientName || `Pasien #${patientId}`}
                   </h1>
-                  <p className="text-xs sm:text-sm font-mono text-rose-200/80 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <p className="text-xs sm:text-sm font-mono text-teal-100/90 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span>NIK: {maskNik(patientInfo?.nik)}</span>
-                    <span>• Poliklinik: {patientInfo?.poli || "Klinik Umum"}</span>
                     <span>• Terotorisasi Sejak: {patientInfo?.approvedAt || "-"}</span>
                   </p>
                 </div>
@@ -277,7 +298,7 @@ export default function PatientEhrDetailPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  <FileText className="h-5.5 w-5.5 text-rose-800" />
+                  <FileText className="h-5.5 w-5.5 text-teal-800" />
                   Peninjau Rekam Medis (EHR) Terdekripsi
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Seluruh berkas catatan medis terenkripsi AES-256 dan terverifikasi di blockchain.</p>
@@ -286,16 +307,19 @@ export default function PatientEhrDetailPage() {
               <button
                 onClick={loadPatientDetailsAndRecords}
                 disabled={loadingRecords}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-rose-800 bg-white border border-slate-200 px-3 py-1.5 rounded-xl transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-teal-800 bg-white border border-slate-200 px-3 py-1.5 rounded-xl transition cursor-pointer"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loadingRecords ? "animate-spin" : ""}`} /> Refresh Data
               </button>
             </div>
 
             {loadingRecords ? (
-              <div className="py-20 text-center rounded-3xl bg-white border border-slate-200/80 p-8 shadow-xs space-y-3">
-                <RefreshCw className="h-8 w-8 animate-spin text-rose-800 mx-auto" />
-                <p className="text-xs font-bold text-slate-600">Memuat & Mendekripsi Rekam Medis Pasien...</p>
+              <div className="py-20 text-center rounded-3xl bg-white border border-slate-200/80 p-8 shadow-xs flex flex-col items-center justify-center gap-3">
+                <div className="relative flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-full border-4 border-teal-100 border-t-teal-700 animate-spin" />
+                  <Activity className="h-6 w-6 text-teal-700 absolute" />
+                </div>
+                <p className="text-xs font-bold text-slate-600 animate-pulse">Memuat & Mendekripsi Rekam Medis Pasien...</p>
               </div>
             ) : patientRecords.length === 0 ? (
               <div className="py-16 text-center rounded-3xl bg-white border border-slate-200/80 p-8 shadow-xs space-y-3">
@@ -308,7 +332,7 @@ export default function PatientEhrDetailPage() {
                 {patientRecords.map((record) => {
                   const recordTxHash = record.tx_hash || record.txHash || null;
                   return (
-                    <div key={record.id} className="rounded-3xl border border-slate-200/90 p-6 bg-white shadow-xs hover:border-rose-300 hover:shadow-md transition space-y-4">
+                    <div key={record.id} className="rounded-3xl border border-slate-200/90 p-6 bg-white shadow-xs hover:border-teal-300 hover:shadow-md transition space-y-4">
                       {/* Record Item Header */}
                       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
                         <div className="flex items-center gap-3">
@@ -316,29 +340,29 @@ export default function PatientEhrDetailPage() {
                             record.record_type === "umum" ? "bg-blue-50 text-blue-800 border border-blue-200" :
                             record.record_type === "lab" ? "bg-purple-50 text-purple-800 border border-purple-200" :
                             record.record_type === "radiologi" ? "bg-amber-50 text-amber-800 border border-amber-200" :
-                            "bg-rose-50 text-rose-800 border border-rose-200"
+                            "bg-teal-50 text-teal-800 border border-teal-200"
                           }`}>
                             {record.record_type}
                           </span>
                           <h4 className="text-base font-bold text-slate-900">{record.title}</h4>
                         </div>
                         <span className="text-xs text-slate-500 font-semibold flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl">
-                          <Calendar className="h-3.5 w-3.5 text-rose-700" /> {new Date(record.visit_date).toLocaleDateString("id-ID")}
+                          <Calendar className="h-3.5 w-3.5 text-teal-700" /> {new Date(record.visit_date).toLocaleDateString("id-ID")}
                         </span>
                       </div>
 
                       {record.doctor && (
                         <p className="text-xs text-slate-600 font-medium flex items-center gap-2">
-                          <Stethoscope className="h-4 w-4 text-rose-800 shrink-0" />
+                          <Stethoscope className="h-4 w-4 text-teal-800 shrink-0" />
                           <span>Dokter Penanggung Jawab: <strong className="text-slate-800">{record.doctor.name}</strong> ({record.doctor.specialist})</span>
                         </p>
                       )}
 
                       {/* Decrypted Content Box */}
                       {record.detail ? (
-                        <div className="rounded-2xl bg-gradient-to-br from-rose-50/70 via-rose-50/30 to-slate-50/50 border border-rose-100 p-4 sm:p-5 text-xs space-y-3 text-slate-700">
-                          <div className="flex items-center gap-1.5 text-rose-900 text-[10px] font-extrabold uppercase tracking-wider pb-2 border-b border-rose-200/60">
-                            <Unlock className="h-4 w-4 text-rose-800" /> Data Medis Terdekripsi
+                        <div className="rounded-2xl bg-gradient-to-br from-teal-50/70 via-teal-50/30 to-slate-50/50 border border-teal-100 p-4 sm:p-5 text-xs space-y-3 text-slate-700">
+                          <div className="flex items-center gap-1.5 text-teal-900 text-[10px] font-extrabold uppercase tracking-wider pb-2 border-b border-teal-200/60">
+                            <Unlock className="h-4 w-4 text-teal-800" /> Data Medis Terdekripsi
                           </div>
                           {record.record_type === "umum" && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed">
@@ -404,7 +428,7 @@ export default function PatientEhrDetailPage() {
             <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="h-5.5 w-5.5 text-rose-800" />
+                  <Sparkles className="h-5.5 w-5.5 text-teal-800" />
                   Tambah Rekam Medis Baru (EHR)
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Pasien: <span className="font-bold text-slate-700">{patientInfo?.patientName || `Pasien #${patientId}`}</span></p>
@@ -419,7 +443,7 @@ export default function PatientEhrDetailPage() {
 
             {successMessage ? (
               <div className="py-12 text-center space-y-3">
-                <CheckCircle className="h-16 w-16 text-rose-800 mx-auto animate-bounce" />
+                <CheckCircle className="h-16 w-16 text-teal-800 mx-auto animate-bounce" />
                 <h4 className="text-base font-bold text-slate-800">{successMessage}</h4>
                 <p className="text-xs text-slate-400">Data telah dienkripsi menggunakan kunci otorisasi.</p>
               </div>
@@ -429,16 +453,16 @@ export default function PatientEhrDetailPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tipe Rekam Medis</label>
-                    <select
+                    <ModernSelect
+                      options={[
+                        { value: "umum", label: "Umum (Pemeriksaan Dokter)" },
+                        { value: "lab", label: "Laboratorium / Tes Darah" },
+                        { value: "radiologi", label: "Radiologi / Rontgen / USG" },
+                        { value: "resep", label: "Resep Obat" },
+                      ]}
                       value={recordType}
-                      onChange={(e) => setRecordType(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
-                    >
-                      <option value="umum">Umum (Pemeriksaan Dokter)</option>
-                      <option value="lab">Laboratorium / Tes Darah</option>
-                      <option value="radiologi">Radiologi / Rontgen / USG</option>
-                      <option value="resep">Resep Obat</option>
-                    </select>
+                      onChange={(val) => setRecordType(val)}
+                    />
                   </div>
 
                   <div>
@@ -449,7 +473,7 @@ export default function PatientEhrDetailPage() {
                       placeholder="Contoh: Konsultasi Gastritis"
                       value={recordTitle}
                       onChange={(e) => setRecordTitle(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-800 focus:outline-hidden"
                     />
                   </div>
 
@@ -460,27 +484,23 @@ export default function PatientEhrDetailPage() {
                       required
                       value={visitDate}
                       onChange={(e) => setVisitDate(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-800 focus:outline-hidden"
                     />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Dokter Penanggung Jawab</label>
-                    <select
+                    <ModernSelect
+                      options={doctorsList.map((doc) => ({
+                        value: doc.id,
+                        label: doc.name,
+                        sublabel: doc.specialist
+                      }))}
                       value={selectedDoctorId}
-                      onChange={(e) => setSelectedDoctorId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-rose-800 focus:outline-hidden"
-                    >
-                      {doctorsList.length === 0 ? (
-                        <option value="">Tidak ada data dokter</option>
-                      ) : (
-                        doctorsList.map((doc) => (
-                          <option key={doc.id} value={doc.id}>
-                            {doc.name} ({doc.specialist})
-                          </option>
-                        ))
-                      )}
-                    </select>
+                      onChange={(val) => setSelectedDoctorId(val)}
+                      placeholder="Pilih Dokter..."
+                      icon={Stethoscope}
+                    />
                   </div>
                 </div>
 
@@ -497,7 +517,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Nyeri perut bagian atas..."
                           value={umumDetail.complaint}
                           onChange={(e) => setUmumDetail({ ...umumDetail, complaint: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -507,7 +527,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Gastritis Akut..."
                           value={umumDetail.diagnosis}
                           onChange={(e) => setUmumDetail({ ...umumDetail, diagnosis: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -517,7 +537,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Pemberian antasida & edukasi pola makan..."
                           value={umumDetail.action}
                           onChange={(e) => setUmumDetail({ ...umumDetail, action: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -527,7 +547,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Kontrol ulang 3 hari..."
                           value={umumDetail.note_doctor}
                           onChange={(e) => setUmumDetail({ ...umumDetail, note_doctor: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                     </div>
@@ -542,7 +562,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Hemoglobin: 14 g/dL, Leukosit: 7.500/uL"
                           value={labDetail.checkup_result}
                           onChange={(e) => setLabDetail({ ...labDetail, checkup_result: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -552,7 +572,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Hb (13-16 g/dL)"
                           value={labDetail.reference_values}
                           onChange={(e) => setLabDetail({ ...labDetail, reference_values: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -562,7 +582,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Hasil pemeriksaan darah rutin dalam batas normal."
                           value={labDetail.conclusion}
                           onChange={(e) => setLabDetail({ ...labDetail, conclusion: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                     </div>
@@ -577,7 +597,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Foto Thorax PA: Tidak tampak infiltrat aktif..."
                           value={radiologyDetail.checkup_result}
                           onChange={(e) => setRadiologyDetail({ ...radiologyDetail, checkup_result: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -587,7 +607,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Cor dan Pulmo dalam batas normal."
                           value={radiologyDetail.conclusion}
                           onChange={(e) => setRadiologyDetail({ ...radiologyDetail, conclusion: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                     </div>
@@ -602,7 +622,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Paracetamol 500mg (3x1), Antasida (3x1 sdm)"
                           value={prescriptionDetail.list_of_medicines}
                           onChange={(e) => setPrescriptionDetail({ ...prescriptionDetail, list_of_medicines: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                       <div>
@@ -612,7 +632,7 @@ export default function PatientEhrDetailPage() {
                           placeholder="Diminum sebelum/sesudah makan..."
                           value={prescriptionDetail.note}
                           onChange={(e) => setPrescriptionDetail({ ...prescriptionDetail, note: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-rose-800"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-hidden focus:border-teal-800"
                         />
                       </div>
                     </div>
@@ -631,7 +651,7 @@ export default function PatientEhrDetailPage() {
                   <button
                     type="submit"
                     disabled={submittingEhr}
-                    className="rounded-xl bg-rose-800 hover:bg-rose-700 px-6 py-2.5 text-xs font-bold text-white transition shadow-md shadow-rose-950/10 cursor-pointer"
+                    className="rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-xs font-bold text-white transition shadow-md cursor-pointer disabled:opacity-50"
                   >
                     {submittingEhr ? "Menyimpan & Enkripsi..." : "Simpan Rekam Medis (EHR)"}
                   </button>

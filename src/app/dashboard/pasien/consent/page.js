@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { maskSip } from "@/utils/masking";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -68,7 +69,7 @@ export default function PatientConsentPage() {
         const beRequests = result.data.map((item) => ({
           id: item.id,
           hospitalName: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
-          hospitalCode: item.hospital?.medical_license || "RS-N/A",
+          hospitalCode: maskSip(item.hospital?.medical_license),
           department: "Unit Pelayanan Medis",
           doctorName: "Dokter Penanggung Jawab",
           accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],

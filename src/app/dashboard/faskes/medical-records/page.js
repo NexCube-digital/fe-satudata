@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import PrescriptionList from "@/components/PrescriptionList";
 import {
   FileText,
@@ -229,11 +230,7 @@ export default function FaskesMedicalRecordsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Berkas Rekam Medis Faskes..." fullScreen={false} />;
   }
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import ModernSelect from "@/components/ui/ModernSelect";
 import Script from "next/script";
 import {
   Plus,
@@ -25,7 +26,8 @@ import {
   CheckCircle,
   Filter,
   Sparkles,
-  ArrowDown
+  ArrowDown,
+  X
 } from "lucide-react";
 import {
   getAdditionalCharges,
@@ -36,6 +38,7 @@ import {
   payInvoice,
   payInvoiceMidtrans,
 } from "@/services/invoiceService";
+import { getServicePrices } from "@/services/servicePriceService";
 
 const formatRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -104,6 +107,175 @@ export default function FaskesCreateInvoicePage() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
 
+  // State Modal Buat Tagihan Baru (CRUD Tagihan)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalPatientId, setModalPatientId] = useState("");
+  const [modalPatientData, setModalPatientData] = useState(null);
+  const [modalPatientOverview, setModalPatientOverview] = useState(null);
+  const [modalLoadingOverview, setModalLoadingOverview] = useState(false);
+  const [modalSelectedRecords, setModalSelectedRecords] = useState([]);
+  const [modalAdditionalItems, setModalAdditionalItems] = useState([]);
+  const [modalNewChargeCode, setModalNewChargeCode] = useState("");
+  const [modalNewChargeName, setModalNewChargeName] = useState("");
+  const [modalNewChargePrice, setModalNewChargePrice] = useState("");
+  const [modalNotes, setModalNotes] = useState("");
+  const [modalFeedback, setModalFeedback] = useState({ type: "", message: "" });
+  const [modalSubmitting, setModalSubmitting] = useState(false);
+
+  const handleOpenCreateModal = (defaultPatientId = "") => {
+    setIsCreateModalOpen(true);
+    setModalFeedback({ type: "", message: "" });
+    setModalAdditionalItems([]);
+    setModalNotes("");
+    setModalNewChargeCode("");
+    setModalNewChargeName("");
+    setModalNewChargePrice("");
+
+    if (defaultPatientId) {
+      handleModalSelectPatient(defaultPatientId);
+    } else if (patientQueue.length > 0) {
+      handleModalSelectPatient(patientQueue[0].id);
+    } else {
+      setModalPatientId("");
+      setModalPatientData(null);
+      setModalPatientOverview(null);
+      setModalSelectedRecords([]);
+    }
+  };
+
+  const handleModalSelectPatient = async (patientId) => {
+    setModalPatientId(patientId);
+    setModalFeedback({ type: "", message: "" });
+    const found = patientQueue.find((p) => String(p.id) === String(patientId));
+    setModalPatientData(found || null);
+    setModalSelectedRecords([]);
+    setModalAdditionalItems([]);
+
+    if (!patientId) {
+      setModalPatientOverview(null);
+      return;
+    }
+
+    setModalLoadingOverview(true);
+    try {
+      const result = await getPatientOverview(patientId);
+      const overview = result?.data || null;
+      setModalPatientOverview(overview);
+
+      if (overview && Array.isArray(overview.records)) {
+        const uninvoicedIds = overview.records.filter((r) => !r.already_invoiced).map((r) => r.id);
+        setModalSelectedRecords(uninvoicedIds);
+      }
+    } catch (err) {
+      console.error("Error loading patient overview in modal", err);
+      setModalFeedback({ type: "error", message: "Gagal memuat rekam medis pasien terpilih." });
+    } finally {
+      setModalLoadingOverview(false);
+    }
+  };
+
+  const handleModalToggleRecord = (recordId) => {
+    setModalSelectedRecords((prev) =>
+      prev.includes(recordId) ? prev.filter((id) => id !== recordId) : [...prev, recordId]
+    );
+  };
+
+  const handleModalPresetChargeChange = (code) => {
+    setModalNewChargeCode(code);
+    const selected = chargeOptions.find((c) => String(c.code) === String(code) || String(c.id) === String(code) || c.name === code);
+    if (selected) {
+      setModalNewChargeName(selected.name);
+      setModalNewChargePrice(selected.price !== undefined ? String(selected.price) : "");
+    }
+  };
+
+  const handleModalAddAdditionalItem = () => {
+    if (!modalNewChargeName.trim()) return;
+    const priceNum = parseInt(modalNewChargePrice || 0, 10) || 0;
+    setModalAdditionalItems((prev) => [
+      ...prev,
+      {
+        charge_code: modalNewChargeCode || "CUSTOM",
+        name: modalNewChargeName.trim(),
+        amount: priceNum,
+      },
+    ]);
+    setModalNewChargeCode("");
+    setModalNewChargeName("");
+    setModalNewChargePrice("");
+  };
+
+  const handleModalRemoveAdditionalItem = (index) => {
+    setModalAdditionalItems((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const modalAvailableMedicalRecords = useMemo(() => {
+    if (!modalPatientOverview || !Array.isArray(modalPatientOverview.records)) return [];
+    return modalPatientOverview.records.filter((rec) => !rec.already_invoiced);
+  }, [modalPatientOverview]);
+
+  const modalTotalMedicalRecordAmount = useMemo(() => {
+    if (!modalPatientOverview || !Array.isArray(modalPatientOverview.records)) return 0;
+    return modalSelectedRecords.reduce((acc, id) => {
+      const rec = modalPatientOverview.records.find((r) => r.id === id);
+      return acc + (rec?.biaya?.total_keseluruhan || 0);
+    }, 0);
+  }, [modalPatientOverview, modalSelectedRecords]);
+
+  const modalTotalAdditionalAmount = useMemo(() => {
+    return modalAdditionalItems.reduce((acc, item) => acc + (item.amount || 0), 0);
+  }, [modalAdditionalItems]);
+
+  const modalGrandTotal = modalTotalMedicalRecordAmount + modalTotalAdditionalAmount;
+
+  const handleModalSubmitCreateInvoice = async (e) => {
+    e.preventDefault();
+    if (!modalPatientId) {
+      setModalFeedback({ type: "error", message: "Silakan pilih pasien terlebih dahulu." });
+      return;
+    }
+
+    if (modalSelectedRecords.length === 0 && modalAdditionalItems.length === 0) {
+      setModalFeedback({
+        type: "error",
+        message: "Pilih minimal 1 rekam medis atau tambahkan komponen biaya layanan tambahan.",
+      });
+      return;
+    }
+
+    setModalSubmitting(true);
+    setModalFeedback({ type: "", message: "" });
+    try {
+      const payload = {
+        medicalRecordIds: modalSelectedRecords,
+        additionalItems: modalAdditionalItems.map((item) => ({
+          code: item.charge_code,
+          name: item.name,
+          price: item.amount,
+          qty: 1,
+        })),
+        notes: modalNotes,
+      };
+
+      const res = await createInvoice(modalPatientId, payload);
+      if (res?.success) {
+        setFeedback({
+          type: "success",
+          message: `Invoice #${res.data?.id || ""} berhasil diterbitkan (BELUM LUNAS). Silakan lakukan pembayaran kasir tunai atau QRIS.`,
+        });
+        setIsCreateModalOpen(false);
+        fetchInitialData();
+      } else {
+        setModalFeedback({ type: "error", message: res?.message || "Gagal menerbitkan invoice." });
+      }
+    } catch (err) {
+      console.error(err);
+      setModalFeedback({ type: "error", message: err.message || "Terjadi kesalahan sistem saat menerbitkan invoice." });
+    } finally {
+      setModalSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -119,9 +291,36 @@ export default function FaskesCreateInvoicePage() {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [patientsRes, chargesRes] = await Promise.all([getInvoicePatients(), getAdditionalCharges()]);
+      const [patientsRes, chargesRes, servicePricesRes] = await Promise.all([
+        getInvoicePatients().catch(() => null),
+        getAdditionalCharges().catch(() => null),
+        getServicePrices({ status: "active" }).catch(() => null),
+      ]);
       const patientList = Array.isArray(patientsRes?.data) ? patientsRes.data : [];
-      setChargeOptions(Array.isArray(chargesRes?.data) ? chargesRes.data : []);
+
+      const listFromServicePrices = Array.isArray(servicePricesRes?.data)
+        ? servicePricesRes.data
+        : (Array.isArray(servicePricesRes) ? servicePricesRes : []);
+      const listFromAdditionalCharges = Array.isArray(chargesRes?.data)
+        ? chargesRes.data
+        : (Array.isArray(chargesRes) ? chargesRes : []);
+
+      const combined = [...listFromServicePrices, ...listFromAdditionalCharges];
+      const mapByCode = new Map();
+
+      combined.forEach((item) => {
+        const key = item.code || item.name;
+        if (key && !mapByCode.has(key)) {
+          mapByCode.set(key, {
+            id: item.id,
+            code: item.code || item.name,
+            name: item.name,
+            price: Number(item.price || 0),
+          });
+        }
+      });
+
+      setChargeOptions(Array.from(mapByCode.values()));
 
       // Build queue table for all patients in hospital billing flow
       const queuePromises = patientList.map(async (p) => {
@@ -223,10 +422,10 @@ export default function FaskesCreateInvoicePage() {
 
   const handlePresetChargeChange = (code) => {
     setNewChargeCode(code);
-    const selected = chargeOptions.find((c) => c.code === code);
+    const selected = chargeOptions.find((c) => String(c.code) === String(code) || String(c.id) === String(code) || c.name === code);
     if (selected) {
       setNewChargeName(selected.name);
-      setNewChargePrice(selected.price ? String(selected.price) : "");
+      setNewChargePrice(selected.price !== undefined ? String(selected.price) : "");
     }
   };
 
@@ -442,10 +641,10 @@ export default function FaskesCreateInvoicePage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
               <button
-                onClick={() => router.push("/dashboard/faskes/finance")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 text-xs font-bold transition cursor-pointer whitespace-nowrap"
+                onClick={() => handleOpenCreateModal()}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-4 py-2.5 text-xs font-extrabold transition cursor-pointer shadow-md whitespace-nowrap"
               >
-                <DollarSign className="h-4 w-4 text-teal-800" /> Master Biaya Awal RS
+                <Plus className="h-4 w-4" /> Buat Tagihan Baru
               </button>
               <button
                 onClick={() => router.push("/dashboard/faskes/finance/history")}
@@ -507,17 +706,17 @@ export default function FaskesCreateInvoicePage() {
                 />
               </div>
 
-              <div>
-                <select
+              <div className="w-56">
+                <ModernSelect
+                  options={[
+                    { value: "all", label: "Semua Status Pelunasan" },
+                    { value: "menunggu", label: "⏳ Menunggu Kasir" },
+                    { value: "diproses", label: "🔄 Diproses Kasir" },
+                    { value: "selesai", label: "✔ Selesai Di-Invoice" },
+                  ]}
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-                >
-                  <option value="all">Semua Status Pelunasan</option>
-                  <option value="menunggu">⏳ Menunggu Kasir</option>
-                  <option value="diproses">🔄 Diproses Kasir</option>
-                  <option value="selesai">✔ Selesai Di-Invoice</option>
-                </select>
+                  onChange={(val) => setStatusFilter(val)}
+                />
               </div>
             </div>
 
@@ -844,6 +1043,263 @@ export default function FaskesCreateInvoicePage() {
           </div>
         </main>
       </div>
+
+      {/* MODAL BUAT TAGIHAN BARU (CRUD TAGIHAN) */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-2xl w-full my-8 space-y-5 shadow-2xl">
+            {/* Header Modal */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-2xl bg-teal-50 text-teal-800 border border-teal-200">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">Buat & Form Tagihan Baru</h3>
+                  <p className="text-xs text-slate-500">Penerbitan rincian tagihan kasir & invoice pasien RS</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {modalFeedback.message && (
+              <div
+                className={`p-3.5 rounded-2xl text-xs font-bold border flex items-center justify-between ${
+                  modalFeedback.type === "success"
+                    ? "bg-emerald-50 border-emerald-200 text-[#16A34A]"
+                    : "bg-red-50 border-red-200 text-[#DC2626]"
+                }`}
+              >
+                <span>{modalFeedback.message}</span>
+                <button onClick={() => setModalFeedback({ type: "", message: "" })} className="font-bold">
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleModalSubmitCreateInvoice} className="space-y-5">
+              {/* Step 1: Pilih Pasien */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+                  1. Pilih Pasien Antrean Kasir
+                </label>
+                <ModernSelect
+                  options={[
+                    { value: "", label: "-- Pilih Pasien --" },
+                    ...patientQueue.map((p) => ({
+                      value: p.id,
+                      label: `${p.name} (${p.recordCount} Rekam Medis Uninvoiced)`,
+                      sublabel: `NIK: ${formatEncryptedNIK(p.nik, p.id)}`
+                    }))
+                  ]}
+                  value={modalPatientId}
+                  onChange={(val) => handleModalSelectPatient(val)}
+                  placeholder="-- Pilih Pasien --"
+                  icon={User}
+                />
+
+                {modalPatientData && (
+                  <div className="mt-2.5 p-3 rounded-2xl bg-teal-50/60 border border-teal-200/80 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-teal-800" />
+                      <span className="font-bold text-slate-900">{modalPatientData.name}</span>
+                      <span className="text-slate-400 font-mono">| {modalPatientData.doctorName}</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-300">
+                      Estimasi: {formatRupiah(modalPatientData.totalEstimasi)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Step 2: Rekam Medis Pasien */}
+              {modalPatientId && (
+                <div>
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                    2. Pilih Rekam Medis Pasien (Uninvoiced)
+                  </label>
+
+                  {modalLoadingOverview ? (
+                    <div className="py-6 text-center text-xs font-bold text-slate-400 flex items-center justify-center gap-2">
+                      <RefreshCw className="h-4 w-4 animate-spin text-teal-700" /> Memuat rekam medis...
+                    </div>
+                  ) : modalAvailableMedicalRecords.length === 0 ? (
+                    <div className="p-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center text-xs text-slate-500">
+                      Tidak ada rekam medis uninvoiced untuk pasien ini.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {modalAvailableMedicalRecords.map((rec) => {
+                        const isChecked = modalSelectedRecords.includes(rec.id);
+                        const totalBiaya = rec.biaya?.total_keseluruhan || 0;
+
+                        return (
+                          <div
+                            key={rec.id}
+                            onClick={() => handleModalToggleRecord(rec.id)}
+                            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
+                              isChecked
+                                ? "bg-teal-50/80 border-teal-300 text-slate-900 font-semibold"
+                                : "bg-slate-50/50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {}}
+                                className="h-4 w-4 rounded-md text-teal-800 focus:ring-teal-600 cursor-pointer"
+                              />
+                              <div>
+                                <p className="font-bold text-slate-900">{rec.title || "Tindakan Medis"}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">{rec.visitDate || rec.recordType}</p>
+                              </div>
+                            </div>
+                            <span className="font-mono font-bold text-slate-800">
+                              {formatRupiah(totalBiaya)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Biaya Tambahan (CRUD items) */}
+              {modalPatientId && (
+                <div>
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                    3. Tambah / Edit Komponen Biaya Tambahan
+                  </label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2.5">
+                    <select
+                      value={modalNewChargeCode}
+                      onChange={(e) => handleModalPresetChargeChange(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-700 font-medium"
+                    >
+                      <option value="">-- Preset Biaya --</option>
+                      {chargeOptions.map((opt) => (
+                        <option key={opt.code} value={opt.code}>
+                          {opt.name} ({formatRupiah(opt.price)})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Nama Komponen Biaya"
+                      value={modalNewChargeName}
+                      onChange={(e) => setModalNewChargeName(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Nominal (Rp)"
+                      value={modalNewChargePrice}
+                      onChange={(e) => setModalNewChargePrice(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleModalAddAdditionalItem}
+                    className="w-full py-2 rounded-xl border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Tambah Komponen Biaya
+                  </button>
+
+                  {modalAdditionalItems.length > 0 && (
+                    <div className="mt-3 space-y-2 max-h-36 overflow-y-auto">
+                      {modalAdditionalItems.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono">
+                          <span className="font-medium text-slate-800">{item.name}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-slate-900">{formatRupiah(item.amount)}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleModalRemoveAdditionalItem(idx)}
+                              className="text-[#DC2626] hover:text-red-800 font-bold cursor-pointer p-1"
+                              title="Hapus item biaya"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Catatan & Summary */}
+              {modalPatientId && (
+                <>
+                  <div>
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+                      4. Catatan Tagihan (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Misal: Diskon khusus / Catatan kasir..."
+                      value={modalNotes}
+                      onChange={(e) => setModalNotes(e.target.value)}
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium"
+                    />
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-900 to-cyan-950 text-white space-y-2">
+                    <div className="flex items-center justify-between text-xs text-teal-200">
+                      <span>Subtotal Rekam Medis ({modalSelectedRecords.length} item):</span>
+                      <span className="font-mono font-semibold">{formatRupiah(modalTotalMedicalRecordAmount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-teal-200">
+                      <span>Total Biaya Tambahan ({modalAdditionalItems.length} item):</span>
+                      <span className="font-mono font-semibold">{formatRupiah(modalTotalAdditionalAmount)}</span>
+                    </div>
+                    <div className="border-t border-teal-800/80 pt-2 flex items-center justify-between text-sm font-extrabold text-white">
+                      <span>Total Tagihan Baru:</span>
+                      <span className="font-mono text-base text-amber-300">{formatRupiah(modalGrandTotal)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={modalSubmitting || !modalPatientId}
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  {modalSubmitting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" /> Menerbitkan Tagihan...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" /> Terbitkan Tagihan Baru
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

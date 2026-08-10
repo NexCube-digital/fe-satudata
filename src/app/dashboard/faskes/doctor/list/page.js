@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import { maskSip } from "@/utils/masking";
 import {
   getDoctors,
   updateDoctor,
@@ -590,7 +591,7 @@ export default function FaskesDoctorsList() {
                     <div className="space-y-2 py-3 border-t border-slate-100/80 text-[11px] text-slate-650 font-medium">
                       <p className="flex items-center gap-2">
                         <FileText className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-slate-400">Lisensi SIP:</span> <span className="font-mono text-slate-700">{doctor.medical_license}</span>
+                        <span className="text-slate-400">Lisensi SIP:</span> <span className="font-mono text-slate-700">{maskSip(doctor.medical_license)}</span>
                       </p>
                       <div className="flex items-start gap-2">
                         <Calendar className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />

@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import Toast from "@/components/ui/Toast";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import notify from "@/lib/notify";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
@@ -187,7 +188,7 @@ export default function FaskesRequests() {
           },
           body: JSON.stringify({
             patientNik: nikInput,
-            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            jenisDataDiminta: "Pemeriksaan Medis",
             txHash
           })
         });
@@ -246,7 +247,7 @@ export default function FaskesRequests() {
           },
           body: JSON.stringify({
             patientNik: nikInput,
-            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            jenisDataDiminta: "Pemeriksaan Medis",
             txHash
           })
         });
@@ -291,11 +292,7 @@ export default function FaskesRequests() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Pengajuan Permintaan Akses..." fullScreen={false} />;
   }
 
   if (!user) {
@@ -427,12 +424,22 @@ export default function FaskesRequests() {
 
                 {/* Notifications & Result banners */}
                 {searchStatus === "found" && patientData && (
-                  <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-500/20 p-4 text-xs text-emerald-800 space-y-2 animate-fade-in shadow-2xs">
+                  <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-500/20 p-4 text-xs text-emerald-800 space-y-3 animate-fade-in shadow-2xs">
                     <p className="font-bold flex items-center gap-1.5 text-[13px]">
                       <CheckCircle className="h-4.5 w-4.5 text-[#16A34A]" />
-                      Pasien Terdaftar Ditemukan
+                      Pasien Sudah Terdaftar
                     </p>
-                    <p className="text-slate-650">Pasien atas nama <strong className="text-slate-800">{patientData.name}</strong> dengan NIK {nikInput} terdaftar aktif di SatuData. Silakan isi form di bawah untuk meminta akses rekam medis.</p>
+                    <p className="text-slate-650">
+                      Pasien atas nama <strong className="text-slate-800">{patientData.name}</strong> dengan NIK <span className="font-mono font-bold">{nikInput}</span> sudah terdaftar aktif di SatuData. Tidak perlu mengajukan permohonan otorisasi lagi.
+                    </p>
+                    <div className="pt-1">
+                      <Link
+                        href="/dashboard/faskes/patients"
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                      >
+                        Lihat Data Pasien →
+                      </Link>
+                    </div>
                   </div>
                 )}
 
@@ -455,205 +462,159 @@ export default function FaskesRequests() {
               </div>
             </div>
 
-            {/* Form details input */}
-            {searchStatus !== "idle" && searchStatus !== "searching" && (
+            {/* Form details input (Only for new patient registration) */}
+            {searchStatus === "not_found" && (
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-xs animate-fade-in">
                 <div className="border-b border-slate-100 pb-4 mb-5">
                   <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                    {searchStatus === "not_found" ? (
-                      <>
-                        <UserPlus className="h-5 w-5 text-teal-800" />
-                        Form Pendaftaran Pasien Baru
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-5 w-5 text-teal-800" />
-                        Form Request Akses Medis
-                      </>
-                    )}
+                    <UserPlus className="h-5 w-5 text-teal-800" />
+                    Form Pendaftaran Pasien Baru
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {searchStatus === "not_found"
-                      ? "Lengkapi formulir pendaftaran di bawah ini"
-                      : "Lengkapi data permohonan akses data medis"}
+                    Lengkapi formulir pendaftaran di bawah ini
                   </p>
                 </div>
 
                 <form onSubmit={handleSendRequest} className="space-y-5">
-                  {/* Option A: Registration Fields (only visible if NIK not found) */}
-                  {searchStatus === "not_found" && (
-                    <div className="space-y-4 bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-200/60">
-                      <h4 className="text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2 flex items-center gap-1.5 uppercase tracking-wider mb-3">
-                        <Info className="h-4 w-4 text-teal-800" />
-                        Informasi Biodata Pasien
-                      </h4>
+                  <div className="space-y-4 bg-slate-50/50 p-4 sm:p-5 rounded-2xl border border-slate-200/60">
+                    <h4 className="text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2 flex items-center gap-1.5 uppercase tracking-wider mb-3">
+                      <Info className="h-4 w-4 text-teal-800" />
+                      Informasi Biodata Pasien
+                    </h4>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nama Lengkap Pasien</label>
-                          <input
-                            type="text"
-                            required
-                            value={registerName}
-                            onChange={(e) => setRegisterName(e.target.value)}
-                            placeholder="Sesuai KTP"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Alamat Email Aktif</label>
-                          <input
-                            type="email"
-                            required
-                            value={registerEmail}
-                            onChange={(e) => setRegisterEmail(e.target.value)}
-                            placeholder="emailpasien@example.com"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nama Lengkap Pasien</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerName}
+                          onChange={(e) => setRegisterName(e.target.value)}
+                          placeholder="Sesuai KTP"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
                       </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nomor Telepon</label>
-                          <input
-                            type="tel"
-                            required
-                            value={registerPhone}
-                            onChange={(e) => setRegisterPhone(e.target.value)}
-                            placeholder="0812xxxxxxxx"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Jenis Kelamin</label>
-                          <select
-                            value={registerSex}
-                            onChange={(e) => setRegisterSex(e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          >
-                            <option value="laki-laki">Laki-laki</option>
-                            <option value="perempuan">Perempuan</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tempat Lahir</label>
-                          <input
-                            type="text"
-                            required
-                            value={registerPob}
-                            onChange={(e) => setRegisterPob(e.target.value)}
-                            placeholder="Kota Kelahiran"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tanggal Lahir</label>
-                          <input
-                            type="date"
-                            required
-                            value={registerDob}
-                            onChange={(e) => setRegisterDob(e.target.value)}
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Golongan Darah</label>
-                          <input
-                            type="text"
-                            value={registerBloodType}
-                            onChange={(e) => setRegisterBloodType(e.target.value)}
-                            placeholder="Contoh: A / B / O / AB"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Alamat Domisili KTP</label>
-                          <input
-                            type="text"
-                            required
-                            value={registerAddress}
-                            onChange={(e) => setRegisterAddress(e.target.value)}
-                            placeholder="Alamat lengkap beserta RT/RW"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Hubungan Kontak Darurat</label>
-                          <input
-                            type="text"
-                            value={registerEmergencyName}
-                            onChange={(e) => setRegisterEmergencyName(e.target.value)}
-                            placeholder="Contoh: Ayah / Ibu / Istri"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">No HP Kontak Darurat</label>
-                          <input
-                            type="tel"
-                            value={registerEmergencyPhone}
-                            onChange={(e) => setRegisterEmergencyPhone(e.target.value)}
-                            placeholder="08xxxxxxxx"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Alamat Email Pasien (Opsional)</label>
+                        <input
+                          type="email"
+                          value={registerEmail}
+                          onChange={(e) => setRegisterEmail(e.target.value)}
+                          placeholder="emailpasien@example.com (Kosongkan jika belum ada)"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
                       </div>
                     </div>
-                  )}
 
-                  {/* Option B: Standard Request Fields */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Pilih Dokter Penanggung Jawab / Poli
-                      </label>
-                      <ModernDoctorSelect
-                        doctors={doctors}
-                        value={poliInput}
-                        onChange={(val) => setPoliInput(val)}
-                        required
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Nomor Telepon</label>
+                        <input
+                          type="tel"
+                          required
+                          value={registerPhone}
+                          onChange={(e) => setRegisterPhone(e.target.value)}
+                          placeholder="0812xxxxxxxx"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Jenis Kelamin</label>
+                        <select
+                          value={registerSex}
+                          onChange={(e) => setRegisterSex(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        >
+                          <option value="laki-laki">Laki-laki</option>
+                          <option value="perempuan">Perempuan</option>
+                        </select>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Tujuan Pemeriksaan Medis
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={purposeInput}
-                        onChange={(e) => setPurposeInput(e.target.value)}
-                        placeholder="Contoh: Pemeriksaan Jantung Rutin / Rujukan Rawat Inap"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-slate-50 focus:bg-white transition"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tempat Lahir</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerPob}
+                          onChange={(e) => setRegisterPob(e.target.value)}
+                          placeholder="Kota Kelahiran"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Tanggal Lahir</label>
+                        <input
+                          type="date"
+                          required
+                          value={registerDob}
+                          onChange={(e) => setRegisterDob(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={submittingRequest}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-3 text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50"
-                    >
-                      {submittingRequest ? (
-                        <RefreshCw className="h-4.5 w-4.5 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                      {searchStatus === "not_found"
-                        ? "Daftarkan Pasien & Ajukan Akses Medis"
-                        : "Kirim Permintaan Otorisasi"}
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Golongan Darah</label>
+                        <input
+                          type="text"
+                          value={registerBloodType}
+                          onChange={(e) => setRegisterBloodType(e.target.value)}
+                          placeholder="Contoh: A / B / O / AB"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Alamat Domisili KTP</label>
+                        <input
+                          type="text"
+                          required
+                          value={registerAddress}
+                          onChange={(e) => setRegisterAddress(e.target.value)}
+                          placeholder="Alamat lengkap beserta RT/RW"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">Hubungan Kontak Darurat</label>
+                        <input
+                          type="text"
+                          value={registerEmergencyName}
+                          onChange={(e) => setRegisterEmergencyName(e.target.value)}
+                          placeholder="Contoh: Ayah / Ibu / Istri"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase text-slate-500 mb-1">No HP Kontak Darurat</label>
+                        <input
+                          type="tel"
+                          value={registerEmergencyPhone}
+                          onChange={(e) => setRegisterEmergencyPhone(e.target.value)}
+                          placeholder="08xxxxxxxx"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  <button
+                    type="submit"
+                    disabled={submittingRequest}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-3 text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50"
+                  >
+                    {submittingRequest ? (
+                      <RefreshCw className="h-4.5 w-4.5 animate-spin" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
+                    Daftarkan Pasien & Ajukan Akses Medis
+                  </button>
                 </form>
               </div>
             )}

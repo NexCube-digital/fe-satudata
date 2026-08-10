@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import { apiGet, apiPost } from "@/lib/api";
@@ -202,7 +203,7 @@ export default function FaskesDashboard() {
         },
         body: JSON.stringify({
           patientNik: nikInput,
-          jenisDataDiminta: poliInput,
+          jenisDataDiminta: "Pemeriksaan Medis",
           txHash
         })
       });
@@ -332,11 +333,7 @@ export default function FaskesDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Portal Faskes & Data Medis..." fullScreen={false} />;
   }
 
   if (!user) {
@@ -482,46 +479,18 @@ export default function FaskesDashboard() {
                   </div>
 
                   <form onSubmit={handleSendRequest} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                          NIK Pasien Sasaran
-                        </label>
-                        <input
-                          type="text"
-                          maxLength={16}
-                          value={nikInput}
-                          onChange={(e) => setNikInput(e.target.value)}
-                          placeholder="Masukkan NIK Pasien"
-                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-teal-600 focus:outline-hidden"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                          Pilih Dokter / Poli
-                        </label>
-                        <ModernDoctorSelect
-                          doctors={doctors}
-                          value={poliInput}
-                          onChange={(val) => setPoliInput(val)}
-                          required
-                        />
-                      </div>
-                    </div>
-
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Tujuan Pemeriksaan
+                        NIK Pasien Sasaran
                       </label>
                       <input
                         type="text"
+                        maxLength={16}
+                        value={nikInput}
+                        onChange={(e) => setNikInput(e.target.value)}
+                        placeholder="Masukkan 16 Digit NIK pasien"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-teal-600 focus:outline-hidden"
                         required
-                        value={purposeInput}
-                        onChange={(e) => setPurposeInput(e.target.value)}
-                        placeholder="Masukkan Tujuan Pemeriksaan (Contoh: Pemeriksaan Rutin & Resep Obat)"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-teal-600 focus:outline-hidden"
                       />
                     </div>
 

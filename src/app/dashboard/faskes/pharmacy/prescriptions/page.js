@@ -20,6 +20,7 @@ import {
   Check
 } from "lucide-react";
 import TxHashLink from "@/components/ui/TxHashLink";
+import ModernSelect from "@/components/ui/ModernSelect";
 
 export default function PrescriptionsPage() {
   const router = useRouter();
@@ -131,20 +132,18 @@ export default function PrescriptionsPage() {
             <div className="flex items-center gap-2 w-full md:w-auto">
               <Filter className="h-4 w-4 text-slate-400 shrink-0" />
               <span className="text-xs font-bold text-slate-500 shrink-0">Filter Status:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {["all", "Menunggu", "Diproses", "Siap Diambil", "Selesai"].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      statusFilter === st
-                        ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-xs"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {st === "all" ? "Semua Status" : st}
-                  </button>
-                ))}
+              <div className="w-44">
+                <ModernSelect
+                  options={[
+                    { value: "all", label: "Semua Status" },
+                    { value: "Menunggu", label: "Menunggu" },
+                    { value: "Diproses", label: "Diproses" },
+                    { value: "Siap Diambil", label: "Siap Diambil" },
+                    { value: "Selesai", label: "Selesai" },
+                  ]}
+                  value={statusFilter}
+                  onChange={(val) => setStatusFilter(val)}
+                />
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import ModernSelect from "@/components/ui/ModernSelect";
 import {
   Activity,
   Building2,
@@ -54,7 +55,8 @@ export default function FaskesRequestsHistory() {
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || item.poli_dokter || "Instalasi Medis",
-          status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
+          status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending" : item.status === "rejected" ? "Rejected" : "Revoked",
+          rawStatus: item.status,
           txHash: item.tx_hash || item.txHash || null,
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
@@ -149,17 +151,19 @@ export default function FaskesRequestsHistory() {
 
               {/* Search and Filters */}
               <div className="flex flex-wrap gap-2">
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="rounded-xl border border-slate-200 px-3 py-1.5 text-[10px] focus:outline-hidden focus:border-teal-800 bg-slate-50 font-bold"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="pending pasien">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="revoked">Revoked</option>
-                </select>
+                <div className="w-40">
+                  <ModernSelect
+                    options={[
+                      { value: "all", label: "Semua Status" },
+                      { value: "approved", label: "Approved" },
+                      { value: "pending", label: "Pending" },
+                      { value: "rejected", label: "Rejected" },
+                      { value: "revoked", label: "Revoked" },
+                    ]}
+                    value={filterStatus}
+                    onChange={(val) => setFilterStatus(val)}
+                  />
+                </div>
 
                 <div className="relative w-44">
                   <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
@@ -184,47 +188,47 @@ export default function FaskesRequestsHistory() {
               <div className="overflow-x-auto">
                 <table className="w-full text-center text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                      <th className="py-3 px-4 rounded-l-xl text-center">Tgl Pengajuan</th>
-                      <th className="py-3 px-4 text-center">Pasien</th>
-                      <th className="py-3 px-4 text-center">Tx Hash</th>
-                      <th className="py-3 px-4 rounded-r-xl text-center">Status Consent</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredRequests.map((req) => (
-                      <tr key={req.id} className="hover:bg-slate-50/50 transition">
-                        <td className="py-4 px-4 text-slate-500 font-semibold text-center">{req.requestedAt}</td>
-                        <td className="py-4 px-4 text-center">
-                          <p className="font-bold text-slate-900">{req.patientName}</p>
-                          <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {maskNik(req.nik)}</p>
-                        </td>
-                        <td className="py-4 px-4 font-mono text-[9px] text-teal-900 text-center max-w-[200px]" title={req.txHash}>
-                          {req.txHash ? (
-                            <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-teal-700 mx-auto" title={req.txHash}>
-                              <span className="truncate max-w-[180px]">{req.txHash}</span>
-                            </TxHashLink>
-                          ) : (
-                            <span className="text-slate-300 italic font-sans">-</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {req.status === "Approved" ? (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[9px] font-bold text-[#16A34A]">
-                              <CheckCircle className="h-3 w-3 text-[#16A34A]" /> Approved
-                            </span>
-                          ) : req.status === "Pending Pasien" ? (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[9px] font-bold text-[#D97706] animate-pulse">
-                              <Clock className="h-3 w-3 text-[#D97706]" /> Pending Pasien
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-[9px] font-bold text-[#DC2626]">
-                              <AlertCircle className="h-3 w-3 text-[#DC2626]" /> {req.status}
-                            </span>
-                          )}
-                        </td>
+                      <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                        <th className="py-3 px-4 rounded-l-xl text-center">Tgl Pengajuan</th>
+                        <th className="py-3 px-4 text-center">Pasien</th>
+                        <th className="py-3 px-4 text-center">Tx Hash</th>
+                        <th className="py-3 px-4 rounded-r-xl text-center">Status</th>
                       </tr>
-                    ))}
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredRequests.map((req) => (
+                        <tr key={req.id} className="hover:bg-slate-50/50 transition">
+                          <td className="py-4 px-4 text-slate-500 font-semibold text-center">{req.requestedAt}</td>
+                          <td className="py-4 px-4 text-center">
+                            <p className="font-bold text-slate-900">{req.patientName}</p>
+                            <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {maskNik(req.nik)}</p>
+                          </td>
+                          <td className="py-4 px-4 font-mono text-[9px] text-teal-900 text-center max-w-[200px]" title={req.txHash}>
+                            {req.txHash ? (
+                              <TxHashLink txHash={req.txHash} className="inline-flex items-center justify-center gap-1 font-bold text-teal-700 mx-auto" title={req.txHash}>
+                                <span className="truncate max-w-[180px]">{req.txHash}</span>
+                              </TxHashLink>
+                            ) : (
+                              <span className="text-slate-300 italic font-sans">-</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4 text-center">
+                            {req.rawStatus === "approved" || req.status === "Approved" ? (
+                              <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[9px] font-bold text-[#16A34A] uppercase">
+                                <CheckCircle className="h-3 w-3 text-[#16A34A]" /> Approved
+                              </span>
+                            ) : req.rawStatus === "pending" || req.status === "Pending" ? (
+                              <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[9px] font-bold text-[#D97706] uppercase animate-pulse">
+                                <Clock className="h-3 w-3 text-[#D97706]" /> Pending
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-[9px] font-bold text-[#DC2626] uppercase">
+                                <AlertCircle className="h-3 w-3 text-[#DC2626]" /> {req.status}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>

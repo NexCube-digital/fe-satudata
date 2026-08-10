@@ -7,6 +7,8 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import Toast from "@/components/ui/Toast";
+import ModernSelect from "@/components/ui/ModernSelect";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import notify from "@/lib/notify";
 import { getDoctors } from "@/services/doctorService";
 import {
@@ -99,15 +101,15 @@ export default function FaskesPatients() {
       });
       const result = await res.json();
       if (res.ok && result.data) {
-        // Filter approved requests only
-        const approvedRequests = result.data.filter(item => item.status === "approved");
-        const mapped = approvedRequests.map((item) => ({
+        // Tampilkan semua pasien (meskipun belum diaktivasi / akun baru)
+        const mapped = result.data.map((item) => ({
           requestId: item.id,
           patientId: item.patient_id,
           patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || "Klinik Umum",
+          status: item.status,
           approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
           txHash: item.tx_hash || item.txHash || null,
           expiryTime: item.expiry_time ? new Date(item.expiry_time).toLocaleDateString("id-ID") : "Selamanya"
@@ -292,11 +294,7 @@ export default function FaskesPatients() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Data Pasien Terdaftar..." fullScreen={false} />;
   }
 
   if (!user) {
@@ -375,7 +373,6 @@ export default function FaskesPatients() {
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
                         <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
-                        <th className="py-3 px-4">Poliklinik Tujuan</th>
                         <th className="py-3 px-4">Tx Hash Otorisasi</th>
                         <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
                       </tr>
@@ -386,9 +383,6 @@ export default function FaskesPatients() {
                           <td className="py-4 px-4">
                             <p className="font-bold text-slate-900">{patient.patientName}</p>
                             <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="font-medium text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg text-[10px] font-semibold">{patient.poli}</span>
                           </td>
                           <td className="py-4 px-4 font-mono text-[10px]">
                             {patient.txHash ? (
@@ -468,16 +462,16 @@ export default function FaskesPatients() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tipe Rekam Medis</label>
-                    <select
+                    <ModernSelect
+                      options={[
+                        { value: "umum", label: "Umum (Pemeriksaan Dokter)" },
+                        { value: "lab", label: "Laboratorium / Tes Darah" },
+                        { value: "radiologi", label: "Radiologi / Rontgen / USG" },
+                        { value: "resep", label: "Resep Obat" },
+                      ]}
                       value={recordType}
-                      onChange={(e) => setRecordType(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                    >
-                      <option value="umum">Umum (Pemeriksaan Dokter)</option>
-                      <option value="lab">Laboratorium / Tes Darah</option>
-                      <option value="radiologi">Radiologi / Rontgen / USG</option>
-                      <option value="resep">Resep Obat</option>
-                    </select>
+                      onChange={(val) => setRecordType(val)}
+                    />
                   </div>
 
                   <div>
@@ -510,17 +504,16 @@ export default function FaskesPatients() {
                         Belum ada dokter terdaftar di RS ini!
                       </div>
                     ) : (
-                      <select
+                      <ModernSelect
+                        options={doctorsList.map((d) => ({
+                          value: d.id,
+                          label: d.name,
+                          sublabel: d.specialist
+                        }))}
                         value={selectedDoctorId}
-                        onChange={(e) => setSelectedDoctorId(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
-                      >
-                        {doctorsList.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name} ({d.specialist})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setSelectedDoctorId(val)}
+                        icon={Stethoscope}
+                      />
                     )}
                   </div>
                 </div>

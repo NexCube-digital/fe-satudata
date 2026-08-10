@@ -205,17 +205,6 @@ export default function Sidebar({ role }) {
         const baseFaskesMenu = [
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
           { href: "/dashboard/faskes/patient-flow", label: "Indikator Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
-          { href: "/dashboard/faskes/staffs", label: "Kelola Staf", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
-          { 
-            label: "Kelola Dokter", 
-            icon: Stethoscope,
-            dropdownKey: "doctors",
-            permissionRequired: ["staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
-              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
-            ]
-          },
           { 
             label: "Data Pasien", 
             icon: Users,
@@ -224,6 +213,16 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
               { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
               { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History, permissionRequired: "access_request:read" },
+            ]
+          },
+          { 
+            label: "Kelola Dokter", 
+            icon: Stethoscope,
+            dropdownKey: "doctors",
+            permissionRequired: ["staff:manage", "role:manage"],
+            children: [
+              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
+              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
             ]
           },
           {
@@ -262,6 +261,7 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
+          { href: "/dashboard/faskes/staffs", label: "Kelola Staf", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
           { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 

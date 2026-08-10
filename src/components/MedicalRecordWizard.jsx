@@ -279,20 +279,18 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       setLoadingPatients(true);
       try {
         const result = await apiGet("/api/hospital/access-requests");
-        const approved = Array.isArray(result?.data)
-          ? result.data.filter((item) => item.status === "approved")
-          : [];
+        const allPatients = Array.isArray(result?.data) ? result.data : [];
 
         setApprovedPatients(
-          approved.map((item) => ({
+          allPatients.map((item) => ({
             patientId: item.patient_id,
-            patientName: item.Patient?.name || item.patient?.name || "Pasien Terotorisasi",
+            patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
             nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
             requestId: item.id,
           }))
         );
       } catch (err) {
-        console.error("Gagal memuat pasien terotorisasi", err);
+        console.error("Gagal memuat pasien", err);
       } finally {
         setLoadingPatients(false);
       }
@@ -595,7 +593,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       return {
         value: med.id,
         disabled: remaining <= 0,
-        label: remaining <= 0 ? `${med.name} â€” Stok Habis` : `${med.name} â€” Sisa ${remaining} ${med.unit}`,
+        label: remaining <= 0 ? `${med.name} (Stok Habis)` : med.name,
       };
     });
 

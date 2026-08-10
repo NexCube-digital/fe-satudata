@@ -7,6 +7,7 @@ import Script from "next/script";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { maskSip } from "@/utils/masking";
 import {
   getMyInvoiceDetail,
   listMyInvoices,
@@ -140,7 +141,7 @@ export default function PatientNewRecordsPage() {
         const beRecords = result.data.map((item) => ({
           id: item.id,
           hospitalName: item.hospital?.user?.name || item.hospital_name || item.hospital?.name || "Faskes tidak tersedia",
-          hospitalCode: item.hospital?.medical_license || "-",
+          hospitalCode: maskSip(item.hospital?.medical_license),
           doctorName: item.doctor?.name || "Dokter tidak tersedia",
           specialty: item.doctor?.specialist || "-",
           category: item.record_type || "resep",

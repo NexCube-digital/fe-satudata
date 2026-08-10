@@ -18,6 +18,7 @@ import {
   X,
   Save
 } from "lucide-react";
+import ModernSelect from "@/components/ui/ModernSelect";
 
 export default function PharmacyInventoryPage() {
   const router = useRouter();
@@ -168,16 +169,16 @@ export default function PharmacyInventoryPage() {
             <div className="flex items-center gap-2 w-full md:w-auto">
               <Filter className="h-4 w-4 text-slate-400 shrink-0" />
               <span className="text-xs font-bold text-slate-500 shrink-0">Kategori:</span>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:border-teal-600"
-              >
-                <option value="all">Semua Kategori</option>
-                {categories.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              <div className="w-48">
+                <ModernSelect
+                  options={[
+                    { value: "all", label: "Semua Kategori" },
+                    ...categories.map((c) => ({ value: c, label: c }))
+                  ]}
+                  value={categoryFilter}
+                  onChange={(val) => setCategoryFilter(val)}
+                />
+              </div>
             </div>
           </div>
 
@@ -287,18 +288,18 @@ export default function PharmacyInventoryPage() {
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase text-slate-500 mb-1">Kategori</label>
-                  <select
+                  <ModernSelect
+                    options={[
+                      "Analgesik / Anti-Piretik",
+                      "Antibiotik",
+                      "Suplemen & Vitamin",
+                      "Obat Batuk & Flu",
+                      "Anti-Histamin / Alergi",
+                      "Obat Lambung / Maag"
+                    ]}
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none bg-white"
-                  >
-                    <option value="Analgesik / Anti-Piretik">Analgesik / Anti-Piretik</option>
-                    <option value="Antibiotik">Antibiotik</option>
-                    <option value="Suplemen & Vitamin">Suplemen & Vitamin</option>
-                    <option value="Obat Batuk & Flu">Obat Batuk & Flu</option>
-                    <option value="Anti-Histamin / Alergi">Anti-Histamin / Alergi</option>
-                    <option value="Obat Lambung / Maag">Obat Lambung / Maag</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, category: val })}
+                  />
                 </div>
               </div>
 
@@ -317,20 +318,13 @@ export default function PharmacyInventoryPage() {
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase text-slate-500 mb-1">Satuan</label>
-                  <select
+                  <ModernSelect
+                    options={["Tablet", "Kaplet", "Kapsul", "Strip", "Botol", "Tube", "Ampul"]}
                     value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 font-bold focus:border-teal-600 focus:outline-none bg-white"
-                  >
-                    <option value="Tablet">Tablet</option>
-                    <option value="Kaplet">Kaplet</option>
-                    <option value="Kapsul">Kapsul</option>
-                    <option value="Strip">Strip</option>
-                    <option value="Botol">Botol</option>
-                    <option value="Tube">Tube</option>
-                    <option value="Pcs">Pcs</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, unit: val })}
+                  />
                 </div>
+
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase text-slate-500 mb-1">Harga (Rp)</label>

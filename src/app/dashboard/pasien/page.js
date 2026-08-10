@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { maskSip } from "@/utils/masking";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import {
@@ -93,7 +95,7 @@ export default function PasienDashboard() {
         const mapped = result.data.map((item) => ({
           id: item.id,
           name: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
-          code: item.hospital?.medical_license || "N/A",
+          code: maskSip(item.hospital?.medical_license),
           dept: "Instalasi / Layanan Medis",
           status: item.status,
           txHash: item.tx_hash || item.txHash || null,
@@ -200,11 +202,7 @@ export default function PasienDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
-      </div>
-    );
+    return <LoadingScreen message="Memuat Portal Kesehatan Pasien..." fullScreen={false} />;
   }
 
   if (!user) {

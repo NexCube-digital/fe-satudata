@@ -687,11 +687,7 @@ export default function MedicalRecordMain(props) {
 													/>
 												</div>
 
-												{item.medicineId && !stockError && remaining != null && (
-													<p className="mt-3 text-[11px] text-slate-400">
-														Sisa stok tersedia: <span className="font-semibold text-slate-600">{remaining} {item.unit}</span>
-													</p>
-												)}
+
 												{stockError && (
 													<p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-[#DC2626]">
 														<AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {stockError}
