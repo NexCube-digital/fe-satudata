@@ -75,7 +75,7 @@ export default function FaskesDashboard() {
 
   const handleSendRequest = async (e) => {
     e.preventDefault();
-    await handleCreateRequest();
+    await handleCreateRequest(e);
   };
 
   const handleViewPatientRecords = async (req) => {

@@ -511,19 +511,14 @@ export default function MedicalRecordMain(props) {
 						<div className="grid gap-6 md:grid-cols-2">
 							<div>
 								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Jenis Perawatan</label>
-								<select
+								<SearchableSelect
 									value={typeOfTreatment}
-									onChange={(e) => onTypeOfTreatmentChange(e.target.value)}
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none cursor-pointer"
+									onChange={onTypeOfTreatmentChange}
+									options={typeOfTreatmentOptions}
+									placeholder="-- Pilih Jenis Perawatan --"
+									emptyText="Jenis perawatan tidak ditemukan."
 									required
-								>
-									<option value="">-- Pilih Jenis Perawatan --</option>
-									{typeOfTreatmentOptions.map((opt) => (
-										<option key={opt.value} value={opt.value}>
-											{opt.label}
-										</option>
-									))}
-								</select>
+								/>
 							</div>
 							<div>
 								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">

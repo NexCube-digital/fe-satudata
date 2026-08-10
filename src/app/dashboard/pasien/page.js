@@ -280,7 +280,7 @@ export default function PasienDashboard() {
                             {h.status === "pending" && (
                               <>
                                 <button
-                                  onClick={() => handleToggleConsent(h.id, "approved", h.status)}
+                                  onClick={() => handleToggleConsent(h.id, "approved")}
                                   disabled={actionInProgress === h.id}
                                   className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-sm flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-emerald-400 cursor-not-allowed" : "bg-[#16A34A] hover:bg-emerald-700 cursor-pointer"}`}
                                 >
@@ -294,7 +294,7 @@ export default function PasienDashboard() {
                                   )}
                                 </button>
                                 <button
-                                  onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
+                                  onClick={() => handleToggleConsent(h.id, "rejected")}
                                   disabled={actionInProgress === h.id}
                                   className={`rounded-xl px-3 py-2 text-xs font-semibold transition flex-1 sm:flex-none text-center ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer"}`}
                                 >
@@ -305,7 +305,8 @@ export default function PasienDashboard() {
 
                             {h.status === "approved" && (
                               <button
-                                onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
+                                onClick={() => handleToggleConsent(h.id, "revoked")}
+                                disabled={actionInProgress === h.id}
                                 className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#DC2626] hover:bg-red-700 text-white px-4 py-2 text-xs font-extrabold shadow-sm hover:shadow-md transition-all cursor-pointer w-full sm:w-auto"
                               >
                                 <Lock className="h-3.5 w-3.5 text-red-200 shrink-0" />
@@ -365,7 +366,7 @@ export default function PasienDashboard() {
                               <p className="text-[10px] text-slate-500 mt-0.5">{rec.doctorName}</p>
                             </div>
                             <button
-                              onClick={() => toggleDecrypt(rec.id)}
+                              onClick={() => handleDecrypt(rec.id)}
                               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer w-full"
                             >
                               {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-[#DC2626]" /> : <Eye className="h-3.5 w-3.5 text-[#16A34A]" />}

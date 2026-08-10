@@ -99,13 +99,20 @@ export function usePatientDashboard() {
     }
   };
 
-  const handleToggleConsent = async (hospitalId, currentStatus) => {
+  const handleToggleConsent = async (hospitalId, targetStatus) => {
     setActionInProgress(hospitalId);
     const token = localStorage.getItem("accessToken");
-    const targetStatus = currentStatus === "approved" ? "revoked" : "approved";
-    const endpoint = currentStatus === "approved"
-      ? `/api/patient/access-requests/${hospitalId}/revoke`
-      : `/api/patient/access-requests/${hospitalId}/approve`;
+    const endpointMap = {
+      approved: `/api/patient/access-requests/${hospitalId}/approve`,
+      rejected: `/api/patient/access-requests/${hospitalId}/reject`,
+      revoked: `/api/patient/access-requests/${hospitalId}/revoke`
+    };
+    const endpoint = endpointMap[targetStatus];
+
+    if (!endpoint || !token) {
+      setActionInProgress(null);
+      return;
+    }
 
     const generatedHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
@@ -118,7 +125,8 @@ export function usePatientDashboard() {
         },
         body: JSON.stringify({ txHash: generatedHash })
       });
-      if (res.ok) {
+      const result = await res.json();
+      if (res.ok && result.success) {
         setHospitals((prev) =>
           prev.map((h) => (h.id === hospitalId ? { ...h, status: targetStatus, txHash: generatedHash } : h))
         );
