@@ -47,7 +47,7 @@ import {
 
 
 import useAuth from "@/hooks/useAuth";
-import usePatientRecords from "@/features/patient/hooks/usePatientRecords";
+import usePatientRecords from "@/hooks/patient/useRecords";
 
 export default function PatientNewRecordsPage() {
   const router = useRouter();

@@ -224,4 +224,5 @@ export function useFaskesDashboard() {
   };
 }
 
+export { useFaskesDashboard as useDashboard };
 export default useFaskesDashboard;

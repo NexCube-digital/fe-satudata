@@ -170,4 +170,5 @@ export function usePatientDashboard() {
   };
 }
 
+export { usePatientDashboard as useDashboard };
 export default usePatientDashboard;

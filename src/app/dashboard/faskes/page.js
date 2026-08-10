@@ -11,7 +11,7 @@ import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import { apiGet, apiPost } from "@/lib/api";
 import useAuth from "@/hooks/useAuth";
-import useFaskesDashboard from "@/features/faskes/hooks/useFaskesDashboard";
+import useFaskesDashboard from "@/hooks/faskes/useDashboard";
 import {
   Stethoscope,
   Send,

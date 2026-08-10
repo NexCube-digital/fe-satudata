@@ -379,4 +379,5 @@ export function usePatientHistory() {
   };
 }
 
+export { usePatientHistory as useHistory };
 export default usePatientHistory;

@@ -1,4 +1,4 @@
-import MedicalRecordWizard from "@/features/medical-records/components/MedicalRecordWizard";
+import MedicalRecordWizard from "@/components/features/faskes/MedicalRecordWizard";
 
 export default async function FaskesMedicalRecordEditPage({ params }) {
   const { id } = await params;

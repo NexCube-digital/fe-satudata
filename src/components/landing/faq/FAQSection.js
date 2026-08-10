@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HelpCircle, ChevronDown, ArrowRight, ShieldCheck, MessageSquare } from "lucide-react";
-import { faqQuestions } from "./landing-data";
+import { HelpCircle, ChevronDown, ArrowRight } from "lucide-react";
+import { faqQuestions } from "../landing-data";
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState(0);

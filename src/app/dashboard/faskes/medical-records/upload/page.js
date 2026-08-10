@@ -1,6 +1,6 @@
 "use client";
 
-import MedicalRecordWizard from "@/features/medical-records/components/MedicalRecordWizard";
+import MedicalRecordWizard from "@/components/features/faskes/MedicalRecordWizard";
 
 export default function FaskesMedicalRecordUploadPage() {
   return <MedicalRecordWizard />;

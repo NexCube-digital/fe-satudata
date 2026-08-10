@@ -385,4 +385,5 @@ export function usePatientRecords() {
   };
 }
 
+export { usePatientRecords as useRecords };
 export default usePatientRecords;

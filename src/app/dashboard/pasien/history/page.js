@@ -7,7 +7,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import useAuth from "@/hooks/useAuth";
-import usePatientHistory from "@/features/patient/hooks/usePatientHistory";
+import usePatientHistory from "@/hooks/patient/useHistory";
 import {
   FileText,
   Search,

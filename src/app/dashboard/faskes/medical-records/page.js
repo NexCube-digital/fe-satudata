@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import PrescriptionList from "@/features/medical-records/components/PrescriptionList";
+import PrescriptionList from "@/components/features/faskes/PrescriptionList";
 import {
   FileText,
   Plus,

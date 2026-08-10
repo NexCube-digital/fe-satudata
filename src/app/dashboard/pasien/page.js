@@ -9,7 +9,7 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import useAuth from "@/hooks/useAuth";
-import usePatientDashboard from "@/features/patient/hooks/usePatientDashboard";
+import usePatientDashboard from "@/hooks/patient/useDashboard";
 import {
   User,
   ShieldCheck,
