@@ -22,6 +22,97 @@ import {
 import TxHashLink from "@/components/ui/TxHashLink";
 import ModernSelect from "@/components/ui/ModernSelect";
 
+function parseMedicineItems(rawStr, generalNote) {
+  if (!rawStr) return [];
+  
+  if (Array.isArray(rawStr)) {
+    return rawStr.map(i => ({
+      name: i.medicine || i.name || "Obat",
+      dosage: i.dosage || i.rule || i.aturan_pakai || "Sesuai petunjuk dokter",
+      quantity: i.quantity || i.qty || i.jumlah || null,
+      note: i.note || generalNote || ""
+    }));
+  }
+
+  if (typeof rawStr === "string") {
+    let str = rawStr.trim();
+    if (str.startsWith("[") || str.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(str);
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        return arr.map(i => ({
+          name: i.medicine || i.name || "Obat",
+          dosage: i.dosage || i.rule || i.aturan_pakai || "Sesuai petunjuk dokter",
+          quantity: i.quantity || i.qty || i.jumlah || null,
+          note: i.note || generalNote || ""
+        }));
+      } catch (e) {}
+    }
+
+    if (str.includes(";")) {
+      return str.split(";").map(part => {
+        const p = part.trim();
+        if (!p) return null;
+        const parts = p.split(":");
+        return {
+          name: parts[0]?.trim() || "Obat",
+          dosage: parts[1]?.trim() || "Sesuai petunjuk dokter",
+          quantity: null,
+          note: generalNote || ""
+        };
+      }).filter(Boolean);
+    }
+
+    if (str.includes(",")) {
+      return str.split(",").map(part => {
+        const p = part.trim();
+        if (!p) return null;
+        if (p.includes(":")) {
+          const parts = p.split(":");
+          return {
+            name: parts[0]?.trim() || "Obat",
+            dosage: parts[1]?.trim() || "Sesuai petunjuk dokter",
+            quantity: null,
+            note: generalNote || ""
+          };
+        }
+        const match = p.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+        return {
+          name: match && match[1] ? match[1].trim() : p,
+          dosage: match && match[2] ? match[2].trim() : "Sesuai petunjuk dokter",
+          quantity: null,
+          note: generalNote || ""
+        };
+      }).filter(Boolean);
+    }
+
+    if (str.includes(":")) {
+      const parts = str.split(":");
+      return [{
+        name: parts[0]?.trim() || "Obat",
+        dosage: parts[1]?.trim() || "Sesuai petunjuk dokter",
+        quantity: null,
+        note: generalNote || ""
+      }];
+    }
+
+    const match = str.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+    return [{
+      name: match && match[1] ? match[1].trim() : str,
+      dosage: match && match[2] ? match[2].trim() : "Sesuai petunjuk dokter",
+      quantity: null,
+      note: generalNote || ""
+    }];
+  }
+
+  return [{
+    name: "Obat",
+    dosage: "Sesuai petunjuk dokter",
+    quantity: null,
+    note: generalNote || ""
+  }];
+}
+
 export default function PrescriptionsPage() {
   const router = useRouter();
   const [prescriptions, setPrescriptions] = useState([]);
@@ -182,10 +273,27 @@ export default function PrescriptionsPage() {
                         <span className="text-xs text-slate-400">• {item.visit_date}</span>
                       </div>
 
-                      <p className="text-xs font-semibold text-slate-700">{item.title}</p>
-                      <p className="text-xs text-slate-500 font-mono bg-slate-100 px-3 py-1.5 rounded-xl inline-block max-w-xl truncate">
-                        {item.list_of_medicines}
-                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5">
+                        {parseMedicineItems(item.list_of_medicines, item.note).map((med, mIdx) => (
+                          <div key={mIdx} className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-2.5 text-xs space-y-1">
+                            <div className="flex items-center justify-between gap-2 font-bold text-slate-800">
+                              <span className="flex items-center gap-1.5 text-slate-900 font-extrabold text-xs">
+                                <Pill className="h-3.5 w-3.5 text-teal-800 shrink-0" />
+                                {med.name}
+                              </span>
+                              {med.quantity && (
+                                <span className="text-[10px] bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md font-mono">
+                                  {med.quantity}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1.5">
+                              <span className="text-slate-400 font-bold uppercase text-[9px] shrink-0">Aturan:</span>
+                              <span className="font-semibold text-teal-900">{med.dosage}</span>
+                            </p>
+                          </div>
+                        ))}
+                      </div>
 
                       {item.tx_hash && (
                         <div className="pt-1">
@@ -261,17 +369,40 @@ export default function PrescriptionsPage() {
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Daftar Obat & Aturan Pakai</span>
-                <p className="font-mono text-slate-800 text-sm whitespace-pre-line leading-relaxed">{selectedRecord.list_of_medicines}</p>
-              </div>
-
-              {selectedRecord.note && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Catatan Dokter</span>
-                  <p className="text-slate-700">{selectedRecord.note}</p>
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                  Rincian Resep & Catatan Obat Per Obat ({parseMedicineItems(selectedRecord.list_of_medicines, selectedRecord.note).length} Item)
+                </span>
+                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                  {parseMedicineItems(selectedRecord.list_of_medicines, selectedRecord.note).map((med, idx) => (
+                    <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50/90 p-3.5 text-xs space-y-2 shadow-2xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-100 text-teal-800 font-extrabold text-xs">
+                            {idx + 1}
+                          </span>
+                          <span className="font-extrabold text-slate-900 text-xs">{med.name}</span>
+                        </div>
+                        {med.quantity && (
+                          <span className="text-[10px] font-mono font-bold bg-white border border-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full">
+                            Jumlah: {med.quantity}
+                          </span>
+                        )}
+                      </div>
+                      <div className="bg-white rounded-xl p-2.5 border border-slate-200/80 text-slate-700 font-mono text-[11px] flex items-center justify-between">
+                        <span className="text-slate-400 font-sans text-[10px] uppercase font-bold">Aturan Pakai:</span>
+                        <span className="font-extrabold text-teal-800">{med.dosage}</span>
+                      </div>
+                      {med.note && (
+                        <div className="bg-amber-50/70 border border-amber-200/70 rounded-xl px-3 py-1.5 text-[11px] text-amber-900">
+                          <span className="font-bold text-[10px] uppercase block text-amber-700">Catatan Khusus:</span>
+                          <p className="italic">{med.note}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs font-bold text-slate-600">Ubah Status Resep:</span>

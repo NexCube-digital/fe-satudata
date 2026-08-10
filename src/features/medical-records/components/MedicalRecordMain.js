@@ -13,7 +13,7 @@ import {
 	Pill,
 	AlertTriangle,
 } from "lucide-react";
-import MedicalRecordUpdateActions from "@/components/MedicalRecordUpdate";
+import MedicalRecordUpdateActions from "@/features/medical-records/components/MedicalRecordUpdate";
 
 function SearchableSelect({
 	value,

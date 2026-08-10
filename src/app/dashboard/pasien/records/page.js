@@ -46,415 +46,58 @@ import {
 } from "lucide-react";
 
 
+import useAuth from "@/hooks/useAuth";
+import usePatientRecords from "@/features/patient/hooks/usePatientRecords";
+
 export default function PatientNewRecordsPage() {
   const router = useRouter();
-  const stepperContainerRef = useRef(null);
-  const [user] = useState(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  });
+  const { user, handleLogout } = useAuth();
+  const {
+    stepperContainerRef,
+    loading,
+    records,
+    invoices,
+    selectedInvoiceId,
+    setSelectedInvoiceId,
+    invoiceLoading,
+    invoiceError,
+    activeStage,
+    paymentMethod,
+    setPaymentMethod,
+    showPaymentModal,
+    setShowPaymentModal,
+    isProcessingPayment,
+    midtransReady,
+    setMidtransReady,
+    paymentFlowStage,
+    paymentFlowInvoiceId,
+    pollAttemptsExceeded,
+    decryptedState,
+    decryptedDetails,
+    decryptingIds,
+    selectedRecord,
+    setSelectedRecord,
+    searchTerm,
+    setSearchTerm,
+    selectedInvoice,
+    paymentStatus,
+    flatInvoiceItems,
+    totalAmount,
+    filteredRecords,
+    isCompletedVisit,
+    toggleDecryptRecord,
+    handleOpenDetailModal,
+    handleProcessOnlinePayment,
+    handleClosePaymentFlow
+  } = usePatientRecords();
 
-  const [loading, setLoading] = useState(true);
-  const [records, setRecords] = useState([]);
-  const [invoices, setInvoices] = useState([]);
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
-  const [invoiceLoading, setInvoiceLoading] = useState(false);
-  const [invoiceError, setInvoiceError] = useState("");
-
-  // Active Flow State (Stage: 1: Registrasi, 2: Rekam Medis, 3: Farmasi, 4: Pelunasan)
-  const [activeStage, setActiveStage] = useState(3); // Default to Farmasi -> Ready for Billing
-  const [paymentMethod, setPaymentMethod] = useState(null); // "qris" | "va" | "cash"
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [midtransReady, setMidtransReady] = useState(false);
-
-  // Modal Proses & Sukses Pembayaran (blocking full-screen)
-  // stage: null (tidak tampil) | "processing" (menunggu konfirmasi) | "success" (lunas)
-  const [paymentFlowStage, setPaymentFlowStage] = useState(null);
-  const [paymentFlowInvoiceId, setPaymentFlowInvoiceId] = useState(null);
-  const [pollAttemptsExceeded, setPollAttemptsExceeded] = useState(false);
-  const pollingActiveRef = useRef(false);
-
-  // Decryption State (Map of record ID -> boolean)
-  const [decryptedState, setDecryptedState] = useState({});
-  const [decryptedDetails, setDecryptedDetails] = useState({});
-  const [decryptingIds, setDecryptingIds] = useState({});
-  const [selectedRecord, setSelectedRecord] = useState(null);
-
-  // Search & Filter State
-  const [searchTerm, setSearchTerm] = useState("");
-
-  async function fetchInvoicesFromBE() {
-    setInvoiceLoading(true);
-    setInvoiceError("");
-    try {
-      const result = await listMyInvoices();
-      const invoiceList = Array.isArray(result?.data) ? result.data : [];
-      setInvoices(invoiceList);
-      setSelectedInvoiceId((currentId) => {
-        if (currentId && invoiceList.some((invoice) => invoice.id === currentId)) return currentId;
-        return invoiceList.find((invoice) => ["unpaid", "pending_cash"].includes(invoice.status))?.id || invoiceList[0]?.id || null;
-      });
-      if (invoiceList.length > 0) setActiveStage(4);
-    } catch (err) {
-      console.error("Error fetching patient invoices", err);
-      setInvoiceError(err.message || "Gagal memuat daftar invoice pasien.");
-    } finally {
-      setInvoiceLoading(false);
-      setLoading(false);
-    }
-  }
-
-  const selectedInvoice = invoices.find((invoice) => invoice.id === selectedInvoiceId) || null;
-  const paymentStatus = selectedInvoice?.status || "pending";
-
-  // Auto-center active stage node in horizontal stepper scroll container
-  useEffect(() => {
-    if (!loading && stepperContainerRef.current) {
-      const activeEl = stepperContainerRef.current.querySelector(`[data-stage="${activeStage}"]`);
-      if (activeEl) {
-        const container = stepperContainerRef.current;
-        const nodeCenter = activeEl.offsetLeft + activeEl.offsetWidth / 2;
-        const containerCenter = container.offsetWidth / 2;
-        container.scrollTo({
-          left: Math.max(0, nodeCenter - containerCenter),
-          behavior: "smooth"
-        });
-      }
-    }
-  }, [activeStage, loading]);
-
-  async function fetchHistoryFromBE() {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const beRecords = result.data.map((item) => ({
-          id: item.id,
-          hospitalName: item.hospital?.user?.name || item.hospital_name || item.hospital?.name || "Faskes tidak tersedia",
-          hospitalCode: maskSip(item.hospital?.medical_license),
-          doctorName: item.doctor?.name || "Dokter tidak tersedia",
-          specialty: item.doctor?.specialist || "-",
-          category: item.record_type || "resep",
-          status: item.status || "final",
-          date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          time: new Date(item.visit_date || item.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB",
-          txHash: item.tx_hash || null,
-          encryptedData: item.encrypted_data || null,
-          diagnosis: item.title || "Rekam medis",
-          prescriptions: Array.isArray(item.prescriptions) ? item.prescriptions : [],
-          vitals: item.vitals || {},
-          notes: item.notes || ""
-        }));
-        setRecords(beRecords);
-      }
-    } catch (err) {
-      console.log("Error fetching history", err);
-    }
-  }
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      fetchHistoryFromBE();
-      fetchInvoicesFromBE();
-    });
-
-    const syncStage = () => {
-      const saved = localStorage.getItem("activePatientStage");
-      if (saved) setActiveStage(parseInt(saved, 10));
-    };
-    syncStage();
-    window.addEventListener("storage", syncStage);
-    const interval = setInterval(syncStage, 800);
-    return () => {
-      window.removeEventListener("storage", syncStage);
-      clearInterval(interval);
-      pollingActiveRef.current = false; // hentikan polling saat komponen unmount
-    };
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/auth/login");
-  };
-
-  const mapBackendDetailToFrontend = (rec, backendData) => {
-    const detail = backendData.detail || {};
-    const summary = backendData.summary || backendData.title || rec.diagnosis;
-
-    let diagnosis = summary;
-    let prescriptions = rec.prescriptions;
-    let vitals = rec.vitals;
-    let notes = "Telah didekripsi secara aman dari backend.";
-
-    if (rec.category === "umum") {
-      diagnosis = detail.diagnosis || summary;
-      notes = detail.note_doctor || "Tidak ada catatan tambahan.";
-    } else if (rec.category === "resep") {
-      diagnosis = "Resep Obat Rawat Jalan";
-      notes = detail.note || "Aturan pakai terlampir.";
-    }
-
-    return {
-      ...rec,
-      diagnosis,
-      prescriptions,
-      vitals,
-      notes,
-      isRealDecrypted: true
-    };
-  };
-
-  const toggleDecryptRecord = async (id) => {
-    const isCurrentlyDecrypted = decryptedState[id];
-    setDecryptedState((prev) => ({ ...prev, [id]: !prev[id] }));
-
-    if (!isCurrentlyDecrypted && !decryptedDetails[id]) {
-      setDecryptingIds((prev) => ({ ...prev, [id]: true }));
-      const token = localStorage.getItem("accessToken");
-      if (!token) return;
-
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const result = await res.json();
-        if (res.ok && result.data) {
-          const originalRecord = records.find(r => r.id === id);
-          const mappedRecord = mapBackendDetailToFrontend(originalRecord, result.data);
-          setDecryptedDetails((prev) => ({ ...prev, [id]: mappedRecord }));
-        }
-      } catch (err) {
-        console.error("Error decrypting record:", err);
-      } finally {
-        setDecryptingIds((prev) => ({ ...prev, [id]: false }));
-      }
-    }
-  };
-
-  const handleOpenDetailModal = async (rec) => {
-    setSelectedRecord(rec);
-    const id = rec.id;
-    if (!decryptedDetails[id]) {
-      setDecryptingIds((prev) => ({ ...prev, [id]: true }));
-      const token = localStorage.getItem("accessToken");
-      if (!token) return;
-
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const result = await res.json();
-        if (res.ok && result.data) {
-          const mappedRecord = mapBackendDetailToFrontend(rec, result.data);
-          setDecryptedDetails((prev) => ({ ...prev, [id]: mappedRecord }));
-          setDecryptedState((prev) => ({ ...prev, [id]: true }));
-        }
-      } catch (err) {
-        console.error("Error decrypting modal detail:", err);
-      } finally {
-        setDecryptingIds((prev) => ({ ...prev, [id]: false }));
-      }
-    }
-  };
-
-  const updateInvoiceFromServer = async (invoiceId) => {
-    const result = await getMyInvoiceDetail(invoiceId);
-    if (!result?.data) return null;
-
-    setInvoices((current) => current.map((invoice) => invoice.id === invoiceId ? result.data : invoice));
-    return result.data;
-  };
-
-  // Polling status invoice sampai berstatus "paid", dipakai untuk flow Midtrans
-  // maupun cash. maxAttempts * 3 detik = total durasi tunggu sebelum kita bilang
-  // "masih diproses" ke pasien (tidak dianggap gagal, cuma butuh waktu lebih lama
-  // karena kasir RS yang harus konfirmasi manual untuk pembayaran cash).
-  const pollInvoiceStatus = async (invoiceId, attempt = 0, maxAttempts = 40) => {
-    if (!invoiceId || !pollingActiveRef.current) return;
-    try {
-      const invoice = await updateInvoiceFromServer(invoiceId);
-      if (invoice?.status === "paid") {
-        setPaymentFlowStage("success");
-        pollingActiveRef.current = false;
-        return;
-      }
-    } catch (err) {
-      console.error("Error polling invoice status", err);
-    }
-    if (!pollingActiveRef.current) return;
-    if (attempt + 1 >= maxAttempts) {
-      setPollAttemptsExceeded(true);
-    }
-    window.setTimeout(() => pollInvoiceStatus(invoiceId, attempt + 1, maxAttempts), 3000);
-  };
-
-  const startPaymentFlow = (invoiceId) => {
-    setPaymentFlowInvoiceId(invoiceId);
-    setPollAttemptsExceeded(false);
-    setPaymentFlowStage("processing");
-    pollingActiveRef.current = true;
-    pollInvoiceStatus(invoiceId, 0);
-  };
-
-  const handleClosePaymentFlow = () => {
-    pollingActiveRef.current = false;
-    setPaymentFlowStage(null);
-    setPaymentFlowInvoiceId(null);
-    setPollAttemptsExceeded(false);
-    // Refresh daftar invoice biar status terbaru langsung kelihatan di list
-    fetchInvoicesFromBE();
-  };
-
-  const handleProcessOnlinePayment = async () => {
-    if (!selectedInvoice || isProcessingPayment) return;
-    setIsProcessingPayment(true);
-
-    try {
-      if (paymentMethod === "cash") {
-        const result = await payMyInvoiceCash(selectedInvoice.id);
-        if (result?.data) {
-          setInvoices((current) => current.map((invoice) => invoice.id === selectedInvoice.id ? result.data : invoice));
-          setShowPaymentModal(false);
-          // Belum otomatis lunas (masih pending_cash) -> tampilkan modal proses,
-          // lalu polling sampai staf RS konfirmasi uang cash sudah diterima.
-          startPaymentFlow(selectedInvoice.id);
-        }
-        return;
-      }
-
-      if (!midtransReady || typeof window === "undefined" || !window.snap) {
-        throw new Error("Payment Gateway belum siap. Coba refresh halaman.");
-      }
-
-      const result = await payMyInvoiceMidtrans(selectedInvoice.id);
-      const snapToken = result?.data?.snap_token || result?.data?.snapToken || result?.snap_token || result?.snapToken;
-      if (!snapToken) throw new Error("Token pembayaran tidak tersedia dari backend.");
-
-      setShowPaymentModal(false);
-      window.snap.pay(snapToken, {
-        onSuccess: () => startPaymentFlow(selectedInvoice.id),
-        onPending: () => startPaymentFlow(selectedInvoice.id),
-        onError: () => setInvoiceError("Pembayaran Midtrans gagal diproses."),
-        onClose: () => {}, // pasien menutup popup Snap tanpa menyelesaikan pembayaran
-      });
-    } catch (err) {
-      console.error("Error processing patient payment", err);
-      setInvoiceError(err.message || "Gagal memproses pembayaran invoice.");
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
-
-  // Document Indicator Flow Configuration
   const flowSteps = [
-    {
-      id: 1,
-      title: "Dokumen Registrasi",
-      statusName: "Pendaftaran Faskes",
-      docTag: "BERKAS DIAJUKAN",
-      time: "Hari Ini, 07.30 WIB",
-      desc: "Status antrean & identitas terverifikasi di Loket Pendaftaran RS.",
-      icon: Building2,
-      isCompleted: true
-    },
-    {
-      id: 2,
-      title: "Dokumen Rekam Medis",
-      statusName: "Upload Rekam Medis (Dokter)",
-      docTag: "EHR TERBIT",
-      time: "Hari Ini, 08.15 WIB",
-      desc: "Dokter mengunggah diagnosa & rekam medis terenkripsi AES-256.",
-      icon: Stethoscope,
-      isCompleted: activeStage >= 2
-    },
-    {
-      id: 3,
-      title: "Dokumen Resep Farmasi",
-      statusName: "Layanan Farmasi & Apotek",
-      docTag: "RESEP DITERBITKAN",
-      time: "Hari Ini, 08.45 WIB",
-      desc: "Staf Apotek merilis lembar resep & racikan obat terkonfirmasi.",
-      icon: Pill,
-      isCompleted: activeStage >= 3
-    },
-    {
-      id: 4,
-      title: "Dokumen Faktur & Pelunasan",
-      statusName: paymentStatus === "paid" ? "Selesai & Lunas" : "Menunggu Pelunasan",
-      docTag: paymentStatus === "paid" ? "FAKTUR LUNAS" : "TAGIHAN TERBIT",
-      time: paymentStatus === "paid" ? "Hari Ini, 09.00 WIB" : "Memerlukan Pembayaran",
-      desc: paymentStatus === "paid" ? "Kwitansi & faktur pembayaran sah diterbitkan." : "Rincian biaya siap dilunasi via Gateway / Loket Pendaftaran.",
-      icon: Receipt,
-      isCompleted: paymentStatus === "paid"
-    }
+    { id: 1, name: "Antrean & Pendaftaran", desc: "Verifikasi Berkas", date: "Hari ini" },
+    { id: 2, name: "Pemeriksaan Dokter", desc: "Konsultasi & Diagnosa", date: "Hari ini" },
+    { id: 3, name: "Resep & Farmasi", desc: "Penyiapan Obat", date: "Hari ini" },
+    { id: 4, name: "Faktur & Pelunasan", desc: "Billing Medis", date: "Hari ini" }
   ];
 
-  // items dari backend KADANG bisa berupa JSON string mentah, bukan array —
-  // ini bisa terjadi kalau di suatu titik (mis. proxy, middleware, atau versi
-  // model lama) nilainya sempat di-stringify dua kali. Helper ini menjaga FE
-  // tetap tampil benar apapun bentuk datanya, tanpa perlu ubah backend.
-  function parseInvoiceItems(rawItems) {
-    if (Array.isArray(rawItems)) return rawItems;
-    if (typeof rawItems === "string") {
-      try {
-        const parsed = JSON.parse(rawItems);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (err) {
-        console.error("Gagal parse invoice.items:", err, rawItems);
-        return [];
-      }
-    }
-    return [];
-  }
-
-  // Map kode item invoice -> label kategori yang ramah dibaca pasien.
-  // Kode "resep" datang dari medicalrecordService (biaya.total_resep), kode
-  // lain (umum/lab/radiologi) dari MEDICAL_TYPE_CODES di BE, sisanya dianggap
-  // biaya tambahan/administrasi (dari service_prices non-medis).
-  function getItemCategoryLabel(item) {
-    const code = (item.code || "").toLowerCase();
-    if (code === "resep") return "Farmasi";
-    if (["umum", "lab", "radiologi"].includes(code)) return "Layanan Medis";
-    if (item.medical_record_id) return "Layanan Medis";
-    return "Administrasi / Biaya Tambahan";
-  }
-
-  // Ambil semua item invoice sebagai list flat, dilengkapi kategori & subtotal.
-  // Dipakai untuk tabel rincian di bawah — tidak bergantung pada matching ke
-  // `records`, jadi tetap tampil walau data rekam medis tidak sinkron.
-  function getFlatInvoiceItems(invoice) {
-    const items = parseInvoiceItems(invoice?.items);
-    return items.map((item) => ({
-      ...item,
-      category: getItemCategoryLabel(item),
-      subtotal: item.subtotal ?? Number(item.price || 0) * Number(item.qty || 1),
-    }));
-  }
-
-  const flatInvoiceItems = getFlatInvoiceItems(selectedInvoice);
-  const totalAmount = Number(selectedInvoice?.total_amount || 0);
-
-  const filteredRecords = records.filter((rec) => {
-    return (
-      rec.hospitalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rec.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rec.diagnosis.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  const isCompletedVisit = invoices.length === 0 && activeStage >= 5;
   const progressWidthPercent = Math.max(0, Math.min(100, ((activeStage - 1) / Math.max(1, flowSteps.length - 1)) * 100));
 
   if (loading) {

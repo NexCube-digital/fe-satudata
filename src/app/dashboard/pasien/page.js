@@ -8,6 +8,8 @@ import { maskSip } from "@/utils/masking";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import useAuth from "@/hooks/useAuth";
+import usePatientDashboard from "@/features/patient/hooks/usePatientDashboard";
 import {
   User,
   ShieldCheck,
@@ -32,174 +34,15 @@ import {
 
 export default function PasienDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Dynamic Dashboard States
-  const [hospitals, setHospitals] = useState([]);
-  const [medicalRecords, setMedicalRecords] = useState([]);
-  const [decryptedRecords, setDecryptedRecords] = useState({});
-  const [actionInProgress, setActionInProgress] = useState(null);
-
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        setUser(parsed);
-        fetchLatestProfile(parsed);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchDashboardData();
-    setLoading(false);
-  }, []);
-
-  const fetchLatestProfile = async (currentUser) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const u = result.data;
-        const updated = {
-          ...currentUser,
-          name: u.name || currentUser.name,
-          nik: u.profil?.nik || u.nik || currentUser.nik,
-          wallet_address: u.wallet_address || currentUser.wallet_address
-        };
-        setUser(updated);
-        localStorage.setItem("user", JSON.stringify(updated));
-        window.dispatchEvent(new Event("userUpdated"));
-      }
-    } catch (err) {
-      console.log("Could not sync profile from BE", err);
-    }
-  };
-
-  const fetchDashboardData = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    // 1. Fetch access requests (hospitals list)
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/access-requests`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const mapped = result.data.map((item) => ({
-          id: item.id,
-          name: item.hospital?.user?.name || "Rumah Sakit Terdaftar",
-          code: maskSip(item.hospital?.medical_license),
-          dept: "Instalasi / Layanan Medis",
-          status: item.status,
-          txHash: item.tx_hash || item.txHash || null,
-          grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          accessTypes: item.requested_data ? item.requested_data.split(",") : ["Diagnosis", "Resep Obat"]
-        }));
-        setHospitals(mapped);
-      }
-    } catch (err) {
-      console.log("Error fetching access requests", err);
-    }
-
-    // 2. Fetch history records list
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const mapped = result.data.map((item) => ({
-          id: item.id,
-          hospitalName: item.hospital?.user?.name || item.hospital_name || item.hospital?.name || "Rumah Sakit Terdaftar",
-          doctorName: item.doctor?.name || "Dokter Spesialis",
-          category: item.record_type || "Rekam Medis Terverifikasi",
-          date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
-          rawTimestamp: new Date(item.visit_date || item.created_at || Date.now()).getTime(),
-          txHash: item.tx_hash || "",
-          diagnosis: item.title || "Konsultasi Medis",
-          details: "Resep: Amoxicillin, Paracetamol. Catatan: Istirahat cukup."
-        })).sort((a, b) => b.rawTimestamp - a.rawTimestamp);
-        setMedicalRecords(mapped);
-      }
-    } catch (err) {
-      console.log("Error fetching history", err);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/auth/login");
-  };
-
-  const handleToggleConsent = async (id, newStatus, currentStatus) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    const status = String(currentStatus || "").toLowerCase();
-    if (newStatus === "approved" && status === "approved") {
-      console.warn("Permintaan sudah disetujui, tidak perlu mengirim ulang.");
-      return;
-    }
-    if (newStatus === "rejected" && status !== "pending") {
-      console.warn("Hanya request yang masih pending yang bisa ditolak.");
-      return;
-    }
-    if (newStatus === "revoked" && status !== "approved") {
-      console.warn("Hanya request yang sudah disetujui yang bisa dicabut.");
-      return;
-    }
-
-    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-
-    let endpoint = "";
-    if (newStatus === "approved") {
-      endpoint = `/api/patient/access-requests/${id}/approve`;
-    } else if (newStatus === "rejected") {
-      endpoint = `/api/patient/access-requests/${id}/reject`;
-    } else if (newStatus === "revoked") {
-      endpoint = `/api/patient/access-requests/${id}/revoke`;
-    }
-
-    if (!endpoint) {
-      console.warn("Status action tidak dikenali:", newStatus);
-      return;
-    }
-
-    setActionInProgress(id);
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ txHash })
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        fetchDashboardData();
-      } else {
-        console.error("Gagal mengubah status izin:", result.message);
-      }
-    } catch (err) {
-      console.error("Error toggling consent:", err);
-    } finally {
-      setActionInProgress(null);
-    }
-  };
-
-  const toggleDecrypt = (recId) => {
-    setDecryptedRecords((prev) => ({ ...prev, [recId]: !prev[recId] }));
-  };
+  const { user, loading, handleLogout } = useAuth();
+  const {
+    hospitals,
+    medicalRecords,
+    decryptedRecords,
+    actionInProgress,
+    handleToggleConsent,
+    handleDecrypt
+  } = usePatientDashboard();
 
   if (loading) {
     return <LoadingScreen message="Memuat Portal Kesehatan Pasien..." fullScreen={false} />;

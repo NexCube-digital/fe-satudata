@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
-import MedicalRecordMain from "@/components/MedicalRecordMain";
+import MedicalRecordMain from "@/features/medical-records/components/MedicalRecordMain";
 import { apiGet } from "@/lib/api";
 import {
   ArrowUpRight,

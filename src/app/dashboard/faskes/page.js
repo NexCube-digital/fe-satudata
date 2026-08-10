@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
@@ -10,6 +10,8 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import { apiGet, apiPost } from "@/lib/api";
+import useAuth from "@/hooks/useAuth";
+import useFaskesDashboard from "@/features/faskes/hooks/useFaskesDashboard";
 import {
   Stethoscope,
   Send,
@@ -40,23 +42,30 @@ import {
 
 export default function FaskesDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Form Minta Akses State (nikInput is the wallet address of the patient in Web3)
-  const [nikInput, setNikInput] = useState("");
-  const [poliInput, setPoliInput] = useState("");
-  const [purposeInput, setPurposeInput] = useState("");
-  const [submittingRequest, setSubmittingRequest] = useState(false);
-  const [doctors, setDoctors] = useState([]);
-
-  // External Requests Table State
-  const [requestsList, setRequestsList] = useState([]);
-  const [hospitalProfile, setHospitalProfile] = useState(null);
-
-  // Selected Decrypted Record Modal State
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+  const { user, loading, isStaff, hasPermission, handleLogout } = useAuth();
+  const {
+    nikInput,
+    setNikInput,
+    poliInput,
+    setPoliInput,
+    purposeInput,
+    setPurposeInput,
+    submittingRequest,
+    doctors,
+    requestsList,
+    hospitalProfile,
+    selectedRecord,
+    setSelectedRecord,
+    toast,
+    syncingReqId,
+    stats,
+    pharmacyStats,
+    sessionOmzet,
+    recentInvoices,
+    loadingInvoices,
+    handleCreateRequest,
+    handleSyncBlockchain
+  } = useFaskesDashboard();
 
   // POS Kasir Simulator State
   const [billItems, setBillItems] = useState([]);
@@ -64,207 +73,9 @@ export default function FaskesDashboard() {
   const [newItemPrice, setNewItemPrice] = useState("");
   const [receiptSuccess, setReceiptSuccess] = useState(false);
 
-  // Live dashboard statistics
-  const [stats, setStats] = useState({
-    kunjungan_hari_ini: 0,
-    izin_akses_disetujui: 0,
-    request_pending: 0
-  });
-  const [sessionOmzet, setSessionOmzet] = useState(0);
-  const [pharmacyStats, setPharmacyStats] = useState({
-    total_medicines: 0,
-    low_stock_count: 0,
-    today_sales: 0,
-    pending_prescriptions: 0
-  });
-
-  const isStaff = user?.role === "staf_rs";
-  const userPerms = user?.staff_profile?.permissions || user?.permissions || null;
-
-  const hasPermission = (code) => {
-    if (!isStaff) return true;
-    if (!Array.isArray(userPerms)) return false;
-    return userPerms.includes(code);
-  };
-
-  // Recent Invoices State for Kasir / Finance Card
-  const [recentInvoices, setRecentInvoices] = useState([]);
-  const [loadingInvoices, setLoadingInvoices] = useState(false);
-
-  const fetchRecentInvoices = async () => {
-    setLoadingInvoices(true);
-    try {
-      const res = await apiGet("/api/invoice/list");
-      const list = Array.isArray(res?.data) ? res.data : [];
-      setRecentInvoices(list);
-    } catch (err) {
-      console.error("Error loading recent invoices:", err);
-    } finally {
-      setLoadingInvoices(false);
-    }
-  };
-
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchRequestsList();
-    fetchDoctorsList();
-    fetchDashboardStats();
-    fetchRecentInvoices();
-    setLoading(false);
-  }, []);
-
-  const fetchDashboardStats = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/dashboard/hospital`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.success && result.data) {
-        const { stats: backendStats, profile: backendProfile } = result.data;
-        setStats({
-          kunjungan_hari_ini: backendStats?.kunjungan_hari_ini || 0,
-          izin_akses_disetujui: backendStats?.izin_akses_disetujui || 0,
-          request_pending: backendStats?.request_pending || 0
-        });
-        if (backendProfile) {
-          setHospitalProfile(backendProfile);
-        }
-      }
-
-      // Ambil statistik Apoteker & POS
-      const pharmRes = await apiGet("/api/hospital/pharmacy/stats");
-      if (pharmRes.success && pharmRes.data) {
-        setPharmacyStats(pharmRes.data);
-        if (pharmRes.data.today_sales) {
-          setSessionOmzet(pharmRes.data.today_sales);
-        }
-      }
-    } catch (err) {
-      console.error("Error loading dashboard stats:", err);
-    }
-  };
-
-  const fetchDoctorsList = async () => {
-    try {
-      const res = await getDoctors();
-      if (res.success && res.data) {
-        setDoctors(res.data);
-      }
-    } catch (err) {
-      console.error("Error fetching doctors:", err);
-    }
-  };
-
-  const fetchRequestsList = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.data) {
-        const mapped = result.data.map((item) => ({
-          id: item.id,
-          patientId: item.patient_id,
-          patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
-          nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
-          poli: item.requested_data || "Instalasi Medis",
-          status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.tx_hash || item.txHash || null,
-          requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
-        }));
-        setRequestsList(mapped);
-      }
-    } catch (err) {
-      console.log("Error loading requests list:", err);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/auth/login");
-  };
-
-  const showToast = (message, type = "success", title = "") => {
-    setToast({ show: true, type, title, message });
-    window.setTimeout(() => {
-      setToast((prev) => ({ ...prev, show: false }));
-    }, 3500);
-  };
-
   const handleSendRequest = async (e) => {
     e.preventDefault();
-    if (!nikInput) return;
-    setSubmittingRequest(true);
-
-    const token = localStorage.getItem("accessToken");
-    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          patientNik: nikInput,
-          jenisDataDiminta: "Pemeriksaan Medis",
-          txHash
-        })
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        fetchRequestsList();
-        fetchDashboardStats();
-        setNikInput("");
-        showToast("Permintaan akses rekam medis berhasil dikirim ke portal pasien!", "success", "Berhasil");
-      } else {
-        showToast(result.message || "Gagal membuat permohonan akses", "error", "Gagal");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Terjadi kesalahan saat mengirimkan permohonan", "error", "Gagal");
-    } finally {
-      setSubmittingRequest(false);
-    }
-  };
-
-  const [syncingReqId, setSyncingReqId] = useState(null);
-
-  const handleSyncBlockchain = async (requestId) => {
-    setSyncingReqId(requestId);
-    const token = localStorage.getItem("accessToken");
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests/${requestId}/sync-blockchain`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const result = await res.json();
-      if (res.ok && result.success) {
-        showToast("Data otorisasi NIK berhasil di-upload ulang ke blockchain (bc-satudata)!", "success", "Sync Berhasil");
-        fetchRequestsList();
-      } else {
-        showToast(result.message || "Gagal meng-upload ulang data ke blockchain", "error", "Gagal Sync");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Terjadi kesalahan koneksi saat sync ke blockchain", "error", "Gagal Sync");
-    } finally {
-      setSyncingReqId(null);
-    }
+    await handleCreateRequest();
   };
 
   const handleViewPatientRecords = async (req) => {
@@ -284,12 +95,9 @@ export default function FaskesDashboard() {
           ...req,
           decryptedData: recordsStr
         });
-      } else {
-        showToast(result.message || "Gagal memuat rekam medis", "error", "Gagal");
       }
     } catch (err) {
       console.error(err);
-      showToast("Terjadi kesalahan saat memproses data medis", "error", "Gagal");
     }
   };
 
@@ -329,17 +137,12 @@ export default function FaskesDashboard() {
 
       const res = await apiPost("/api/hospital/pharmacy/pos/checkout", payload);
       if (res.success) {
-        setSessionOmzet((prev) => prev + totalBill);
         setReceiptSuccess(true);
         setBillItems([]);
-        fetchDashboardStats();
         setTimeout(() => setReceiptSuccess(false), 5000);
-      } else {
-        showToast(res.message || "Gagal memproses transaksi kasir", "error", "Gagal");
       }
     } catch (err) {
       console.error(err);
-      showToast("Gagal memproses transaksi kasir", "error", "Gagal");
     }
   };
 
