@@ -28,7 +28,8 @@ import {
   Zap,
   RefreshCw
 } from "lucide-react";
-import { getAvatarUrl } from "@/lib/api";
+import { Eye, EyeOff } from "lucide-react";
+import { apiPut, getAvatarUrl } from "@/lib/api";
 
 export default function SettingPage() {
   const router = useRouter();
@@ -148,6 +149,10 @@ export default function SettingPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState({ type: "", text: "" });
+  const [hasPassword, setHasPassword] = useState(true);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // State Wallet (personal - non-admin)
   const [walletAddress, setWalletAddress] = useState("");
@@ -228,6 +233,9 @@ export default function SettingPage() {
           setIsNikFilledOnLoad(true);
         }
         setWalletAddress(parsed.wallet_address || "");
+        const isGoogleUser = parsed.auth_provider === "google";
+        const passwordConfigured = localStorage.getItem(`passwordConfigured:${parsed.id}`) === "true" || parsed.passwordConfigured === true || parsed.hasPassword === true;
+        setHasPassword(!isGoogleUser || passwordConfigured || parsed.hasPassword === true);
 
         // Jika admin, ambil info system wallet
         if (parsed.role === "admin") {
@@ -426,6 +434,13 @@ export default function SettingPage() {
         }
         setStatusAccount(u.status_account || currentUser?.status_account || "active");
         setWalletAddress(u.wallet_address || "");
+        const isGoogleUser = currentUser?.auth_provider === "google";
+        const passwordConfigured = localStorage.getItem(`passwordConfigured:${currentUser?.id}`) === "true" || currentUser?.passwordConfigured === true || currentUser?.hasPassword === true;
+        if (!isGoogleUser || passwordConfigured) {
+          setHasPassword(true);
+        } else if (typeof u.hasPassword === "boolean") {
+          setHasPassword(u.hasPassword);
+        }
 
         if (u.profil) {
           const pPhone = u.profil.phone || "";
@@ -605,31 +620,26 @@ export default function SettingPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordMsg({ type: "error", text: "Kata sandi baru minimal 6 karakter" });
+    if (newPassword.length < 8) {
+      setPasswordMsg({ type: "error", text: "Kata sandi baru minimal 8 karakter" });
       return;
     }
 
     setPasswordLoading(true);
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/update-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ oldPassword, newPassword })
+      const result = await apiPut("/api/auth/update-password", {
+        oldPassword,
+        newPassword,
+        confirmPassword,
       });
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Gagal memperbarui kata sandi");
-      }
-
       setPasswordMsg({ type: "success", text: result.message || "Kata sandi berhasil diperbarui!" });
+      setHasPassword(true);
+      localStorage.setItem(`passwordConfigured:${user?.id}`, "true");
+      const updatedUser = { ...(user || {}), hasPassword: true, passwordConfigured: true };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -723,6 +733,7 @@ export default function SettingPage() {
     faskes: "Fasilitas Kesehatan",
     pasien: "Pasien Terdaftar"
   };
+  const canUseWallet = ["admin", "rumah_sakit", "faskes"].includes(user?.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
@@ -766,17 +777,19 @@ export default function SettingPage() {
               Keamanan & Sandi
             </button>
 
-            <button
-              onClick={() => setActiveTab("wallet")}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === "wallet"
-                  ? "border-teal-700 text-teal-800"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Wallet className="h-4 w-4" />
-              {user?.role === "admin" ? "Dompet Sistem" : "Web3 & MetaMask"}
-            </button>
+            {canUseWallet && (
+              <button
+                onClick={() => setActiveTab("wallet")}
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
+                  activeTab === "wallet"
+                    ? "border-teal-700 text-teal-800"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <Wallet className="h-4 w-4" />
+                {user?.role === "admin" ? "Dompet Sistem" : "Web3 & MetaMask"}
+              </button>
+            )}
           </div>
 
           {/* TAB 1: PROFIL PENGGUNA */}
@@ -1223,9 +1236,27 @@ export default function SettingPage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
               <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <Lock className="h-5 w-5 text-teal-800" />
-                Ganti Kata Sandi
+                {hasPassword ? "Ganti Kata Sandi" : "Atur Kata Sandi"}
               </h2>
 
+              {!hasPassword && (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-500">
+                    Akun Google Anda belum memiliki kata sandi. Atur kata sandi terlebih dahulu agar dapat masuk tanpa Google dan menggunakan fitur keamanan akun.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/auth/set-password")}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer"
+                  >
+                    <Key className="h-4 w-4" />
+                    Atur Kata Sandi Sekarang
+                  </button>
+                </div>
+              )}
+
+              {hasPassword && (
+                <>
               {passwordMsg.text && (
                 <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
                   passwordMsg.type === "success" 
@@ -1243,13 +1274,16 @@ export default function SettingPage() {
                   <div className="relative">
                     <Key className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <input
-                      type="password"
+                      type={showOldPassword ? "text" : "password"}
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
+                    <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer" aria-label={showOldPassword ? "Sembunyikan password" : "Tampilkan password"}>
+                      {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -1258,13 +1292,16 @@ export default function SettingPage() {
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <input
-                      type="password"
+                      type={showNewPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
+                      placeholder="Minimal 8 karakter"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer" aria-label={showNewPassword ? "Sembunyikan password" : "Tampilkan password"}>
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -1273,13 +1310,16 @@ export default function SettingPage() {
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ulangi kata sandi baru"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
                       required
                     />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer" aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}>
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -1298,11 +1338,13 @@ export default function SettingPage() {
                   </button>
                 </div>
               </form>
+                </>
+              )}
             </div>
           )}
 
           {/* TAB 3: WEB3 & METAMASK */}
-          {activeTab === "wallet" && (
+          {activeTab === "wallet" && canUseWallet && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
 
               {/* ── ADMIN: tampilkan System Wallet (read-only) ── */}

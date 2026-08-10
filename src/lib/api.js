@@ -3,6 +3,27 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
+const parseResponse = async (response) => {
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text();
+
+  if (!text) return {};
+
+  if (contentType.includes("application/json")) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: "Backend mengirim response JSON yang tidak valid." };
+    }
+  }
+
+  return {
+    message: text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")
+      ? `Endpoint API tidak ditemukan atau mengembalikan halaman HTML (HTTP ${response.status}).`
+      : text.trim(),
+  };
+};
+
 /**
  * Token & User Local Storage Helpers
  */
@@ -96,7 +117,7 @@ export const refreshAuthToken = async () => {
       body: JSON.stringify({ refreshToken }),
     });
 
-    const result = await response.json();
+    const result = await parseResponse(response);
 
     if (response.ok && result.success && result.data) {
       setTokens(result.data.accessToken, result.data.refreshToken);
@@ -181,7 +202,7 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
   }
 
-  const data = await response.json().catch(() => ({}));
+  const data = await parseResponse(response);
 
   if (!response.ok) {
     const error = new Error(data.message || data.error || `HTTP error! status: ${response.status}`);

@@ -86,16 +86,15 @@ function ActivateContent() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/set-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ newPassword: password, confirmPassword })
+      const result = await apiPost("/api/auth/set-password", { newPassword: password, confirmPassword }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const result = await res.json();
-      if (res.ok && result.success) {
+      if (result.success) {
+        const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+        if (currentUser) {
+          localStorage.setItem(`passwordConfigured:${currentUser.id}`, "true");
+          localStorage.setItem("user", JSON.stringify({ ...currentUser, hasPassword: true, passwordConfigured: true }));
+        }
         setPassMsg("Kata sandi berhasil disimpan! Mengalihkan...");
         setTimeout(() => {
           router.push("/dashboard/pasien");

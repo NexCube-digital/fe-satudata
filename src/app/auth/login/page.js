@@ -25,13 +25,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: response.credential, role: role })
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Login Google gagal");
+      const result = await apiPost("/api/auth/google", { idToken: response.credential, role });
 
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
