@@ -113,11 +113,9 @@ export function usePatientHistory() {
           department: "Unit Pelayanan Medis",
           doctorName: "Dokter Penanggung Jawab",
           accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],
-          duration: "30 Hari",
+          requestDescription: item.requested_data || "Riwayat Rekam Medis Terenkripsi",
           status: item.status || "pending",
           txHash: item.tx_hash || item.txHash || null,
-          grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
-          expiresAt: item.expire_time ? new Date(item.expire_time).toLocaleDateString("id-ID") : "-"
         }));
         setRequests(beRequests);
       }
@@ -331,6 +329,7 @@ export function usePatientHistory() {
     const matchesSearch =
       req.hospitalName.toLowerCase().includes(searchTermConsent.toLowerCase()) ||
       req.hospitalCode.toLowerCase().includes(searchTermConsent.toLowerCase()) ||
+      req.requestDescription.toLowerCase().includes(searchTermConsent.toLowerCase()) ||
       (req.txHash && req.txHash.toLowerCase().includes(searchTermConsent.toLowerCase()));
 
     if (!matchesSearch) return false;
