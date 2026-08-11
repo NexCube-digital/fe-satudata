@@ -28,6 +28,7 @@ import {
   Filter,
   Sparkles,
   ArrowDown,
+  Pill,
   X
 } from "lucide-react";
 import {
@@ -40,6 +41,7 @@ import {
   payInvoiceMidtrans,
 } from "@/services/invoiceService";
 import { getServicePrices } from "@/services/servicePriceService";
+import { apiGet } from "@/lib/api";
 
 const formatRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -48,6 +50,27 @@ const formatRupiah = (value) => {
     maximumFractionDigits: 0,
   }).format(value || 0);
 };
+
+function parsePrescriptionList(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (err) {
+      return raw.split(",").map((medStr) => {
+        const trimmed = medStr.trim();
+        const match = trimmed.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+        return {
+          medicine: match && match[1] ? match[1].trim() : trimmed,
+          quantity: match && match[2] ? match[2].trim() : "-",
+        };
+      });
+    }
+  }
+  return [];
+}
 
 function formatEncryptedNIK(nik, fallbackId = 1) {
   let cleanNik = nik && String(nik).trim() !== "" && nik !== "-" 
@@ -180,6 +203,7 @@ export default function FaskesCreateInvoicePage() {
   const [newChargeCode, setNewChargeCode] = useState("");
   const [newChargeName, setNewChargeName] = useState("");
   const [newChargePrice, setNewChargePrice] = useState("");
+  const [medicinesCatalog, setMedicinesCatalog] = useState([]);
   const [notes, setNotes] = useState("");
   const [invoices, setInvoices] = useState([]);
 
@@ -364,15 +388,39 @@ export default function FaskesCreateInvoicePage() {
     }
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPatientId || isCreateModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedPatientId, isCreateModalOpen]);
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [patientsRes, chargesRes, servicePricesRes] = await Promise.all([
+      const [patientsRes, chargesRes, servicePricesRes, medicinesRes] = await Promise.all([
         getInvoicePatients().catch(() => null),
         getAdditionalCharges().catch(() => null),
         getServicePrices({ status: "active" }).catch(() => null),
+        apiGet("/api/hospital/pharmacy/medicines").catch(() => null),
       ]);
       const patientList = Array.isArray(patientsRes?.data) ? patientsRes.data : [];
+      setMedicinesCatalog(Array.isArray(medicinesRes?.data) ? medicinesRes.data : (Array.isArray(medicinesRes) ? medicinesRes : []));
 
       const listFromServicePrices = Array.isArray(servicePricesRes?.data)
         ? servicePricesRes.data
@@ -549,9 +597,25 @@ export default function FaskesCreateInvoicePage() {
     if (!patientOverview || !Array.isArray(patientOverview.records)) return 0;
     return selectedRecords.reduce((acc, id) => {
       const rec = patientOverview.records.find((r) => r.id === id);
-      return acc + (rec?.biaya?.total_keseluruhan || 0);
+      if (!rec) return acc;
+
+      const priceLayanan = Number(rec.biaya?.pengobatan?.[0]?.price ?? 150000);
+      const medList = parsePrescriptionList(rec.detail?.resep?.list_of_medicines);
+      const calcResep = medList.reduce((mAcc, m) => {
+        const matchedMed = medicinesCatalog.find(
+          (med) =>
+            String(med.id) === String(m.medicine_id || m.medicineId) ||
+            med.name?.toLowerCase().trim() === m.medicine?.toLowerCase().trim()
+        );
+        const unitPrice = matchedMed ? Number(matchedMed.price || 0) : 0;
+        const qtyVal = parseInt(String(m.quantity || "1").split(" ")[0], 10) || 1;
+        return mAcc + (unitPrice * qtyVal);
+      }, 0);
+      const finalResep = Number(rec.biaya?.total_resep || 0) > 0 ? Number(rec.biaya.total_resep) : calcResep;
+
+      return acc + priceLayanan + finalResep;
     }, 0);
-  }, [patientOverview, selectedRecords]);
+  }, [patientOverview, selectedRecords, medicinesCatalog]);
 
   const totalAdditionalAmount = useMemo(() => {
     return additionalItems.reduce((acc, item) => acc + (item.amount || 0), 0);
@@ -905,67 +969,170 @@ export default function FaskesCreateInvoicePage() {
           </div>
 
           {/* FORM PENYUSUNAN INVOICE (DILUNCURKAN SAAT TOMBOL 'PROSES' DIKLIK) */}
-          <div ref={formRef}>
-            {selectedPatientId && selectedPatientData ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-                {/* Form Terbitkan Invoice Baru */}
-                <div className="lg:col-span-2 space-y-6">
-                  <form
-                    onSubmit={handleCreateInvoiceSubmit}
-                    className="rounded-3xl bg-white border border-teal-200/80 p-6 shadow-md space-y-6"
-                  >
-                    <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-                      <div>
-                        <div className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-0.5 text-[10px] font-bold text-[#0284C7] mb-1">
-                          <RefreshCw className="h-3 w-3 animate-spin text-[#0284C7]" /> Status: Diproses Kasir
-                        </div>
-                        <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-teal-800" />
-                          Form Invoice - {selectedPatientData.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          NIK: {formatEncryptedNIK(selectedPatientData.nik, selectedPatientId)} | ID Pasien #{selectedPatientId}
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPatientId(null)}
-                        className="text-xs text-slate-400 hover:text-slate-600 font-bold border border-slate-200 rounded-xl px-2.5 py-1 cursor-pointer"
-                      >
-                        Tutup Form ✕
-                      </button>
+          {/* MODAL FORM PENYUSUNAN INVOICE PASIEN */}
+          {selectedPatientId && selectedPatientData && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-fade-in"
+              onClick={() => setSelectedPatientId(null)}
+            >
+              <div
+                className="w-full max-w-2xl max-h-[90vh] my-6 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header Modal */}
+                <div className="sticky top-0 z-10 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-teal-300/40 bg-white/10 px-3 py-0.5 text-[10px] font-bold text-teal-100 mb-1">
+                      <RefreshCw className="h-3 w-3 animate-spin text-teal-200" /> Status: Diproses Kasir
                     </div>
+                    <h3 className="text-lg sm:text-xl font-extrabold tracking-tight flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-teal-200" />
+                      Form Invoice - {selectedPatientData.name}
+                    </h3>
+                    <p className="text-xs text-teal-200/80 mt-0.5">
+                      NIK: {formatEncryptedNIK(selectedPatientData.nik, selectedPatientId)} | ID Pasien #{selectedPatientId}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPatientId(null)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25 transition cursor-pointer text-white shrink-0"
+                    aria-label="Tutup Form Invoice"
+                    title="Tutup Form"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-                    {/* Rekam Medis Belum di-Invoice */}
+                <div className="p-5 sm:p-6">
+                  {/* Main Form */}
+                  <form onSubmit={handleCreateInvoiceSubmit} className="space-y-6">
+                    {/* 1. Pilih Rekam Medis Pasien (Uninvoiced) */}
                     <div>
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
                         1. Pilih Rekam Medis Pasien (Uninvoiced)
                       </h4>
-                      <p className="text-[10px] text-slate-400 mb-2.5 -mt-2">
-                        Klik ikon <ChevronDown className="h-3 w-3 inline align-text-bottom" /> pada setiap baris untuk melihat rincian item layanan yang ditagihkan.
-                      </p>
                       {availableMedicalRecords.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
                           Semua rekam medis pasien ini sudah diterbitkan faktur invoice-nya.
                         </div>
                       ) : (
-                        <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                          {availableMedicalRecords.map((rec) => (
-                            <MedicalRecordRow
-                              key={rec.id}
-                              rec={rec}
-                              isChecked={selectedRecords.includes(rec.id)}
-                              onToggleSelect={() => handleSelectRecord(rec.id)}
-                              expanded={expandedRecordIds.includes(rec.id)}
-                              onToggleExpand={() => handleToggleExpandRecord(rec.id)}
-                            />
-                          ))}
+                        <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                          {availableMedicalRecords.map((rec) => {
+                            const isChecked = selectedRecords.includes(rec.id);
+                            const medList = parsePrescriptionList(rec.detail?.resep?.list_of_medicines);
+
+                            const calcResep = medList.reduce((mAcc, m) => {
+                              const matchedMed = medicinesCatalog.find(
+                                (med) =>
+                                  String(med.id) === String(m.medicine_id || m.medicineId) ||
+                                  med.name?.toLowerCase().trim() === m.medicine?.toLowerCase().trim()
+                              );
+                              const unitPrice = matchedMed ? Number(matchedMed.price || 0) : 0;
+                              const qtyVal = parseInt(String(m.quantity || "1").split(" ")[0], 10) || 1;
+                              return mAcc + (unitPrice * qtyVal);
+                            }, 0);
+
+                            const priceResep = Number(rec.biaya?.total_resep || 0) > 0 ? Number(rec.biaya.total_resep) : calcResep;
+                            const priceLayanan = Number(rec.biaya?.pengobatan?.[0]?.price ?? 150000);
+                            const totalBiaya = priceLayanan + priceResep;
+
+                            return (
+                              <div
+                                key={rec.id}
+                                onClick={() => handleSelectRecord(rec.id)}
+                                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2.5 text-xs ${
+                                  isChecked
+                                    ? "bg-teal-50/80 border-teal-300 text-slate-900 shadow-2xs"
+                                    : "bg-slate-50/50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {}}
+                                      className="h-4 w-4 rounded-md text-teal-800 focus:ring-teal-600 cursor-pointer shrink-0"
+                                    />
+                                    <div>
+                                      <p className="font-bold text-slate-900">{rec.title || "Tindakan Medis"}</p>
+                                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-500 mt-1">
+                                        <span>{rec.visitDate || rec.recordType}</span>
+                                        {rec.type_of_treatment && (
+                                          <span className="font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                                            {rec.type_of_treatment}
+                                          </span>
+                                        )}
+                                        {priceResep > 0 && (
+                                          <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-flex items-center gap-1">
+                                            <Pill className="h-3 w-3 text-emerald-600" /> Total Obat: {formatRupiah(priceResep)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-right shrink-0">
+                                    <span className="font-mono font-bold text-slate-900 block text-xs">
+                                      {formatRupiah(totalBiaya)}
+                                    </span>
+                                    {priceResep > 0 && (
+                                      <span className="text-[10px] text-slate-500 font-medium block mt-0.5">
+                                        (Layanan: {formatRupiah(priceLayanan)} + Obat: {formatRupiah(priceResep)})
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {medList.length > 0 && (
+                                  <div className="mt-1 p-3 rounded-xl bg-white border border-teal-200/80 space-y-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-teal-800 flex items-center justify-between">
+                                      <span className="flex items-center gap-1.5">
+                                        <Pill className="h-3.5 w-3.5 text-teal-600" /> RINCIAN RESEP OBAT ({medList.length} JENIS)
+                                      </span>
+                                      <span className="text-emerald-700 font-extrabold">{formatRupiah(priceResep)}</span>
+                                    </p>
+                                    <div className="space-y-1.5 pt-1 border-t border-slate-100">
+                                      {medList.map((m, mIdx) => {
+                                        const matchedMed = medicinesCatalog.find(
+                                          (med) =>
+                                            String(med.id) === String(m.medicine_id || m.medicineId) ||
+                                            med.name?.toLowerCase().trim() === m.medicine?.toLowerCase().trim()
+                                        );
+                                        const unitPrice = matchedMed ? Number(matchedMed.price || 0) : 0;
+                                        const qtyVal = parseInt(String(m.quantity || "1").split(" ")[0], 10) || 1;
+                                        const itemSubtotal = unitPrice > 0 ? unitPrice * qtyVal : 0;
+
+                                        return (
+                                          <div key={mIdx} className="flex items-center justify-between text-slate-700 text-xs py-1">
+                                            <div className="flex flex-col min-w-0 pr-2">
+                                              <span className="font-semibold text-slate-800 flex items-center gap-1.5 truncate">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
+                                                {m.medicine || m.name || "Obat"}
+                                              </span>
+                                              <span className="text-[10px] text-slate-500 pl-3">
+                                                {m.quantity || m.qty || "-"}
+                                                {unitPrice > 0 && ` × ${formatRupiah(unitPrice)}`}
+                                              </span>
+                                            </div>
+                                            <span className="font-mono font-bold text-teal-900 text-xs shrink-0">
+                                              {itemSubtotal > 0 ? formatRupiah(itemSubtotal) : (unitPrice > 0 ? formatRupiah(unitPrice) : "-")}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
 
-                    {/* Biaya Tambahan / Preset Biaya Awal RS */}
+                    {/* 2. Biaya Tambahan / Preset Biaya Awal RS */}
                     <div>
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
                         2. Komponen Biaya Tambahan (Master Biaya RS)
@@ -1056,68 +1223,9 @@ export default function FaskesCreateInvoicePage() {
                     </div>
                   </form>
                 </div>
-
-                {/* Sidebar Kanan: Tagihan Pasien Terbit */}
-                <div className="space-y-6">
-                  <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
-                      <span>Tagihan Pasien Ini ({invoices.length})</span>
-                      <Wallet className="h-4 w-4 text-teal-800" />
-                    </h3>
-
-                    {invoices.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-6 text-center italic">Belum ada invoice diterbitkan untuk pasien ini.</p>
-                    ) : (
-                      <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                        {invoices.map((inv) => {
-                          const isPaid = inv.status === "paid";
-                          return (
-                            <div key={inv.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono font-extrabold text-teal-900">{inv.invoice_number || inv.id}</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                                  isPaid ? "bg-emerald-50 text-[#16A34A] border-emerald-200" : "bg-amber-50 text-[#D97706] border-amber-200"
-                                }`}>
-                                  {isPaid ? "✔ Lunas" : "Belum Lunas"}
-                                </span>
-                              </div>
-                              <p className="font-mono font-bold text-slate-900 text-sm">{formatRupiah(inv.total_amount)}</p>
-
-                              {!isPaid && (
-                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60">
-                                  <button
-                                    type="button"
-                                    onClick={() => handlePayManual(inv.id)}
-                                    disabled={submitting}
-                                    className="rounded-xl bg-slate-900 text-white font-bold text-[10px] py-2 hover:bg-slate-800 transition cursor-pointer"
-                                  >
-                                    Bayar Cash
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handlePayMidtrans(inv.id)}
-                                    disabled={submitting}
-                                    className="rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-[10px] py-2 hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
-                                  >
-                                    Transfer
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
-            ) : (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-white/60 p-8 text-center text-slate-400 text-xs">
-                <ArrowDown className="h-6 w-6 text-teal-600 mx-auto mb-2 animate-bounce" />
-                Silakan klik tombol <strong>&quot;Proses Tagihan&quot;</strong> pada tabel antrean di atas untuk memunculkan form penyusunan invoice pasien.
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </main>
       </div>
 

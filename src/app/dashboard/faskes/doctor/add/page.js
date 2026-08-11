@@ -8,6 +8,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
 import notify from "@/lib/notify";
 import { createDoctor } from "@/services/doctorService";
+import { getSpecialties } from "@/services/specialtyService";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 import {
   Users,
   Building2,
@@ -38,6 +40,7 @@ export default function FaskesAddDoctor() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [specialtiesList, setSpecialtiesList] = useState([]);
 
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
@@ -87,6 +90,13 @@ export default function FaskesAddDoctor() {
   const videoRef = useRef(null);
 
   useEffect(() => {
+    try {
+      const activeSpecs = getSpecialties().filter((s) => s.status === "active");
+      setSpecialtiesList(activeSpecs);
+    } catch (e) {
+      console.error("Gagal memuat spesialisasi", e);
+    }
+
     const userData = localStorage.getItem("user");
     if (userData) {
       try {
@@ -416,13 +426,15 @@ export default function FaskesAddDoctor() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Spesialisasi / Poli</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Masukkan spesialisasi / poliklinik dokter"
+                      <SearchableSelect
                         value={formData.specialist}
-                        onChange={(e) => setFormData({ ...formData, specialist: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
+                        onChange={(val) => setFormData({ ...formData, specialist: val })}
+                        options={specialtiesList.map((spec) => ({
+                          value: spec.name,
+                          label: spec.name,
+                        }))}
+                        placeholder="-- Pilih Spesialisasi / Poli --"
+                        required
                       />
                     </div>
 

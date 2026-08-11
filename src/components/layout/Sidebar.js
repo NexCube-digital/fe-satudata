@@ -222,7 +222,8 @@ export default function Sidebar({ role }) {
             permissionRequired: ["staff:manage", "role:manage"],
             children: [
               { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
-              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus }
+              { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus },
+              { href: "/dashboard/faskes/doctor/specialties", label: "Kelola Spesialisasi", icon: Activity }
             ]
           },
           {
@@ -257,7 +258,7 @@ export default function Sidebar({ role }) {
             permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
             children: [
               { href: "/dashboard/faskes/finance", label: "Atur Biaya Layanan", icon: DollarSign, permission: "finance:read" },
-              { href: "/dashboard/faskes/finance/invoice", label: "Buat Invoice Tagihan", icon: CreditCard, permission: "finance:manage" },
+              { href: "/dashboard/faskes/finance/invoice", label: "Invoice & Tagihan", icon: CreditCard, permission: "finance:manage" },
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },

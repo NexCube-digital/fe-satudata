@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
@@ -11,6 +11,8 @@ import {
   updateDoctor,
   deleteDoctor
 } from "@/services/doctorService";
+import { getSpecialties } from "@/services/specialtyService";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 import {
   Users,
   Building2,
@@ -30,7 +32,9 @@ import {
   Camera,
   Upload,
   X,
-  Move
+  Move,
+  Search,
+  Stethoscope
 } from "lucide-react";
 
 const DAYS_OF_WEEK = [
@@ -63,6 +67,11 @@ export default function FaskesDoctorsList() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [doctors, setDoctors] = useState([]);
+  const [specialtiesList, setSpecialtiesList] = useState([]);
+  
+  // Search & Specialty Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState("all");
   
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,6 +120,24 @@ export default function FaskesDoctorsList() {
   const videoRef = useRef(null);
 
   useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    try {
+      const activeSpecs = getSpecialties().filter((s) => s.status === "active");
+      setSpecialtiesList(activeSpecs);
+    } catch (e) {
+      console.error("Gagal memuat spesialisasi", e);
+    }
+
     const userData = localStorage.getItem("user");
     if (userData) {
       try {
@@ -130,11 +157,25 @@ export default function FaskesDoctorsList() {
         setDoctors(res.data);
       }
     } catch (err) {
-      console.error("Error loading doctors:", err);
+      console.error("Gagal memuat daftar dokter", err);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter((doc) => {
+      if (selectedSpecialtyFilter !== "all" && doc.specialist !== selectedSpecialtyFilter) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const haystack = [doc.name, doc.specialist, doc.medical_license, doc.phone].filter(Boolean).join(" ").toLowerCase();
+        return haystack.includes(q);
+      }
+      return true;
+    });
+  }, [doctors, selectedSpecialtyFilter, searchQuery]);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -529,31 +570,97 @@ export default function FaskesDoctorsList() {
                 </p>
               </div>
 
-              <button
-                onClick={() => router.push("/dashboard/faskes/doctor/add")}
-                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-5 py-3 text-xs sm:text-sm shadow-md transition shrink-0 cursor-pointer"
-              >
-                <Plus className="h-4.5 w-4.5" /> Tambah Dokter Baru
-              </button>
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/faskes/doctor/specialties")}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 text-xs sm:text-sm backdrop-blur-md transition cursor-pointer"
+                >
+                  <Stethoscope className="h-4.5 w-4.5 text-teal-300" />
+                  <span>Kelola Master Spesialisasi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/faskes/doctor/add")}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-300 hover:to-cyan-400 text-slate-950 font-extrabold px-5 py-3 text-xs sm:text-sm shadow-md transition cursor-pointer"
+                >
+                  <Plus className="h-4.5 w-4.5 stroke-[3]" />
+                  <span>Tambah Dokter Baru</span>
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Search & Specialty Filter Controls */}
+          {doctors.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari nama dokter, NIK, atau SIP..."
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs font-semibold text-slate-800 outline-none focus:border-teal-600 focus:bg-white transition"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Filter Spesialisasi:</span>
+                <div className="w-64">
+                  <SearchableSelect
+                    value={selectedSpecialtyFilter}
+                    onChange={(val) => setSelectedSpecialtyFilter(val)}
+                    options={[
+                      { value: "all", label: `Semua Spesialisasi (${doctors.length})` },
+                      ...specialtiesList.map((spec) => {
+                        const count = doctors.filter((d) => d.specialist === spec.name).length;
+                        return {
+                          value: spec.name,
+                          label: `${spec.name} (${count})`,
+                        };
+                      }),
+                    ]}
+                    placeholder="-- Pilih Spesialisasi --"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Doctor Cards Grid */}
-          {doctors.length === 0 ? (
+          {filteredDoctors.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-slate-200/80 shadow-xs">
               <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-700">Belum Ada Dokter Terdaftar</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto mb-6">Tambahkan dokter baru untuk menghubungkannya dengan unit medis.</p>
-              <button
-                onClick={() => router.push("/dashboard/faskes/doctor/add")}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-4 py-2.5 text-xs transition cursor-pointer"
-              >
-                <Plus className="h-4.5 w-4.5" /> Mulai Tambah Dokter
-              </button>
+              <h3 className="text-lg font-bold text-slate-700">
+                {searchQuery || selectedSpecialtyFilter !== "all" ? "Dokter Tidak Ditemukan" : "Belum Ada Dokter Terdaftar"}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto mb-6">
+                {searchQuery || selectedSpecialtyFilter !== "all"
+                  ? "Coba sesuaikan kata kunci pencarian atau filter spesialisasi Anda."
+                  : "Tambahkan dokter baru untuk menghubungkannya dengan unit medis."}
+              </p>
+              {!searchQuery && selectedSpecialtyFilter === "all" && (
+                <button
+                  onClick={() => router.push("/dashboard/faskes/doctor/add")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-4 py-2.5 text-xs transition cursor-pointer"
+                >
+                  <Plus className="h-4.5 w-4.5" /> Mulai Tambah Dokter
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {doctors.map((doctor) => (
+              {filteredDoctors.map((doctor) => (
                 <div key={doctor.id} className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-2xs hover:shadow-md transition duration-200 flex flex-col justify-between">
                   <div>
                     {/* Top Identity Row */}
@@ -705,13 +812,15 @@ export default function FaskesDoctorsList() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Spesialisasi / Poli</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Contoh: Kardiologi"
+                      <SearchableSelect
                         value={formData.specialist}
-                        onChange={(e) => setFormData({ ...formData, specialist: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-teal-600 focus:outline-hidden bg-white text-slate-850"
+                        onChange={(val) => setFormData({ ...formData, specialist: val })}
+                        options={specialtiesList.map((spec) => ({
+                          value: spec.name,
+                          label: spec.name,
+                        }))}
+                        placeholder="-- Pilih Spesialisasi / Poli --"
+                        required
                       />
                     </div>
 

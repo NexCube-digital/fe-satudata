@@ -279,7 +279,7 @@ export default function PharmacyPOSPage() {
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <span className="font-extrabold text-[#16A34A] text-sm">
-                          Rp {med.price.toLocaleString("id-ID")}
+                          Rp {med.price.toLocaleString("id-ID")} / {med.unit || "Strip"}
                         </span>
                         <span className="text-[11px] font-bold text-teal-800 flex items-center gap-1">
                           <Plus className="h-3.5 w-3.5" /> Tambah
@@ -365,12 +365,14 @@ export default function PharmacyPOSPage() {
                       <div key={item.medicine_id} className="flex items-center justify-between text-xs p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="space-y-0.5 max-w-[160px]">
                           <p className="font-bold text-slate-900 truncate">{item.name}</p>
-                          <p className="text-[11px] text-[#16A34A] font-extrabold">Rp {item.price.toLocaleString("id-ID")}</p>
+                          <p className="text-[11px] text-[#16A34A] font-extrabold">
+                            Rp {item.price.toLocaleString("id-ID")} / {item.unit || "Strip"}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center border border-slate-200 rounded-lg bg-white">
+                          <div className="flex items-center border border-slate-200 rounded-lg bg-white px-1 py-0.5">
                             <button onClick={() => updateQty(item.medicine_id, -1)} className="p-1 hover:bg-slate-100 text-slate-600"><Minus className="h-3 w-3" /></button>
-                            <span className="px-2 font-extrabold text-slate-900">{item.qty}</span>
+                            <span className="px-1.5 font-extrabold text-slate-900 text-[11px]">{item.qty} {item.unit || "Strip"}</span>
                             <button onClick={() => updateQty(item.medicine_id, 1)} className="p-1 hover:bg-slate-100 text-slate-600"><Plus className="h-3 w-3" /></button>
                           </div>
                           <button onClick={() => removeFromCart(item.medicine_id)} className="text-red-500 hover:text-red-700 p-1">

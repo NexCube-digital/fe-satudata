@@ -312,6 +312,9 @@ export default function MedicalRecordMain(props) {
 		typeOfTreatment,
 		onTypeOfTreatmentChange,
 		typeOfTreatmentOptions,
+		doctorSpecialtyFilter,
+		onDoctorSpecialtyFilterChange,
+		specialtiesList = [],
 		doctorId,
 		onDoctorChange,
 		doctorOptions,
@@ -341,8 +344,6 @@ export default function MedicalRecordMain(props) {
 		existingAttachmentsInfo,
 		attachmentFiles,
 		onRemoveAttachment,
-		successMessage,
-		errorMessage,
 		updateActionsProps,
 	} = props;
 
@@ -508,16 +509,30 @@ export default function MedicalRecordMain(props) {
 							</div>
 						</div>
 
-						<div className="grid gap-6 md:grid-cols-2">
+						<div className="grid gap-6 md:grid-cols-3">
 							<div>
-								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Jenis Perawatan</label>
+								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Jenis Layanan</label>
 								<SearchableSelect
 									value={typeOfTreatment}
 									onChange={onTypeOfTreatmentChange}
 									options={typeOfTreatmentOptions}
-									placeholder="-- Pilih Jenis Perawatan --"
-									emptyText="Jenis perawatan tidak ditemukan."
+									placeholder="-- Pilih Jenis Layanan --"
+									emptyText="Jenis layanan tidak ditemukan."
 									required
+								/>
+							</div>
+							<div>
+								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+									Spesialisasi Dokter <span className="text-slate-400 font-medium normal-case ml-1">(filter)</span>
+								</label>
+								<SearchableSelect
+									value={doctorSpecialtyFilter}
+									onChange={onDoctorSpecialtyFilterChange}
+									options={[
+										{ value: "all", label: "Semua Spesialisasi" },
+										...specialtiesList.map((s) => ({ value: s.name, label: s.name })),
+									]}
+									placeholder="-- Semua Spesialisasi --"
 								/>
 							</div>
 							<div>
@@ -531,7 +546,13 @@ export default function MedicalRecordMain(props) {
 									isLoading={loadingDoctors}
 									loadingText="Memuat daftar dokter..."
 									placeholder="-- Tidak ditentukan --"
-									emptyText="Tidak ada dokter yang cocok dengan pencarian."
+									emptyText={
+										doctorSpecialtyFilter && doctorSpecialtyFilter !== "all"
+											? `Tidak ada dokter dengan spesialisasi ${doctorSpecialtyFilter}.`
+											: typeOfTreatment
+											? "Tidak ada dokter yang sesuai dengan jenis layanan ini."
+											: "Tidak ada dokter yang cocok dengan pencarian."
+									}
 								/>
 								{selectedDoctorInfo?.practice_schedule?.trim() && (
 									<p className="mt-2 flex items-start gap-1.5 text-xs text-slate-500">
@@ -760,17 +781,6 @@ export default function MedicalRecordMain(props) {
 					</div>
 				)}
 			</div>
-
-			{successMessage && (
-				<div className="mt-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-sm font-medium text-[#16A34A]">
-					{successMessage}
-				</div>
-			)}
-			{errorMessage && (
-				<div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm font-medium text-[#DC2626]">
-					{errorMessage}
-				</div>
-			)}
 
 			<MedicalRecordUpdateActions {...updateActionsProps} />
 		</div>

@@ -18,6 +18,10 @@ import {
   updateMedicalRecordDraft,
   getMedicalRecordById,
 } from "@/services/hospitalService";
+import { getServicePrices } from "@/services/servicePriceService";
+import { getSpecialties } from "@/services/specialtyService";
+import Toast from "@/components/ui/Toast";
+import notify from "@/lib/notify";
 
 const RECORD_TYPES = [
   { value: "umum", label: "Umum" },
@@ -75,12 +79,101 @@ function getDetailFieldsConfig(type) {
   }
 }
 
+function isDoctorMatchingSpecialty(doctor, selectedSpec) {
+  if (!selectedSpec || selectedSpec === "all") return true;
+
+  const docSpec = (doctor?.specialist || "").toLowerCase().trim();
+  const targetSpec = (selectedSpec || "").toLowerCase().trim();
+
+  if (!docSpec) return false;
+  if (docSpec === targetSpec) return true;
+
+  const extractKeyTerm = (str) => {
+    if (str.includes("paru") || str.includes("pulmonologi")) return "paru";
+    if (str.includes("jantung") || str.includes("kardiologi") || str.includes("kardiovaskuler")) return "jantung";
+    if (str.includes("penyakit dalam") || str.includes("sp.pd") || str.includes("internis")) return "dalam";
+    if (str.includes("bedah") || str.includes("sp.b")) return "bedah";
+    if (str.includes("anak") || str.includes("sp.a") || str.includes("pediatri")) return "anak";
+    if (str.includes("obstetri") || str.includes("ginekologi") || str.includes("obgyn")) return "obgyn";
+    if (str.includes("saraf") || str.includes("neurologi")) return "saraf";
+    if (str.includes("anestesi")) return "anestesi";
+    if (str.includes("umum")) return "umum";
+    return str;
+  };
+
+  const docKey = extractKeyTerm(docSpec);
+  const targetKey = extractKeyTerm(targetSpec);
+
+  return docKey === targetKey || docSpec.includes(targetSpec) || targetSpec.includes(docSpec);
+}
+
 function buildEmptyDetail(type) {
   const empty = {};
   getDetailFieldsConfig(type).forEach((f) => {
     empty[f.name] = "";
   });
   return empty;
+}
+
+function isDoctorMatchingTreatment(doctor, treatmentType) {
+  if (!treatmentType) return true;
+
+  const spec = (doctor?.specialist || "").toLowerCase();
+  const name = (doctor?.name || "").toLowerCase();
+
+  switch (treatmentType) {
+    case "rawat_inap": {
+      // Rawat Inap: Penyakit Dalam, Paru, Jantung, Bedah, Obsgyn, Saraf, Anak, Anestesi, Dokter Umum
+      const keywords = [
+        "penyakit dalam", "sp.pd", "internis",
+        "paru", "pulmonologi", "sp.p",
+        "jantung", "kardiologi", "kardiovaskuler", "sp.jp",
+        "bedah", "sp.b", "sp.btkv", "sp.bs", "sp.ot", "sp.ba", "sp.u", "sp.bp",
+        "obstetri", "ginekologi", "obgyn", "obsgyn", "sp.og",
+        "saraf", "neurologi", "sp.n", "sp.s",
+        "anak", "pediatri", "sp.a",
+        "anestesi", "sp.an",
+        "umum"
+      ];
+      return keywords.some((kw) => spec.includes(kw) || name.includes(kw));
+    }
+    case "rawat_jalan": {
+      // Rawat Jalan: Semua dokter
+      return true;
+    }
+    case "igd": {
+      // IGD: Dokter Umum, Bedah, Anestesi, Penyakit Dalam, Jantung, Paru, Anak, Obsgyn, Saraf, IGD
+      const keywords = [
+        "umum", "kepala klinik",
+        "bedah", "sp.b", "sp.btkv", "sp.bs", "sp.ot", "sp.ba", "sp.u", "sp.bp",
+        "anestesi", "sp.an",
+        "penyakit dalam", "sp.pd", "internis",
+        "jantung", "kardiologi", "kardiovaskuler", "sp.jp",
+        "paru", "pulmonologi", "sp.p",
+        "anak", "pediatri", "sp.a",
+        "obstetri", "ginekologi", "obgyn", "sp.og",
+        "saraf", "neurologi", "sp.n", "sp.s",
+        "gawat", "darurat", "igd"
+      ];
+      return keywords.some((kw) => spec.includes(kw) || name.includes(kw));
+    }
+    case "one_day_care": {
+      // One Day Care: Bedah, Rehab Medis (KFR), Obsgyn, Penyakit Dalam, Mata, THT, Gigi, Dokter Umum
+      const keywords = [
+        "bedah", "sp.b", "sp.btkv", "sp.bs", "sp.ot", "sp.ba", "sp.u", "sp.bp",
+        "rehabilitasi", "kfr", "sp.kfr",
+        "obstetri", "ginekologi", "obgyn", "sp.og",
+        "penyakit dalam", "sp.pd", "internis",
+        "mata", "sp.m",
+        "tht", "sp.tht",
+        "gigi", "mulut",
+        "umum"
+      ];
+      return keywords.some((kw) => spec.includes(kw) || name.includes(kw));
+    }
+    default:
+      return true;
+  }
 }
 
 const MAX_ATTACHMENTS = 5;
@@ -241,13 +334,32 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   const [recordId, setRecordId] = useState(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+  const showToast = (message, type = "success", title = "", tipe) =>
+    notify(setToast, { type, title, message, tipe });
+
+  const setErrorMessage = (msg) => {
+    if (msg) {
+      showToast(msg, "error", "Perhatian");
+    }
+  };
+
+  const setSuccessMessage = (msg) => {
+    if (msg) {
+      showToast(msg, "success", "Berhasil");
+    }
+  };
+
   const [uploadedResult, setUploadedResult] = useState(null);
   const [copiedTx, setCopiedTx] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [doctorsList, setDoctorsList] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [servicePrices, setServicePrices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [doctorSpecialtyFilter, setDoctorSpecialtyFilter] = useState("all");
+  const [specialtiesList, setSpecialtiesList] = useState([]);
 
   const [resumedDoctorInfo, setResumedDoctorInfo] = useState(null);
 
@@ -273,6 +385,49 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       }
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const activeList = getSpecialties().filter((s) => s.status === "active");
+      setSpecialtiesList(activeList);
+    } catch (err) {
+      console.error("Gagal memuat spesialisasi", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchServicePricesData = async () => {
+      setLoadingServices(true);
+      try {
+        const res = await getServicePrices();
+        if (res?.success && Array.isArray(res.data)) {
+          setServicePrices(res.data.filter((s) => s.status === "active"));
+        } else if (Array.isArray(res)) {
+          setServicePrices(res.filter((s) => s.status === "active"));
+        }
+      } catch (err) {
+        console.error("Gagal memuat daftar jenis layanan dari finance", err);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+
+    fetchServicePricesData();
+  }, []);
+
+  const typeOfTreatmentOptions = useMemo(() => {
+    if (servicePrices.length > 0) {
+      const options = servicePrices.map((sp) => ({
+        value: sp.name,
+        label: sp.code ? `${sp.name} (${sp.code})` : sp.name,
+      }));
+      if (typeOfTreatment && !options.some((o) => o.value === typeOfTreatment)) {
+        options.unshift({ value: typeOfTreatment, label: typeOfTreatment });
+      }
+      return options;
+    }
+    return TYPE_OF_TREATMENT_OPTIONS;
+  }, [servicePrices, typeOfTreatment]);
 
   useEffect(() => {
     const fetchApprovedPatients = async () => {
@@ -452,13 +607,53 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicinesCatalog]);
 
-  const doctorsForSelection = useMemo(() => {
-    const alreadyInList = doctorsList.some((d) => String(d.id) === String(doctorId));
-    if (doctorId && !alreadyInList && resumedDoctorInfo && String(resumedDoctorInfo.id) === String(doctorId)) {
-      return [resumedDoctorInfo, ...doctorsList];
+  const handleTypeOfTreatmentChange = (val) => {
+    setTypeOfTreatment(val);
+    if (val && doctorId) {
+      const selectedDoc = doctorsList.find((d) => String(d.id) === String(doctorId)) || resumedDoctorInfo;
+      if (selectedDoc && !isDoctorMatchingTreatment(selectedDoc, val)) {
+        setDoctorId("");
+      }
     }
+  };
+
+  const handleDoctorSpecialtyFilterChange = (val) => {
+    setDoctorSpecialtyFilter(val);
+    if (val && val !== "all" && doctorId) {
+      const selectedDoc = doctorsList.find((d) => String(d.id) === String(doctorId)) || resumedDoctorInfo;
+      if (selectedDoc && !isDoctorMatchingSpecialty(selectedDoc, val)) {
+        setDoctorId("");
+      }
+    }
+  };
+
+  const filteredDoctorsList = useMemo(() => {
+    let list = doctorsList;
+
+    if (doctorSpecialtyFilter && doctorSpecialtyFilter !== "all") {
+      const specFiltered = list.filter((d) => isDoctorMatchingSpecialty(d, doctorSpecialtyFilter));
+      if (specFiltered.length > 0) return specFiltered;
+    } else if (typeOfTreatment) {
+      const treatmentFiltered = list.filter((d) => isDoctorMatchingTreatment(d, typeOfTreatment));
+      if (treatmentFiltered.length > 0) return treatmentFiltered;
+    }
+
     return doctorsList;
-  }, [doctorsList, doctorId, resumedDoctorInfo]);
+  }, [doctorsList, doctorSpecialtyFilter, typeOfTreatment]);
+
+  const doctorsForSelection = useMemo(() => {
+    const alreadyInFiltered = filteredDoctorsList.some((d) => String(d.id) === String(doctorId));
+    if (doctorId && !alreadyInFiltered) {
+      const fullMatch = doctorsList.find((d) => String(d.id) === String(doctorId));
+      if (fullMatch) {
+        return [fullMatch, ...filteredDoctorsList];
+      }
+      if (resumedDoctorInfo && String(resumedDoctorInfo.id) === String(doctorId)) {
+        return [resumedDoctorInfo, ...filteredDoctorsList];
+      }
+    }
+    return filteredDoctorsList;
+  }, [filteredDoctorsList, doctorsList, doctorId, resumedDoctorInfo]);
 
   const patientOptions = useMemo(
     () =>
@@ -471,15 +666,10 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
 
   const doctorOptions = useMemo(
     () =>
-      doctorsForSelection.map((d) => {
-        const schedule = d.practice_schedule?.trim();
-        return {
-          value: d.id,
-          label: schedule
-            ? `${d.name} - ${d.specialist || "Dokter Umum"} (${schedule})`
-            : `${d.name} - ${d.specialist || "Dokter Umum"}`,
-        };
-      }),
+      doctorsForSelection.map((d) => ({
+        value: d.id,
+        label: d.name,
+      })),
     [doctorsForSelection]
   );
 
@@ -749,7 +939,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       return "Pilih jenis rekam medis lalu lengkapi step 'Informasi Kunjungan' dulu.";
     }
     if (currentStep === STEP_KUNJUNGAN && !isKunjunganValid()) {
-      return "Lengkapi Pasien, Judul, Tanggal Kunjungan, dan Jenis Perawatan terlebih dahulu.";
+      return "Lengkapi Pasien, Judul, Tanggal Kunjungan, dan Jenis Layanan terlebih dahulu.";
     }
     if (currentStep.startsWith("detail_")) {
       const type = currentStep.replace("detail_", "");
@@ -787,7 +977,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
         return false;
       }
       if (!typeOfTreatment) {
-        setErrorMessage("Jenis perawatan wajib dipilih.");
+        setErrorMessage("Jenis layanan wajib dipilih.");
         return false;
       }
 
@@ -1033,8 +1223,11 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             onVisitDateChange={setVisitDate}
             todayStr={todayStr}
             typeOfTreatment={typeOfTreatment}
-            onTypeOfTreatmentChange={setTypeOfTreatment}
-            typeOfTreatmentOptions={TYPE_OF_TREATMENT_OPTIONS}
+            onTypeOfTreatmentChange={handleTypeOfTreatmentChange}
+            typeOfTreatmentOptions={typeOfTreatmentOptions}
+            doctorSpecialtyFilter={doctorSpecialtyFilter}
+            onDoctorSpecialtyFilterChange={handleDoctorSpecialtyFilterChange}
+            specialtiesList={specialtiesList}
             doctorId={doctorId}
             onDoctorChange={setDoctorId}
             doctorOptions={doctorOptions}
@@ -1064,8 +1257,6 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             existingAttachmentsInfo={existingAttachmentsInfo}
             attachmentFiles={attachmentFiles}
             onRemoveAttachment={removeAttachment}
-            successMessage={successMessage}
-            errorMessage={errorMessage}
             updateActionsProps={{
               isFirstStep,
               isSavingStep,
@@ -1175,6 +1366,9 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
           </div>
         </div>
       )}
+
+      {/* Floating Toast Notification */}
+      <Toast toast={toast} onClose={() => setToast({ ...toast, show: false })} />
     </div>
   );
 }

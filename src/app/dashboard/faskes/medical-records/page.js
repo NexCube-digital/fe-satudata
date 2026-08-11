@@ -23,8 +23,17 @@ import {
   Pencil,
   Inbox,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import { getHospitalMedicalRecords } from "@/services/hospitalService";
+
+const formatRupiah = (value) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+};
 
 // Label tampilan untuk tiap jenis detail rekam medis
 const DETAIL_TYPE_LABELS = {
@@ -135,6 +144,17 @@ export default function FaskesMedicalRecordsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (selectedRecord) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedRecord]);
+
   const handleStageChange = (recordId, newStage) => {
     setRecordStages((prev) => ({ ...prev, [recordId]: newStage }));
     localStorage.setItem("activePatientStage", newStage.toString());
@@ -163,6 +183,7 @@ export default function FaskesMedicalRecordsPage() {
           patientId: item.patient?.id ?? item.user_id ?? null,
           patientName: item.patient?.name || "Pasien Tidak Diketahui",
           recordType: item.record_type,
+          typeOfTreatment: item.type_of_treatment,
           title: item.title,
           visitDate: item.visit_date,
           status: item.status,
@@ -170,6 +191,8 @@ export default function FaskesMedicalRecordsPage() {
           doctorSpecialist: item.doctor?.specialist || "-",
           summary: item.summary || null,
           detail: item.detail || {},
+          biaya: item.biaya || null,
+          totalPrice: Number(item.biaya?.total_keseluruhan ?? item.total_price ?? item.total_amount ?? 0),
           attachments: item.attachments || [],
           dataHash: item.data_hash,
           txHash: item.tx_hash || null,
@@ -332,7 +355,7 @@ export default function FaskesMedicalRecordsPage() {
                           <th className="px-4 py-2 font-semibold whitespace-nowrap">Visit Date</th>
                           <th className="px-4 py-2 font-semibold">Pasien</th>
                           <th className="px-4 py-2 font-semibold">Judul & Tx Hash</th>
-                          <th className="px-4 py-2 font-semibold">Jenis</th>
+                          <th className="px-4 py-2 font-semibold">Layanan</th>
                           <th className="px-4 py-2 font-semibold">Status</th>
                           <th className="px-4 py-2 font-semibold text-right">Tombol Aksi</th>
                         </tr>
@@ -371,7 +394,7 @@ export default function FaskesMedicalRecordsPage() {
                                 </div>
                               </td>
                               <td className="px-4 py-4 text-slate-700 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80 whitespace-nowrap">
-                                {formatRecordType(item.recordType)}
+                                {item.typeOfTreatment || formatRecordType(item.recordType)}
                               </td>
                               <td className="px-4 py-4 bg-slate-50 group-hover:bg-slate-100 transition border-y border-slate-200/80">
                                 <StatusBadge status={item.status} />
@@ -438,7 +461,7 @@ export default function FaskesMedicalRecordsPage() {
                             <span className="inline-flex items-center gap-1">
                               <CalendarDays className="h-3.5 w-3.5 text-slate-400" /> {formatDate(item.visitDate)}
                             </span>
-                            <span className="font-medium text-slate-500">{formatRecordType(item.recordType)}</span>
+                            <span className="font-medium text-slate-500">{item.typeOfTreatment || formatRecordType(item.recordType)}</span>
                           </div>
 
                           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
@@ -539,9 +562,9 @@ export default function FaskesMedicalRecordsPage() {
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                    <FileTextIcon className="h-3.5 w-3.5" /> Jenis
+                    <FileTextIcon className="h-3.5 w-3.5" /> Layanan
                   </p>
-                  <p className="mt-1.5 font-semibold text-slate-900">{formatRecordType(selectedRecord.recordType)}</p>
+                  <p className="mt-1.5 font-semibold text-slate-900">{selectedRecord.typeOfTreatment || formatRecordType(selectedRecord.recordType)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
@@ -551,12 +574,9 @@ export default function FaskesMedicalRecordsPage() {
                 </div>
               </div>
 
-              {selectedRecord.summary && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Ringkasan</p>
-                  <p className="mt-1.5 text-slate-700 whitespace-pre-line break-words">{selectedRecord.summary}</p>
-                </div>
-              )}
+
+
+
 
               {Object.keys(selectedRecord.detail || {}).length > 0 && (
                 <div className="space-y-3">
@@ -565,7 +585,8 @@ export default function FaskesMedicalRecordsPage() {
                     if (!fields) return null;
                     const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
                     const entries = Object.entries(fields).filter(
-                      ([key, val]) => !["id", "medical_record_id", "created_at", "updated_at"].includes(key) && val
+                      ([key, val]) =>
+                        !["id", "medical_record_id", "created_at", "updated_at", "total_price", "status_resep", "status", "note"].includes(key) && val
                     );
                     if (entries.length === 0) return null;
                     return (
