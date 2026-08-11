@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   FileText,
   ChevronRight,
+  ChevronDown,
   CheckCircle2,
   CreditCard,
   Search,
@@ -80,6 +81,83 @@ const statusBadgeConfig = {
   },
 };
 
+/**
+ * Baris rekam medis dengan panel rincian item layanan (pengobatan + resep)
+ * yang bisa di-expand tanpa mengganggu aksi pilih/checklist rekam medis.
+ */
+function MedicalRecordRow({ rec, isChecked, onToggleSelect, expanded, onToggleExpand }) {
+  const totalBiaya = rec.biaya?.total_keseluruhan || 0;
+  const pengobatanItems = Array.isArray(rec.biaya?.pengobatan) ? rec.biaya.pengobatan : [];
+  const totalResep = rec.biaya?.total_resep || 0;
+  const hasDetail = pengobatanItems.length > 0 || totalResep > 0;
+
+  return (
+    <div
+      className={`rounded-2xl border transition-all text-xs overflow-hidden ${
+        isChecked
+          ? "bg-teal-50/80 border-teal-300 text-slate-900 shadow-2xs"
+          : "bg-slate-50/50 border-slate-200 text-slate-700 hover:bg-slate-100"
+      }`}
+    >
+      <div className="p-3.5 flex items-center justify-between gap-2 cursor-pointer" onClick={onToggleSelect}>
+        <div className="flex items-center gap-3 min-w-0">
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={() => {}}
+            className="h-4 w-4 rounded-md text-teal-800 focus:ring-teal-600 cursor-pointer shrink-0"
+          />
+          <div className="min-w-0">
+            <p className="font-bold text-slate-900 truncate">{rec.title || "Tindakan Medis"}</p>
+            <p className="text-[10px] text-slate-400 font-mono">{rec.visitDate || rec.recordType}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="font-mono font-bold text-slate-800">{formatRupiah(totalBiaya)}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExpand();
+            }}
+            className="p-1.5 rounded-lg hover:bg-white/80 text-slate-400 hover:text-teal-700 transition cursor-pointer"
+            title="Lihat rincian layanan"
+          >
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? "rotate-180 text-teal-700" : ""}`} />
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="px-3.5 pb-3.5 pt-0 animate-fade-in">
+          <div className="rounded-xl bg-white border border-slate-200/80 divide-y divide-slate-100 overflow-hidden">
+            {!hasDetail ? (
+              <p className="px-3 py-2.5 text-[10px] text-slate-400 italic">
+                Tidak ada rincian item layanan untuk rekam medis ini.
+              </p>
+            ) : (
+              <>
+                {pengobatanItems.map((item, idx) => (
+                  <div key={item.code ? `${item.code}-${idx}` : idx} className="flex items-center justify-between px-3 py-2">
+                    <span className="text-[10px] text-slate-600 font-semibold">{item.name}</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-700">{formatRupiah(item.price)}</span>
+                  </div>
+                ))}
+                {totalResep > 0 && (
+                  <div className="flex items-center justify-between px-3 py-2 bg-teal-50/50">
+                    <span className="text-[10px] text-slate-600 font-semibold">Resep Obat / Farmasi</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-700">{formatRupiah(totalResep)}</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FaskesCreateInvoicePage() {
   const router = useRouter();
   const formRef = useRef(null);
@@ -97,6 +175,7 @@ export default function FaskesCreateInvoicePage() {
   const [patientOverview, setPatientOverview] = useState(null);
   const [chargeOptions, setChargeOptions] = useState([]);
   const [selectedRecords, setSelectedRecords] = useState([]);
+  const [expandedRecordIds, setExpandedRecordIds] = useState([]);
   const [additionalItems, setAdditionalItems] = useState([]);
   const [newChargeCode, setNewChargeCode] = useState("");
   const [newChargeName, setNewChargeName] = useState("");
@@ -114,6 +193,7 @@ export default function FaskesCreateInvoicePage() {
   const [modalPatientOverview, setModalPatientOverview] = useState(null);
   const [modalLoadingOverview, setModalLoadingOverview] = useState(false);
   const [modalSelectedRecords, setModalSelectedRecords] = useState([]);
+  const [modalExpandedRecordIds, setModalExpandedRecordIds] = useState([]);
   const [modalAdditionalItems, setModalAdditionalItems] = useState([]);
   const [modalNewChargeCode, setModalNewChargeCode] = useState("");
   const [modalNewChargeName, setModalNewChargeName] = useState("");
@@ -126,6 +206,7 @@ export default function FaskesCreateInvoicePage() {
     setIsCreateModalOpen(true);
     setModalFeedback({ type: "", message: "" });
     setModalAdditionalItems([]);
+    setModalExpandedRecordIds([]);
     setModalNotes("");
     setModalNewChargeCode("");
     setModalNewChargeName("");
@@ -150,6 +231,7 @@ export default function FaskesCreateInvoicePage() {
     setModalPatientData(found || null);
     setModalSelectedRecords([]);
     setModalAdditionalItems([]);
+    setModalExpandedRecordIds([]);
 
     if (!patientId) {
       setModalPatientOverview(null);
@@ -176,6 +258,12 @@ export default function FaskesCreateInvoicePage() {
 
   const handleModalToggleRecord = (recordId) => {
     setModalSelectedRecords((prev) =>
+      prev.includes(recordId) ? prev.filter((id) => id !== recordId) : [...prev, recordId]
+    );
+  };
+
+  const handleModalToggleExpand = (recordId) => {
+    setModalExpandedRecordIds((prev) =>
       prev.includes(recordId) ? prev.filter((id) => id !== recordId) : [...prev, recordId]
     );
   };
@@ -261,10 +349,10 @@ export default function FaskesCreateInvoicePage() {
       if (res?.success) {
         setFeedback({
           type: "success",
-          message: `Invoice #${res.data?.id || ""} berhasil diterbitkan (BELUM LUNAS). Silakan lakukan pembayaran kasir tunai atau QRIS.`,
+          message: `Invoice #${res.data?.id || ""} berhasil diterbitkan (BELUM LUNAS). Silakan lakukan pembayaran kasir tunai atau transfer.`,
         });
         setIsCreateModalOpen(false);
-        fetchInitialData();
+        void fetchInitialData();
       } else {
         setModalFeedback({ type: "error", message: res?.message || "Gagal menerbitkan invoice." });
       }
@@ -275,18 +363,6 @@ export default function FaskesCreateInvoicePage() {
       setModalSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    fetchInitialData();
-  }, []);
 
   const fetchInitialData = async () => {
     setLoading(true);
@@ -336,6 +412,8 @@ export default function FaskesCreateInvoicePage() {
         const totalEstimasi = uninvoicedRecords.reduce((sum, r) => sum + (r.biaya?.total_keseluruhan || 0), 0);
 
         // Status default saat baru tiba di antrean kasir setelah dari layanan farmasi: "menunggu"
+        // Jika seluruh rekam medis pasien sudah pernah di-invoice (tidak ada yang uninvoiced)
+        // DAN pasien punya minimal 1 invoice, maka pasien tsb dianggap "selesai" di alur billing ini.
         let status = "menunggu";
         if (uninvoicedRecords.length === 0 && invList.length > 0) {
           status = "selesai";
@@ -358,8 +436,14 @@ export default function FaskesCreateInvoicePage() {
       });
 
       const queueResults = await Promise.all(queuePromises);
-      // Hanya tampilkan pasien yang memang berada di alur kasir (memiliki rekam medis uninvoiced > 0)
-      const activeQueue = queueResults.filter((p) => p.recordCount > 0);
+
+      // PERBAIKAN: sebelumnya baris ini hanya menyisakan pasien dengan
+      // rekam medis BELUM di-invoice (recordCount > 0), sehingga pasien
+      // berstatus "selesai" otomatis terbuang SEBELUM sampai ke tabel —
+      // akibatnya filter kategori "Selesai Di-Invoice" selalu kosong.
+      // Sekarang: tampilkan pasien yang pernah punya rekam medis ATAU
+      // pernah punya invoice di faskes ini, apa pun status pelunasannya.
+      const activeQueue = queueResults.filter((p) => p.records.length > 0 || p.invoices.length > 0);
       setPatientQueue(activeQueue);
     } catch (err) {
       console.error("Error loading invoice queue", err);
@@ -369,6 +453,10 @@ export default function FaskesCreateInvoicePage() {
     }
   };
 
+  useEffect(() => {
+    void fetchInitialData();
+  }, []);
+
   const handleProcessPatient = (patient) => {
     // Update status to 'diproses' in local state queue
     setPatientQueue((prev) =>
@@ -377,6 +465,7 @@ export default function FaskesCreateInvoicePage() {
 
     setSelectedPatientId(patient.id);
     setSelectedPatientData(patient);
+    setExpandedRecordIds([]);
 
     fetchPatientOverview(patient.id);
     fetchInvoiceList(patient.id);
@@ -394,6 +483,7 @@ export default function FaskesCreateInvoicePage() {
       const result = await getPatientOverview(patientId);
       setPatientOverview(result?.data || null);
       setSelectedRecords([]);
+      setExpandedRecordIds([]);
     } catch (err) {
       console.error("Error loading patient overview", err);
       setFeedback({ type: "error", message: "Gagal memuat ringkasan rekam medis pasien." });
@@ -416,6 +506,12 @@ export default function FaskesCreateInvoicePage() {
 
   const handleSelectRecord = (recordId) => {
     setSelectedRecords((prev) =>
+      prev.includes(recordId) ? prev.filter((id) => id !== recordId) : [...prev, recordId]
+    );
+  };
+
+  const handleToggleExpandRecord = (recordId) => {
+    setExpandedRecordIds((prev) =>
       prev.includes(recordId) ? prev.filter((id) => id !== recordId) : [...prev, recordId]
     );
   };
@@ -493,7 +589,7 @@ export default function FaskesCreateInvoicePage() {
       if (res?.success) {
         setFeedback({
           type: "success",
-          message: `Invoice #${res.data?.id || ""} berhasil diterbitkan (BELUM LUNAS). Silakan lakukan pelunasan pembayaran kasir tunai atau Midtrans QRIS pada panel kanan.`,
+          message: `Invoice #${res.data?.id || ""} berhasil diterbitkan (BELUM LUNAS). Silakan lakukan pelunasan pembayaran kasir tunai atau transfer pada panel kanan.`,
         });
 
         setSelectedRecords([]);
@@ -553,7 +649,7 @@ export default function FaskesCreateInvoicePage() {
             onSuccess: function () {
               setFeedback({
                 type: "success",
-                message: "Pembayaran QRIS Midtrans Berhasil (LUNAS)! Pasien selesai dan dipindahkan ke Riwayat Invoice...",
+                message: "Pembayaran transfer berhasil (LUNAS)! Pasien selesai dan dipindahkan ke Riwayat Invoice...",
               });
 
               // Update status patient in queue to 'selesai' upon successful payment
@@ -568,24 +664,24 @@ export default function FaskesCreateInvoicePage() {
               }, 1200);
             },
             onPending: function () {
-              setFeedback({ type: "warning", message: "Menunggu pembayaran QRIS diselesaikan..." });
+              setFeedback({ type: "warning", message: "Menunggu pembayaran transfer diselesaikan..." });
             },
             onError: function () {
-              setFeedback({ type: "error", message: "Pembayaran Midtrans gagal." });
+              setFeedback({ type: "error", message: "Pembayaran transfer gagal." });
             },
             onClose: function () {
               fetchInvoiceList(selectedPatientId);
             },
           });
         } else {
-          setFeedback({ type: "error", message: "Midtrans Snap SDK belum siap. Refresh halaman." });
+          setFeedback({ type: "error", message: "Sistem pembayaran belum siap. Refresh halaman." });
         }
       } else {
-        setFeedback({ type: "error", message: res?.message || "Gagal mengambil token Midtrans." });
+        setFeedback({ type: "error", message: res?.message || "Gagal mengambil sesi pembayaran transfer." });
       }
     } catch (err) {
       console.error(err);
-      setFeedback({ type: "error", message: "Gagal memproses pembayaran Midtrans." });
+      setFeedback({ type: "error", message: "Gagal memproses pembayaran transfer." });
     } finally {
       setSubmitting(false);
     }
@@ -593,16 +689,16 @@ export default function FaskesCreateInvoicePage() {
 
   const filteredQueue = useMemo(() => {
     return patientQueue.filter((p) => {
+      const term = searchTerm.trim().toLowerCase();
       const matchesSearch =
-        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.nik?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.doctorName?.toLowerCase().includes(searchTerm.toLowerCase());
+        !term ||
+        (p.name || "").toLowerCase().includes(term) ||
+        (p.nik || "").toLowerCase().includes(term) ||
+        (p.doctorName || "").toLowerCase().includes(term);
 
       if (!matchesSearch) return false;
-      if (statusFilter === "menunggu") return p.status === "menunggu";
-      if (statusFilter === "diproses") return p.status === "diproses";
-      if (statusFilter === "selesai") return p.status === "selesai";
-      return true;
+      if (statusFilter === "all") return true;
+      return p.status === statusFilter;
     });
   }, [patientQueue, searchTerm, statusFilter]);
 
@@ -635,7 +731,7 @@ export default function FaskesCreateInvoicePage() {
                 Buat Tagihan & Invoice Pasien
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-                Tabel antrean pasien pada alur indikator pelunasan RS. Klik aksi <strong>"Proses"</strong> untuk membuka form penerbitan invoice dan penyusunan rincian tagihan kasir.
+                Tabel antrean pasien pada alur indikator pelunasan RS. Klik aksi <strong>&quot;Proses&quot;</strong> untuk membuka form penerbitan invoice dan penyusunan rincian tagihan kasir.
               </p>
             </div>
 
@@ -723,7 +819,7 @@ export default function FaskesCreateInvoicePage() {
             {/* Queue Table */}
             {filteredQueue.length === 0 ? (
               <div className="py-12 text-center text-slate-400 italic text-xs">
-                Tidak ada pasien dalam antrean alur pelunasan saat ini.
+                Tidak ada pasien pada kategori/pencarian ini.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -733,7 +829,7 @@ export default function FaskesCreateInvoicePage() {
                       <th className="py-3 px-4">Pasien</th>
                       <th className="py-3 px-4">Dokter & Visit Date</th>
                       <th className="py-3 px-4">Tindakan Medis & Estimasi</th>
-                      <th className="py-3 px-4">Status Billing</th>
+                      <th className="py-3 px-4">Proses Invoice</th>
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -846,44 +942,25 @@ export default function FaskesCreateInvoicePage() {
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
                         1. Pilih Rekam Medis Pasien (Uninvoiced)
                       </h4>
+                      <p className="text-[10px] text-slate-400 mb-2.5 -mt-2">
+                        Klik ikon <ChevronDown className="h-3 w-3 inline align-text-bottom" /> pada setiap baris untuk melihat rincian item layanan yang ditagihkan.
+                      </p>
                       {availableMedicalRecords.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
                           Semua rekam medis pasien ini sudah diterbitkan faktur invoice-nya.
                         </div>
                       ) : (
-                        <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                          {availableMedicalRecords.map((rec) => {
-                            const isChecked = selectedRecords.includes(rec.id);
-                            const totalBiaya = rec.biaya?.total_keseluruhan || 0;
-
-                            return (
-                              <div
-                                key={rec.id}
-                                onClick={() => handleSelectRecord(rec.id)}
-                                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
-                                  isChecked
-                                    ? "bg-teal-50/80 border-teal-300 text-slate-900 shadow-2xs"
-                                    : "bg-slate-50/50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => {}}
-                                    className="h-4 w-4 rounded-md text-teal-800 focus:ring-teal-600 cursor-pointer"
-                                  />
-                                  <div>
-                                    <p className="font-bold text-slate-900">{rec.title || "Tindakan Medis"}</p>
-                                    <p className="text-[10px] text-slate-400 font-mono">{rec.visitDate || rec.recordType}</p>
-                                  </div>
-                                </div>
-                                <span className="font-mono font-bold text-slate-800">
-                                  {formatRupiah(totalBiaya)}
-                                </span>
-                              </div>
-                            );
-                          })}
+                        <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                          {availableMedicalRecords.map((rec) => (
+                            <MedicalRecordRow
+                              key={rec.id}
+                              rec={rec}
+                              isChecked={selectedRecords.includes(rec.id)}
+                              onToggleSelect={() => handleSelectRecord(rec.id)}
+                              expanded={expandedRecordIds.includes(rec.id)}
+                              onToggleExpand={() => handleToggleExpandRecord(rec.id)}
+                            />
+                          ))}
                         </div>
                       )}
                     </div>
@@ -1014,7 +1091,7 @@ export default function FaskesCreateInvoicePage() {
                                     disabled={submitting}
                                     className="rounded-xl bg-slate-900 text-white font-bold text-[10px] py-2 hover:bg-slate-800 transition cursor-pointer"
                                   >
-                                    Bayar Kasir
+                                    Bayar Cash
                                   </button>
                                   <button
                                     type="button"
@@ -1022,7 +1099,7 @@ export default function FaskesCreateInvoicePage() {
                                     disabled={submitting}
                                     className="rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-[10px] py-2 hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
                                   >
-                                    Midtrans QRIS
+                                    Transfer
                                   </button>
                                 </div>
                               )}
@@ -1037,7 +1114,7 @@ export default function FaskesCreateInvoicePage() {
             ) : (
               <div className="rounded-3xl border border-dashed border-slate-200 bg-white/60 p-8 text-center text-slate-400 text-xs">
                 <ArrowDown className="h-6 w-6 text-teal-600 mx-auto mb-2 animate-bounce" />
-                Silakan klik tombol <strong>"Proses Tagihan"</strong> pada tabel antrean di atas untuk memunculkan form penyusunan invoice pasien.
+                Silakan klik tombol <strong>&quot;Proses Tagihan&quot;</strong> pada tabel antrean di atas untuk memunculkan form penyusunan invoice pasien.
               </div>
             )}
           </div>
@@ -1046,257 +1123,244 @@ export default function FaskesCreateInvoicePage() {
 
       {/* MODAL BUAT TAGIHAN BARU (CRUD TAGIHAN) */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-2xl w-full my-8 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-[28px] border border-slate-200/80 w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-2xl bg-teal-50 text-teal-800 border border-teal-200">
+            <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white px-4 sm:px-6 py-4 sm:py-5">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="p-2.5 rounded-2xl bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
                   <CreditCard className="h-5 w-5" />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-lg">Buat & Form Tagihan Baru</h3>
-                  <p className="text-xs text-slate-500">Penerbitan rincian tagihan kasir & invoice pasien RS</p>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">Buat & Form Tagihan Baru</h3>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Penerbitan rincian tagihan kasir & invoice pasien RS dalam satu alur yang lebih rapi.
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer shrink-0"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {modalFeedback.message && (
-              <div
-                className={`p-3.5 rounded-2xl text-xs font-bold border flex items-center justify-between ${
-                  modalFeedback.type === "success"
-                    ? "bg-emerald-50 border-emerald-200 text-[#16A34A]"
-                    : "bg-red-50 border-red-200 text-[#DC2626]"
-                }`}
-              >
-                <span>{modalFeedback.message}</span>
-                <button onClick={() => setModalFeedback({ type: "", message: "" })} className="font-bold">
-                  ✕
-                </button>
-              </div>
-            )}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5">
+              {modalFeedback.message && (
+                <div
+                  className={`mb-4 p-3.5 rounded-2xl text-xs font-bold border flex items-center justify-between ${
+                    modalFeedback.type === "success"
+                      ? "bg-emerald-50 border-emerald-200 text-[#16A34A]"
+                      : "bg-red-50 border-red-200 text-[#DC2626]"
+                  }`}
+                >
+                  <span>{modalFeedback.message}</span>
+                  <button onClick={() => setModalFeedback({ type: "", message: "" })} className="font-bold">
+                    ✕
+                  </button>
+                </div>
+              )}
 
-            <form onSubmit={handleModalSubmitCreateInvoice} className="space-y-5">
-              {/* Step 1: Pilih Pasien */}
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
-                  1. Pilih Pasien Antrean Kasir
-                </label>
-                <ModernSelect
-                  options={[
-                    { value: "", label: "-- Pilih Pasien --" },
-                    ...patientQueue.map((p) => ({
-                      value: p.id,
-                      label: `${p.name} (${p.recordCount} Rekam Medis Uninvoiced)`,
-                      sublabel: `NIK: ${formatEncryptedNIK(p.nik, p.id)}`
-                    }))
-                  ]}
-                  value={modalPatientId}
-                  onChange={(val) => handleModalSelectPatient(val)}
-                  placeholder="-- Pilih Pasien --"
-                  icon={User}
-                />
+              <form id="modal-create-invoice-form" onSubmit={handleModalSubmitCreateInvoice} className="space-y-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-4">
+                  <div>
+                    <label className="block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                      1. Pilih Pasien Antrean Kasir
+                    </label>
+                    <ModernSelect
+                      options={[
+                        { value: "", label: "-- Pilih Pasien --" },
+                        ...patientQueue.map((p) => ({
+                          value: p.id,
+                          label: `${p.name} (${p.recordCount} Rekam Medis Uninvoiced)`,
+                          sublabel: `NIK: ${formatEncryptedNIK(p.nik, p.id)}`
+                        }))
+                      ]}
+                      value={modalPatientId}
+                      onChange={(val) => handleModalSelectPatient(val)}
+                      placeholder="-- Pilih Pasien --"
+                      icon={User}
+                    />
 
-                {modalPatientData && (
-                  <div className="mt-2.5 p-3 rounded-2xl bg-teal-50/60 border border-teal-200/80 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-teal-800" />
-                      <span className="font-bold text-slate-900">{modalPatientData.name}</span>
-                      <span className="text-slate-400 font-mono">| {modalPatientData.doctorName}</span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-300">
-                      Estimasi: {formatRupiah(modalPatientData.totalEstimasi)}
-                    </span>
+                    {modalPatientData && (
+                      <div className="mt-3 p-3 rounded-2xl bg-white border border-teal-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs shadow-2xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <User className="h-4 w-4 text-teal-800 shrink-0" />
+                          <span className="font-bold text-slate-900 truncate">{modalPatientData.name}</span>
+                          <span className="text-slate-400 font-mono truncate">| {modalPatientData.doctorName}</span>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-300 whitespace-nowrap">
+                          Estimasi: {formatRupiah(modalPatientData.totalEstimasi)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Step 2: Rekam Medis Pasien */}
-              {modalPatientId && (
-                <div>
-                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
-                    2. Pilih Rekam Medis Pasien (Uninvoiced)
-                  </label>
+                  {modalPatientId && (
+                    <div>
+                      <label className="block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                        2. Pilih Rekam Medis Pasien (Uninvoiced)
+                      </label>
 
-                  {modalLoadingOverview ? (
-                    <div className="py-6 text-center text-xs font-bold text-slate-400 flex items-center justify-center gap-2">
-                      <RefreshCw className="h-4 w-4 animate-spin text-teal-700" /> Memuat rekam medis...
-                    </div>
-                  ) : modalAvailableMedicalRecords.length === 0 ? (
-                    <div className="p-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center text-xs text-slate-500">
-                      Tidak ada rekam medis uninvoiced untuk pasien ini.
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                      {modalAvailableMedicalRecords.map((rec) => {
-                        const isChecked = modalSelectedRecords.includes(rec.id);
-                        const totalBiaya = rec.biaya?.total_keseluruhan || 0;
-
-                        return (
-                          <div
-                            key={rec.id}
-                            onClick={() => handleModalToggleRecord(rec.id)}
-                            className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-xs ${
-                              isChecked
-                                ? "bg-teal-50/80 border-teal-300 text-slate-900 font-semibold"
-                                : "bg-slate-50/50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => {}}
-                                className="h-4 w-4 rounded-md text-teal-800 focus:ring-teal-600 cursor-pointer"
+                      {modalLoadingOverview ? (
+                        <div className="py-6 text-center text-xs font-bold text-slate-400 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white">
+                          <RefreshCw className="h-4 w-4 animate-spin text-teal-700" /> Memuat rekam medis...
+                        </div>
+                      ) : modalAvailableMedicalRecords.length === 0 ? (
+                        <div className="p-4 rounded-2xl border border-dashed border-slate-200 bg-white text-center text-xs text-slate-500">
+                          Tidak ada rekam medis uninvoiced untuk pasien ini.
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-[10px] text-slate-400 mb-2 -mt-1">
+                            Klik ikon <ChevronDown className="h-3 w-3 inline align-text-bottom" /> untuk melihat rincian item layanan.
+                          </p>
+                          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            {modalAvailableMedicalRecords.map((rec) => (
+                              <MedicalRecordRow
+                                key={rec.id}
+                                rec={rec}
+                                isChecked={modalSelectedRecords.includes(rec.id)}
+                                onToggleSelect={() => handleModalToggleRecord(rec.id)}
+                                expanded={modalExpandedRecordIds.includes(rec.id)}
+                                onToggleExpand={() => handleModalToggleExpand(rec.id)}
                               />
-                              <div>
-                                <p className="font-bold text-slate-900">{rec.title || "Tindakan Medis"}</p>
-                                <p className="text-[10px] text-slate-400 font-mono">{rec.visitDate || rec.recordType}</p>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {modalPatientId && (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 space-y-4 shadow-2xs">
+                    <div>
+                      <label className="block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
+                        3. Tambah Komponen Biaya Tambahan
+                      </label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2.5">
+                        <select
+                          value={modalNewChargeCode}
+                          onChange={(e) => handleModalPresetChargeChange(e.target.value)}
+                          className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-700 font-medium"
+                        >
+                          <option value="">-- Preset Biaya --</option>
+                          {chargeOptions.map((opt) => (
+                            <option key={opt.code} value={opt.code}>
+                              {opt.name} ({formatRupiah(opt.price)})
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          placeholder="Nama Komponen Biaya"
+                          value={modalNewChargeName}
+                          onChange={(e) => setModalNewChargeName(e.target.value)}
+                          className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Nominal (Rp)"
+                          value={modalNewChargePrice}
+                          onChange={(e) => setModalNewChargePrice(e.target.value)}
+                          className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-mono"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleModalAddAdditionalItem}
+                        className="w-full py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Tambah Komponen Biaya
+                      </button>
+
+                      {modalAdditionalItems.length > 0 && (
+                        <div className="mt-3 space-y-2 max-h-36 overflow-y-auto">
+                          {modalAdditionalItems.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono">
+                              <span className="font-medium text-slate-800">{item.name}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-slate-900">{formatRupiah(item.amount)}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleModalRemoveAdditionalItem(idx)}
+                                  className="text-[#DC2626] hover:text-red-800 font-bold cursor-pointer p-1"
+                                  title="Hapus item biaya"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                               </div>
                             </div>
-                            <span className="font-mono font-bold text-slate-800">
-                              {formatRupiah(totalBiaya)}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 3: Biaya Tambahan (CRUD items) */}
-              {modalPatientId && (
-                <div>
-                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
-                    3. Tambah / Edit Komponen Biaya Tambahan
-                  </label>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2.5">
-                    <select
-                      value={modalNewChargeCode}
-                      onChange={(e) => handleModalPresetChargeChange(e.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-700 font-medium"
-                    >
-                      <option value="">-- Preset Biaya --</option>
-                      {chargeOptions.map((opt) => (
-                        <option key={opt.code} value={opt.code}>
-                          {opt.name} ({formatRupiah(opt.price)})
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      placeholder="Nama Komponen Biaya"
-                      value={modalNewChargeName}
-                      onChange={(e) => setModalNewChargeName(e.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Nominal (Rp)"
-                      value={modalNewChargePrice}
-                      onChange={(e) => setModalNewChargePrice(e.target.value)}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-mono"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleModalAddAdditionalItem}
-                    className="w-full py-2 rounded-xl border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Tambah Komponen Biaya
-                  </button>
-
-                  {modalAdditionalItems.length > 0 && (
-                    <div className="mt-3 space-y-2 max-h-36 overflow-y-auto">
-                      {modalAdditionalItems.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono">
-                          <span className="font-medium text-slate-800">{item.name}</span>
-                          <div className="flex items-center gap-3">
-                            <span className="font-bold text-slate-900">{formatRupiah(item.amount)}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleModalRemoveAdditionalItem(idx)}
-                              className="text-[#DC2626] hover:text-red-800 font-bold cursor-pointer p-1"
-                              title="Hapus item biaya"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 4: Catatan & Summary */}
-              {modalPatientId && (
-                <>
-                  <div>
-                    <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
-                      4. Catatan Tagihan (Opsional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Misal: Diskon khusus / Catatan kasir..."
-                      value={modalNotes}
-                      onChange={(e) => setModalNotes(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium"
-                    />
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-900 to-cyan-950 text-white space-y-2">
-                    <div className="flex items-center justify-between text-xs text-teal-200">
-                      <span>Subtotal Rekam Medis ({modalSelectedRecords.length} item):</span>
-                      <span className="font-mono font-semibold">{formatRupiah(modalTotalMedicalRecordAmount)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-teal-200">
-                      <span>Total Biaya Tambahan ({modalAdditionalItems.length} item):</span>
-                      <span className="font-mono font-semibold">{formatRupiah(modalTotalAdditionalAmount)}</span>
-                    </div>
-                    <div className="border-t border-teal-800/80 pt-2 flex items-center justify-between text-sm font-extrabold text-white">
-                      <span>Total Tagihan Baru:</span>
-                      <span className="font-mono text-base text-amber-300">{formatRupiah(modalGrandTotal)}</span>
+                      )}
                     </div>
                   </div>
-                </>
-              )}
+                )}
 
-              {/* Action Buttons */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={modalSubmitting || !modalPatientId}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-2"
-                >
-                  {modalSubmitting ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" /> Menerbitkan Tagihan...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-4 w-4" /> Terbitkan Tagihan Baru
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                {modalPatientId && (
+                  <>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                      <label className="block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+                        4. Catatan Tagihan (Opsional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Misal: Diskon khusus / Catatan kasir..."
+                        value={modalNotes}
+                        onChange={(e) => setModalNotes(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 font-medium"
+                      />
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-900 to-cyan-950 text-white space-y-2">
+                      <div className="flex items-center justify-between text-xs text-teal-200">
+                        <span>Subtotal Rekam Medis ({modalSelectedRecords.length} item):</span>
+                        <span className="font-mono font-semibold">{formatRupiah(modalTotalMedicalRecordAmount)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-teal-200">
+                        <span>Total Biaya Tambahan ({modalAdditionalItems.length} item):</span>
+                        <span className="font-mono font-semibold">{formatRupiah(modalTotalAdditionalAmount)}</span>
+                      </div>
+                      <div className="border-t border-teal-800/80 pt-2 flex items-center justify-between text-sm font-extrabold text-white">
+                        <span>Total Tagihan Baru:</span>
+                        <span className="font-mono text-base text-amber-300">{formatRupiah(modalGrandTotal)}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </form>
+            </div>
+
+            <div className="sticky bottom-0 z-10 border-t border-slate-100 bg-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                form="modal-create-invoice-form"
+                disabled={modalSubmitting || !modalPatientId}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold text-xs shadow-md transition cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              >
+                {modalSubmitting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" /> Menerbitkan Tagihan...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" /> Terbitkan Tagihan Baru
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,3 +1,5 @@
+// record pasien
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -42,7 +44,11 @@ import {
   AlertCircle,
   CheckCircle2,
   Sparkles,
-  Info
+  Info,
+  Landmark,
+  Banknote,
+  ClipboardList,
+  PhoneCall
 } from "lucide-react";
 
 
@@ -62,6 +68,7 @@ export default function PatientNewRecordsPage() {
     invoiceLoading,
     invoiceError,
     activeStage,
+    setActiveStage,
     paymentMethod,
     setPaymentMethod,
     showPaymentModal,
@@ -92,13 +99,19 @@ export default function PatientNewRecordsPage() {
   } = usePatientRecords();
 
   const flowSteps = [
-    { id: 1, name: "Antrean & Pendaftaran", desc: "Verifikasi Berkas", date: "Hari ini" },
-    { id: 2, name: "Pemeriksaan Dokter", desc: "Konsultasi & Diagnosa", date: "Hari ini" },
-    { id: 3, name: "Resep & Farmasi", desc: "Penyiapan Obat", date: "Hari ini" },
-    { id: 4, name: "Faktur & Pelunasan", desc: "Billing Medis", date: "Hari ini" }
+    { id: 1, title: "Antrean & Pendaftaran", statusName: "Verifikasi Berkas", icon: Activity },
+    { id: 2, title: "Pemeriksaan Dokter", statusName: "Konsultasi & Diagnosa", icon: Stethoscope },
+    { id: 3, title: "Resep & Farmasi", statusName: "Penyiapan Obat", icon: Pill },
+    { id: 4, title: "Faktur & Pelunasan", statusName: "Billing Medis", icon: Receipt }
   ];
 
-  const progressWidthPercent = Math.max(0, Math.min(100, ((activeStage - 1) / Math.max(1, flowSteps.length - 1)) * 100));
+  const normalizedActiveStage = Math.min(Math.max(activeStage || 1, 1), flowSteps.length);
+  const progressWidthPercent = Math.max(0, Math.min(100, ((normalizedActiveStage - 1) / Math.max(1, flowSteps.length - 1)) * 100));
+  const stepperSteps = flowSteps.map((step) => ({
+    ...step,
+    isCompleted: step.id < normalizedActiveStage,
+    isActive: step.id === normalizedActiveStage,
+  }));
 
   if (loading) {
     return (
@@ -178,9 +191,9 @@ export default function PatientNewRecordsPage() {
 
                 {/* 4 Step Nodes Grid */}
                 <div className="relative z-10 grid grid-cols-4 text-center">
-                  {flowSteps.map((step) => {
+                  {stepperSteps.map((step) => {
                     const IconComponent = step.icon;
-                    const isActive = activeStage === step.id;
+                    const isActive = step.isActive;
                     const isDone = step.isCompleted && !isActive;
 
                     return (
@@ -397,17 +410,37 @@ export default function PatientNewRecordsPage() {
                 </div>
               )}
 
-              {/* Opsi Pelunasan Section (Online & Pendaftaran/Informasi) */}
+              {/* Opsi Pelunasan Section (Transfer Bank & Bayar di Loket) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Opsi 1: Payment Gateway */}
-                <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 via-pink-50/30 to-slate-50 p-5 space-y-3">
+                {/* Opsi 1: Transfer Bank / Virtual Account */}
+                <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 via-pink-50/30 to-slate-50 p-5 space-y-3.5">
                   <div className="flex items-center gap-2 text-rose-800 font-extrabold text-xs">
-                    <CreditCard className="h-4 w-4 text-rose-600" />
-                    OPSI A: Pelunasan Online via Payment Gateway
+                    <Landmark className="h-4 w-4 text-rose-600" />
+                    OPSI A: Transfer Bank (Virtual Account)
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Bayar langsung secara instan melalui QRIS, Transfer Virtual Account, atau E-Wallet. Konfirmasi pembayaran otomatis seketika.
+                    Bayar tagihan non tunai melalui Virtual Account bank pilihan Anda. Praktis, dan pembayaran langsung terverifikasi otomatis oleh sistem faskes.
                   </p>
+
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Sistem akan menerbitkan nomor Virtual Account atas nama Anda sesuai jumlah tagihan.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Transfer melalui m-Banking, ATM, atau Internet Banking bank apa pun.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Status invoice otomatis menjadi LUNAS begitu transfer diterima tanpa perlu konfirmasi manual.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <Clock className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Nomor Virtual Account berlaku selama 24 jam sejak diterbitkan.
+                    </li>
+                  </ul>
+
                   {paymentStatus === "paid" ? (
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 font-bold flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -421,26 +454,43 @@ export default function PatientNewRecordsPage() {
                   ) : (
                     <button
                       onClick={() => {
-                        setPaymentMethod("qris");
+                        setPaymentMethod("va");
                         setShowPaymentModal(true);
                       }}
                       className="w-full rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <QrCode className="h-4 w-4" />
-                      Buka QRIS & Virtual Account
+                      <Landmark className="h-4 w-4" />
+                      Bayar via Transfer Bank
                     </button>
                   )}
                 </div>
 
-                {/* Opsi 2: Pendaftaran / Informasi / Kasir Faskes */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 space-y-3">
+                {/* Opsi 2: Bayar Tunai di Loket */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 space-y-3.5">
                   <div className="flex items-center gap-2 text-slate-900 font-extrabold text-xs">
-                    <MapPin className="h-4 w-4 text-rose-600" />
-                    OPSI B: Pelunasan di Loket Informasi / Pendaftaran Faskes
+                    <Banknote className="h-4 w-4 text-rose-600" />
+                    OPSI B: Bayar Tunai di Loket Kasir
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Tunjukkan kode invoice kepada petugas kasir atau loket informasi faskes untuk pelunasan tunai.
+                    Bayar tunai langsung di loket kasir faskes. Petugas akan memverifikasi dan mengonfirmasi pelunasan tagihan Anda di tempat.
                   </p>
+
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <ClipboardList className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Tunjukkan kode billing invoice di bawah ini kepada petugas kasir.
+                    </li>
+                    
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <Clock className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Setelah dikonfirmasi kasir, status invoice akan diperbarui menjadi LUNAS dalam sistem.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px] text-slate-600">
+                      <PhoneCall className="h-3.5 w-3.5 text-rose-600 mt-0.5 shrink-0" />
+                      Kendala pembayaran di loket? Hubungi bagian informasi faskes terkait.
+                    </li>
+                  </ul>
+
                   <div className="rounded-xl bg-white border border-slate-200 p-2.5 text-xs font-mono flex items-center justify-between text-slate-700">
                     <span className="text-[10px] text-slate-400 font-bold uppercase">Kode Billing RS:</span>
                     <span className="font-extrabold text-rose-700">{selectedInvoice?.id || "-"}</span>
@@ -475,7 +525,7 @@ export default function PatientNewRecordsPage() {
 
 
 
-          {/* PAYMENT GATEWAY MODAL */}
+          {/* PAYMENT MODAL */}
           {showPaymentModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
@@ -485,7 +535,7 @@ export default function PatientNewRecordsPage() {
                       <CreditCard className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className="text-base font-extrabold text-slate-900">Payment Gateway SatuData</h3>
+                      <h3 className="text-base font-extrabold text-slate-900">Konfirmasi Pembayaran</h3>
                       <p className="text-xs text-slate-500">Pelunasan tagihan layanan faskes</p>
                     </div>
                   </div>
@@ -512,24 +562,15 @@ export default function PatientNewRecordsPage() {
                 {/* Select Method */}
                 <div className="space-y-3">
                   <span className="text-xs font-bold text-slate-700 block">Pilih Metode Pembayaran:</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                      onClick={() => setPaymentMethod("qris")}
-                      className={`rounded-2xl border p-3.5 text-left text-xs transition ${
-                        paymentMethod === "qris" ? "border-rose-600 bg-rose-50/50 font-bold text-rose-900" : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <QrCode className="h-5 w-5 text-rose-600 mb-1.5" />
-                      QRIS / E-Wallet Instan
-                    </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setPaymentMethod("va")}
                       className={`rounded-2xl border p-3.5 text-left text-xs transition ${
                         paymentMethod === "va" ? "border-rose-600 bg-rose-50/50 font-bold text-rose-900" : "border-slate-200 hover:border-slate-300"
                       }`}
                     >
-                      <Building2 className="h-5 w-5 text-rose-600 mb-1.5" />
-                      Virtual Account Bank
+                      <Landmark className="h-5 w-5 text-rose-600 mb-1.5" />
+                      Transfer Bank
                     </button>
                     <button
                       onClick={() => setPaymentMethod("cash")}
@@ -537,23 +578,27 @@ export default function PatientNewRecordsPage() {
                         paymentMethod === "cash" ? "border-rose-600 bg-rose-50/50 font-bold text-rose-900" : "border-slate-200 hover:border-slate-300"
                       }`}
                     >
-                      <MapPin className="h-5 w-5 text-rose-600 mb-1.5" />
+                      <Banknote className="h-5 w-5 text-rose-600 mb-1.5" />
                       Bayar Cash di Loket
                     </button>
                   </div>
                 </div>
 
-                {(paymentMethod === "qris" || paymentMethod === "va") && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center space-y-2">
-                    <p className="text-xs font-bold text-slate-700">Pembayaran {paymentMethod === "qris" ? "QRIS / E-Wallet" : "Virtual Account"} akan dibuka melalui Midtrans.</p>
-                    <p className="text-[10px] text-slate-400">Klik konfirmasi untuk memperoleh sesi pembayaran resmi dari backend.</p>
+                {paymentMethod === "va" && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                    <p className="text-xs font-bold text-slate-700">Pembayaran Transfer Bank</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Anda akan mendapatkan nomor Virtual Account. Transfer sesuai nominal tagihan melalui m-Banking, ATM, atau Internet Banking. Status invoice akan otomatis diperbarui setelah transfer diterima.
+                    </p>
                   </div>
                 )}
 
                 {paymentMethod === "cash" && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs font-mono">
-                    <p className="font-bold text-slate-700">Pembayaran cash di loket</p>
-                    <p className="text-slate-600 font-sans">Setelah Anda mengonfirmasi, status invoice menjadi menunggu konfirmasi kasir RS.</p>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                    <p className="text-xs font-bold text-slate-700">Pembayaran Cash di Loket</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Setelah Anda mengonfirmasi di sini, tunjukkan kode invoice kepada petugas kasir. Status invoice akan berubah menjadi menunggu konfirmasi kasir hingga pembayaran tunai Anda diverifikasi.
+                    </p>
                   </div>
                 )}
 
@@ -568,7 +613,7 @@ export default function PatientNewRecordsPage() {
                         <RefreshCw className="h-4 w-4 animate-spin" /> Memproses Pelunasan...
                       </>
                     ) : (
-                      paymentMethod === "cash" ? "Konfirmasi Bayar Cash" : "Lanjutkan ke Payment Gateway"
+                      paymentMethod === "cash" ? "Konfirmasi Bayar Cash" : "Lanjutkan ke Transfer Bank"
                     )}
                   </button>
                 </div>

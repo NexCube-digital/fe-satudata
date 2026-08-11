@@ -22,7 +22,11 @@ import {
   Wallet,
   Receipt,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Landmark,
+  Banknote,
+  Stethoscope,
+  Hash
 } from "lucide-react";
 import {
   getInvoicePatients,
@@ -51,6 +55,11 @@ export default function FaskesPatientInvoiceHistoryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
+
+  // State untuk modal pilihan metode pembayaran (cash / transfer Midtrans)
+  const [paymentInvoice, setPaymentInvoice] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState(""); // "cash" | "va"
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -114,6 +123,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
     fetchAllInvoices(patientId);
   };
 
+  // Dipanggil setelah kasir konfirmasi bayar tunai di modal metode pembayaran
   const handlePayManual = async (invoiceId) => {
     setSubmitting(true);
     try {
@@ -135,6 +145,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
     }
   };
 
+  // Dipanggil setelah kasir memilih metode transfer di modal metode pembayaran -> munculkan popup Midtrans Snap
   const handlePayMidtrans = async (invoiceId) => {
     setSubmitting(true);
     try {
@@ -167,6 +178,32 @@ export default function FaskesPatientInvoiceHistoryPage() {
       setFeedback({ type: "error", message: "Gagal memproses pembayaran Midtrans." });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Buka modal pilihan metode bayar untuk invoice tertentu (dipicu dari tombol tabel maupun dari modal detail)
+  const openPaymentModal = (invoice) => {
+    setPaymentInvoice(invoice);
+    setPaymentMethod("");
+    setShowPaymentModal(true);
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setPaymentInvoice(null);
+    setPaymentMethod("");
+  };
+
+  // Eksekusi pembayaran sesuai metode yang dipilih di modal, lalu tutup modal metode bayar
+  const handleConfirmPayment = async () => {
+    if (!paymentInvoice || !paymentMethod) return;
+    const invoiceId = paymentInvoice.id;
+    closePaymentModal();
+
+    if (paymentMethod === "cash") {
+      await handlePayManual(invoiceId);
+    } else {
+      await handlePayMidtrans(invoiceId);
     }
   };
 
@@ -412,11 +449,11 @@ export default function FaskesPatientInvoiceHistoryPage() {
 
                             {!isPaid && (
                               <button
-                                onClick={() => handlePayManual(inv.id)}
+                                onClick={() => openPaymentModal(inv)}
                                 disabled={submitting}
-                                className="rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white px-3 py-1.5 font-bold transition cursor-pointer text-xs"
+                                className="rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white px-3 py-1.5 font-bold transition cursor-pointer text-xs disabled:opacity-50"
                               >
-                                Bayar Kasir
+                                Bayar
                               </button>
                             )}
                           </td>
@@ -429,7 +466,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
             )}
           </div>
 
-          {/* Modal Kuitansi Detail Invoice */}
+          {/* Modal Kuitansi Detail Invoice (diperkaya: rincian layanan lebih lengkap) */}
           {selectedInvoice && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-6">
@@ -456,6 +493,9 @@ export default function FaskesPatientInvoiceHistoryPage() {
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Pasien Penanggung Jawab</span>
                       <span className="font-bold text-slate-900 text-sm block mt-0.5">{selectedInvoice.patientName || `Pasien #${selectedInvoice.patient_id}`}</span>
+                      <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                        NIK: {formatEncryptedNIK(selectedInvoice.patientNik || selectedInvoice.nik, selectedInvoice.patient_id)}
+                      </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Status Pembayaran</span>
@@ -464,20 +504,59 @@ export default function FaskesPatientInvoiceHistoryPage() {
                       }`}>
                         {selectedInvoice.status === "paid" ? "✔ LUNAS" : "⏳ BELUM LUNAS"}
                       </span>
+                      <span className="text-[10px] text-slate-400 uppercase font-mono block mt-1.5">
+                        {selectedInvoice.payment_method === "cash" ? "Kasir Tunai" : selectedInvoice.payment_method === "midtrans_qris" ? "QRIS / Transfer Midtrans" : "Belum Ada Metode"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">No. Invoice</span>
+                      <span className="font-bold text-slate-800 text-xs font-mono block mt-0.5">{selectedInvoice.invoice_number || selectedInvoice.id}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Tanggal Terbit</span>
+                      <span className="font-bold text-slate-800 text-xs block mt-0.5">
+                        {new Date(selectedInvoice.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Component Items */}
+                  {/* Rincian Layanan / Komponen Biaya — sebutkan tiap layanan medis yang ditagihkan */}
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block mb-2">Rincian Komponen Biaya Medis</span>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block mb-2 flex items-center gap-1.5">
+                      <Stethoscope className="h-3.5 w-3.5 text-teal-700" /> Rincian Layanan Medis Yang Ditagihkan
+                    </span>
                     <div className="space-y-1.5">
                       {Array.isArray(selectedInvoice.items) && selectedInvoice.items.length > 0 ? (
-                        selectedInvoice.items.map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 font-mono">
-                            <span className="font-bold text-slate-800">{item.name}</span>
-                            <span className="font-bold text-slate-900">{formatRupiah(item.price || item.amount || item.subtotal)}</span>
-                          </div>
-                        ))
+                        selectedInvoice.items.map((item, idx) => {
+                          const qty = item.qty || item.quantity || 1;
+                          const unitPrice = item.price || item.unit_price || item.amount || item.subtotal || 0;
+                          const lineTotal = item.subtotal ?? unitPrice * qty;
+                          return (
+                            <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="font-bold text-slate-800">{item.name}</span>
+                                <span className="font-mono font-bold text-slate-900 shrink-0">
+                                  {lineTotal === 0 ? "GRATIS" : formatRupiah(lineTotal)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {item.category && (
+                                  <span className="rounded-md bg-white px-2 py-0.5 font-mono text-[10px] text-slate-600 border border-slate-200/80">
+                                    {item.category}
+                                  </span>
+                                )}
+                                {(item.qty || item.quantity) && (
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    {qty} x {formatRupiah(unitPrice)}
+                                  </span>
+                                )}
+                                {item.description && (
+                                  <span className="text-[10px] text-slate-500">{item.description}</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
                       ) : (
                         <p className="text-slate-400 italic">Detail komponen biaya umum.</p>
                       )}
@@ -490,18 +569,121 @@ export default function FaskesPatientInvoiceHistoryPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <button
-                    onClick={() => window.print()}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-bold shadow-xs transition cursor-pointer"
-                  >
-                    <Printer className="h-4 w-4" /> Cetak Kuitansi PDF
-                  </button>
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => window.print()}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-bold shadow-xs transition cursor-pointer"
+                    >
+                      <Printer className="h-4 w-4" /> Cetak Kuitansi PDF
+                    </button>
+                    
+                  </div>
                   <button
                     onClick={() => setSelectedInvoice(null)}
                     className="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 text-xs font-bold transition cursor-pointer"
                   >
                     Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Pilihan Metode Pembayaran (Cash / Transfer Midtrans) */}
+          {showPaymentModal && paymentInvoice && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 font-bold">
+                      <CreditCard className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900">Pilih Metode Pembayaran</h3>
+                      <p className="text-xs text-slate-500">Pelunasan tagihan atas nama {paymentInvoice.patientName || `Pasien #${paymentInvoice.patient_id}`}</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={closePaymentModal}
+                    className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 text-sm font-bold cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200 text-xs space-y-2 font-mono">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">No. Invoice:</span>
+                    <span className="font-bold text-slate-900">{paymentInvoice.invoice_number || paymentInvoice.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Jumlah Pembayaran:</span>
+                    <span className="font-extrabold text-teal-800 text-sm">{formatRupiah(paymentInvoice.total_amount)}</span>
+                  </div>
+                </div>
+
+                {/* Pilih Metode */}
+                <div className="space-y-3">
+                  <span className="text-xs font-bold text-slate-700 block">Metode Pembayaran:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setPaymentMethod("cash")}
+                      className={`rounded-2xl border p-3.5 text-left text-xs transition cursor-pointer ${
+                        paymentMethod === "cash" ? "border-teal-600 bg-teal-50/60 font-bold text-teal-900" : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <Banknote className="h-5 w-5 text-teal-700 mb-1.5" />
+                      Bayar Kasir (Cash)
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod("va")}
+                      className={`rounded-2xl border p-3.5 text-left text-xs transition cursor-pointer ${
+                        paymentMethod === "va" ? "border-teal-600 bg-teal-50/60 font-bold text-teal-900" : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <Landmark className="h-5 w-5 text-teal-700 mb-1.5" />
+                      Transfer / QRIS (Midtrans)
+                    </button>
+                  </div>
+                </div>
+
+                {paymentMethod === "cash" && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                    <p className="text-xs font-bold text-slate-700">Konfirmasi Pembayaran Tunai</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Status invoice akan langsung diperbarui menjadi LUNAS begitu Anda konfirmasi telah menerima uang tunai dari pasien.
+                    </p>
+                  </div>
+                )}
+
+                {paymentMethod === "va" && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                    <p className="text-xs font-bold text-slate-700">Pembayaran via Midtrans</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Popup Midtrans Snap akan terbuka untuk pasien menyelesaikan pembayaran (Transfer VA / QRIS). Status invoice diperbarui otomatis setelah pembayaran terverifikasi.
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-slate-100 flex gap-3">
+                  <button
+                    onClick={handleConfirmPayment}
+                    disabled={submitting || !paymentMethod}
+                    className="w-full rounded-2xl bg-teal-800 hover:bg-teal-900 text-white font-bold text-xs py-3 shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" /> Memproses...
+                      </>
+                    ) : paymentMethod === "cash" ? (
+                      "Konfirmasi Bayar Cash"
+                    ) : paymentMethod === "va" ? (
+                      "Lanjutkan ke Pembayaran Midtrans"
+                    ) : (
+                      "Pilih Metode Dahulu"
+                    )}
                   </button>
                 </div>
               </div>

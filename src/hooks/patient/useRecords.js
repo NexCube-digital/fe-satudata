@@ -62,7 +62,7 @@ export function usePatientRecords() {
 
   useEffect(() => {
     if (stepperContainerRef.current) {
-      const activeEl = stepperContainerRef.current.children[activeStage - 1];
+      const activeEl = stepperContainerRef.current.querySelector(`[data-stage="${activeStage}"]`);
       if (activeEl) {
         activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
       }
@@ -355,6 +355,7 @@ export function usePatientRecords() {
     invoiceLoading,
     invoiceError,
     activeStage,
+    setActiveStage,
     paymentMethod,
     setPaymentMethod,
     showPaymentModal,
