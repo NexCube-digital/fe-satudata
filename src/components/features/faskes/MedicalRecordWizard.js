@@ -76,28 +76,100 @@ const DOSAGE_RULE_PRESETS = [
 ];
 
 function getDetailFieldsConfig(type) {
-  switch (type) {
-    case "lab":
-      return [
-        { name: "examination_type", label: "Jenis Pemeriksaan" },
-        { name: "checkup_result", label: "Hasil Pemeriksaan" },
-        { name: "reference_values", label: "Nilai Referensi" },
-        { name: "conclusion", label: "Kesimpulan" },
-      ];
-    case "radiologi":
-      return [
-        { name: "examination_type", label: "Jenis Pemeriksaan" },
-        { name: "checkup_result", label: "Temuan Radiologi" },
-        { name: "conclusion", label: "Kesimpulan" },
-      ];
-    default:
-      return [
-        { name: "complaint", label: "Keluhan Pasien" },
-        { name: "diagnosis", label: "Diagnosa" },
-        { name: "action", label: "Tindakan" },
-        { name: "note_doctor", label: "Catatan Dokter" },
-      ];
+  const normType = String(type || "").toLowerCase().trim();
+
+  if (
+    normType === "igd" ||
+    normType === "gawat_darurat" ||
+    normType.includes("igd") ||
+    normType.includes("gawat darurat")
+  ) {
+    return [
+      { name: "igd_triase_data", label: "FORM GAWAT DARURAT MEDIS (TRIAGE STATUS & PEMERIKSAAN JASMANI)", section: "S", inputType: "igd_triase_form" },
+      { name: "ugd_discharge_status", label: "Ringkasan Kondisi Sebelum Meninggalkan UGD", section: "P", inputType: "ugd_discharge_summary" },
+    ];
   }
+
+  if (
+    normType === "rawat_inap" ||
+    normType.includes("rawat_inap") ||
+    normType.includes("rawat inap") ||
+    normType.includes("ranap") ||
+    normType.includes("ri-")
+  ) {
+    return [
+      { name: "complaint", label: "Hasil Anamnesis: Keluhan Utama Masuk Rawat Inap", section: "S", inputType: "textarea", placeholder: "Keluhan utama saat pasien masuk ruang perawatan..." },
+      { name: "anamnesis", label: "Hasil Anamnesis: Riwayat Penyakit Lengkap", section: "S", inputType: "textarea", placeholder: "Riwayat penyakit sekarang, riwayat operasi, penyakit dahulu, alergi obat..." },
+      { name: "vital_signs", label: "Hasil Pemeriksaan Tanda-Tanda Vital Harian", section: "O", inputType: "vital_signs" },
+      { name: "physical_exam", label: "Hasil Pemeriksaan Fisik & Kamar Rawat Inap", section: "O", inputType: "textarea", placeholder: "Hasil pemeriksaan fisik & kamar rawat inap..." },
+      { name: "clinical_observation", label: "Catatan Observasi Klinis & Hasil Pengobatan", section: "O", inputType: "textarea", placeholder: "Catatan perkembangan pasien terpadu (CPPT), evaluasi harian, respon pengobatan..." },
+      { name: "icd10_primary", label: "Diagnosis Utama (ICD-10)", section: "A", inputType: "icd10_autocomplete" },
+      { name: "icd10_secondary", label: "Diagnosis Sekunder (ICD-10)", section: "A", inputType: "icd10_multiselect" },
+      { name: "diagnosis", label: "Diagnosis Dokter (Utama & Sekunder)", section: "A", inputType: "textarea", placeholder: "Diagnosis utama & diagnosis penyerta..." },
+      { name: "action", label: "Pengobatan atau Tindakan Medis Rawat Inap", section: "P", inputType: "textarea", placeholder: "Rencana penatalaksanaan, pemasangan infus, terapi harian, tindakan medis..." },
+      { name: "informed_consent", label: "Persetujuan Tindakan Medis (Informed Consent)", section: "P", inputType: "text", placeholder: "Persetujuan tindakan medis / surat izin rawat inap..." },
+      { name: "discharge_summary", label: "Ringkasan Pulang (Discharge Summary)", section: "P", inputType: "textarea", placeholder: "Ringkasan kondisi saat pulang, instruksi obat pulang & jadwal kontrol..." },
+      { name: "other_services", label: "Pelayanan Lain yang Diberikan", section: "P", inputType: "textarea", placeholder: "Asuhan gizi, fisioterapi rawat inap, konsul spesialis..." },
+    ];
+  }
+
+  if (
+    normType === "rawat_jalan" ||
+    normType.includes("rawat_jalan") ||
+    normType.includes("rawat jalan") ||
+    normType.includes("rajal") ||
+    normType.includes("rj-")
+  ) {
+    return [
+      { name: "complaint", label: "Hasil Anamnesis: Keluhan Utama", section: "S", inputType: "textarea", placeholder: "Keluhan utama yang dirasakan pasien..." },
+      { name: "anamnesis", label: "Hasil Anamnesis: Riwayat Penyakit", section: "S", inputType: "textarea", placeholder: "Riwayat penyakit sekarang, dahulu, riwayat keluarga, alergi..." },
+      { name: "vital_signs", label: "Hasil Pemeriksaan Tanda-Tanda Vital", section: "O", inputType: "vital_signs" },
+      { name: "physical_exam", label: "Hasil Pemeriksaan Fisik & Penunjang Medis", section: "O", inputType: "textarea", placeholder: "Hasil pemeriksaan fisik poliklinik & penunjang..." },
+      { name: "icd10_primary", label: "Diagnosis Utama (ICD-10)", section: "A", inputType: "icd10_autocomplete" },
+      { name: "icd10_secondary", label: "Diagnosis Sekunder (ICD-10)", section: "A", inputType: "icd10_multiselect" },
+      { name: "diagnosis", label: "Diagnosis Dokter Poliklinik", section: "A", inputType: "textarea", placeholder: "Diagnosis kerja / diagnosis akhir..." },
+      { name: "action", label: "Pengobatan dan/atau Tindakan Medis", section: "P", inputType: "textarea", placeholder: "Rencana penatalaksanaan, terapi obat, edukasi..." },
+      { name: "nursing_care", label: "Rekam Asuhan Keperawatan Rawat Jalan", section: "P", inputType: "textarea", placeholder: "Catatan asuhan keperawatan, pengkajian keperawatan, konseling..." },
+      { name: "other_services", label: "Pelayanan Lain yang Diberikan", section: "P", inputType: "textarea", placeholder: "Pelayanan laboratorium/radiologi, konseling gizi, dll..." },
+    ];
+  }
+
+  if (
+    normType === "lab" ||
+    normType.includes("laboratorium") ||
+    normType.includes("lab")
+  ) {
+    return [
+      { name: "examination_type", label: "Jenis Pemeriksaan Laboratorium", section: "O", inputType: "textarea" },
+      { name: "checkup_result", label: "Hasil Pemeriksaan Laboratorium", section: "O", inputType: "textarea" },
+      { name: "reference_values", label: "Nilai Referensi", section: "O", inputType: "textarea" },
+      { name: "conclusion", label: "Kesimpulan & Evaluasi Dokter", section: "A", inputType: "textarea" },
+    ];
+  }
+
+  if (
+    normType === "radiologi" ||
+    normType.includes("radiologi")
+  ) {
+    return [
+      { name: "examination_type", label: "Jenis Pemeriksaan Radiologi", section: "O", inputType: "textarea" },
+      { name: "checkup_result", label: "Temuan Radiologi", section: "O", inputType: "textarea" },
+      { name: "conclusion", label: "Kesimpulan / Impresi Dokter Radiologi", section: "A", inputType: "textarea" },
+    ];
+  }
+
+  return [
+    { name: "complaint", label: "Keluhan Utama", section: "S", inputType: "textarea", placeholder: "Keluhan utama yang dirasakan pasien saat ini..." },
+    { name: "anamnesis", label: "Anamnesis / Riwayat Penyakit", section: "S", inputType: "textarea", placeholder: "Riwayat penyakit sekarang, dahulu, keluarga, alergi..." },
+    { name: "vital_signs", label: "Tanda-Tanda Vital", section: "O", inputType: "vital_signs" },
+    { name: "physical_exam", label: "Pemeriksaan Fisik & Penunjang", section: "O", inputType: "textarea", placeholder: "Hasil pemeriksaan fisik & penunjang medis..." },
+    { name: "icd10_primary", label: "Diagnosis Utama (ICD-10)", section: "A", inputType: "icd10_autocomplete" },
+    { name: "icd10_secondary", label: "Diagnosis Sekunder (ICD-10)", section: "A", inputType: "icd10_multiselect" },
+    { name: "diagnosis", label: "Diagnosis Dokter", section: "A", inputType: "textarea", placeholder: "Diagnosis kerja dan/atau diagnosis banding..." },
+    { name: "action", label: "Pengobatan / Tindakan Medis", section: "P", inputType: "textarea", placeholder: "Rencana penatalaksanaan, pengobatan, terapi..." },
+    { name: "other_services", label: "Pelayanan Lain yang Diberikan", section: "P", inputType: "textarea", placeholder: "Pelayanan lain yang diberikan kepada pasien..." },
+    { name: "note_doctor", label: "Catatan & Edukasi Dokter", section: "P", inputType: "textarea", placeholder: "Instruksi follow-up, edukasi pasien, rencana kontrol..." },
+  ];
 }
 
 function isDoctorMatchingSpecialty(doctor, selectedSpec) {
@@ -328,16 +400,54 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   const [loadingPatients, setLoadingPatients] = useState(true);
 
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const nowTimeStr = useMemo(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  }, []);
+
+  const generateVisitId = () => {
+    const d = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `VISIT-${d}-${rand}`;
+  };
+
+  const [visitId, setVisitId] = useState(generateVisitId);
+  const [primaryEntryPoint, setPrimaryEntryPoint] = useState("");
+  const [igdDischargeDecision, setIgdDischargeDecision] = useState("pulang");
+  const [rujukanData, setRujukanData] = useState({ targetFacility: "", reason: "", condition: "", transport: "Ambulans" });
+  const [deathData, setDeathData] = useState({ deathTime: "", deathCause: "", certifierDoctor: "" });
+  const [cpptNotes, setCpptNotes] = useState("");
 
   const [title, setTitle] = useState("");
   const [visitDate, setVisitDate] = useState(todayStr);
+  const [visitTime, setVisitTime] = useState(nowTimeStr);
+  const [paymentType, setPaymentType] = useState("");
+  const [escortName, setEscortName] = useState("");
+  const [escortRelation, setEscortRelation] = useState("");
+  const [escortPhone, setEscortPhone] = useState("");
+
   const [typeOfTreatment, setTypeOfTreatment] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [summary, setSummary] = useState("");
 
+  const [nakesName, setNakesName] = useState("");
+  const [doctorSignature, setDoctorSignature] = useState("");
+  const [icd9Procedures, setIcd9Procedures] = useState([]);
+  const [nursingCareNotes, setNursingCareNotes] = useState("");
+  const [penunjangResultText, setPenunjangResultText] = useState("");
+
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedPenunjang, setSelectedPenunjang] = useState([]);
   const [detailsByType, setDetailsByType] = useState({});
+
+  const handlePrimaryEntryPointChange = (entryPoint) => {
+    setPrimaryEntryPoint(entryPoint);
+    setSelectedTypes([entryPoint]);
+    setDetailsByType((prev) => ({
+      ...prev,
+      [entryPoint]: prev[entryPoint] || buildEmptyDetail(entryPoint),
+    }));
+  };
 
   const [persistedTypes, setPersistedTypes] = useState([]);
 
@@ -430,6 +540,84 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     }));
   }, [servicePrices]);
 
+  const roomOptions = useMemo(() => {
+    return servicePrices
+      .filter((s) => s.type === "ruangan")
+      .map((item) => ({
+        value: item.name,
+        label: `${item.name} (${item.code || "AKM"}) - Rp ${Number(item.price || 0).toLocaleString("id-ID")}/${item.satuan || "Hari"}`,
+        price: item.price,
+        code: item.code,
+      }));
+  }, [servicePrices]);
+
+  const layananAdminOptions = useMemo(() => {
+    const rawServices = servicePrices.filter((s) => s.type === "layanan");
+
+    const selectedTypesInfo = selectedTypes.map((tVal) => {
+      const rec = recordTypes.find((r) => r.value === tVal);
+      return {
+        value: tVal,
+        label: (rec?.label || tVal).toLowerCase(),
+      };
+    });
+
+    const filtered = rawServices.filter((item) => {
+      if (selectedTypes.length === 0) return true;
+
+      const nameLower = (item.name || "").toLowerCase();
+      const catLower = (item.category || "").toLowerCase();
+      const kptlLower = (item.kptl || "").toLowerCase();
+
+      const matchesAnySelected = selectedTypesInfo.some(({ value, label }) => {
+        if (value === "igd" || label.includes("gawat darurat")) {
+          if (nameLower.includes("gawat") || nameLower.includes("igd") || catLower.includes("gawat") || kptlLower.includes("igd")) return true;
+        }
+        if (value === "rawat_jalan" || label.includes("rawat jalan")) {
+          if (nameLower.includes("rawat jalan") || catLower.includes("rawat jalan") || kptlLower.includes("rj")) return true;
+        }
+        if (value === "rawat_inap" || label.includes("rawat inap")) {
+          if (nameLower.includes("rawat inap") || nameLower.includes("(ranap)") || catLower.includes("rawat inap") || kptlLower.includes("ri")) return true;
+        }
+        if (value === "bedah_sentral" || label.includes("bedah")) {
+          if (nameLower.includes("bedah") || catLower.includes("bedah") || kptlLower.includes("bdh")) return true;
+        }
+        if (value === "one_day_care" || label.includes("one day care") || value === "odc") {
+          if (nameLower.includes("one day care") || nameLower.includes("odc") || kptlLower.includes("odc")) return true;
+        }
+        return false;
+      });
+
+      const isGenericAdmin =
+        !nameLower.includes("pendaftaran") &&
+        !nameLower.includes("gawat") &&
+        !nameLower.includes("rawat jalan") &&
+        !nameLower.includes("(ranap)") &&
+        !nameLower.includes("rawat inap");
+
+      return matchesAnySelected || isGenericAdmin;
+    });
+
+    return filtered.map((item) => ({
+      value: item.name,
+      label: `${item.name} (${item.code || "ADM"}) - Rp ${Number(item.price || 0).toLocaleString("id-ID")}`,
+      price: item.price,
+      code: item.code,
+    }));
+  }, [servicePrices, selectedTypes, recordTypes]);
+
+  const subLayananItems = useMemo(() => {
+    return servicePrices
+      .filter((s) => s.type === "sub_layanan")
+      .map((item) => ({
+        id: item.code || item.name,
+        name: item.name,
+        category: item.category || "General",
+        price: item.price,
+        code: item.code,
+      }));
+  }, [servicePrices]);
+
   const togglePenunjangCategory = (catValue) => {
     setSelectedPenunjangCategories((prev) => {
       if (prev.includes(catValue)) {
@@ -462,10 +650,10 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   }, [selectedTypes, recordTypes]);
 
   const steps = useMemo(
-    () => [STEP_JENIS, STEP_KUNJUNGAN, ...sortedSelectedTypes.map(detailStepKey), STEP_LAMPIRAN],
+    () => [STEP_KUNJUNGAN, ...sortedSelectedTypes.map(detailStepKey), STEP_LAMPIRAN],
     [sortedSelectedTypes]
   );
-  const currentStep = steps[currentStepIndex] || STEP_JENIS;
+  const currentStep = steps[currentStepIndex] || STEP_KUNJUNGAN;
 
   useEffect(() => {
     setCurrentStepIndex((idx) => Math.min(idx, steps.length - 1));
@@ -533,12 +721,20 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
         const allPatients = Array.isArray(result?.data) ? result.data : [];
 
         setApprovedPatients(
-          allPatients.map((item) => ({
-            patientId: item.patient_id,
-            patientName: item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
-            nik: item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
-            requestId: item.id,
-          }))
+          allPatients.map((item) => {
+            const pUser = item.Patient || item.patient || {};
+            const prof = pUser.profil || pUser.patient_profil || pUser.PatientProfile || {};
+            return {
+              patientId: item.patient_id,
+              patientName: pUser.name || prof.name || "Pasien Terdaftar",
+              nik: prof.nik || pUser.nik || "-",
+              phone: prof.phone || pUser.phone || "",
+              emergencyName: prof.emergency_contact_name || pUser.emergency_contact_name || "",
+              emergencyPhone: prof.emergency_contact_phone || pUser.emergency_contact_phone || "",
+              emergencyRelation: prof.emergency_relation || prof.relationship || "",
+              requestId: item.id,
+            };
+          })
         );
       } catch (err) {
         console.error("Gagal memuat pasien", err);
@@ -549,6 +745,32 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
 
     fetchApprovedPatients();
   }, []);
+
+  // Auto-fill Identitas Pengantar (Escort Information) when selected patient changes
+  useEffect(() => {
+    if (!patientId || approvedPatients.length === 0) return;
+
+    const matched = approvedPatients.find((p) => String(p.patientId) === String(patientId));
+    if (matched) {
+      const eName = matched.emergencyName || "";
+      const ePhone = matched.emergencyPhone || matched.phone || "";
+      let eRel = matched.emergencyRelation || "";
+
+      if (!eRel && eName) {
+        const lowerName = eName.toLowerCase();
+        if (lowerName.includes("suami") || lowerName.includes("istri")) eRel = "Suami / Istri";
+        else if (lowerName.includes("ayah") || lowerName.includes("bapak") || lowerName.includes("ibu") || lowerName.includes("mama") || lowerName.includes("orang tua")) eRel = "Orang Tua";
+        else if (lowerName.includes("anak")) eRel = "Anak";
+        else if (lowerName.includes("saudara") || lowerName.includes("kakak") || lowerName.includes("adik") || lowerName.includes("kerabat")) eRel = "Saudara / Kerabat";
+        else if (lowerName.includes("teman") || lowerName.includes("tetangga")) eRel = "Teman / Tetangga";
+        else eRel = "Saudara / Kerabat";
+      }
+
+      setEscortName(eName);
+      setEscortPhone(ePhone);
+      setEscortRelation(eRel || (eName ? "Saudara / Kerabat" : ""));
+    }
+  }, [patientId, approvedPatients]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -603,6 +825,39 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     setSummary(record.summary || "");
     setExistingAttachmentsInfo(record.attachments || []);
 
+    if (record.detail?.kunjungan_info) {
+      const ki = record.detail.kunjungan_info;
+      if (ki.visit_id) setVisitId(ki.visit_id);
+      if (ki.primary_entry_point) setPrimaryEntryPoint(ki.primary_entry_point);
+      if (ki.visit_time) setVisitTime(ki.visit_time);
+      if (ki.payment_type) setPaymentType(ki.payment_type);
+      if (ki.escort_name) setEscortName(ki.escort_name);
+      if (ki.escort_relation) setEscortRelation(ki.escort_relation);
+      if (ki.escort_phone) setEscortPhone(ki.escort_phone);
+    }
+    if (record.detail?.igd_discharge_decision) {
+      const dd = record.detail.igd_discharge_decision;
+      if (dd.decision) setIgdDischargeDecision(dd.decision);
+      if (dd.rujukan) setRujukanData(dd.rujukan);
+      if (dd.death) setDeathData(dd.death);
+    }
+    if (record.detail?.cppt_notes) {
+      setCpptNotes(record.detail.cppt_notes);
+    }
+    if (record.detail?.pengesahan) {
+      const p = record.detail.pengesahan;
+      if (p.nakes_name) setNakesName(p.nakes_name);
+      if (p.doctor_signature) setDoctorSignature(p.doctor_signature);
+    }
+    if (record.detail?.tindakan_icd9) {
+      const t = record.detail.tindakan_icd9;
+      if (Array.isArray(t.procedures)) setIcd9Procedures(t.procedures);
+      if (t.nursing_care) setNursingCareNotes(t.nursing_care);
+    }
+    if (record.detail?.penunjang_result?.text_result) {
+      setPenunjangResultText(record.detail.penunjang_result.text_result);
+    }
+
     const { resumedTypes, resumedDetails, prescriptionRows } = buildStateFromRecord(record, selectedTypesHint);
 
     if (prescriptionRows.length > 0) setPrescriptionItems(prescriptionRows);
@@ -616,9 +871,9 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       return !Object.values(fields).some((v) => v && String(v).trim() !== "");
     });
     const resumeStepKey = firstIncompleteType ? detailStepKey(firstIncompleteType) : STEP_LAMPIRAN;
-    const stepsAfterResume = [STEP_JENIS, STEP_KUNJUNGAN, ...resumedTypes.map(detailStepKey), STEP_LAMPIRAN];
+    const stepsAfterResume = [STEP_KUNJUNGAN, ...resumedTypes.map(detailStepKey), STEP_LAMPIRAN];
     const resumeIndex = stepsAfterResume.indexOf(resumeStepKey);
-    setCurrentStepIndex(resumeIndex >= 0 ? resumeIndex : 1);
+    setCurrentStepIndex(resumeIndex >= 0 ? resumeIndex : 0);
 
     if (!isEditRoute) {
       saveWizardDraftMeta(record.id, resumedTypes);
@@ -930,6 +1185,40 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     const prescriptionDetail = buildPrescriptionDetailPayload();
     if (prescriptionDetail) Object.assign(payload, prescriptionDetail);
 
+    payload.kunjungan_info = {
+      visit_id: visitId,
+      primary_entry_point: primaryEntryPoint,
+      visit_time: visitTime,
+      payment_type: paymentType,
+      escort_name: escortName,
+      escort_relation: escortRelation,
+      escort_phone: escortPhone,
+    };
+
+    payload.igd_discharge_decision = {
+      decision: igdDischargeDecision,
+      rujukan: rujukanData,
+      death: deathData,
+    };
+
+    payload.cppt_notes = cpptNotes;
+
+    payload.pengesahan = {
+      nakes_name: nakesName,
+      doctor_signature: doctorSignature,
+    };
+
+    payload.tindakan_icd9 = {
+      procedures: icd9Procedures,
+      nursing_care: nursingCareNotes,
+    };
+
+    if (penunjangResultText) {
+      payload.penunjang_result = {
+        text_result: penunjangResultText,
+      };
+    }
+
     return payload;
   };
 
@@ -939,13 +1228,30 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   const getRemovedTypes = () => persistedTypes.filter((t) => !selectedTypes.includes(t));
 
   const resetWizard = () => {
+    setVisitId(generateVisitId());
+    setPrimaryEntryPoint("");
+    setSelectedTypes([]);
+    setIgdDischargeDecision("pulang");
+    setRujukanData({ targetFacility: "", reason: "", condition: "", transport: "Ambulans" });
+    setDeathData({ deathTime: "", deathCause: "", certifierDoctor: "" });
+    setCpptNotes("");
     setPatientId("");
     setTitle("");
     setVisitDate(todayStr);
+    setVisitTime(nowTimeStr);
+    setPaymentType("");
+    setEscortName("");
+    setEscortRelation("");
+    setEscortPhone("");
     setTypeOfTreatment("");
     setDoctorId("");
     setResumedDoctorInfo(null);
     setSummary("");
+    setNakesName("");
+    setDoctorSignature("");
+    setIcd9Procedures([]);
+    setNursingCareNotes("");
+    setPenunjangResultText("");
     setSelectedTypes([]);
     setDetailsByType({});
     setPersistedTypes([]); // BUG FIX #2
@@ -958,12 +1264,22 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     clearWizardDraftMeta();
   };
 
+  const effectiveTypeOfTreatment = useMemo(() => {
+    if (typeOfTreatment && typeOfTreatment.trim() !== "") return typeOfTreatment;
+    if (selectedTypes.length > 0) {
+      const firstType = selectedTypes[0];
+      const rec = recordTypes.find((r) => r.value === firstType);
+      return rec?.label || firstType;
+    }
+    return "Rawat Jalan";
+  }, [typeOfTreatment, selectedTypes, recordTypes]);
+
   async function persistHeaderStep() {
     const fd = new FormData();
     fd.append("patientId", patientId);
     fd.append("title", title);
     fd.append("visitDate", visitDate);
-    fd.append("typeOfTreatment", typeOfTreatment);
+    fd.append("typeOfTreatment", effectiveTypeOfTreatment);
     if (doctorId) fd.append("doctorId", doctorId);
     if (summary) fd.append("summary", summary);
 
@@ -975,11 +1291,11 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       const newId = result.data?.id;
       setRecordId(newId);
       if (!isEditRoute) saveWizardDraftMeta(newId, selectedTypes);
-      return newId; // PERBAIKAN: kembalikan id supaya bisa dipakai langsung tanpa menunggu re-render
+      return newId;
     } else {
       const result = await updateMedicalRecordDraft(recordId, fd);
       if (!result?.success) throw new Error(result?.message || "Gagal memperbarui informasi kunjungan.");
-      return recordId; // PERBAIKAN
+      return recordId;
     }
   }
 
@@ -995,22 +1311,13 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     if (!result?.success) throw new Error(result?.message || `Gagal menyimpan data ${type}.`);
   }
 
-  // PERBAIKAN: helper validasi step Kunjungan dipisah supaya dipakai bersama oleh
-  // validateAndPersistStep (tombol "Lanjutkan") dan canSaveDraft (tombol "Simpan Draft").
-  const isKunjunganValid = () => !!(patientId && title.trim() && visitDate && typeOfTreatment);
+  const isKunjunganValid = () => !!(patientId && title.trim() && visitDate && primaryEntryPoint && paymentType);
 
-  // PERBAIKAN: menentukan apakah tombol "Simpan Draft" boleh diklik di step SEKARANG,
-  // berdasarkan field wajib pada step tersebut sudah terisi atau belum.
   const canSaveDraft = useMemo(() => {
     if (isSavingStep || isUploading) return false;
 
-    if (currentStep === STEP_JENIS) {
-      // Belum ada info kunjungan sama sekali di step ini, belum ada yang bisa disimpan.
-      return false;
-    }
-
-    if (currentStep === STEP_KUNJUNGAN) {
-      return isKunjunganValid();
+    if (currentStep === STEP_KUNJUNGAN || currentStep === STEP_JENIS) {
+      return primaryEntryPoint && paymentType && isKunjunganValid();
     }
 
     if (currentStep.startsWith("detail_")) {
@@ -1021,21 +1328,24 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     }
 
     if (currentStep === STEP_LAMPIRAN) {
-      // Obat & lampiran memang opsional, boleh disimpan draft kapan saja selama record sudah ada.
       return !!recordId;
     }
 
     return false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, isSavingStep, isUploading, patientId, title, visitDate, typeOfTreatment, recordId, detailsByType]);
+  }, [currentStep, isSavingStep, isUploading, selectedTypes.length, patientId, title, visitDate, recordId, detailsByType]);
 
-  // PERBAIKAN: pesan tooltip saat tombol "Simpan Draft" disabled
   const saveDraftHint = useMemo(() => {
-    if (currentStep === STEP_JENIS) {
-      return "Pilih jenis rekam medis lalu lengkapi step 'Informasi Kunjungan' dulu.";
-    }
-    if (currentStep === STEP_KUNJUNGAN && !isKunjunganValid()) {
-      return "Lengkapi Pasien, Judul, Tanggal Kunjungan, dan Jenis Layanan terlebih dahulu.";
+    if (currentStep === STEP_KUNJUNGAN || currentStep === STEP_JENIS) {
+      if (!primaryEntryPoint) {
+        return "Pilih Unit Entri Utama (IGD / Rawat Jalan / Direct Rawat Inap) terlebih dahulu.";
+      }
+      if (!paymentType) {
+        return "Pilih Jenis Pembayaran terlebih dahulu.";
+      }
+      if (!isKunjunganValid()) {
+        return "Lengkapi Pasien, Judul, dan Tanggal Kunjungan terlebih dahulu.";
+      }
     }
     if (currentStep.startsWith("detail_")) {
       const type = currentStep.replace("detail_", "");
@@ -1044,18 +1354,18 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, patientId, title, visitDate, typeOfTreatment, recordTypes]);
+  }, [currentStep, selectedTypes.length, primaryEntryPoint, paymentType, patientId, title, visitDate, recordTypes]);
 
   async function validateAndPersistStep(stepKey) {
-    if (stepKey === STEP_JENIS) {
-      if (selectedTypes.length === 0) {
-        setErrorMessage("Pilih minimal 1 jenis rekam medis / pelayanan medis yang ingin diunggah.");
+    if (stepKey === STEP_KUNJUNGAN || stepKey === STEP_JENIS) {
+      if (!primaryEntryPoint) {
+        setErrorMessage("Pilih Unit Entri Utama (IGD / Rawat Jalan / Direct Rawat Inap) terlebih dahulu.");
         return false;
       }
-      return true;
-    }
-
-    if (stepKey === STEP_KUNJUNGAN) {
+      if (!paymentType) {
+        setErrorMessage("Pilih Jenis Pembayaran terlebih dahulu.");
+        return false;
+      }
       if (!patientId) {
         setErrorMessage("Pilih pasien terlebih dahulu.");
         return false;
@@ -1070,10 +1380,6 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       }
       if (!isEditRoute && visitDate < todayStr) {
         setErrorMessage("Tanggal kunjungan tidak boleh sebelum hari ini.");
-        return false;
-      }
-      if (!typeOfTreatment) {
-        setErrorMessage("Jenis layanan wajib dipilih.");
         return false;
       }
 
@@ -1311,6 +1617,9 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             penunjangSubItems={penunjangSubItems}
             selectedPenunjangSubItems={selectedPenunjangSubItems}
             onTogglePenunjangSubItem={togglePenunjangSubItem}
+            roomOptions={roomOptions}
+            layananAdminOptions={layananAdminOptions}
+            subLayananItems={subLayananItems}
             selectedTypes={selectedTypes}
             onToggleRecordType={toggleRecordType}
             patientId={patientId}
@@ -1321,8 +1630,44 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             approvedPatients={approvedPatients}
             title={title}
             onTitleChange={setTitle}
+            visitId={visitId}
+            onVisitIdChange={setVisitId}
+            primaryEntryPoint={primaryEntryPoint}
+            onPrimaryEntryPointChange={handlePrimaryEntryPointChange}
+            igdDischargeDecision={igdDischargeDecision}
+            onIgdDischargeDecisionChange={setIgdDischargeDecision}
+            rujukanData={rujukanData}
+            onRujukanDataChange={setRujukanData}
+            deathData={deathData}
+            onDeathDataChange={setDeathData}
+            cpptNotes={cpptNotes}
+            onCpptNotesChange={setCpptNotes}
+            onPatientCreated={(newP) => {
+              setApprovedPatients((prev) => [newP, ...prev]);
+              setPatientId(newP.patientId || newP.id || `PAT-${Date.now()}`);
+            }}
             visitDate={visitDate}
             onVisitDateChange={setVisitDate}
+            visitTime={visitTime}
+            onVisitTimeChange={setVisitTime}
+            paymentType={paymentType}
+            onPaymentTypeChange={setPaymentType}
+            escortName={escortName}
+            onEscortNameChange={setEscortName}
+            escortRelation={escortRelation}
+            onEscortRelationChange={setEscortRelation}
+            escortPhone={escortPhone}
+            onEscortPhoneChange={setEscortPhone}
+            nakesName={nakesName}
+            onNakesNameChange={setNakesName}
+            doctorSignature={doctorSignature}
+            onDoctorSignatureChange={setDoctorSignature}
+            icd9Procedures={icd9Procedures}
+            onIcd9ProceduresChange={setIcd9Procedures}
+            nursingCareNotes={nursingCareNotes}
+            onNursingCareNotesChange={setNursingCareNotes}
+            penunjangResultText={penunjangResultText}
+            onPenunjangResultTextChange={setPenunjangResultText}
             todayStr={todayStr}
             typeOfTreatment={typeOfTreatment}
             onTypeOfTreatmentChange={handleTypeOfTreatmentChange}

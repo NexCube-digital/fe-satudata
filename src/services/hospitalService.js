@@ -1,5 +1,3 @@
-
-
 import { apiGet, apiPost, apiPut } from "@/lib/api";
 
 export const getHospitalProfile = async () => {
@@ -34,6 +32,14 @@ export const getHospitalAuditLogs = async (params = {}) => {
   return await apiGet("/api/hospital/audit", params);
 };
 
+export const createPatientByHospital = async (patientData) => {
+  return await apiPost("/api/hospital/create-patient-account", patientData);
+};
+
+export const searchPatientByNik = async (nik) => {
+  return await apiGet("/api/hospital/search-patient", { nik });
+};
+
 export default {
   getHospitalProfile,
   updateHospitalProfile,
@@ -43,4 +49,6 @@ export default {
   updateMedicalRecordDraft,
   getMedicalRecordById,
   getHospitalAuditLogs,
+  createPatientByHospital,
+  searchPatientByNik,
 };
