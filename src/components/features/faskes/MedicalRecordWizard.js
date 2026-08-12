@@ -23,10 +23,31 @@ import { getSpecialties } from "@/services/specialtyService";
 import Toast from "@/components/ui/Toast";
 import notify from "@/lib/notify";
 
-const RECORD_TYPES = [
-  { value: "umum", label: "Umum" },
-  { value: "lab", label: "Laboratorium" },
-  { value: "radiologi", label: "Radiologi" },
+const DEFAULT_PELAYANAN_MEDIS = [
+  { value: "igd", label: "Instalasi Gawat Darurat" },
+  { value: "rawat_jalan", label: "Instalasi Rawat Jalan" },
+  { value: "rawat_inap", label: "Instalasi Rawat Inap" },
+  { value: "bedah_sentral", label: "Instalasi Bedah Sentral" },
+  { value: "rehab_medik", label: "Pelayanan Rehabilitas Medik" },
+  { value: "one_day_care", label: "One Day Care" },
+];
+
+function getMedisOrderRank(val, label = "") {
+  const normVal = (val || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  const normLbl = (label || "").toLowerCase();
+
+  if (normVal.includes("igd") || normLbl.includes("gawat darurat")) return 1;
+  if (normVal.includes("rawat_jalan") || normLbl.includes("rawat jalan")) return 2;
+  if (normVal.includes("rawat_inap") || normLbl.includes("rawat inap")) return 3;
+  if (normVal.includes("bedah") || normLbl.includes("bedah")) return 4;
+  if (normVal.includes("rehab") || normLbl.includes("rehabilitas")) return 5;
+  if (normVal.includes("one_day_care") || normLbl.includes("one day care") || normVal.includes("odc")) return 6;
+  return 99;
+}
+
+const DEFAULT_PENUNJANG_OPTIONS = [
+  { value: "laboratorium", label: "Laboratorium (Pemeriksaan Blood / Lab)", category: "Laboratorium" },
+  { value: "radiologi", label: "Radiologi (Rontgen / USG / CT Scan)", category: "Radiologi" },
 ];
 
 const TYPE_OF_TREATMENT_OPTIONS = [
@@ -241,7 +262,7 @@ function buildStateFromRecord(record, selectedTypesHint) {
   const resumedTypes =
     Array.isArray(selectedTypesHint) && selectedTypesHint.length > 0
       ? selectedTypesHint
-      : Object.keys(record.detail || {}).filter((t) => RECORD_TYPES.some((rt) => rt.value === t));
+      : Object.keys(record.detail || {});
 
   const resumedDetails = {};
   resumedTypes.forEach((type) => {
@@ -315,12 +336,9 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   const [summary, setSummary] = useState("");
 
   const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedPenunjang, setSelectedPenunjang] = useState([]);
   const [detailsByType, setDetailsByType] = useState({});
 
-  // BUG FIX #2: melacak jenis (umum/lab/radiologi) yang SUDAH TERSIMPAN di backend
-  // untuk recordId ini. Dipakai untuk menghitung selisih ("removeTypes") saat user
-  // meng-uncheck jenis yang sebelumnya sudah tersimpan -- tanpa ini, backend tidak
-  // pernah tahu ada jenis yang harus dihapus (lihat getRemovedTypes di bawah).
   const [persistedTypes, setPersistedTypes] = useState([]);
 
   const [attachmentFiles, setAttachmentFiles] = useState([]);
@@ -363,11 +381,89 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
 
   const [resumedDoctorInfo, setResumedDoctorInfo] = useState(null);
 
+  const [selectedPenunjangCategories, setSelectedPenunjangCategories] = useState([]);
+  const [selectedPenunjangSubItems, setSelectedPenunjangSubItems] = useState([]);
+
+  const recordTypes = useMemo(() => {
+    const kategoriFromApi = servicePrices.filter((s) => s.type === "kategori");
+    if (kategoriFromApi.length > 0) {
+      const mapped = kategoriFromApi.map((item) => {
+        const val = (item.code || item.name).toLowerCase().replace(/[^a-z0-9]+/g, "_");
+        return {
+          value: val,
+          label: item.name,
+          code: item.code,
+          kptl: item.kptl,
+        };
+      });
+      mapped.sort((a, b) => getMedisOrderRank(a.value, a.label) - getMedisOrderRank(b.value, b.label));
+      return mapped;
+    }
+    return DEFAULT_PELAYANAN_MEDIS;
+  }, [servicePrices]);
+
+  const penunjangMainCategories = useMemo(() => {
+    const mainFromApi = servicePrices.filter((s) => s.type === "penunjang");
+    if (mainFromApi.length > 0) {
+      return mainFromApi.map((item) => ({
+        value: item.category || item.name,
+        label: item.name,
+        code: item.code,
+        kptl: item.kptl,
+      }));
+    }
+    return [
+      { value: "Laboratorium", label: "Laboratorium" },
+      { value: "Radiologi", label: "Radiologi" },
+    ];
+  }, [servicePrices]);
+
+  const penunjangSubItems = useMemo(() => {
+    return servicePrices.filter((s) => s.type === "sub_penunjang").map((item) => ({
+      id: item.code || item.name,
+      name: item.name,
+      category: item.category || "Penunjang",
+      code: item.code,
+      kptl: item.kptl,
+      satuan: item.satuan,
+      price: item.price,
+    }));
+  }, [servicePrices]);
+
+  const togglePenunjangCategory = (catValue) => {
+    setSelectedPenunjangCategories((prev) => {
+      if (prev.includes(catValue)) {
+        setSelectedPenunjangSubItems((subPrev) =>
+          subPrev.filter((id) => {
+            const item = penunjangSubItems.find((s) => s.id === id);
+            return item ? item.category !== catValue : true;
+          })
+        );
+        return prev.filter((c) => c !== catValue);
+      }
+      return [...prev, catValue];
+    });
+  };
+
+  const togglePenunjangSubItem = (itemId) => {
+    setSelectedPenunjangSubItems((prev) =>
+      prev.includes(itemId) ? prev.filter((i) => i !== itemId) : [...prev, itemId]
+    );
+  };
+
   const closeSuccessModal = () => setShowSuccessModal(false);
 
+  const sortedSelectedTypes = useMemo(() => {
+    return [...selectedTypes].sort((a, b) => {
+      const labelA = recordTypes.find((t) => t.value === a)?.label || a;
+      const labelB = recordTypes.find((t) => t.value === b)?.label || b;
+      return getMedisOrderRank(a, labelA) - getMedisOrderRank(b, labelB);
+    });
+  }, [selectedTypes, recordTypes]);
+
   const steps = useMemo(
-    () => [STEP_JENIS, STEP_KUNJUNGAN, ...selectedTypes.map(detailStepKey), STEP_LAMPIRAN],
-    [selectedTypes]
+    () => [STEP_JENIS, STEP_KUNJUNGAN, ...sortedSelectedTypes.map(detailStepKey), STEP_LAMPIRAN],
+    [sortedSelectedTypes]
   );
   const currentStep = steps[currentStepIndex] || STEP_JENIS;
 
@@ -943,17 +1039,17 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     }
     if (currentStep.startsWith("detail_")) {
       const type = currentStep.replace("detail_", "");
-      const typeLabel = RECORD_TYPES.find((t) => t.value === type)?.label || type;
+      const typeLabel = recordTypes.find((t) => t.value === type)?.label || type;
       return `Isi minimal 1 data untuk ${typeLabel} terlebih dahulu.`;
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, patientId, title, visitDate, typeOfTreatment]);
+  }, [currentStep, patientId, title, visitDate, typeOfTreatment, recordTypes]);
 
   async function validateAndPersistStep(stepKey) {
     if (stepKey === STEP_JENIS) {
       if (selectedTypes.length === 0) {
-        setErrorMessage("Pilih minimal 1 jenis rekam medis (Umum/Lab/Radiologi) yang ingin diunggah.");
+        setErrorMessage("Pilih minimal 1 jenis rekam medis / pelayanan medis yang ingin diunggah.");
         return false;
       }
       return true;
@@ -996,7 +1092,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
       const fields = detailsByType[type] || {};
       const hasContent = Object.values(fields).some((v) => v && String(v).trim() !== "");
       if (!hasContent) {
-        const typeLabel = RECORD_TYPES.find((t) => t.value === type)?.label || type;
+        const typeLabel = recordTypes.find((t) => t.value === type)?.label || type;
         setErrorMessage(`Lengkapi minimal 1 data untuk rekam medis ${typeLabel}.`);
         return false;
       }
@@ -1208,7 +1304,13 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             stepJenis={STEP_JENIS}
             stepKunjungan={STEP_KUNJUNGAN}
             stepLampiran={STEP_LAMPIRAN}
-            recordTypes={RECORD_TYPES}
+            recordTypes={recordTypes}
+            penunjangMainCategories={penunjangMainCategories}
+            selectedPenunjangCategories={selectedPenunjangCategories}
+            onTogglePenunjangCategory={togglePenunjangCategory}
+            penunjangSubItems={penunjangSubItems}
+            selectedPenunjangSubItems={selectedPenunjangSubItems}
+            onTogglePenunjangSubItem={togglePenunjangSubItem}
             selectedTypes={selectedTypes}
             onToggleRecordType={toggleRecordType}
             patientId={patientId}

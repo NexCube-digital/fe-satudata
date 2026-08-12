@@ -12,6 +12,8 @@ import {
 	Search,
 	Pill,
 	AlertTriangle,
+	Stethoscope,
+	Activity,
 } from "lucide-react";
 import MedicalRecordUpdateActions from "@/components/features/faskes/MedicalRecordUpdate";
 
@@ -234,46 +236,57 @@ function ComboboxInput({ value, onChange, options, placeholder = "Ketik atau pil
 
 function StepIndicator({ steps, currentIndex, onStepClick, disabled, stepJenis, stepKunjungan, stepLampiran, recordTypes }) {
 	const stepLabel = (step) => {
-		if (step === stepJenis) return "Jenis Rekam Medis";
-		if (step === stepKunjungan) return "Informasi Kunjungan";
-		if (step === stepLampiran) return "Obat & Lampiran File";
+		if (step === stepJenis) return "Jenis";
+		if (step === stepKunjungan) return "Kunjungan";
+		if (step === stepLampiran) return "Lampiran & Obat";
 		const type = step.replace("detail_", "");
-		return `Data ${recordTypes.find((t) => t.value === type)?.label || type}`;
+		const rawLabel = recordTypes.find((t) => t.value === type)?.label || type;
+		if (rawLabel.includes("Gawat Darurat") || type === "igd") return "IGD";
+		if (rawLabel.includes("Rawat Jalan") || type === "rawat_jalan") return "Rawat Jalan";
+		if (rawLabel.includes("Rawat Inap") || type === "rawat_inap") return "Rawat Inap";
+		if (rawLabel.includes("Bedah") || type === "bedah_sentral" || type === "bedah_central") return "Bedah Sentral";
+		if (rawLabel.includes("Rehab") || type === "rehab_medik") return "Rehab Medik";
+		if (rawLabel.includes("One Day Care") || type === "one_day_care") return "One Day Care";
+		return rawLabel.replace(/^Instalasi\s+/, "").replace(/^Pelayanan\s+/, "");
 	};
 
 	return (
-		<ol className="flex flex-wrap items-center gap-2 mb-6">
-			{steps.map((step, idx) => {
-				const isDone = idx < currentIndex;
-				const isActive = idx === currentIndex;
-				return (
-					<li key={step} className="flex items-center gap-2">
-						<button
-							type="button"
-							onClick={() => onStepClick?.(idx)}
-							disabled={disabled}
-							className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
-								isActive
-									? "bg-teal-800 text-white shadow-md"
-									: isDone
-									? "bg-teal-100 text-teal-800"
-									: "bg-slate-100 text-slate-400"
-							} ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-90"}`}
-						>
-							<span
-								className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
-									isActive ? "bg-white/20" : isDone ? "bg-teal-200" : "bg-white"
-								}`}
+		<div className="mb-6 overflow-x-auto pb-1 no-scrollbar">
+			<ol className="flex items-center gap-1.5 min-w-max p-1 bg-slate-100/70 border border-slate-200/60 rounded-2xl">
+				{steps.map((step, idx) => {
+					const isDone = idx < currentIndex;
+					const isActive = idx === currentIndex;
+					return (
+						<li key={step} className="flex items-center gap-1.5">
+							<button
+								type="button"
+								onClick={() => onStepClick?.(idx)}
+								disabled={disabled}
+								className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+									isActive
+										? "bg-teal-800 text-white shadow-xs"
+										: isDone
+										? "bg-teal-100/80 text-teal-900 hover:bg-teal-200/80"
+										: "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+								} ${disabled ? "cursor-not-allowed opacity-70" : ""}`}
 							>
-								{isDone ? <Check className="h-3 w-3" /> : idx + 1}
-							</span>
-							{stepLabel(step)}
-						</button>
-						{idx < steps.length - 1 && <span className="h-px w-4 bg-slate-200" />}
-					</li>
-				);
-			})}
-		</ol>
+								<span
+									className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-extrabold ${
+										isActive ? "bg-white/20 text-white" : isDone ? "bg-teal-600 text-white" : "bg-slate-300 text-slate-700"
+									}`}
+								>
+									{isDone ? <Check className="h-2.5 w-2.5" /> : idx + 1}
+								</span>
+								<span className="whitespace-nowrap">{stepLabel(step)}</span>
+							</button>
+							{idx < steps.length - 1 && (
+								<span className="text-slate-300 font-bold text-xs select-none">›</span>
+							)}
+						</li>
+					);
+				})}
+			</ol>
+		</div>
 	);
 }
 
@@ -298,6 +311,12 @@ export default function MedicalRecordMain(props) {
 		recordTypes,
 		selectedTypes,
 		onToggleRecordType,
+		penunjangMainCategories = [],
+		selectedPenunjangCategories = [],
+		onTogglePenunjangCategory,
+		penunjangSubItems = [],
+		selectedPenunjangSubItems = [],
+		onTogglePenunjangSubItem,
 		patientId,
 		onPatientChange,
 		patientOptions,
@@ -416,42 +435,141 @@ export default function MedicalRecordMain(props) {
 
 			<div className="space-y-6">
 				{currentStep === stepJenis && (
-					<div>
-						<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
-							Jenis Rekam Medis (bisa pilih lebih dari satu)
-						</label>
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-							{recordTypes.map((option) => {
-								const active = selectedTypes.includes(option.value);
+					<div className="space-y-6">
+						<div>
+							<div className="flex items-center justify-between mb-2">
+								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+									Jenis Rekam Medis / Pelayanan Medis (bisa pilih lebih dari satu)
+								</label>
+								<span className="text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-800 border border-teal-200/80 px-2 py-0.5 rounded-full">
+									Data Pelayanan Medis
+								</span>
+							</div>
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+								{recordTypes.map((option) => {
+									const active = selectedTypes.includes(option.value);
+									return (
+										<button
+											key={option.value}
+											type="button"
+											onClick={() => onToggleRecordType(option.value)}
+											className={`flex items-center justify-between gap-2 rounded-2xl border px-4 py-3.5 text-sm font-bold transition cursor-pointer text-left ${
+												active
+													? "border-teal-700 bg-teal-800 text-white shadow-md"
+													: "border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300 hover:bg-slate-100/80"
+											}`}
+										>
+											<div className="flex items-center gap-2">
+												<Stethoscope className={`h-4 w-4 shrink-0 ${active ? "text-teal-200" : "text-teal-700"}`} />
+												<span>{option.label}</span>
+											</div>
+											{active ? (
+												<Check className="h-4 w-4 shrink-0 text-white" />
+											) : (
+												<span className="h-4 w-4 rounded-full border border-slate-300 shrink-0" />
+											)}
+										</button>
+									);
+								})}
+							</div>
+							<p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
+								<Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+								Pilih satu atau beberapa jenis Pelayanan Medis utama yang dilaksanakan pada kunjungan pasien ini.
+							</p>
+						</div>
+
+						{/* Section Pilihan Layanan Penunjang (Opsional) */}
+						<div className="pt-5 border-t border-slate-200/80">
+							<div className="flex items-center justify-between mb-2">
+								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+									Pilihan Layanan Penunjang <span className="text-amber-600 font-semibold">(Opsional)</span>
+								</label>
+								<span className="text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-800 border border-purple-200/80 px-2 py-0.5 rounded-full">
+									Data Layanan Penunjang
+								</span>
+							</div>
+							<p className="text-xs text-slate-500 mb-3">
+								Pilih kategori penunjang (Laboratorium / Radiologi). Setelah dipilih, turunan pemeriksaan akan muncul di bawahnya.
+							</p>
+
+							{/* 1. Main Category Selector (Laboratorium & Radiologi) */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+								{penunjangMainCategories.map((cat) => {
+									const active = selectedPenunjangCategories.includes(cat.value);
+									return (
+										<button
+											key={cat.value}
+											type="button"
+											onClick={() => onTogglePenunjangCategory && onTogglePenunjangCategory(cat.value)}
+											className={`flex items-center justify-between gap-3 rounded-2xl border px-5 py-3.5 text-sm font-bold transition cursor-pointer text-left ${
+												active
+													? "border-purple-600 bg-purple-800 text-white shadow-md"
+													: "border-slate-200 bg-slate-50 text-slate-700 hover:border-purple-300 hover:bg-purple-50/40"
+											}`}
+										>
+											<div className="flex items-center gap-3">
+												<Activity className={`h-5 w-5 shrink-0 ${active ? "text-purple-200" : "text-purple-600"}`} />
+												<div>
+													<span className="block text-sm font-extrabold">{cat.label}</span>
+													<span className={`text-xs ${active ? "text-purple-200" : "text-slate-400"}`}>
+														{active ? "Klik untuk menyembunyikan turunan" : "Klik untuk menampilkan turunan pemeriksaan"}
+													</span>
+												</div>
+											</div>
+											{active ? (
+												<Check className="h-5 w-5 shrink-0 text-white" />
+											) : (
+												<span className="h-5 w-5 rounded-full border border-slate-300 shrink-0" />
+											)}
+										</button>
+									);
+								})}
+							</div>
+
+							{/* 2. Sub-Items (Turunan) per Selected Category */}
+							{selectedPenunjangCategories.map((catName) => {
+								const subList = penunjangSubItems.filter((item) => item.category === catName);
+								if (subList.length === 0) return null;
+
 								return (
-									<button
-										key={option.value}
-										type="button"
-										onClick={() => onToggleRecordType(option.value)}
-										className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition cursor-pointer ${
-											active
-												? "border-teal-700 bg-teal-800 text-white shadow-md"
-												: "border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-300"
-										}`}
-									>
-										{active && <Check className="h-4 w-4" />}
-										{option.label}
-									</button>
+									<div key={catName} className="mt-4 p-4 rounded-2xl border border-purple-100 bg-purple-50/20 space-y-3">
+										<div className="flex items-center justify-between border-b border-purple-100 pb-2">
+											<span className="text-xs font-extrabold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+												<Activity className="h-3.5 w-3.5 text-purple-600" />
+												Turunan Pemeriksaan {catName} ({subList.length} Opsi)
+											</span>
+											<span className="text-[10px] font-semibold text-purple-700">
+												{selectedPenunjangSubItems.filter((id) => subList.some((s) => s.id === id)).length} terpilih
+											</span>
+										</div>
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+											{subList.map((sub) => {
+												const active = selectedPenunjangSubItems.includes(sub.id);
+												return (
+													<button
+														key={sub.id}
+														type="button"
+														onClick={() => onTogglePenunjangSubItem && onTogglePenunjangSubItem(sub.id)}
+														className={`flex items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition cursor-pointer text-left ${
+															active
+																? "border-purple-600 bg-purple-700 text-white shadow-xs"
+																: "border-slate-200 bg-white text-slate-700 hover:border-purple-300 hover:bg-purple-50/40"
+														}`}
+													>
+														<span className="truncate">{sub.name}</span>
+														{active ? (
+															<Check className="h-3.5 w-3.5 shrink-0 text-white" />
+														) : (
+															<span className="h-3.5 w-3.5 rounded-full border border-slate-300 shrink-0" />
+														)}
+													</button>
+												);
+											})}
+										</div>
+									</div>
 								);
 							})}
 						</div>
-						<p className="mt-2 flex items-start gap-1.5 text-xs text-slate-400">
-							<Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-							Obat bisa ditambahkan belakangan di step terakhir (Lampiran). Resep lanjutan tetap bisa ditambahkan terpisah
-							oleh modul Apoteker.
-							{isEditRoute && (
-								<>
-									{" "}
-									Menghapus centang jenis yang datanya sudah pernah tersimpan akan MENGHAPUS datanya secara permanen dari
-									server begitu Anda menyimpan (draft atau finalisasi).
-								</>
-							)}
-						</p>
 					</div>
 				)}
 
