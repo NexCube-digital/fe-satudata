@@ -32,6 +32,7 @@ import {
 	ArrowRightLeft,
 	Building2,
 } from "lucide-react";
+import { FormIGD, FormRanap, FormRajal, FormBedah, FormODC, FormRehab } from "./form";
 import MedicalRecordUpdateActions from "@/components/features/faskes/MedicalRecordUpdate";
 import { ICD10_DATABASE, ICD9_DATABASE, searchICD10, searchICD9 } from "@/data/icdData";
 import DigitalSignatureCanvas from "@/components/ui/DigitalSignatureCanvas";
@@ -1164,17 +1165,13 @@ export default function MedicalRecordMain(props) {
 					(() => {
 						const type = currentStep.replace("detail_", "");
 						const typeLabel = recordTypes.find((t) => t.value === type)?.label || type;
-						const detailFields = getDetailFieldsConfig(type);
 						const entryDetail = detailsByType[type] || buildEmptyDetail(type);
+						const normType = String(type || "").toLowerCase().trim();
 
-						const SOAP_SECTIONS = {
-							S: { label: "Subjektif", color: "bg-blue-600", desc: "Data yang diperoleh dari pasien (keluhan, riwayat)" },
-							O: { label: "Objektif", color: "bg-emerald-600", desc: "Data terukur dari pemeriksaan fisik & penunjang" },
-							A: { label: "Assessment", color: "bg-amber-600", desc: "Analisis & penegakan diagnosis" },
-							P: { label: "Plan", color: "bg-purple-600", desc: "Rencana tindakan, terapi & tindak lanjut" },
-						};
-
-						const sections = [...new Set(detailFields.map((f) => f.section))];
+						const selectedPatient = (approvedPatients || []).find((p) => String(p.patientId || p.id || p.value) === String(patientId)) ||
+							(patientOptions || []).find((p) => String(p.value || p.id || p.patientId) === String(patientId)) ||
+							null;
+						const selectedDoctor = selectedDoctorInfo || (doctorOptions || []).find((d) => String(d.id || d.value) === String(doctorId)) || null;
 
 						const parseVitalSigns = (raw) => {
 							try {
@@ -1184,874 +1181,87 @@ export default function MedicalRecordMain(props) {
 							}
 						};
 
-						const handleVitalSignChange = (key, value) => {
-							const current = parseVitalSigns(entryDetail.vital_signs);
-							const updated = { ...current, [key]: value };
-							onUpdateDetailField(type, "vital_signs", JSON.stringify(updated));
+						const formProps = {
+							entryDetail,
+							type,
+							parseVitalSigns,
+							onUpdateDetailField,
+							selectedPatient,
+							selectedDoctor,
+							visitDate,
+							visitTime,
+							paymentType,
+							escortName,
+							escortRelation,
+							escortPhone,
+							visitId,
+							penunjangSubItems,
+							penunjangMainCategories,
 						};
 
-						const isIGD = type === "igd" || type === "gawat_darurat" || typeLabel.toLowerCase().includes("gawat darurat");
-
 						return (
-							<div className="space-y-6">
-								<div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-									<span className={`text-xs font-extrabold uppercase tracking-wider ${isIGD ? "text-red-900 flex items-center gap-2" : "text-teal-800"}`}>
-										Data: {typeLabel}
-									</span>
-									<span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-										isIGD
-											? "bg-red-50 text-red-700 border-red-200 shadow-2xs"
-											: "bg-slate-100 text-slate-500 border-slate-200/80"
-									}`}>
-										{isIGD ? "Formulir Rekam Medis Gawat Darurat (IGD)" : "Format SOAP"}
+							<div className="space-y-6 font-sans">
+								{/* Header Bar Unit Entri */}
+								<div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+									<div className="flex items-center gap-2.5">
+										<div className="h-2.5 w-2.5 rounded-full bg-teal-600 animate-pulse" />
+										<span className="text-xs font-black uppercase tracking-wider text-slate-700">
+											Unit Entri Pelayanan: <span className="text-teal-700 font-extrabold">{typeLabel}</span>
+										</span>
+									</div>
+									<span className="text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full border shadow-2xs bg-teal-50 text-teal-700 border-teal-200/90">
+										Formulir Rekam Medis Resmi
 									</span>
 								</div>
 
-								{sections.map((sectionKey) => {
-									const sectionInfo = isIGD
-										? {
-												S: { label: "1. TRIASI UGD & ANAMNESIS PASIEN", color: "bg-red-600", desc: "Data triase, pengantar, riwayat alergi, skala nyeri, & anamnesis" },
-												O: { label: "2. TANDA VITAL & PEMERIKSAAN FISIK UGD", color: "bg-emerald-600", desc: "Vital sign & pemeriksaan fisik / penunjang medik UGD" },
-												A: { label: "3. DIAGNOSIS DOKTER UGD", color: "bg-amber-600", desc: "Diagnosis dokter UGD & Kode ICD-10" },
-												P: { label: "4. PENGOBATAN, TINDAKAN MEDIS & KONDISI AKHIR", color: "bg-purple-600", desc: "Pengobatan, tindakan medis, & ringkasan kondisi UGD" },
-										  }[sectionKey] || { label: sectionKey, color: "bg-slate-600", desc: "" }
-										: SOAP_SECTIONS[sectionKey] || { label: sectionKey, color: "bg-slate-600", desc: "" };
+								{/* Direct Form Component Dispatcher dari Folder /form */}
+								{(() => {
+									if (
+										normType === "igd" ||
+										normType === "gawat_darurat" ||
+										normType.includes("igd") ||
+										normType.includes("gawat darurat")
+									) {
+										return <FormIGD {...formProps} field={{ name: "igd_triase_data" }} />;
+									}
 
-									const sectionFields = detailFields.filter((f) => f.section === sectionKey);
+									if (
+										normType === "rawat_inap" ||
+										normType.includes("rawat_inap") ||
+										normType.includes("rawat inap") ||
+										normType.includes("ranap") ||
+										normType.includes("ri-")
+									) {
+										return <FormRanap {...formProps} />;
+									}
 
-									return (
-										<div key={sectionKey} className="space-y-4">
-											{/* Section Header */}
-											<div className="flex items-center gap-3 border-b border-slate-200/60 pb-2">
-												<span className={`flex items-center justify-center h-6 w-6 rounded-lg text-[11px] font-black text-white ${sectionInfo.color}`}>
-													{sectionKey}
-												</span>
-												<div>
-													<span className="text-xs font-extrabold text-slate-800">{sectionInfo.label}</span>
-													{sectionInfo.desc && (
-														<p className="text-[10px] text-slate-400 font-medium leading-tight">{sectionInfo.desc}</p>
-													)}
-												</div>
-											</div>
+									if (
+										normType === "bedah" ||
+										normType.includes("bedah") ||
+										normType.includes("operasi")
+									) {
+										return <FormBedah {...formProps} />;
+									}
 
-											{/* Section Fields */}
-											<div className="grid gap-5 pl-9">
-												{sectionFields.map((field) => {
-													if (field.inputType === "vital_signs") {
-														const vs = parseVitalSigns(entryDetail.vital_signs);
-														const vitalFields = [
-															{ key: "systolic", label: "TD Sistol", unit: "mmHg", placeholder: "120" },
-															{ key: "diastolic", label: "TD Diastol", unit: "mmHg", placeholder: "80" },
-															{ key: "pulse", label: "Nadi", unit: "x/mnt", placeholder: "80" },
-															{ key: "temp", label: "Suhu", unit: "°C", placeholder: "36.5" },
-															{ key: "rr", label: "RR", unit: "x/mnt", placeholder: "20" },
-															{ key: "spo2", label: "SpO2", unit: "%", placeholder: "98" },
-														];
+									if (
+										normType === "odc" ||
+										normType.includes("odc") ||
+										normType.includes("one_day_care")
+									) {
+										return <FormODC {...formProps} />;
+									}
 
-														return (
-															<div key={field.name}>
-																<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-3">{field.label}</label>
-																<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-																	{vitalFields.map((vf) => (
-																		<div key={vf.key} className="relative">
-																			<label className="block text-[10px] font-semibold text-slate-400 mb-1">{vf.label}</label>
-																			<div className="relative">
-																				<input
-																					type="text"
-																					inputMode="decimal"
-																					value={vs[vf.key] || ""}
-																					onChange={(e) => handleVitalSignChange(vf.key, e.target.value)}
-																					placeholder={vf.placeholder}
-																					className="w-full rounded-xl border border-slate-200 bg-white pl-3 pr-12 py-2.5 text-sm text-slate-900 focus:border-teal-600 focus:outline-none text-center font-semibold"
-																				/>
-																				<span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 pointer-events-none">
-																					{vf.unit}
-																				</span>
-																			</div>
-																		</div>
-																	))}
-																</div>
-															</div>
-														);
-													}
+									if (
+										normType === "rehab" ||
+										normType.includes("rehab") ||
+										normType.includes("fisioterapi")
+									) {
+										return <FormRehab {...formProps} />;
+									}
 
-													if (field.inputType === "igd_triase_form") {
-														const triaseData = parseVitalSigns(entryDetail.igd_triase_data);
-														const vs = parseVitalSigns(entryDetail.vital_signs);
-
-														const handleTriaseChange = (key, val) => {
-															const current = parseVitalSigns(entryDetail.igd_triase_data);
-															const updated = { ...current, [key]: val };
-															onUpdateDetailField(type, "igd_triase_data", JSON.stringify(updated));
-														};
-
-														const handleVitalSignChange = (key, val) => {
-															const current = parseVitalSigns(entryDetail.vital_signs);
-															const updated = { ...current, [key]: val };
-															onUpdateDetailField(type, "vital_signs", JSON.stringify(updated));
-														};
-
-														return (
-															<div key={field.name} className="space-y-6 font-sans">
-																{/* 1. TRIAGE STATUS (BANNER ATAS REPLIKA TEMPLATE FOTO) */}
-																<div className="rounded-2xl border border-slate-300 bg-white overflow-hidden shadow-xs">
-																	<div className="bg-slate-800 px-4 py-2.5 text-white flex flex-wrap items-center justify-between gap-2">
-																		<span className="text-xs font-black uppercase tracking-wider flex items-center gap-2">
-																			TRIAGE STATUS
-																		</span>
-																		<div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-																			{[
-																				{ key: "Merah", label: "Merah", color: "bg-red-600" },
-																				{ key: "Kuning", label: "Kuning", color: "bg-amber-400 text-slate-900" },
-																				{ key: "Hijau", label: "Hijau", color: "bg-emerald-600" },
-																				{ key: "Hitam", label: "Hitam", color: "bg-slate-950" },
-																			].map((opt) => {
-																				const active = triaseData.triage_status === opt.key;
-																				return (
-																					<button
-																						key={opt.key}
-																						type="button"
-																						onClick={() => handleTriaseChange("triage_status", opt.key)}
-																						className={`px-3 py-1 rounded-lg border transition flex items-center gap-1.5 cursor-pointer ${
-																							active
-																								? "border-white bg-white text-slate-900 shadow-xs font-extrabold"
-																								: "border-slate-600 bg-slate-700/60 text-slate-200 hover:bg-slate-700"
-																						}`}
-																					>
-																						<span className={`h-3 w-3 rounded ${opt.color}`} />
-																						<span>{opt.label}</span>
-																					</button>
-																				);
-																			})}
-																		</div>
-																	</div>
-
-																	<div className="p-4 space-y-4 text-xs bg-slate-50/50">
-																		{/* 1. Kesadaran, 2. Pernafasan, 3. Sirkulasi & Pertolongan Pertama Jam */}
-																		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-																			{/* 1. Kesadaran */}
-																			<div className="p-3 bg-white rounded-xl border border-slate-200">
-																				<span className="block font-bold text-slate-700 mb-1.5">1. Kesadaran :</span>
-																				<div className="space-y-1">
-																					{["Sadar", "Kesadaran menurun", "Tidak sadar", "Gelisah"].map((opt) => (
-																						<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																							<input
-																								type="radio"
-																								name="triage_kesadaran"
-																								checked={triaseData.triage_kesadaran === opt}
-																								onChange={() => handleTriaseChange("triage_kesadaran", opt)}
-																								className="accent-red-600"
-																							/>
-																							<span>{opt}</span>
-																						</label>
-																					))}
-																				</div>
-																			</div>
-
-																			{/* 2. Pernafasan */}
-																			<div className="p-3 bg-white rounded-xl border border-slate-200">
-																				<span className="block font-bold text-slate-700 mb-1.5">2. Pernafasan :</span>
-																				<div className="space-y-1">
-																					{["Normal", "Sesak", "Sumbatan jln nafas", "Tidak bernafas"].map((opt) => (
-																						<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																							<input
-																								type="radio"
-																								name="triage_pernafasan"
-																								checked={triaseData.triage_pernafasan === opt}
-																								onChange={() => handleTriaseChange("triage_pernafasan", opt)}
-																								className="accent-red-600"
-																							/>
-																							<span>{opt}</span>
-																						</label>
-																					))}
-																				</div>
-																			</div>
-
-																			{/* 3. Sirkulasi */}
-																			<div className="p-3 bg-white rounded-xl border border-slate-200">
-																				<span className="block font-bold text-slate-700 mb-1.5">3. Sirkulasi :</span>
-																				<div className="space-y-1">
-																					{["Nadi normal", "Aritmia", "Henti jantung", "Perdarahan"].map((opt) => (
-																						<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																							<input
-																								type="radio"
-																								name="triage_sirkulasi"
-																								checked={triaseData.triage_sirkulasi === opt}
-																								onChange={() => handleTriaseChange("triage_sirkulasi", opt)}
-																								className="accent-red-600"
-																							/>
-																							<span>{opt}</span>
-																						</label>
-																					))}
-																				</div>
-																			</div>
-
-																			{/* Pertolongan Pertama Jam */}
-																			<div className="p-3 bg-white rounded-xl border border-slate-200 flex flex-col justify-between">
-																				<label className="block font-bold text-slate-700 mb-1">PERTOLONGAN PERTAMA JAM:</label>
-																				<div className="flex items-center gap-1.5">
-																					<input
-																						type="time"
-																						value={triaseData.first_aid_time || ""}
-																						onChange={(e) => handleTriaseChange("first_aid_time", e.target.value)}
-																						className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-red-600"
-																					/>
-																					<span className="text-slate-500 font-bold text-xs">WIB</span>
-																				</div>
-																			</div>
-																		</div>
-
-																		{/* TINDAKAN RESUSITASI */}
-																		<div className="p-3.5 bg-red-50/50 rounded-xl border border-red-200/80">
-																			<span className="block font-black text-red-900 uppercase text-[11px] mb-2 tracking-wider">TINDAKAN RESUSITASI :</span>
-																			<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-																				{/* 1. Jalan Nafas */}
-																				<div>
-																					<span className="block font-bold text-slate-700 mb-1">1. Jalan Nafas :</span>
-																					<div className="space-y-1">
-																						{["Hyperekstensi", "Bersihkan jalan nafas", "Intubasi"].map((opt) => (
-																							<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																								<input
-																									type="checkbox"
-																									checked={(triaseData.resus_airway || []).includes(opt)}
-																									onChange={(e) => {
-																										const list = triaseData.resus_airway || [];
-																										const updated = e.target.checked ? [...list, opt] : list.filter((i) => i !== opt);
-																										handleTriaseChange("resus_airway", updated);
-																									}}
-																									className="rounded accent-red-600"
-																								/>
-																								<span>{opt}</span>
-																							</label>
-																						))}
-																					</div>
-																				</div>
-
-																				{/* 2. Bantuan Nafas (Breathing) */}
-																				<div>
-																					<span className="block font-bold text-slate-700 mb-1">2. Bantuan Nafas (Breathing) :</span>
-																					<div className="space-y-1">
-																						{["Mulut ke mulut", "Bag and Mask", "Bag and Tube"].map((opt) => (
-																							<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																								<input
-																									type="checkbox"
-																									checked={(triaseData.resus_breathing || []).includes(opt)}
-																									onChange={(e) => {
-																										const list = triaseData.resus_breathing || [];
-																										const updated = e.target.checked ? [...list, opt] : list.filter((i) => i !== opt);
-																										handleTriaseChange("resus_breathing", updated);
-																									}}
-																									className="rounded accent-red-600"
-																								/>
-																								<span>{opt}</span>
-																							</label>
-																						))}
-																					</div>
-																				</div>
-
-																				{/* 3. Sirkulasi */}
-																				<div>
-																					<span className="block font-bold text-slate-700 mb-1">3. Sirkulasi :</span>
-																					<div className="space-y-1">
-																						{["Massage jantung luar", "Balut tekan", "Operasi"].map((opt) => (
-																							<label key={opt} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
-																								<input
-																									type="checkbox"
-																									checked={(triaseData.resus_circulation || []).includes(opt)}
-																									onChange={(e) => {
-																										const list = triaseData.resus_circulation || [];
-																										const updated = e.target.checked ? [...list, opt] : list.filter((i) => i !== opt);
-																										handleTriaseChange("resus_circulation", updated);
-																									}}
-																									className="rounded accent-red-600"
-																								/>
-																								<span>{opt}</span>
-																							</label>
-																						))}
-																					</div>
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-																</div>
-
-																{/* 2. ANAMNESIS TEMPLATE */}
-																<div className="rounded-2xl border border-slate-300 bg-white overflow-hidden shadow-xs">
-																	<div className="bg-slate-200 px-4 py-2 text-slate-800 flex flex-wrap items-center justify-between gap-2 border-b border-slate-300">
-																		<span className="text-xs font-black uppercase tracking-wider">ANAMNESIS</span>
-																		<span className="text-[11px] italic font-semibold text-slate-600">
-																			Jika cidera / kecelakaan jelaskan juga mekanisme cidera/kecelakaannya
-																		</span>
-																	</div>
-																	<div className="p-4 space-y-4 text-xs">
-																		{/* KELUHAN UTAMA */}
-																		<div>
-																			<label className="block font-bold uppercase text-slate-700 mb-1">KELUHAN UTAMA :</label>
-																			<textarea
-																				rows={3}
-																				value={entryDetail.complaint || ""}
-																				onChange={(e) => onUpdateDetailField(type, "complaint", e.target.value)}
-																				placeholder="Keluhan utama pasien & mekanisme cidera / kecelakaannya..."
-																				className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
-																			/>
-																		</div>
-
-																		<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-																			{/* RIWAYAT PENYAKIT */}
-																			<div>
-																				<label className="block font-bold uppercase text-slate-700 mb-1">RIWAYAT PENYAKIT :</label>
-																				<input
-																					type="text"
-																					value={triaseData.riwayat_penyakit || ""}
-																					onChange={(e) => handleTriaseChange("riwayat_penyakit", e.target.value)}
-																					placeholder="Riwayat penyakit dahulu / keluarga..."
-																					className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none"
-																				/>
-																			</div>
-
-																			{/* RIWAYAT PENGOBATAN */}
-																			<div>
-																				<label className="block font-bold uppercase text-slate-700 mb-1">RIWAYAT PENGOBATAN :</label>
-																				<input
-																					type="text"
-																					value={triaseData.riwayat_pengobatan || ""}
-																					onChange={(e) => handleTriaseChange("riwayat_pengobatan", e.target.value)}
-																					placeholder="Obat-obatan yang sedang diminum..."
-																					className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none"
-																				/>
-																			</div>
-
-																			{/* RIWAYAT ALERGI */}
-																			<div>
-																				<label className="block font-bold uppercase text-slate-700 mb-1">RIWAYAT ALERGI :</label>
-																				<div className="flex items-center gap-2 mb-1.5">
-																					{["Tidak", "Ya"].map((opt) => (
-																						<label key={opt} className="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
-																							<input
-																								type="radio"
-																								name="has_allergy"
-																								checked={triaseData.has_allergy === opt}
-																								onChange={() => handleTriaseChange("has_allergy", opt)}
-																								className="accent-red-600"
-																							/>
-																							<span>{opt === "Tidak" ? "Tidak" : "Ya, (jelaskan)"}</span>
-																						</label>
-																					))}
-																				</div>
-																				{triaseData.has_allergy === "Ya" && (
-																					<input
-																						type="text"
-																						value={triaseData.allergy_note || ""}
-																						onChange={(e) => handleTriaseChange("allergy_note", e.target.value)}
-																						placeholder="Sebutkan alergi obat / makanan..."
-																						className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none"
-																					/>
-																				)}
-																			</div>
-																		</div>
-																	</div>
-																</div>
-
-																{/* 3. PEMERIKSAAN JASMANI TEMPLATE */}
-																<div className="rounded-2xl border border-slate-300 bg-white overflow-hidden shadow-xs">
-																	<div className="bg-slate-200 px-4 py-2 text-slate-800 flex items-center justify-between border-b border-slate-300">
-																		<span className="text-xs font-black uppercase tracking-wider">PEMERIKSAAN JASMANI</span>
-																		<span className="text-[11px] font-bold text-slate-700">Skala Nyeri (0 - 10)</span>
-																	</div>
-
-																	<div className="p-4 space-y-5 text-xs">
-																		{/* GCS & VITAL SIGNS & PAIN ASSESSMENT TOOL */}
-																		<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-																			{/* Skala GCS */}
-																			<div className="space-y-2">
-																				<span className="block font-bold text-slate-800 uppercase text-[11px]">Skala GCS & Kesadaran :</span>
-																				<div className="grid grid-cols-4 gap-1.5">
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">E (Eye)</label>
-																						<input
-																							type="text"
-																							value={triaseData.gcs_e || ""}
-																							onChange={(e) => handleTriaseChange("gcs_e", e.target.value)}
-																							placeholder="4"
-																							className="w-full text-center rounded-lg border border-slate-300 bg-white py-1 font-bold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">V (Verbal)</label>
-																						<input
-																							type="text"
-																							value={triaseData.gcs_v || ""}
-																							onChange={(e) => handleTriaseChange("gcs_v", e.target.value)}
-																							placeholder="5"
-																							className="w-full text-center rounded-lg border border-slate-300 bg-white py-1 font-bold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">M (Motorik)</label>
-																						<input
-																							type="text"
-																							value={triaseData.gcs_m || ""}
-																							onChange={(e) => handleTriaseChange("gcs_m", e.target.value)}
-																							placeholder="6"
-																							className="w-full text-center rounded-lg border border-slate-300 bg-white py-1 font-bold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">Σ (Total)</label>
-																						<input
-																							type="text"
-																							readOnly
-																							value={
-																								(Number(triaseData.gcs_e || 0) || 0) +
-																								(Number(triaseData.gcs_v || 0) || 0) +
-																								(Number(triaseData.gcs_m || 0) || 0) || ""
-																							}
-																							className="w-full text-center rounded-lg border border-slate-300 bg-slate-200 py-1 font-black text-red-700"
-																						/>
-																					</div>
-																				</div>
-																				<div>
-																					<label className="block text-[10px] font-semibold text-slate-500 mt-1">Kesadaran :</label>
-																					<input
-																						type="text"
-																						value={triaseData.kesadaran_text || ""}
-																						onChange={(e) => handleTriaseChange("kesadaran_text", e.target.value)}
-																						placeholder="Compos Mentis / Somnolen..."
-																						className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs"
-																					/>
-																				</div>
-																			</div>
-
-																			{/* Vital Signs (RR, Nadi, TD, Suhu) */}
-																			<div className="space-y-2">
-																				<span className="block font-bold text-slate-800 uppercase text-[11px]">Vital Signs :</span>
-																				<div className="grid grid-cols-2 gap-2">
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">Resp Rate (x/mnt)</label>
-																						<input
-																							type="number"
-																							value={vs.rr || ""}
-																							onChange={(e) => handleVitalSignChange("rr", e.target.value)}
-																							placeholder="20"
-																							className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-center font-semibold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">Nadi (x/mnt)</label>
-																						<input
-																							type="number"
-																							value={vs.pulse || ""}
-																							onChange={(e) => handleVitalSignChange("pulse", e.target.value)}
-																							placeholder="80"
-																							className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-center font-semibold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">Tek. Darah (mmHg)</label>
-																						<input
-																							type="text"
-																							value={vs.systolic && vs.diastolic ? `${vs.systolic}/${vs.diastolic}` : vs.systolic || ""}
-																							onChange={(e) => {
-																								const parts = e.target.value.split("/");
-																								handleVitalSignChange("systolic", parts[0] || "");
-																								if (parts[1] !== undefined) handleVitalSignChange("diastolic", parts[1]);
-																							}}
-																							placeholder="120/80"
-																							className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-center font-semibold"
-																						/>
-																					</div>
-																					<div>
-																						<label className="block text-[10px] font-semibold text-slate-500">Suhu (°C)</label>
-																						<input
-																							type="number"
-																							step="0.1"
-																							value={vs.temp || ""}
-																							onChange={(e) => handleVitalSignChange("temp", e.target.value)}
-																							placeholder="36.5"
-																							className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-center font-semibold"
-																						/>
-																					</div>
-																				</div>
-																			</div>
-
-																			{/* PAIN ASSESSMENT TOOL (Skala Nyeri 0-10) */}
-																			<div className="p-2.5 bg-white rounded-xl border border-slate-300 space-y-2">
-																				<div className="flex items-center justify-between">
-																					<span className="font-extrabold text-[10px] uppercase tracking-wider text-slate-800">
-																						PAIN ASSESSMENT TOOL
-																					</span>
-																					<div className="flex items-center gap-1">
-																						<span className="text-[10px] font-bold text-slate-500">Skala Nyeri:</span>
-																						<input
-																							type="number"
-																							min={0}
-																							max={10}
-																							value={triaseData.pain_score ?? 0}
-																							onChange={(e) => handleTriaseChange("pain_score", Math.min(10, Math.max(0, Number(e.target.value))))}
-																							className="w-12 text-center rounded-lg border border-red-300 bg-red-50 text-red-700 text-xs font-black py-0.5 focus:outline-none"
-																						/>
-																					</div>
-																				</div>
-																				<div className="flex items-center justify-between gap-1">
-																					{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
-																						const active = Number(triaseData.pain_score) === score;
-																						let badgeColor = "bg-emerald-500 text-white";
-																						if (score >= 1 && score <= 3) badgeColor = "bg-emerald-400 text-slate-900";
-																						if (score >= 4 && score <= 6) badgeColor = "bg-amber-400 text-slate-900";
-																						if (score >= 7 && score <= 9) badgeColor = "bg-orange-500 text-white";
-																						if (score === 10) badgeColor = "bg-red-600 text-white";
-
-																						return (
-																							<button
-																								key={score}
-																								type="button"
-																								onClick={() => handleTriaseChange("pain_score", score)}
-																								className={`h-7 w-7 rounded-lg text-xs font-black transition cursor-pointer flex items-center justify-center ${
-																									active ? `${badgeColor} ring-2 ring-slate-900 scale-110 shadow-xs` : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-																								}`}
-																							>
-																								{score}
-																							</button>
-																						);
-																					})}
-																				</div>
-																				<div className="flex justify-between text-[9px] font-bold text-slate-500 pt-0.5">
-																					<span>0: No Pain</span>
-																					<span>1-3: Mild</span>
-																					<span>4-6: Mod</span>
-																					<span>7-9: Sev</span>
-																					<span>10: Worst</span>
-																				</div>
-																			</div>
-																		</div>
-
-																		{/* 16 ORGAN HEAD-TO-TOE PEMERIKSAAN JASMANI (2 KOLOM RESMI) */}
-																		<div className="space-y-2">
-																			<div className="flex items-center justify-between">
-																				<span className="block font-bold text-slate-800 uppercase text-[11px]">
-																					Pemeriksaan Organ Head to Toe :
-																				</span>
-																				<button
-																					type="button"
-																					onClick={() => {
-																						const current = parseVitalSigns(entryDetail.igd_triase_data);
-																						const organs = ["kepala", "mata", "telinga", "hidung", "mulut", "gigi", "tenggorokan", "leher", "dada", "jantung", "paru", "abdomen", "genetalia", "kandungan", "ekstremitas_atas", "ekstremitas_bawah"];
-																						const updated = { ...current };
-																						organs.forEach((o) => {
-																							updated[`organ_${o}`] = "dbn (dalam batas normal)";
-																						});
-																						onUpdateDetailField(type, "igd_triase_data", JSON.stringify(updated));
-																					}}
-																					className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-3 py-1.5 rounded-xl transition cursor-pointer shadow-2xs"
-																				>
-																					<Sparkles className="h-3.5 w-3.5 text-emerald-700" /> Set Semua Normal (DBN)
-																				</button>
-																			</div>
-																			<div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-																				{/* Kolom Kiri */}
-																				<div className="space-y-2">
-																					{[
-																						{ key: "kepala", label: "Kepala" },
-																						{ key: "mata", label: "Mata" },
-																						{ key: "telinga", label: "Telinga" },
-																						{ key: "hidung", label: "Hidung" },
-																						{ key: "mulut", label: "Mulut" },
-																						{ key: "gigi", label: "Gigi" },
-																						{ key: "tenggorokan", label: "Tenggorokan" },
-																						{ key: "leher", label: "Leher" },
-																						{ key: "dada", label: "Dada" },
-																						{ key: "jantung", label: "Jantung" },
-																					].map((organ) => (
-																						<div key={organ.key} className="flex items-center gap-2">
-																							<label className="w-24 text-[11px] font-semibold text-slate-700 shrink-0">{organ.label} :</label>
-																							<input
-																								type="text"
-																								value={triaseData[`organ_${organ.key}`] || ""}
-																								onChange={(e) => handleTriaseChange(`organ_${organ.key}`, e.target.value)}
-																								placeholder="dbn / kelainan..."
-																								className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs focus:outline-none focus:border-slate-600 font-medium"
-																							/>
-																							<button
-																								type="button"
-																								onClick={() => handleTriaseChange(`organ_${organ.key}`, "dbn (dalam batas normal)")}
-																								className="text-[10px] font-extrabold text-slate-500 hover:text-emerald-700 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 px-1.5 py-0.5 rounded cursor-pointer shrink-0"
-																								title="Set DBN"
-																							>
-																								dbn
-																							</button>
-																						</div>
-																					))}
-																				</div>
-
-																				{/* Kolom Kanan */}
-																				<div className="space-y-2">
-																					{[
-																						{ key: "paru", label: "Paru" },
-																						{ key: "abdomen", label: "Abdomen" },
-																						{ key: "genetalia", label: "Genetalia" },
-																						{ key: "kandungan", label: "Kandungan" },
-																						{ key: "ekstremitas_atas", label: "Ekstremitas atas" },
-																						{ key: "ekstremitas_bawah", label: "Ekstremitas bawah" },
-																					].map((organ) => (
-																						<div key={organ.key} className="flex items-center gap-2">
-																							<label className="w-32 text-[11px] font-semibold text-slate-700 shrink-0">{organ.label} :</label>
-																							<input
-																								type="text"
-																								value={triaseData[`organ_${organ.key}`] || ""}
-																								onChange={(e) => handleTriaseChange(`organ_${organ.key}`, e.target.value)}
-																								placeholder="dbn / kelainan..."
-																								className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs focus:outline-none focus:border-slate-600 font-medium"
-																							/>
-																							<button
-																								type="button"
-																								onClick={() => handleTriaseChange(`organ_${organ.key}`, "dbn (dalam batas normal)")}
-																								className="text-[10px] font-extrabold text-slate-500 hover:text-emerald-700 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 px-1.5 py-0.5 rounded cursor-pointer shrink-0"
-																								title="Set DBN"
-																							>
-																								dbn
-																							</button>
-																						</div>
-																					))}
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-
-																	{/* FOOTER BAR DOKUMEN REPLIKA */}
-																	<div className="bg-slate-200 px-4 py-1.5 text-slate-600 flex flex-wrap items-center justify-between gap-2 text-[10px] font-bold border-t border-slate-300">
-																		<span>FORM GAWAT DARURAT MEDIS</span>
-																		<span>No. Dokumen : 045/IRM/Rev0/2016</span>
-																		<span>Halaman 1</span>
-																	</div>
-																</div>
-															</div>
-														);
-													}
-
-													if (field.inputType === "icd10_autocomplete") {
-														return (
-															<div key={field.name}>
-																<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">{field.label}</label>
-																<ICD10Autocomplete
-																	value={entryDetail[field.name] || ""}
-																	onChange={(val) => onUpdateDetailField(type, field.name, val)}
-																	placeholder="Cari & pilih Diagnosis Utama ICD-10 (misal: A01.0, J18.9, E11.9)..."
-																/>
-															</div>
-														);
-													}
-
-													if (field.inputType === "icd10_multiselect") {
-														return (
-															<div key={field.name}>
-																<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">{field.label}</label>
-																<ICD10MultiSelect
-																	value={entryDetail[field.name] || ""}
-																	onChange={(val) => onUpdateDetailField(type, field.name, val)}
-																/>
-															</div>
-														);
-													}
-
-													if (field.inputType === "ugd_discharge_summary") {
-														const currentObj = (() => {
-															try {
-																return typeof entryDetail[field.name] === "string" ? JSON.parse(entryDetail[field.name]) : entryDetail[field.name] || {};
-															} catch {
-																return { status: entryDetail[field.name] || "" };
-															}
-														})();
-
-														const updateStatus = (key, val) => {
-															const updated = { ...currentObj, [key]: val };
-															onUpdateDetailField(type, field.name, JSON.stringify(updated));
-														};
-
-														return (
-															<div key={field.name} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-																<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-700">{field.label}</label>
-
-																<div>
-																	<span className="block text-xs font-semibold text-slate-600 mb-2">Kondisi Akhir Pasien UGD :</span>
-																	<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-																		{[
-																			{ value: "Membaik", label: "Membaik / Pulang" },
-																			{ value: "Rawat Inap", label: "Rawat Inap" },
-																			{ value: "Rujuk ke Faskes Lain", label: "Rujuk Faskes Lain" },
-																			{ value: "Meninggal", label: "Meninggal Dunia" },
-																		].map((opt) => {
-																			const isSelected = currentObj.status === opt.value;
-																			return (
-																				<button
-																					key={opt.value}
-																					type="button"
-																					onClick={() => updateStatus("status", opt.value)}
-																					className={`py-2 px-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
-																						isSelected ? "bg-teal-800 text-white border-teal-800 shadow-xs" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-																					}`}
-																				>
-																					{opt.label}
-																				</button>
-																			);
-																		})}
-																	</div>
-																</div>
-
-																{currentObj.status === "Rujuk ke Faskes Lain" && (
-																	<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-																		<div>
-																			<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Sarana Transportasi Rujukan</label>
-																			<select
-																				value={currentObj.transport || "Ambulans"}
-																				onChange={(e) => updateStatus("transport", e.target.value)}
-																				className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none"
-																			>
-																				<option value="Ambulans">Ambulans Faskes / IGD</option>
-																				<option value="Kendaraan Pribadi">Kendaraan Pribadi</option>
-																				<option value="Lainnya">Lainnya</option>
-																			</select>
-																		</div>
-																		<div>
-																			<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Faskes Tujuan Rujukan</label>
-																			<input
-																				type="text"
-																				value={currentObj.target_facility || ""}
-																				onChange={(e) => updateStatus("target_facility", e.target.value)}
-																				placeholder="Contoh: RSUD Dr. Soetomo / RS Tipe A"
-																				className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none"
-																			/>
-																		</div>
-																	</div>
-																)}
-															</div>
-														);
-													}
-
-													if (field.inputType === "text") {
-														return (
-															<div key={field.name}>
-																<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">{field.label}</label>
-																<input
-																	type="text"
-																	value={entryDetail[field.name] || ""}
-																	onChange={(e) => onUpdateDetailField(type, field.name, e.target.value)}
-																	placeholder={field.placeholder || field.label}
-																	className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
-																/>
-															</div>
-														);
-													}
-
-													// Filter Sub-Layanan Medis dari Master Data yang sesuai dengan Kategori ini
-													const matchingSubLayanan = subLayananItems.filter((sub) => {
-														const subCat = (sub.category || "").toLowerCase();
-														const tLbl = typeLabel.toLowerCase();
-														return subCat.includes(tLbl) || tLbl.includes(subCat) || (type === "igd" && subCat.includes("gawat"));
-													});
-
-													const showRoomSelector =
-														(type === "rawat_inap" || type === "one_day_care" || typeLabel.toLowerCase().includes("rawat inap")) &&
-														field.name === "physical_exam";
-
-													return (
-														<div key={field.name} className="space-y-2">
-															<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">{field.label}</label>
-															
-															{/* Widget Pilihan Kamar / Ruangan (Master Data Kelola Ruangan) */}
-															{showRoomSelector && roomOptions.length > 0 && (
-																<div className="mb-3 p-3.5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
-																	<span className="block text-[11px] font-bold uppercase tracking-wider text-indigo-900 mb-2">
-																		🏥 Pilih Kamar / Ruangan Rawat Inap (Master Data Kelola Ruangan):
-																	</span>
-																	<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-																		{roomOptions.map((room) => {
-																			const isSelected = (entryDetail.physical_exam || "").includes(room.value);
-																			return (
-																				<button
-																					key={room.value}
-																					type="button"
-																					onClick={() => {
-																						const currentExam = entryDetail.physical_exam || "";
-																						if (isSelected) {
-																							const updated = currentExam.replace(`Ruangan/Kamar: ${room.value}`, "").trim();
-																							onUpdateDetailField(type, "physical_exam", updated);
-																						} else {
-																							const roomStr = `Ruangan/Kamar: ${room.value}`;
-																							const updated = currentExam ? `${currentExam.trim()}\n${roomStr}` : roomStr;
-																							onUpdateDetailField(type, "physical_exam", updated);
-																						}
-																					}}
-																					className={`text-xs font-bold px-3 py-2 rounded-xl border text-left transition cursor-pointer flex items-center justify-between gap-2 ${
-																						isSelected
-																							? "bg-indigo-700 text-white border-indigo-700 shadow-xs"
-																							: "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50"
-																					}`}
-																				>
-																					<span className="truncate">{room.label}</span>
-																					{isSelected ? <Check className="h-3.5 w-3.5 text-white shrink-0" /> : <span className="h-3.5 w-3.5 rounded-full border border-slate-300 shrink-0" />}
-																				</button>
-																			);
-																		})}
-																	</div>
-																</div>
-															)}
-
-															{/* Widget Prosedur / Tindakan Standar (Master Data Layanan Medis) */}
-															{field.name === "action" && (
-																<div className="mb-3 p-3.5 rounded-2xl border border-teal-100 bg-teal-50/30">
-																	<span className="block text-[11px] font-bold uppercase tracking-wider text-teal-900 mb-2">
-																		⚡ Pilih Prosedur & Tindakan Standar {typeLabel} (Master Data Layanan Medis):
-																	</span>
-																	{matchingSubLayanan.length === 0 ? (
-																		<p className="text-xs text-slate-400">Tidak ada rincian tindakan spesifik di Master Data untuk kategori ini.</p>
-																	) : (
-																		<div className="flex flex-wrap gap-2">
-																			{matchingSubLayanan.map((sub) => {
-																				const isSelected = (entryDetail.action || "").includes(sub.name);
-																				return (
-																					<button
-																						key={sub.id}
-																						type="button"
-																						onClick={() => {
-																							const currentAction = entryDetail.action || "";
-																							if (isSelected) {
-																								const updated = currentAction.replace(sub.name, "").replace(/,\s*,/g, ",").replace(/^,\s*|\s*,\s*$/g, "");
-																								onUpdateDetailField(type, "action", updated);
-																							} else {
-																								const updated = currentAction ? `${currentAction.trim()}, ${sub.name}` : sub.name;
-																								onUpdateDetailField(type, "action", updated);
-																							}
-																						}}
-																						className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1.5 ${
-																							isSelected
-																								? "bg-teal-800 text-white border-teal-800 shadow-xs"
-																								: "bg-white text-slate-700 border-slate-200 hover:border-teal-400 hover:bg-teal-50/50"
-																						}`}
-																					>
-																						<span>{sub.name}</span>
-																						{isSelected ? <Check className="h-3 w-3 text-white shrink-0" /> : <Plus className="h-3 w-3 text-slate-400 shrink-0" />}
-																					</button>
-																				);
-																			})}
-																		</div>
-																	)}
-																</div>
-															)}
-
-															<textarea
-																value={entryDetail[field.name] || ""}
-																onChange={(e) => onUpdateDetailField(type, field.name, e.target.value)}
-																rows={3}
-																placeholder={field.placeholder || field.label}
-																className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
-															/>
-														</div>
-													);
-												})}
-											</div>
-										</div>
-									);
-								})}
+									// Default untuk Rawat Jalan / Poliklinik & Layanan Lainnya
+									return <FormRajal {...formProps} />;
+								})()}
 							</div>
 						);
 					})()}

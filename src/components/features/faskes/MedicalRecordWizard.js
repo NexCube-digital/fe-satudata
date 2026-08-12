@@ -121,16 +121,7 @@ function getDetailFieldsConfig(type) {
     normType.includes("rj-")
   ) {
     return [
-      { name: "complaint", label: "Hasil Anamnesis: Keluhan Utama", section: "S", inputType: "textarea", placeholder: "Keluhan utama yang dirasakan pasien..." },
-      { name: "anamnesis", label: "Hasil Anamnesis: Riwayat Penyakit", section: "S", inputType: "textarea", placeholder: "Riwayat penyakit sekarang, dahulu, riwayat keluarga, alergi..." },
-      { name: "vital_signs", label: "Hasil Pemeriksaan Tanda-Tanda Vital", section: "O", inputType: "vital_signs" },
-      { name: "physical_exam", label: "Hasil Pemeriksaan Fisik & Penunjang Medis", section: "O", inputType: "textarea", placeholder: "Hasil pemeriksaan fisik poliklinik & penunjang..." },
-      { name: "icd10_primary", label: "Diagnosis Utama (ICD-10)", section: "A", inputType: "icd10_autocomplete" },
-      { name: "icd10_secondary", label: "Diagnosis Sekunder (ICD-10)", section: "A", inputType: "icd10_multiselect" },
-      { name: "diagnosis", label: "Diagnosis Dokter Poliklinik", section: "A", inputType: "textarea", placeholder: "Diagnosis kerja / diagnosis akhir..." },
-      { name: "action", label: "Pengobatan dan/atau Tindakan Medis", section: "P", inputType: "textarea", placeholder: "Rencana penatalaksanaan, terapi obat, edukasi..." },
-      { name: "nursing_care", label: "Rekam Asuhan Keperawatan Rawat Jalan", section: "P", inputType: "textarea", placeholder: "Catatan asuhan keperawatan, pengkajian keperawatan, konseling..." },
-      { name: "other_services", label: "Pelayanan Lain yang Diberikan", section: "P", inputType: "textarea", placeholder: "Pelayanan laboratorium/radiologi, konseling gizi, dll..." },
+      { name: "rajal_form_data", label: "FORMULIR REKAM MEDIS RAWAT JALAN (RM RJ 01)", section: "S", inputType: "rajal_form" },
     ];
   }
 
@@ -529,15 +520,17 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
   }, [servicePrices]);
 
   const penunjangSubItems = useMemo(() => {
-    return servicePrices.filter((s) => s.type === "sub_penunjang").map((item) => ({
-      id: item.code || item.name,
-      name: item.name,
-      category: item.category || "Penunjang",
-      code: item.code,
-      kptl: item.kptl,
-      satuan: item.satuan,
-      price: item.price,
-    }));
+    return servicePrices
+      .filter((s) => s.type === "sub_penunjang" || s.type === "penunjang")
+      .map((item) => ({
+        id: item.code || item.name,
+        name: item.name,
+        category: item.category || (item.name?.toLowerCase().includes("rad") ? "Radiologi" : "Laboratorium"),
+        code: item.code,
+        kptl: item.kptl,
+        satuan: item.satuan,
+        price: item.price,
+      }));
   }, [servicePrices]);
 
   const roomOptions = useMemo(() => {
@@ -722,15 +715,37 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
 
         setApprovedPatients(
           allPatients.map((item) => {
-            const pUser = item.Patient || item.patient || {};
-            const prof = pUser.profil || pUser.patient_profil || pUser.PatientProfile || {};
+            const pUser = item.Patient || item.patient || item.User || item.user || {};
+            const prof = pUser.profil || pUser.patient_profil || pUser.PatientProfile || item.PatientProfile || item.patient_profile || {};
+
+            const dob = prof.date_of_birth || prof.birth_date || prof.tanggal_lahir || pUser.date_of_birth || pUser.birth_date || "";
+            let computedAge = prof.age || prof.umur || "-";
+            if (dob && computedAge === "-") {
+              const bDate = new Date(dob);
+              if (!isNaN(bDate.getTime())) {
+                const diffMs = Date.now() - bDate.getTime();
+                const ageDate = new Date(diffMs);
+                computedAge = `${Math.abs(ageDate.getUTCFullYear() - 1970)} TH`;
+              }
+            }
+
             return {
-              patientId: item.patient_id,
+              patientId: item.patient_id || item.patientId || item.id,
+              name: pUser.name || prof.name || "Pasien Terdaftar",
               patientName: pUser.name || prof.name || "Pasien Terdaftar",
               nik: prof.nik || pUser.nik || "-",
+              mr_number: prof.no_rm || prof.mr_number || pUser.no_rm || `RM-${String(item.patient_id || item.id || 1).padStart(6, "0")}`,
+              sex: prof.sex || prof.jenis_kelamin || prof.gender || pUser.sex || "-",
+              gender: prof.sex || prof.jenis_kelamin || prof.gender || pUser.sex || "-",
+              date_of_birth: dob,
+              birth_date: dob,
+              place_of_birth: prof.place_of_birth || prof.tempat_lahir || "",
+              age: computedAge,
+              address: prof.address || prof.alamat || pUser.address || "-",
               phone: prof.phone || pUser.phone || "",
-              emergencyName: prof.emergency_contact_name || pUser.emergency_contact_name || "",
-              emergencyPhone: prof.emergency_contact_phone || pUser.emergency_contact_phone || "",
+              blood_type: prof.blood_type || prof.golongan_darah || "",
+              emergencyName: prof.emergency_contact_name || prof.emergencyName || pUser.emergency_contact_name || "",
+              emergencyPhone: prof.emergency_contact_phone || prof.emergencyPhone || pUser.emergency_contact_phone || "",
               emergencyRelation: prof.emergency_relation || prof.relationship || "",
               requestId: item.id,
             };
@@ -1692,8 +1707,6 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
             getRemainingStockForRow={getRemainingStockForRow}
             onRemovePrescriptionRow={removePrescriptionRow}
             loadingMedicines={loadingMedicines}
-            medicinesCatalog={medicinesCatalog}
-            getMedicineOptionsForRow={getMedicineOptionsForRow}
             onSelectMedicineForRow={selectMedicineForRow}
             onQuantityChange={handleQuantityChange}
             onUpdatePrescriptionRow={updatePrescriptionRow}
