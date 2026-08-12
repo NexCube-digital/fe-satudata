@@ -257,7 +257,8 @@ export default function Sidebar({ role }) {
             badge: "Finance",
             permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
             children: [
-              { href: "/dashboard/faskes/finance", label: "Atur Biaya Layanan", icon: DollarSign, permission: "finance:read" },
+              { href: "/dashboard/faskes/finance", label: "Biaya Layanan", icon: DollarSign, permission: "finance:read" },
+              { href: "/dashboard/faskes/finance/layanan", label: "Unit Layanan", icon: FileText, permission: "finance:read" },
               { href: "/dashboard/faskes/finance/invoice", label: "Invoice & Tagihan", icon: CreditCard, permission: "finance:manage" },
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
@@ -387,9 +388,9 @@ export default function Sidebar({ role }) {
         currentPath.startsWith("/dashboard/faskes/medical-records/invoice"))) {
       return false;
     }
-    if (targetHref === "/dashboard/faskes/finance" && 
-       (currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
-        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
+    if (targetHref === "/dashboard/faskes/finance") {
+      // Treat the finance hub link as exact-only so child pages (invoice, history, layanan) highlight their own menu
+      if (currentPath === targetHref) return true;
       return false;
     }
     if (targetHref === "/dashboard/admin/faskes" && currentPath.startsWith("/dashboard/admin/faskes/add")) {
