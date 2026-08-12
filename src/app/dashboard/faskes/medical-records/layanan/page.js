@@ -28,6 +28,8 @@ const emptyForm = {
   name: "",
   price: "",
   status: "active",
+  type: "layanan",
+  category: "Rawat Jalan",
 };
 
 function formatCurrency(value) {
@@ -99,6 +101,8 @@ export default function ServicePriceManagementPage() {
       name: item.name || "",
       price: item.price ?? "",
       status: item.status || "active",
+      type: item.type || "layanan",
+      category: item.category || "Rawat Jalan",
     });
     setModalOpen(true);
   };
@@ -128,6 +132,8 @@ export default function ServicePriceManagementPage() {
         name,
         price,
         status: form.status || "active",
+        type: form.type || "layanan",
+        category: form.category || null,
       };
 
       if (editingId) {

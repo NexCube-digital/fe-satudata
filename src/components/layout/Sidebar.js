@@ -68,7 +68,8 @@ export default function Sidebar({ role }) {
     geotagging: pathname.startsWith("/dashboard/admin/faskes"),
     consent: pathname.startsWith("/dashboard/pasien/consent"),
     pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy"),
-    finance: pathname.startsWith("/dashboard/faskes/finance")
+    masterData: pathname.startsWith("/dashboard/faskes/finance/tarif-layanan") || pathname.startsWith("/dashboard/faskes/finance/pelayanan-medis") || pathname.startsWith("/dashboard/faskes/finance/layanan-penunjang") || pathname.startsWith("/dashboard/faskes/finance/ruangan"),
+    finance: pathname.startsWith("/dashboard/faskes/finance/invoice") || pathname.startsWith("/dashboard/faskes/finance/history")
   });
 
   // Enable CSS transitions after initial render mount
@@ -206,7 +207,7 @@ export default function Sidebar({ role }) {
           { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
           { href: "/dashboard/faskes/patient-flow", label: "Indikator Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
           { 
-            label: "Data Pasien", 
+            label: "KelolaData Pasien", 
             icon: Users,
             permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
             children: [
@@ -227,7 +228,7 @@ export default function Sidebar({ role }) {
             ]
           },
           {
-            label: "Rekam Medis",
+            label: "Kelola Rekam Medis",
             icon: FileText,
             dropdownKey: "medicalRecords",
             badge: badgeCounts.records || "EHR",
@@ -238,7 +239,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Farmasi", 
+            label: "Kelola Farmasi", 
             icon: Pill,
             dropdownKey: "pharmacy",
             badge: "POS",
@@ -251,14 +252,25 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Keuangan", 
+            label: "Master Data", 
+            icon: Database,
+            dropdownKey: "masterData",
+            badge: "Master",
+            permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
+            children: [
+              { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan", icon: DollarSign, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Layanan Medis", icon: Stethoscope, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/layanan-penunjang", label: "Layanan Penunjang", icon: Activity, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/ruangan", label: "Kelola Ruangan", icon: Building2, permission: "master_data:read" }
+            ]
+          },
+          { 
+            label: "Kelola Keuangan", 
             icon: DollarSign,
             dropdownKey: "finance",
             badge: "Finance",
             permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
             children: [
-              { href: "/dashboard/faskes/finance", label: "Biaya Layanan", icon: DollarSign, permission: "finance:read" },
-              { href: "/dashboard/faskes/finance/layanan", label: "Unit Layanan", icon: FileText, permission: "finance:read" },
               { href: "/dashboard/faskes/finance/invoice", label: "Invoice & Tagihan", icon: CreditCard, permission: "finance:manage" },
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
@@ -388,9 +400,30 @@ export default function Sidebar({ role }) {
         currentPath.startsWith("/dashboard/faskes/medical-records/invoice"))) {
       return false;
     }
-    if (targetHref === "/dashboard/faskes/finance") {
-      // Treat the finance hub link as exact-only so child pages (invoice, history, layanan) highlight their own menu
-      if (currentPath === targetHref) return true;
+    if (targetHref === "/dashboard/faskes/finance/pelayanan-medis" && 
+       (currentPath.startsWith("/dashboard/faskes/finance/tarif-layanan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/layanan-penunjang") ||
+        currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
+      return false;
+    }
+    if (targetHref === "/dashboard/faskes/finance/tarif-layanan" && 
+       (currentPath.startsWith("/dashboard/faskes/finance/layanan-penunjang") ||
+        currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
+      return false;
+    }
+    if (targetHref === "/dashboard/faskes/finance/layanan-penunjang" && 
+       (currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
+      return false;
+    }
+    if (targetHref === "/dashboard/faskes/finance/ruangan" && 
+       (currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
       return false;
     }
     if (targetHref === "/dashboard/admin/faskes" && currentPath.startsWith("/dashboard/admin/faskes/add")) {
