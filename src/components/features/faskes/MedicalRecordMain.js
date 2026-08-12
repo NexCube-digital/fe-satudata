@@ -32,7 +32,7 @@ import {
 	ArrowRightLeft,
 	Building2,
 } from "lucide-react";
-import { FormIGD, FormRanap, FormRajal, FormBedah, FormODC, FormRehab } from "./form";
+import { FormIGD, FormRanap, FormRajal, FormBedah, FormODC, FormRehab, FormRujuk, DeathCertificate } from "./form";
 import MedicalRecordUpdateActions from "@/components/features/faskes/MedicalRecordUpdate";
 import { ICD10_DATABASE, ICD9_DATABASE, searchICD10, searchICD9 } from "@/data/icdData";
 import DigitalSignatureCanvas from "@/components/ui/DigitalSignatureCanvas";
@@ -1167,6 +1167,7 @@ export default function MedicalRecordMain(props) {
 						const typeLabel = recordTypes.find((t) => t.value === type)?.label || type;
 						const entryDetail = detailsByType[type] || buildEmptyDetail(type);
 						const normType = String(type || "").toLowerCase().trim();
+						const normLabel = String(typeLabel || "").toLowerCase().trim();
 
 						const selectedPatient = (approvedPatients || []).find((p) => String(p.patientId || p.id || p.value) === String(patientId)) ||
 							(patientOptions || []).find((p) => String(p.value || p.id || p.patientId) === String(patientId)) ||
@@ -1197,6 +1198,26 @@ export default function MedicalRecordMain(props) {
 							visitId,
 							penunjangSubItems,
 							penunjangMainCategories,
+							roomOptions,
+							selectedTypes,
+							onToggleRecordType,
+							onGoToStep,
+							recordTypes,
+							onNavigateToRanap: (customType) => {
+								const ranapVal = customType || (recordTypes || []).find((r) => r.value.includes("inap") || r.value.includes("ranap") || (r.label || "").toLowerCase().includes("inap"))?.value || "rawat_inap";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(ranapVal)) {
+									onToggleRecordType(ranapVal);
+								}
+								if (onGoToStep) {
+									onGoToStep(`detail_${ranapVal}`);
+								}
+							},
+							onEnsureRanapStep: () => {
+								const ranapVal = (recordTypes || []).find((r) => r.value.includes("inap") || r.value.includes("ranap") || (r.label || "").toLowerCase().includes("inap"))?.value || "rawat_inap";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(ranapVal)) {
+									onToggleRecordType(ranapVal);
+								}
+							},
 						};
 
 						return (
@@ -1214,49 +1235,80 @@ export default function MedicalRecordMain(props) {
 									</span>
 								</div>
 
-								{/* Direct Form Component Dispatcher dari Folder /form */}
+								{/* Direct Form Rendering dari Folder /form/ */}
 								{(() => {
 									if (
-										normType === "igd" ||
-										normType === "gawat_darurat" ||
 										normType.includes("igd") ||
-										normType.includes("gawat darurat")
+										normType.includes("gawat") ||
+										normType.includes("darurat") ||
+										normLabel.includes("igd") ||
+										normLabel.includes("gawat") ||
+										normLabel.includes("darurat")
 									) {
 										return <FormIGD {...formProps} field={{ name: "igd_triase_data" }} />;
 									}
 
 									if (
-										normType === "rawat_inap" ||
 										normType.includes("rawat_inap") ||
 										normType.includes("rawat inap") ||
 										normType.includes("ranap") ||
-										normType.includes("ri-")
+										normType.includes("inap") ||
+										normType.includes("ri-") ||
+										normType === "ri" ||
+										normLabel.includes("rawat inap") ||
+										normLabel.includes("rawat_inap") ||
+										normLabel.includes("ranap") ||
+										normLabel.includes("inap") ||
+										normLabel.includes("inpatient")
 									) {
 										return <FormRanap {...formProps} />;
 									}
 
 									if (
-										normType === "bedah" ||
 										normType.includes("bedah") ||
-										normType.includes("operasi")
+										normType.includes("operasi") ||
+										normLabel.includes("bedah") ||
+										normLabel.includes("operasi")
 									) {
 										return <FormBedah {...formProps} />;
 									}
 
 									if (
-										normType === "odc" ||
 										normType.includes("odc") ||
-										normType.includes("one_day_care")
+										normType.includes("one_day") ||
+										normType.includes("one day") ||
+										normLabel.includes("odc") ||
+										normLabel.includes("one day")
 									) {
 										return <FormODC {...formProps} />;
 									}
 
 									if (
-										normType === "rehab" ||
 										normType.includes("rehab") ||
-										normType.includes("fisioterapi")
+										normType.includes("fisio") ||
+										normLabel.includes("rehab") ||
+										normLabel.includes("fisioterapi")
 									) {
 										return <FormRehab {...formProps} />;
+									}
+
+									if (
+										normType.includes("rujuk") ||
+										normType.includes("referral") ||
+										normLabel.includes("rujuk") ||
+										normLabel.includes("referral")
+									) {
+										return <FormRujuk {...formProps} />;
+									}
+
+									if (
+										normType.includes("death") ||
+										normType.includes("meninggal") ||
+										normType.includes("mati") ||
+										normLabel.includes("death") ||
+										normLabel.includes("meninggal")
+									) {
+										return <DeathCertificate {...formProps} />;
 									}
 
 									// Default untuk Rawat Jalan / Poliklinik & Layanan Lainnya

@@ -11,6 +11,7 @@ export default function MedicalRecordUpdateActions({
   isFinalRecord,
   canSaveDraft,
   saveDraftHint,
+  nextButtonLabel,
   onPrev,
   onNext,
   onSaveDraft,
@@ -59,7 +60,7 @@ export default function MedicalRecordUpdateActions({
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-5 py-3 text-sm font-bold text-white hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {isSavingStep ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
-            Lanjutkan <ChevronRight className="h-4 w-4" />
+            {nextButtonLabel || "Lanjutkan"} <ChevronRight className="h-4 w-4" />
           </button>
         )}
       </div>

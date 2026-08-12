@@ -1587,7 +1587,11 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
     ? "Data yang sudah tersimpan sebelumnya sudah terisi otomatis -- tinggal lengkapi kekurangannya atau perbaiki isinya, lalu simpan lagi sebagai draft atau finalisasi."
     : 'Satu rekam medis mewakili satu kunjungan pasien. Isi bertahap per langkah -- progres otomatis tersimpan sebagai draft setiap kali Anda menekan "Lanjut", atau klik langsung step yang dituju di atas.';
 
-  return (
+      const nextStepKey = steps[currentStepIndex + 1] || "";
+      const isNextStepRanap = nextStepKey.includes("inap") || nextStepKey.includes("ranap");
+      const nextButtonLabel = isNextStepRanap ? "Lanjutkan mengisi form Ranap" : "Lanjutkan";
+
+      return (
     <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
@@ -1726,6 +1730,7 @@ export default function MedicalRecordWizard({ recordId: routeRecordId = null }) 
               isFinalRecord,
               canSaveDraft,
               saveDraftHint,
+              nextButtonLabel,
               onPrev: handlePrev,
               onNext: handleNext,
               onSaveDraft: handleSaveDraftAndExit,
