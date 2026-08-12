@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, ShieldAlert, HeartPulse, Zap, RotateCcw, CheckCircle2 } from "lucide-react";
+import { Sparkles, ShieldAlert, HeartPulse, Zap, RotateCcw, CheckCircle2, ArrowRight } from "lucide-react";
 
 export function IgdTriaseForm({
 	field,
@@ -65,17 +65,17 @@ export function IgdTriaseForm({
 		<div key={field.name} className="space-y-6 font-sans">
 			{/* 1. TRIAGE STATUS BANNER */}
 			<div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-				<div className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 px-5 py-3.5 text-white flex flex-wrap items-center justify-between gap-3">
+				<div className="bg-gradient-to-r from-rose-50 via-red-50/60 to-slate-50 border-b border-rose-200/90 px-5 py-3.5 text-slate-900 flex flex-wrap items-center justify-between gap-3">
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-600 font-black text-xs shadow-md">
+						<div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-600 text-white font-black text-xs shadow-sm">
 							IGD
 						</div>
 						<div>
-							<span className="text-xs font-black uppercase tracking-wider block text-white flex items-center gap-2">
+							<span className="text-xs font-black uppercase tracking-wider block text-slate-900 flex items-center gap-2">
 								TRIAGE STATUS PASIEN
-								<span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+								<span className="h-2 w-2 rounded-full bg-rose-600 animate-ping" />
 							</span>
-							<span className="text-[10px] text-rose-200/80 font-medium">
+							<span className="text-[10px] text-slate-500 font-semibold">
 								Tentukan prioritas penanganan medis IGD berdasarkan kriteria triase
 							</span>
 						</div>
@@ -83,10 +83,10 @@ export function IgdTriaseForm({
 
 					<div className="flex flex-wrap items-center gap-2 text-xs font-bold">
 						{[
-							{ key: "Merah", label: "Merah (Resusitasi)", color: "bg-red-600", activeBg: "bg-red-600 text-white border-red-400 ring-2 ring-red-400/50" },
-							{ key: "Kuning", label: "Kuning (Urgent)", color: "bg-amber-400", activeBg: "bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300/50" },
-							{ key: "Hijau", label: "Hijau (Non-Urgent)", color: "bg-emerald-500", activeBg: "bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-400/50" },
-							{ key: "Hitam", label: "Hitam (Meninggal)", color: "bg-slate-950", activeBg: "bg-slate-950 text-white border-slate-700 ring-2 ring-slate-600/50" },
+							{ key: "Merah", label: "Merah (Resusitasi)", color: "bg-red-600", activeBg: "bg-red-600 text-white border-red-600 ring-2 ring-red-300" },
+							{ key: "Kuning", label: "Kuning (Urgent)", color: "bg-amber-400", activeBg: "bg-amber-400 text-slate-950 border-amber-400 ring-2 ring-amber-300" },
+							{ key: "Hijau", label: "Hijau (Non-Urgent)", color: "bg-emerald-600", activeBg: "bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-300" },
+							{ key: "Hitam", label: "Hitam (Meninggal)", color: "bg-slate-900", activeBg: "bg-slate-900 text-white border-slate-900 ring-2 ring-slate-400" },
 						].map((opt) => {
 							const active = triaseData.triage_status === opt.key;
 							return (
@@ -96,8 +96,8 @@ export function IgdTriaseForm({
 									onClick={() => handleTriaseChange("triage_status", opt.key)}
 									className={`px-3.5 py-1.5 rounded-xl border transition-all flex items-center gap-2 cursor-pointer text-xs font-extrabold ${
 										active
-											? `${opt.activeBg} shadow-md scale-105`
-											: "border-white/20 bg-white/10 text-slate-100 hover:bg-white/20 backdrop-blur-xs"
+											? `${opt.activeBg} shadow-sm scale-105`
+											: "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-2xs"
 									}`}
 								>
 									<span className={`h-2.5 w-2.5 rounded-full ${opt.color}`} />
@@ -666,6 +666,8 @@ export function UgdDischargeSummary({
 	entryDetail,
 	type,
 	onUpdateDetailField,
+	onNavigateToRanap,
+	onEnsureRanapStep,
 }) {
 	const currentObj = (() => {
 		try {
@@ -678,6 +680,9 @@ export function UgdDischargeSummary({
 	const updateStatus = (key, val) => {
 		const updated = { ...currentObj, [key]: val };
 		onUpdateDetailField(type, field.name, JSON.stringify(updated));
+		if (key === "status" && val === "Rawat Inap") {
+			onEnsureRanapStep?.();
+		}
 	};
 
 	return (
