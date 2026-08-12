@@ -13,7 +13,7 @@ import {
 	updateServiceUnit,
 	deleteServiceUnit,
 } from "@/services/serviceUnitService";
-import { Plus, RefreshCw, Trash2, Pencil, X } from "lucide-react";
+import { Plus, RefreshCw, Trash2, Pencil, X, Search, CheckCircle2, FileText } from "lucide-react";
 
 export default function ServiceUnitPage() {
 	const router = useRouter();
@@ -21,6 +21,10 @@ export default function ServiceUnitPage() {
 	const [loading, setLoading] = useState(true);
 	const [servicePrices, setServicePrices] = useState([]);
 	const [units, setUnits] = useState([]);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [perPage, setPerPage] = useState(10);
 	const [toast, setToast] = useState({ show: false });
 
 	// Form state
@@ -56,6 +60,29 @@ export default function ServiceUnitPage() {
 			setLoading(false);
 		}
 	};
+
+	// Reset page when filters change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchTerm, statusFilter, perPage]);
+
+	// Derived filtered & paginated data
+	const filteredUnits = units.filter((u) => {
+		const q = searchTerm.trim().toLowerCase();
+		if (q) {
+			if (!((u.name || "").toLowerCase().includes(q) || (u.code || "").toLowerCase().includes(q))) return false;
+		}
+		if (statusFilter === "active") return u.status === "active";
+		if (statusFilter === "inactive") return u.status === "inactive";
+		return true;
+	});
+
+	const totalItems = filteredUnits.length;
+	const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+	const paginatedUnits = filteredUnits.slice((currentPage - 1) * perPage, currentPage * perPage);
+
+	const activeCount = units.filter((i) => i.status === "active").length;
+	const avgComponents = units.length === 0 ? 0 : Math.round(units.reduce((acc, cur) => acc + ((cur.servicePrices || []).length || 0), 0) / units.length);
 
 	const openAdd = () => {
 		setEditing(null);
@@ -152,9 +179,65 @@ export default function ServiceUnitPage() {
 						</div>
 					</div>
 
+					{/* Metric Cards */}
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+							<div>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Unit</p>
+								<p className="text-2xl font-extrabold text-slate-900 mt-1">{units.length}</p>
+							</div>
+							<span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 font-bold">
+								<FileText className="h-6 w-6" />
+							</span>
+						</div>
+
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+							<div>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Aktif</p>
+								<p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Unit</p>
+							</div>
+							<span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A] font-bold">
+								<CheckCircle2 className="h-6 w-6" />
+							</span>
+						</div>
+
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+							<div>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rata-rata Komponen</p>
+								<p className="text-2xl font-extrabold text-slate-900 font-mono mt-1">{avgComponents}</p>
+							</div>
+							<span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-[#D97706] font-bold">
+								<FileText className="h-6 w-6" />
+							</span>
+						</div>
+					</div>
+
+					{/* Search & Filters */}
+					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6">
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+							<div className="relative col-span-2">
+								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+								<input
+									type="text"
+									placeholder="Cari kode atau nama unit..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+								/>
+							</div>
+							<div>
+								<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700">
+									<option value="all">Semua Status</option>
+									<option value="active">Aktif</option>
+									<option value="inactive">Non-Aktif</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
 					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
 						<h3 className="text-base font-extrabold text-slate-900 mb-4">Daftar Unit ({units.length})</h3>
-						{units.length === 0 ? (
+						{totalItems === 0 ? (
 							<div className="py-12 text-center text-slate-400 italic text-xs">Belum ada unit layanan.</div>
 						) : (
 							<div className="overflow-x-auto">
@@ -168,7 +251,7 @@ export default function ServiceUnitPage() {
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-										{units.map((u) => (
+										{paginatedUnits.map((u) => (
 											<tr key={u.id} className="hover:bg-slate-50/60 transition">
 												<td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">{u.code || "-"}</td>
 												<td className="py-4 px-4 font-bold text-slate-900">{u.name}</td>
@@ -249,7 +332,25 @@ export default function ServiceUnitPage() {
 						</div>
 					)}
 
-					<Toast toast={toast} onClose={() => setToast({ show: false })} />
+							{/* Pagination Controls */}
+							{totalItems > 0 && (
+								<div className="mt-4 flex items-center justify-between">
+									<div className="text-xs text-slate-500">Menampilkan {Math.min((currentPage-1)*perPage+1, totalItems)} - {Math.min(currentPage*perPage, totalItems)} dari {totalItems} unit</div>
+									<div className="flex items-center gap-2">
+										<button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p-1))} className="px-3 py-1 rounded-xl border bg-white text-xs">Prev</button>
+										<div className="flex items-center gap-1">
+											{Array.from({ length: totalPages }).map((_, i) => (
+												<button key={i} onClick={() => setCurrentPage(i+1)} className={`px-3 py-1 rounded-xl text-xs ${currentPage===i+1? 'bg-teal-700 text-white' : 'bg-white border'}`}>
+													{i+1}
+												</button>
+											))}
+										</div>
+										<button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p+1))} className="px-3 py-1 rounded-xl border bg-white text-xs">Next</button>
+									</div>
+								</div>
+							)}
+
+							<Toast toast={toast} onClose={() => setToast({ show: false })} />
 				</main>
 			</div>
 		</div>
