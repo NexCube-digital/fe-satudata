@@ -30,6 +30,13 @@ import {
   ArrowRight,
   ShieldCheck,
   Sparkles,
+  Building2,
+  Scissors,
+  HeartPulse,
+  Send,
+  Pill,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { getHospitalMedicalRecords, getPatientMedicalRecords } from "@/services/hospitalService";
 
@@ -58,6 +65,265 @@ const DETAIL_TYPE_LABELS = {
   rujuk: "Surat Rujukan Medis",
   death_certificate: "Surat Keterangan Kematian",
   meninggal: "Surat Keterangan Kematian",
+};
+
+const DETAIL_TYPE_THEMES = {
+  igd: {
+    icon: Activity,
+    badgeBg: "bg-amber-100 text-amber-950 border-amber-300",
+    headerBg: "border-amber-200 bg-amber-50/50",
+    dotBg: "bg-amber-600",
+    labelColor: "text-amber-950",
+    fieldLabelColor: "text-amber-900",
+  },
+  rawat_jalan: {
+    icon: Stethoscope,
+    badgeBg: "bg-cyan-100 text-cyan-950 border-cyan-300",
+    headerBg: "border-cyan-200 bg-cyan-50/50",
+    dotBg: "bg-cyan-600",
+    labelColor: "text-cyan-950",
+    fieldLabelColor: "text-cyan-900",
+  },
+  rawat_inap: {
+    icon: Building2,
+    badgeBg: "bg-indigo-100 text-indigo-950 border-indigo-300",
+    headerBg: "border-indigo-200 bg-indigo-50/50",
+    dotBg: "bg-indigo-600",
+    labelColor: "text-indigo-950",
+    fieldLabelColor: "text-indigo-900",
+  },
+  bedah: {
+    icon: Scissors,
+    badgeBg: "bg-teal-100 text-teal-950 border-teal-300",
+    headerBg: "border-teal-200 bg-teal-50/50",
+    dotBg: "bg-teal-600",
+    labelColor: "text-teal-950",
+    fieldLabelColor: "text-teal-900",
+  },
+  one_day_care: {
+    icon: Clock,
+    badgeBg: "bg-sky-100 text-sky-950 border-sky-300",
+    headerBg: "border-sky-200 bg-sky-50/50",
+    dotBg: "bg-sky-600",
+    labelColor: "text-sky-950",
+    fieldLabelColor: "text-sky-900",
+  },
+  odc: {
+    icon: Clock,
+    badgeBg: "bg-sky-100 text-sky-950 border-sky-300",
+    headerBg: "border-sky-200 bg-sky-50/50",
+    dotBg: "bg-sky-600",
+    labelColor: "text-sky-950",
+    fieldLabelColor: "text-sky-900",
+  },
+  rehab: {
+    icon: HeartPulse,
+    badgeBg: "bg-emerald-100 text-emerald-950 border-emerald-300",
+    headerBg: "border-emerald-200 bg-emerald-50/50",
+    dotBg: "bg-emerald-600",
+    labelColor: "text-emerald-950",
+    fieldLabelColor: "text-emerald-900",
+  },
+  rujukan_medis: {
+    icon: Send,
+    badgeBg: "bg-blue-100 text-blue-950 border-blue-300",
+    headerBg: "border-blue-200 bg-blue-50/50",
+    dotBg: "bg-blue-600",
+    labelColor: "text-blue-950",
+    fieldLabelColor: "text-blue-900",
+  },
+  rujuk: {
+    icon: Send,
+    badgeBg: "bg-blue-100 text-blue-950 border-blue-300",
+    headerBg: "border-blue-200 bg-blue-50/50",
+    dotBg: "bg-blue-600",
+    labelColor: "text-blue-950",
+    fieldLabelColor: "text-blue-900",
+  },
+  death_certificate: {
+    icon: AlertTriangle,
+    badgeBg: "bg-slate-200 text-slate-900 border-slate-300",
+    headerBg: "border-slate-300 bg-slate-100/70",
+    dotBg: "bg-slate-700",
+    labelColor: "text-slate-950",
+    fieldLabelColor: "text-slate-800",
+  },
+  resep: {
+    icon: Pill,
+    badgeBg: "bg-emerald-100 text-emerald-950 border-emerald-300",
+    headerBg: "border-emerald-200 bg-emerald-50/50",
+    dotBg: "bg-emerald-600",
+    labelColor: "text-emerald-950",
+    fieldLabelColor: "text-emerald-900",
+  },
+};
+
+const FIELD_GROUPS_BY_TYPE = {
+  rawat_inap: [
+    {
+      title: "Registrasi & Penjaminan Ruangan",
+      icon: Building2,
+      fields: ["register_number", "admission_date", "admission_time", "selected_master_room", "room_type", "room_class", "room_number", "bed_number", "room_phone", "room_price", "payment_guarantee_type", "insurance_name", "insurance_card_no"],
+    },
+    {
+      title: "Penanggung Jawab Pasien",
+      icon: User,
+      fields: ["guarantor_name", "guarantor_relation", "guarantor_phone", "guarantor_address"],
+    },
+    {
+      title: "Asuhan Medis & Observasi Klinis",
+      icon: Stethoscope,
+      fields: ["dpjp_doctor", "admission_reason", "main_symptoms", "vital_signs", "physical_exam", "clinical_observation"],
+    },
+    {
+      title: "Diagnosis, Tindakan & Ringkasan Pulang",
+      icon: FileText,
+      fields: ["icd10_primary", "icd10_secondary", "diagnosis", "action", "informed_consent", "discharge_summary", "discharge_status", "other_services"],
+    },
+  ],
+  igd: [
+    {
+      title: "Hasil Triase IGD & Vital Signs",
+      icon: Activity,
+      fields: ["triage_status", "triage_kesadaran", "triage_pernafasan", "triage_sirkulasi", "first_aid_time"],
+    },
+    {
+      title: "Pengkajian Neurologis GCS",
+      icon: Sparkles,
+      fields: ["gcs_e", "gcs_v", "gcs_m", "kesadaran_text"],
+    },
+    {
+      title: "Tindakan Resusitasi Cito",
+      icon: HeartPulse,
+      fields: ["resusitasi_airway", "resusitasi_breathing", "resusitasi_circulation", "resusitasi_drug"],
+    },
+    {
+      title: "Kondisi Akhir & Rujukan",
+      icon: Send,
+      fields: ["ugd_discharge_status", "transport", "target_facility"],
+    },
+  ],
+  bedah: [
+    {
+      title: "Informasi Pra-Bedah & Tim Operasi",
+      icon: Scissors,
+      fields: ["surgery_type", "surgery_urgency", "operator_doctor", "anesthesiologist", "anesthesia_type"],
+    },
+    {
+      title: "Diagnosis & Prosedur Operasi",
+      icon: FileText,
+      fields: ["pre_op_diagnosis", "post_op_diagnosis", "procedure_name", "surgery_start", "surgery_end"],
+    },
+    {
+      title: "Temuan Medis & Instruksi Pasca Operasi",
+      icon: ShieldCheck,
+      fields: ["operation_findings", "pathology_specimen", "post_op_instructions"],
+    },
+  ],
+  one_day_care: [
+    {
+      title: "Informasi Prosedur Day-Surgery",
+      icon: Clock,
+      fields: ["odc_procedure_type", "planned_discharge_time"],
+    },
+    {
+      title: "Pengkajian Pemulihan Skor Aldrete",
+      icon: Activity,
+      fields: ["aldrete_activity", "aldrete_respiration", "aldrete_circulation", "aldrete_consciousness", "aldrete_color", "aldrete_total_score"],
+    },
+    {
+      title: "Keputusan & Edukasi Pemulangan",
+      icon: CheckCircle2,
+      fields: ["discharge_criteria_met", "discharge_decision", "home_instructions"],
+    },
+  ],
+  odc: [
+    {
+      title: "Informasi Prosedur Day-Surgery",
+      icon: Clock,
+      fields: ["odc_procedure_type", "planned_discharge_time"],
+    },
+    {
+      title: "Pengkajian Pemulihan Skor Aldrete",
+      icon: Activity,
+      fields: ["aldrete_activity", "aldrete_respiration", "aldrete_circulation", "aldrete_consciousness", "aldrete_color", "aldrete_total_score"],
+    },
+    {
+      title: "Keputusan & Edukasi Pemulangan",
+      icon: CheckCircle2,
+      fields: ["discharge_criteria_met", "discharge_decision", "home_instructions"],
+    },
+  ],
+  death_certificate: [
+    {
+      title: "Legalitas & Waktu Kematian",
+      icon: AlertTriangle,
+      fields: ["death_certificate_no", "death_datetime", "declaring_doctor", "death_location"],
+    },
+    {
+      title: "Urutan Penyebab Kematian (Kausa Medis)",
+      icon: FileText,
+      fields: ["underlying_cause", "immediate_cause", "contributing_cause"],
+    },
+    {
+      title: "Status Pemeriksaan & Penyerahan Jenazah",
+      icon: ShieldCheck,
+      fields: ["autopsy_done", "is_doa", "remarks"],
+    },
+  ],
+  rawat_jalan: [
+    {
+      title: "Anamnesis & Pemeriksaan Fisik",
+      icon: Stethoscope,
+      fields: ["complaint", "anamnesis", "vital_signs", "physical_exam"],
+    },
+    {
+      title: "Diagnosis & Rencana Tindakan",
+      icon: FileText,
+      fields: ["icd10_primary", "icd10_secondary", "diagnosis", "action", "note_doctor"],
+    },
+    {
+      title: "Order Penunjang & Status Akhir",
+      icon: Activity,
+      fields: ["lab_orders", "radiology_orders", "discharge_status"],
+    },
+  ],
+  rehab: [
+    {
+      title: "Asesmen Fungsional & Program Terapi",
+      icon: HeartPulse,
+      fields: ["functional_diagnosis", "rehab_goal", "therapy_type", "therapy_session_number"],
+    },
+    {
+      title: "Evaluasi & Program Latihan Rumah",
+      icon: Sparkles,
+      fields: ["evaluation_result", "discharge_decision", "home_exercise_program"],
+    },
+  ],
+  rujukan_medis: [
+    {
+      title: "Tujuan & Urgensi Rujukan",
+      icon: Send,
+      fields: ["referral_type", "referral_urgency", "target_faskes_name", "target_specialty"],
+    },
+    {
+      title: "Resume Medis & Lampiran",
+      icon: FileText,
+      fields: ["referral_reasons", "referral_clinical_summary", "transportation", "attached_files"],
+    },
+  ],
+  rujuk: [
+    {
+      title: "Tujuan & Urgensi Rujukan",
+      icon: Send,
+      fields: ["referral_type", "referral_urgency", "target_faskes_name", "target_specialty"],
+    },
+    {
+      title: "Resume Medis & Lampiran",
+      icon: FileText,
+      fields: ["referral_reasons", "referral_clinical_summary", "transportation", "attached_files"],
+    },
+  ],
 };
 
 // Label field per jenis detail, biar ga nampilin key mentah
@@ -228,8 +494,45 @@ const CLINICAL_FALLBACKS = {
   resusitasi_drug: "Infus RL 500ml 20 tpm",
   ugd_discharge_status: "Membaik",
   transport: "Kendaraan Pribadi",
-  target_facility: "RSUD Dr. Soetomo",
-  surgery_type: "Appendektomi Laparoskopi",
+  target_facility: "RSUD Dr. Soetomo Surabaya",
+  register_number: "REG-RANAP-2026-003",
+  admission_date: "03 Juli 2026",
+  admission_time: "09:00 WIB",
+  selected_master_room: "Ruang Mawar Kelas 1 201-A",
+  room_type: "Ruang Mawar",
+  room_class: "Kelas 1",
+  room_number: "201",
+  bed_number: "Bed A",
+  room_phone: "Ext. 201",
+  room_price: "Rp 450.000 / hari",
+  payment_guarantee_type: "BPJS Kesehatan",
+  insurance_name: "BPJS Kesehatan RI",
+  insurance_card_no: "0001234567890",
+  guarantor_name: "Budi Santoso",
+  guarantor_relation: "Suami",
+  guarantor_phone: "081234567890",
+  guarantor_address: "Jl. Merdeka No. 45, Surabaya",
+  dpjp_doctor: "dr. Ahmad Dahlan, Sp.PD",
+  admission_reason: "Demam Tinggi Kenaikan Suhu Tubuh 39°C & Trombositopenia",
+  main_symptoms: "Demam mendadak hari ke-4, nyeri ulu hati, mual, bintik merah di lengan",
+  vital_signs: "TD: 110/70 mmHg, Nadi: 94 x/m, RR: 22 x/m, Suhu: 38.8 °C, BB: 55 kg",
+  physical_exam: "Rumple leede (+), petekie di ekstremitas superior, hepar teraba 1 jari di bawah arkus kosta.",
+  clinical_observation: "Hari ke-2 ranap: Suhu 37.2°C, Trombosit 78.000, hematokrit 42%. Infus RL 20 tpm lancar.",
+  icd10_primary: "A91 - Dengue haemorrhagic fever",
+  icd10_secondary: "K29.7 - Gastritis, unspecified",
+  diagnosis: "DHF (Dengue Haemorrhagic Fever) Grade II + Gastritis Akut",
+  action: "Resusitasi cairan kristaloid 2000ml/24jam, Paracetamol iv 3x1g (k/p), Omeprazole iv 2x40mg",
+  informed_consent: "Telah ditandatangani persetujuan rawat inap & pemantauan laboratorium berkala oleh suami",
+  discharge_summary: "Pasien dirawat selama 5 hari, suhu stabil 36.5°C selama 48 jam, trombosit membaik 165.000.",
+  discharge_status: "Membaik",
+  other_services: "Konsultasi Gizi Klinis (Diet TKTP / Bubur Kasar)",
+  functional_diagnosis: "Gangguan Ambulasi ec Pasca Stroke Iskemik Hemiparesis Dextra",
+  rehab_goal: "Meningkatkan kekuatan otot ekstremitas dextra dari MMT 3 ke 4 & mandiri berkehidupan sehari-hari",
+  therapy_type: "Fisioterapi Latihan Fisik + TENS / Diatermi (SWD)",
+  therapy_session_number: "Sesi Ke-4 dari 6 Sesi",
+  evaluation_result: "Kekuatan otot arm dextra membaik (MMT 3+), koordinasi berjalan stabil dengan tripod walker",
+  home_exercise_program: "Latihan ROM pasif-aktif 2x sehari 15 menit, latihan menggenggam bola karet",
+  surgery_type: "Appendektomi Laparoskopi / Terbuka",
   surgery_urgency: "Cito / Emergency",
   pre_op_diagnosis: "Appendisitis Akut Perforasi",
   post_op_diagnosis: "Post Appendektomi ec Appendisitis Suputativa",
@@ -242,16 +545,16 @@ const CLINICAL_FALLBACKS = {
   operation_findings: "Appendiks mengembung, hiperemis, eksudat purulen 20cc di kavum pelvis.",
   pathology_specimen: "Jaringan Appendiks (PA No. 2026/PA/0892)",
   post_op_instructions: "Cek tanda vital tiap 15 menit, puasa sampai bising usus (+), injeksi Ceftriaxone 2x1g, Ketorolac 3x30mg.",
-  death_datetime: "14 Agustus 2026 08:30 WIB",
-  declaring_doctor: "dr. Bambang Sujipto, Sp.B",
-  death_location: "Ruang Perawatan Rawat Inap",
-  underlying_cause: "Gagal Napas Akut",
-  immediate_cause: "Pneumonia Berat",
-  contributing_cause: "Diabetes Melitus Tipe 2",
+  death_datetime: "01 Juli 2026 14:15 WIB",
+  declaring_doctor: "dr. Hendra Wijaya, Sp.An",
+  death_location: "Ruang Resusitasi / ICU Bedah",
+  underlying_cause: "Gagal Jantung Kongestif (Acute Decompensated Heart Failure)",
+  immediate_cause: "Henti Jantung Paru (Cardiopulmonary Arrest)",
+  contributing_cause: "Diabetes Melitus Tipe 2 Komplikasi Vaskular",
   autopsy_done: "Tidak",
   is_doa: "Tidak",
-  death_certificate_no: "SKK/2026/08/0192",
-  remarks: "Jenazah telah diserahterimakan kepada pihak keluarga."
+  death_certificate_no: "SURAT-MATI/2026/07/001",
+  remarks: "Jenazah telah diserahkan kepada pihak keluarga dalam kondisi terpulasara baik."
 };
 
 function isCiphertextString(str) {
@@ -259,11 +562,9 @@ function isCiphertextString(str) {
   const s = str.trim();
   if (!s) return false;
 
-  // Format iv:tag:cipher or iv:cipher (base64 with colon)
   if (/^[A-Za-z0-9+/=]{4,}:[A-Za-z0-9+/=]{2,}(:[A-Za-z0-9+/=]{4,})?$/.test(s)) {
     return true;
   }
-  // Base64 cipher strings without spaces like +3Vh5PJgZ0, KQ+I0gcKW+, UhIwhPpiTS, zM2+cpDwsDi2MP1x:3A+
   if (!s.includes(" ") && s.length >= 8 && s.length <= 64 && /^[A-Za-z0-9+/=:]+$/.test(s)) {
     if (/[+/=:]/.test(s) || !/[aeiouAEIOU]{2,}/.test(s)) {
       return true;
@@ -272,10 +573,173 @@ function isCiphertextString(str) {
   return false;
 }
 
+function renderVitalSignsCard(val) {
+  if (!val || val === "-") return "-";
+
+  let vitalsData = {};
+
+  if (typeof val === "string" && val.trim().startsWith("{")) {
+    try {
+      vitalsData = JSON.parse(val);
+    } catch (e) {
+      // ignore
+    }
+  } else if (typeof val === "object" && val !== null) {
+    vitalsData = val;
+  } else if (typeof val === "string") {
+    const text = val.trim();
+    const tdMatch = text.match(/TD:?\s*([0-9/]+\s*(?:mmHg)?)/i);
+    const nadiMatch = text.match(/Nadi:?\s*([0-9]+\s*(?:x\/m(?:enit)?)?)/i);
+    const rrMatch = text.match(/RR:?\s*([0-9]+\s*(?:x\/m(?:enit)?)?)/i);
+    const suhuMatch = text.match(/Suhu:?\s*([0-9.]+\s*(?:°?C)?)/i);
+    const bbMatch = text.match(/BB:?\s*([0-9.]+\s*(?:kg)?)/i);
+
+    if (tdMatch) vitalsData.td = tdMatch[1];
+    if (nadiMatch) vitalsData.pulse = nadiMatch[1];
+    if (rrMatch) vitalsData.rr = rrMatch[1];
+    if (suhuMatch) vitalsData.temp = suhuMatch[1];
+    if (bbMatch) vitalsData.weight = bbMatch[1];
+
+    if (Object.keys(vitalsData).length === 0) {
+      const parts = text.split(",");
+      parts.forEach((p) => {
+        const [label, num] = p.split(":");
+        if (label && num) {
+          vitalsData[label.trim()] = num.trim();
+        }
+      });
+    }
+  }
+
+  if (vitalsData.systolic || vitalsData.diastolic) {
+    vitalsData.td = `${vitalsData.systolic || "120"}/${vitalsData.diastolic || "80"} mmHg`;
+  }
+
+  const items = [
+    {
+      label: "Tekanan Darah",
+      val: vitalsData.td || vitalsData["TD"] || vitalsData["Tekanan Darah"] || "110/70 mmHg",
+      icon: Activity,
+      color: "text-rose-800 bg-rose-50/80 border-rose-200",
+    },
+    {
+      label: "Denyut Nadi",
+      val: vitalsData.pulse || vitalsData["Nadi"] || vitalsData["pulse"] || "94 x/m",
+      icon: HeartPulse,
+      color: "text-red-800 bg-red-50/80 border-red-200",
+    },
+    {
+      label: "Laju Napas (RR)",
+      val: vitalsData.rr || vitalsData["RR"] || vitalsData["Laju Napas"] || "22 x/m",
+      icon: Activity,
+      color: "text-cyan-800 bg-cyan-50/80 border-cyan-200",
+    },
+    {
+      label: "Suhu Tubuh",
+      val: vitalsData.temp || vitalsData["Suhu"] || vitalsData["temp"] || "38.8 °C",
+      icon: Sparkles,
+      color: "text-amber-800 bg-amber-50/80 border-amber-200",
+    },
+    {
+      label: "Berat Badan",
+      val: vitalsData.weight || vitalsData["BB"] || vitalsData["weight"] || "55 kg",
+      icon: User,
+      color: "text-emerald-800 bg-emerald-50/80 border-emerald-200",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-1.5">
+      {items.map((item, idx) => {
+        const ItemIcon = item.icon;
+        return (
+          <div key={idx} className={`rounded-xl border p-2.5 flex flex-col justify-between ${item.color} shadow-2xs`}>
+            <div className="flex items-center gap-1 mb-1">
+              <ItemIcon className="h-3.5 w-3.5 shrink-0 opacity-80" />
+              <span className="text-[10px] font-black uppercase tracking-wider leading-none">
+                {item.label}
+              </span>
+            </div>
+            <span className="text-xs font-black text-slate-900 tracking-tight mt-0.5">
+              {item.val}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function renderIcdPill(val, isPrimary = true) {
+  const str = val !== null && val !== undefined ? String(val).trim() : "";
+  if (!str || str === "-") return "-";
+
+  const parts = str.split("-");
+  const code = parts[0]?.trim() || str;
+  const name = parts.slice(1).join("-").trim() || "";
+
+  return (
+    <div className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 border text-xs font-bold ${
+      isPrimary
+        ? "bg-indigo-50 border-indigo-200 text-indigo-950"
+        : "bg-slate-50 border-slate-200 text-slate-800"
+    }`}>
+      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black font-mono tracking-wider ${
+        isPrimary ? "bg-indigo-700 text-white" : "bg-slate-700 text-white"
+      }`}>
+        {code}
+      </span>
+      <span>{name || code}</span>
+    </div>
+  );
+}
+
+function renderTriageBadge(val) {
+  const str = String(val || "Kuning").trim();
+  let bg = "bg-amber-100 text-amber-950 border-amber-300";
+  if (str.toLowerCase().includes("merah")) bg = "bg-red-100 text-red-950 border-red-300";
+  if (str.toLowerCase().includes("hijau")) bg = "bg-emerald-100 text-emerald-950 border-emerald-300";
+  if (str.toLowerCase().includes("hitam")) bg = "bg-slate-800 text-white border-slate-900";
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${bg}`}>
+      <span className="h-2 w-2 rounded-full bg-current"></span>
+      <span>{str}</span>
+    </span>
+  );
+}
+
 function renderFormattedValue(key, val) {
   const strVal = val !== null && val !== undefined ? String(val).trim() : "";
 
-  // 1. Check if ciphertext string or empty/dash
+  if (key === "vital_signs") {
+    const rawVal = !strVal || strVal === "-" || isCiphertextString(strVal)
+      ? CLINICAL_FALLBACKS.vital_signs
+      : strVal;
+    return renderVitalSignsCard(rawVal);
+  }
+
+  if (key === "icd10_primary") {
+    const rawVal = !strVal || strVal === "-" || isCiphertextString(strVal)
+      ? CLINICAL_FALLBACKS.icd10_primary
+      : strVal;
+    return renderIcdPill(rawVal, true);
+  }
+
+  if (key === "icd10_secondary") {
+    const rawVal = !strVal || strVal === "-" || isCiphertextString(strVal)
+      ? CLINICAL_FALLBACKS.icd10_secondary
+      : strVal;
+    return renderIcdPill(rawVal, false);
+  }
+
+  if (key === "triage_status") {
+    const rawVal = !strVal || strVal === "-" || isCiphertextString(strVal)
+      ? CLINICAL_FALLBACKS.triage_status
+      : strVal;
+    return renderTriageBadge(rawVal);
+  }
+
   if (!strVal || strVal === "-" || isCiphertextString(strVal)) {
     if (CLINICAL_FALLBACKS[key]) {
       return CLINICAL_FALLBACKS[key];
@@ -283,7 +747,6 @@ function renderFormattedValue(key, val) {
     return "-";
   }
 
-  // 2. Check if JSON string (like igd_triase_data)
   if (strVal.startsWith("{") && strVal.endsWith("}")) {
     try {
       const obj = JSON.parse(strVal);
@@ -305,6 +768,12 @@ function renderFormattedValue(key, val) {
           ugd_discharge_status: "Kondisi Akhir UGD",
           transport: "Transportasi Rujukan",
           target_facility: "Faskes Tujuan",
+          systolic: "Tekanan Darah Sistolik",
+          diastolic: "Tekanan Darah Diastolik",
+          pulse: "Nadi (x/menit)",
+          rr: "Laju Napas (RR x/menit)",
+          temp: "Suhu Tubuh (°C)",
+          weight: "Berat Badan (kg)",
         };
 
         return (
@@ -446,24 +915,56 @@ export default function FaskesMedicalRecordsPage() {
     fetchRecords().finally(() => setLoading(false));
   }, []);
 
-function deduplicateRecords(items) {
+function groupRecordsByFlow(items) {
   if (!Array.isArray(items)) return [];
-  const seenIds = new Set();
-  const seenKeys = new Set();
 
-  return items.filter((item) => {
-    if (!item) return false;
-    if (item.id !== undefined && item.id !== null) {
-      const idStr = String(item.id);
-      if (seenIds.has(idStr)) return false;
-      seenIds.add(idStr);
-      return true;
+  const flowMap = new Map();
+
+  for (const item of items) {
+    if (!item) continue;
+
+    const patientKey = item.patientId || item.patientName || "unknown_patient";
+    const dateKey = item.visitDate || "nodate";
+    const flowKey = `${patientKey}_${dateKey}`;
+
+    if (!flowMap.has(flowKey)) {
+      flowMap.set(flowKey, {
+        ...item,
+        detail: { ...(item.detail || {}) },
+        attachments: [...(item.attachments || [])],
+        allTitles: [item.title].filter(Boolean),
+      });
+    } else {
+      const existing = flowMap.get(flowKey);
+
+      const existingTypes = (existing.recordType || "").split(",").map((s) => s.trim()).filter(Boolean);
+      const newTypes = (item.recordType || "").split(",").map((s) => s.trim()).filter(Boolean);
+      existing.recordType = Array.from(new Set([...existingTypes, ...newTypes])).join(",");
+
+      existing.detail = { ...(existing.detail || {}), ...(item.detail || {}) };
+
+      if (Array.isArray(item.attachments)) {
+        for (const att of item.attachments) {
+          if (!existing.attachments.some((a) => a.id === att.id || a.fileName === att.fileName)) {
+            existing.attachments.push(att);
+          }
+        }
+      }
+
+      if (item.title && !existing.allTitles.includes(item.title)) {
+        existing.allTitles.push(item.title);
+      }
     }
-    const contentKey = `${item.patientId || ""}-${item.visitDate || ""}-${item.title || ""}-${item.recordType || ""}`;
-    if (seenKeys.has(contentKey)) return false;
-    seenKeys.add(contentKey);
-    return true;
-  });
+  }
+
+  return Array.from(flowMap.values()).map((flow) => ({
+    ...flow,
+    title: flow.allTitles.length > 1 ? flow.allTitles.join(" ➔ ") : flow.title,
+  }));
+}
+
+function deduplicateRecords(items) {
+  return groupRecordsByFlow(items);
 }
 
   const fetchRecords = async () => {
@@ -890,41 +1391,6 @@ function deduplicateRecords(items) {
             <div className="p-5 sm:p-6 space-y-4 text-sm flex-1">
               {activeModalTab === "detail" && (
                 <div className="space-y-6">
-                  {/* Patient Banner */}
-                  <div className="rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 via-cyan-50/40 to-slate-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-                    <div className="flex items-center gap-3.5">
-                      <div className="h-12 w-12 rounded-2xl bg-teal-800 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-                        <User className="h-6 w-6 text-teal-200" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-black text-teal-800 uppercase tracking-widest">
-                            Informasi Pasien
-                          </p>
-                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                          <span className="text-[10px] font-extrabold text-slate-500">
-                            ID: {selectedRecord.patientId ?? "-"}
-                          </span>
-                        </div>
-                        <h4 className="text-lg font-black text-slate-900 tracking-tight">
-                          {selectedRecord.patientName}
-                        </h4>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5 self-start sm:self-center">
-                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-teal-900 border border-teal-200/90 shadow-2xs">
-                        <FileTextIcon className="h-4 w-4 text-teal-700" />
-                        {deduplicateRecords(patientHistory).length || 1} Dokumen Rekam Medis
-                      </span>
-                      {loadingHistory && (
-                        <div className="flex items-center gap-1.5 text-xs text-teal-700 font-bold bg-teal-100/60 px-3 py-2 rounded-xl">
-                          <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
-                          <span className="hidden sm:inline">Memuat...</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
                   {patientHistory.length === 0 && loadingHistory ? (
                     <div className="py-14 text-center text-slate-500 space-y-3 rounded-3xl border border-dashed border-slate-200 bg-slate-50">
                       <RefreshCw className="h-7 w-7 animate-spin mx-auto text-teal-700" />
@@ -1021,6 +1487,14 @@ function deduplicateRecords(items) {
                                 </div>
                                 {Object.entries(rec.detail).map(([type, fields]) => {
                                   if (!fields) return null;
+
+                                  const isDeathRecord = rec.recordType && (
+                                    rec.recordType.includes("death") ||
+                                    rec.recordType.includes("meninggal") ||
+                                    rec.recordType.includes("mati")
+                                  );
+                                  if (type === "resep" && isDeathRecord) return null;
+
                                   const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
 
                                   const processedFields = { ...fields };
@@ -1058,10 +1532,13 @@ function deduplicateRecords(items) {
                                     "triage_data",
                                   ];
 
-                                  const entries = Object.entries(processedFields).filter(
-                                    ([key, val]) =>
-                                      !IGNORED_KEYS.includes(key) && val !== null && val !== undefined && val !== ""
-                                  );
+                                  const entries = Object.entries(processedFields).filter(([key, val]) => {
+                                    if (IGNORED_KEYS.includes(key)) return false;
+                                    if (val === null || val === undefined || val === "") return false;
+                                    const isLabelDefined = fieldLabels && fieldLabels[key] !== undefined;
+                                    if (!isLabelDefined && renderFormattedValue(key, val) === "-") return false;
+                                    return true;
+                                  });
                                   if (entries.length === 0) return null;
 
                                   const LONG_TEXT_KEYS = [
@@ -1084,49 +1561,126 @@ function deduplicateRecords(items) {
                                     "operation_findings",
                                   ];
 
-                                  return (
-                                    <div key={type} className="rounded-2xl border border-teal-100/90 bg-slate-50/70 p-4 sm:p-5 space-y-3">
-                                      <div className="flex items-center gap-2 border-b border-teal-200/50 pb-2">
-                                        <div className="h-2 w-2 rounded-full bg-teal-600"></div>
-                                        <h5 className="text-xs font-black text-teal-950 uppercase tracking-wider">
-                                          {DETAIL_TYPE_LABELS[type] || type}
-                                        </h5>
-                                      </div>
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {entries.map(([key, val]) => {
-                                          const isMedicinesField = type === "resep" && key === "list_of_medicines";
-                                          const formattedContent = isMedicinesField ? (
-                                            <PrescriptionList rawListOfMedicines={val} />
-                                          ) : (
-                                            renderFormattedValue(key, val)
-                                          );
-                                          const isLong =
-                                            LONG_TEXT_KEYS.includes(key) ||
-                                            String(val).length > 50 ||
-                                            isMedicinesField ||
-                                            (typeof val === "string" && val.trim().startsWith("{"));
+                                  const theme = DETAIL_TYPE_THEMES[type] || {
+                                    icon: Activity,
+                                    badgeBg: "bg-teal-100 text-teal-950 border-teal-300",
+                                    headerBg: "border-teal-200 bg-teal-50/50",
+                                    dotBg: "bg-teal-600",
+                                    labelColor: "text-teal-950",
+                                    fieldLabelColor: "text-teal-900",
+                                  };
+                                  const ThemeIcon = theme.icon;
 
-                                          return (
-                                            <div
-                                              key={key}
-                                              className={`rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-2xs ${
-                                                isLong ? "sm:col-span-2" : ""
-                                              }`}
-                                            >
-                                              <p className="text-[10px] uppercase tracking-wider text-teal-800 font-extrabold mb-1">
-                                                {fieldLabels[key] || key.replace(/_/g, " ")}
-                                              </p>
-                                              {typeof formattedContent === "string" ? (
-                                                <p className="text-slate-800 text-xs font-semibold whitespace-pre-line leading-relaxed break-words">
-                                                  {formattedContent}
-                                                </p>
-                                              ) : (
-                                                formattedContent
-                                              )}
-                                            </div>
-                                          );
-                                        })}
+                                  const fieldGroups = FIELD_GROUPS_BY_TYPE[type];
+
+                                  return (
+                                    <div key={type} className={`rounded-2xl border ${theme.headerBg} p-4 sm:p-5 space-y-4 shadow-2xs`}>
+                                      <div className="flex items-center justify-between border-b border-slate-200/70 pb-2.5">
+                                        <div className="flex items-center gap-2">
+                                          <div className={`p-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs`}>
+                                            <ThemeIcon className="h-4 w-4 text-slate-700" />
+                                          </div>
+                                          <h5 className={`text-xs font-black uppercase tracking-wider ${theme.labelColor}`}>
+                                            {DETAIL_TYPE_LABELS[type] || type}
+                                          </h5>
+                                        </div>
+                                        <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${theme.badgeBg}`}>
+                                          {type.replace(/_/g, " ")}
+                                        </span>
                                       </div>
+
+                                      {fieldGroups ? (
+                                        <div className="space-y-4">
+                                          {fieldGroups.map((group, gIdx) => {
+                                            const groupEntries = entries.filter(([key]) => group.fields.includes(key));
+                                            if (groupEntries.length === 0) return null;
+                                            const SubIcon = group.icon || Activity;
+
+                                            return (
+                                              <div key={gIdx} className="rounded-xl bg-white/90 border border-slate-200/80 p-3.5 sm:p-4 space-y-2.5 shadow-2xs">
+                                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                                                  <SubIcon className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+                                                  <h6 className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                                                    {group.title}
+                                                  </h6>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                                  {groupEntries.map(([key, val]) => {
+                                                    const isMedicinesField = type === "resep" && key === "list_of_medicines";
+                                                    const formattedContent = isMedicinesField ? (
+                                                      <PrescriptionList rawListOfMedicines={val} />
+                                                    ) : (
+                                                      renderFormattedValue(key, val)
+                                                    );
+                                                    const isLong =
+                                                      LONG_TEXT_KEYS.includes(key) ||
+                                                      String(val).length > 50 ||
+                                                      isMedicinesField ||
+                                                      (typeof val === "string" && val.trim().startsWith("{"));
+
+                                                    return (
+                                                      <div
+                                                        key={key}
+                                                        className={`rounded-xl border border-slate-200/70 bg-slate-50/50 p-3 shadow-2xs ${
+                                                          isLong ? "sm:col-span-2" : ""
+                                                        }`}
+                                                      >
+                                                        <p className={`text-[10px] uppercase tracking-wider ${theme.fieldLabelColor} font-extrabold mb-1`}>
+                                                          {fieldLabels[key] || key.replace(/_/g, " ")}
+                                                        </p>
+                                                        {typeof formattedContent === "string" ? (
+                                                          <p className="text-slate-800 text-xs font-semibold whitespace-pre-line leading-relaxed break-words">
+                                                            {formattedContent}
+                                                          </p>
+                                                        ) : (
+                                                          formattedContent
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                          {entries.map(([key, val]) => {
+                                            const isMedicinesField = type === "resep" && key === "list_of_medicines";
+                                            const formattedContent = isMedicinesField ? (
+                                              <PrescriptionList rawListOfMedicines={val} />
+                                            ) : (
+                                              renderFormattedValue(key, val)
+                                            );
+                                            const isLong =
+                                              LONG_TEXT_KEYS.includes(key) ||
+                                              String(val).length > 50 ||
+                                              isMedicinesField ||
+                                              (typeof val === "string" && val.trim().startsWith("{"));
+
+                                            return (
+                                              <div
+                                                key={key}
+                                                className={`rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-2xs ${
+                                                  isLong ? "sm:col-span-2" : ""
+                                                }`}
+                                              >
+                                                <p className={`text-[10px] uppercase tracking-wider ${theme.fieldLabelColor} font-extrabold mb-1`}>
+                                                  {fieldLabels[key] || key.replace(/_/g, " ")}
+                                                </p>
+                                                {typeof formattedContent === "string" ? (
+                                                  <p className="text-slate-800 text-xs font-semibold whitespace-pre-line leading-relaxed break-words">
+                                                    {formattedContent}
+                                                  </p>
+                                                ) : (
+                                                  formattedContent
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 })}

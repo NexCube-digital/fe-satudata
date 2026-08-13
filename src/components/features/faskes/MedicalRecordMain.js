@@ -1350,197 +1350,225 @@ export default function MedicalRecordMain(props) {
 						);
 					})()}
 
-				{currentStep === stepLampiran && (
-					<div className="space-y-8">
-						{/* 1. RESEP & ELECTRONIC PRESCRIBING */}
-						<div>
-							<div className="flex items-center justify-between mb-2">
-								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-1.5">
-									<Pill className="h-4 w-4 text-teal-700" />
-									Instruksi Obat &amp; Resep (Electronic Prescribing) <span className="text-slate-400 font-medium normal-case ml-1">(opsional)</span>
-								</label>
-							</div>
+				{currentStep === stepLampiran && (() => {
+					const activeTypesList = Array.isArray(selectedTypes) ? selectedTypes : [];
+					const isDeathOnly = activeTypesList.length === 1 && (
+						activeTypesList[0].includes("death") ||
+						activeTypesList[0].includes("meninggal") ||
+						activeTypesList[0].includes("mati")
+					);
+					const showPrescriptionSection = !isDeathOnly;
+					const showProcedureSection = !isDeathOnly;
 
-							<div className="space-y-3">
-								{prescriptionItems.length === 0 ? (
-									<div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-6 text-center text-xs text-slate-400">
-										Belum ada resep obat ditambahkan.
+					return (
+						<div className="space-y-8">
+							{isDeathOnly && (
+								<div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 flex items-start gap-3.5 shadow-2xs">
+									<AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+									<div className="space-y-1">
+										<h5 className="text-xs font-black uppercase tracking-wider text-amber-950">
+											Formulir Surat Keterangan Kematian Aktif
+										</h5>
+										<p className="text-xs text-amber-900 font-semibold leading-relaxed">
+											Sesuai standar pelayanan klinis, pengisian instruksi resep obat dan tindakan medis (ICD-9-CM) di-nonaktifkan untuk Surat Kematian. Silakan unggah dokumen/berkas pendukung pada bagian <strong>File Lampiran</strong> di bawah jika diperlukan.
+										</p>
 									</div>
-								) : (
-									prescriptionItems.map((item, idx) => {
-										const stockError = getRowStockError(item);
-										const remaining = item.medicineId ? getRemainingStockForRow(item.id, item.medicineId) : null;
-										return (
-											<div
-												key={item.id}
-												className={`rounded-2xl border p-4 transition ${
-													stockError ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/40"
-												}`}
-											>
-												<div className="flex items-center justify-between mb-3">
-													<span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-														<Pill className="h-3 w-3 text-teal-700" /> Obat #{idx + 1}
-													</span>
-													<button
-														type="button"
-														onClick={() => onRemovePrescriptionRow(item.id)}
-														className="text-slate-400 hover:text-[#DC2626] transition cursor-pointer"
-														title="Hapus obat"
-													>
-														<X className="h-4 w-4" />
-													</button>
-												</div>
+								</div>
+							)}
 
-												<div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-													<div>
-														<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
-															Nama Obat
-														</label>
-														<SearchableSelect
-															value={item.medicineId}
-															onChange={(val) => onSelectMedicineForRow(item.id, val)}
-															options={getMedicineOptionsForRow(item.id)}
-															isLoading={loadingMedicines}
-															loadingText="Memuat katalog obat..."
-															placeholder="Cari & pilih obat"
-															emptyText="Obat tidak ditemukan."
-														/>
-														{!loadingMedicines && medicinesCatalog.length === 0 && (
-															<p className="mt-1.5 text-[10px] text-[#D97706] font-medium">
-																Katalog obat masih kosong. Tambahkan dulu di modul Apoteker.
+							{/* 1. RESEP & ELECTRONIC PRESCRIBING */}
+							{showPrescriptionSection && (
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-1.5">
+											<Pill className="h-4 w-4 text-teal-700" />
+											Instruksi Obat &amp; Resep (Electronic Prescribing) <span className="text-slate-400 font-medium normal-case ml-1">(opsional)</span>
+										</label>
+									</div>
+
+									<div className="space-y-3">
+										{prescriptionItems.length === 0 ? (
+											<div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-6 text-center text-xs text-slate-400">
+												Belum ada resep obat ditambahkan.
+											</div>
+										) : (
+											prescriptionItems.map((item, idx) => {
+												const stockError = getRowStockError(item);
+												const remaining = item.medicineId ? getRemainingStockForRow(item.id, item.medicineId) : null;
+												return (
+													<div
+														key={item.id}
+														className={`rounded-2xl border p-4 transition ${
+															stockError ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/40"
+														}`}
+													>
+														<div className="flex items-center justify-between mb-3">
+															<span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+																<Pill className="h-3 w-3 text-teal-700" /> Obat #{idx + 1}
+															</span>
+															<button
+																type="button"
+																onClick={() => onRemovePrescriptionRow(item.id)}
+																className="text-slate-400 hover:text-[#DC2626] transition cursor-pointer"
+																title="Hapus obat"
+															>
+																<X className="h-4 w-4" />
+															</button>
+														</div>
+
+														<div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+															<div>
+																<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
+																	Nama Obat
+																</label>
+																<SearchableSelect
+																	value={item.medicineId}
+																	onChange={(val) => onSelectMedicineForRow(item.id, val)}
+																	options={getMedicineOptionsForRow(item.id)}
+																	isLoading={loadingMedicines}
+																	loadingText="Memuat katalog obat..."
+																	placeholder="Cari & pilih obat"
+																	emptyText="Obat tidak ditemukan."
+																/>
+																{!loadingMedicines && medicinesCatalog.length === 0 && (
+																	<p className="mt-1.5 text-[10px] text-[#D97706] font-medium">
+																		Katalog obat masih kosong. Tambahkan dulu di modul Apoteker.
+																	</p>
+																)}
+															</div>
+
+															<div>
+																<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
+																	Jumlah
+																</label>
+																<div className="flex items-center gap-2">
+																	<input
+																		value={item.quantity}
+																		onChange={(e) => onQuantityChange(item.id, item.medicineId, e.target.value)}
+																		type="number"
+																		min={0}
+																		max={remaining ?? undefined}
+																		disabled={!item.medicineId}
+																		placeholder={item.medicineId ? "0" : "Pilih obat dulu"}
+																		className={`w-full min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
+																			stockError ? "border-red-400 focus:border-red-500" : "border-slate-200 focus:border-teal-600"
+																		}`}
+																	/>
+																	{item.unit && (
+																		<span className="shrink-0 rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-500">
+																			{item.unit}
+																		</span>
+																	)}
+																</div>
+															</div>
+														</div>
+
+														<div className="mt-4">
+															<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
+																Aturan Pakai
+															</label>
+															<ComboboxInput
+																value={item.rule}
+																onChange={(val) => onUpdatePrescriptionRow(item.id, "rule", val)}
+																options={dosageRulePresets}
+																placeholder="Contoh: 3x1 sesudah makan, atau ketik sendiri"
+															/>
+														</div>
+
+														{stockError && (
+															<p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-[#DC2626]">
+																<AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {stockError}
 															</p>
 														)}
 													</div>
+												);
+											})
+										)}
+									</div>
 
-													<div>
-														<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
-															Jumlah
-														</label>
-														<div className="flex items-center gap-2">
-															<input
-																value={item.quantity}
-																onChange={(e) => onQuantityChange(item.id, item.medicineId, e.target.value)}
-																type="number"
-																min={0}
-																max={remaining ?? undefined}
-																disabled={!item.medicineId}
-																placeholder={item.medicineId ? "0" : "Pilih obat dulu"}
-																className={`w-full min-w-0 rounded-2xl border bg-white px-4 py-3 text-sm text-slate-900 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-																	stockError ? "border-red-400 focus:border-red-500" : "border-slate-200 focus:border-teal-600"
-																}`}
-															/>
-															{item.unit && (
-																<span className="shrink-0 rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-500">
-																	{item.unit}
-																</span>
-															)}
-														</div>
-													</div>
-												</div>
+									<button
+										type="button"
+										onClick={onAddPrescriptionRow}
+										className="mt-3 inline-flex items-center gap-2 rounded-xl border border-dashed border-teal-300 px-4 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50 transition cursor-pointer"
+									>
+										<Plus className="h-3.5 w-3.5" /> Tambah Obat
+									</button>
 
-												<div className="mt-4">
-													<label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 mb-1.5">
-														Aturan Pakai
-													</label>
-													<ComboboxInput
-														value={item.rule}
-														onChange={(val) => onUpdatePrescriptionRow(item.id, "rule", val)}
-														options={dosageRulePresets}
-														placeholder="Contoh: 3x1 sesudah makan, atau ketik sendiri"
-													/>
-												</div>
-
-												{stockError && (
-													<p className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-[#DC2626]">
-														<AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {stockError}
-													</p>
-												)}
-											</div>
-										);
-									})
-								)}
-							</div>
-
-							<button
-								type="button"
-								onClick={onAddPrescriptionRow}
-								className="mt-3 inline-flex items-center gap-2 rounded-xl border border-dashed border-teal-300 px-4 py-2 text-xs font-bold text-teal-800 hover:bg-teal-50 transition cursor-pointer"
-							>
-								<Plus className="h-3.5 w-3.5" /> Tambah Obat
-							</button>
-
-							{/* Auto-generated Copy Resep Preview */}
-							<CopyResepPreview
-								prescriptionItems={prescriptionItems}
-								patientName={approvedPatients.find((p) => String(p.patientId) === String(patientId))?.patientName}
-								doctorName={selectedDoctorInfo?.name || nakesName}
-								visitDate={visitDate}
-							/>
-						</div>
-
-						{/* 2. TINDAKAN & PELAYANAN LAIN (ICD-9-CM) */}
-						<div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-5 space-y-4">
-							<div className="flex items-center justify-between border-b border-slate-200 pb-2">
-								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-950 flex items-center gap-2">
-									<Stethoscope className="h-4 w-4 text-indigo-700" />
-									Tindakan &amp; Pelayanan Lain (ICD-9-CM)
-								</label>
-								<span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-full">
-									Prosedur Medis
-								</span>
-							</div>
-
-							<div>
-								<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-									Input Tindakan Medis (ICD-9-CM)
-								</label>
-								<ICD9MultiSelect
-									value={icd9Procedures}
-									onChange={(val) => onIcd9ProceduresChange && onIcd9ProceduresChange(val)}
-								/>
-							</div>
-
-							<div>
-								<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-									Asuhan Keperawatan / Catatan Observasi Singkat
-								</label>
-								<textarea
-									rows={3}
-									value={nursingCareNotes || ""}
-									onChange={(e) => onNursingCareNotesChange && onNursingCareNotesChange(e.target.value)}
-									placeholder="Catatan observasi perawat, pengkajian keperawatan, instruksi khusus..."
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 focus:border-teal-600 focus:outline-none"
-								/>
-							</div>
-						</div>
-
-						{/* 3. PEMERIKSAAN PENUNJANG (JIKA CHECKBOX LAB/RADIOLOGI DIAKTIFKAN) */}
-						{selectedPenunjangCategories.length > 0 && (
-							<div className="rounded-2xl border border-purple-200 bg-purple-50/30 p-5 space-y-4">
-								<div className="flex items-center justify-between border-b border-purple-200 pb-2">
-									<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-purple-950 flex items-center gap-2">
-										<Activity className="h-4 w-4 text-purple-700" />
-										Hasil Pemeriksaan Penunjang ({selectedPenunjangCategories.join(", ")})
-									</label>
-									<span className="text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200 px-2.5 py-0.5 rounded-full">
-										Penunjang Aktif
-									</span>
-								</div>
-
-								<div>
-									<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-										Input Teks Hasil Lab &amp; Radiologi
-									</label>
-									<textarea
-										rows={3}
-										value={penunjangResultText || ""}
-										onChange={(e) => onPenunjangResultTextChange && onPenunjangResultTextChange(e.target.value)}
-										placeholder="Input detail angka/kesimpulan hasil laboratorium / radiologi di sini..."
-										className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 focus:border-purple-600 focus:outline-none font-mono"
+									{/* Auto-generated Copy Resep Preview */}
+									<CopyResepPreview
+										prescriptionItems={prescriptionItems}
+										patientName={approvedPatients.find((p) => String(p.patientId) === String(patientId))?.patientName}
+										doctorName={selectedDoctorInfo?.name || nakesName}
+										visitDate={visitDate}
 									/>
 								</div>
-							</div>
-						)}
+							)}
+
+							{/* 2. TINDAKAN & PELAYANAN LAIN (ICD-9-CM) */}
+							{showProcedureSection && (
+								<div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-5 space-y-4">
+									<div className="flex items-center justify-between border-b border-slate-200 pb-2">
+										<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-950 flex items-center gap-2">
+											<Stethoscope className="h-4 w-4 text-indigo-700" />
+											Tindakan &amp; Pelayanan Lain (ICD-9-CM)
+										</label>
+										<span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-full">
+											Prosedur Medis
+										</span>
+									</div>
+
+									<div>
+										<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+											Input Tindakan Medis (ICD-9-CM)
+										</label>
+										<ICD9MultiSelect
+											value={icd9Procedures}
+											onChange={(val) => onIcd9ProceduresChange && onIcd9ProceduresChange(val)}
+										/>
+									</div>
+
+									<div>
+										<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+											Asuhan Keperawatan / Catatan Observasi Singkat
+										</label>
+										<textarea
+											rows={3}
+											value={nursingCareNotes || ""}
+											onChange={(e) => onNursingCareNotesChange && onNursingCareNotesChange(e.target.value)}
+											placeholder="Catatan observasi perawat, pengkajian keperawatan, instruksi khusus..."
+											className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 focus:border-teal-600 focus:outline-none"
+										/>
+									</div>
+								</div>
+							)}
+
+							{/* 3. PEMERIKSAAN PENUNJANG (JIKA CHECKBOX LAB/RADIOLOGI DIAKTIFKAN) */}
+							{selectedPenunjangCategories.length > 0 && !isDeathOnly && (
+								<div className="rounded-2xl border border-purple-200 bg-purple-50/30 p-5 space-y-4">
+									<div className="flex items-center justify-between border-b border-purple-200 pb-2">
+										<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-purple-950 flex items-center gap-2">
+											<Activity className="h-4 w-4 text-purple-700" />
+											Hasil Pemeriksaan Penunjang ({selectedPenunjangCategories.join(", ")})
+										</label>
+										<span className="text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200 px-2.5 py-0.5 rounded-full">
+											Penunjang Aktif
+										</span>
+									</div>
+
+									<div>
+										<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+											Input Teks Hasil Lab &amp; Radiologi
+										</label>
+										<textarea
+											rows={3}
+											value={penunjangResultText || ""}
+											onChange={(e) => onPenunjangResultTextChange && onPenunjangResultTextChange(e.target.value)}
+											placeholder="Input detail angka/kesimpulan hasil laboratorium / radiologi di sini..."
+											className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 focus:border-purple-600 focus:outline-none font-mono"
+										/>
+									</div>
+								</div>
+							)}
 
 						{/* 4. FILE LAMPIRAN */}
 						<div>
@@ -1668,7 +1696,8 @@ export default function MedicalRecordMain(props) {
 							sebagai draft dulu kalau belum yakin -- data yang sudah diisi (termasuk obat) tidak akan hilang.
 						</div>
 					</div>
-				)}
+				);
+			})()}
 			</div>
 
 			<MedicalRecordUpdateActions {...updateActionsProps} />
