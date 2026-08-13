@@ -24,6 +24,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { apiPost } from "@/lib/api";
+import Toast from "@/components/ui/Toast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,6 +53,17 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, type: "info", title: "", message: "" });
+
+  const showToast = (type, title, message) => {
+    setToast({ show: true, type, title, message });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, show: false }));
+  };
+
   const handleSelectRole = (selectedRole) => {
     setRole(selectedRole);
     setStep(2);
@@ -61,24 +73,34 @@ export default function RegisterPage() {
     setError("");
     if (role === "pasien") {
       if (!nik || nik.length !== 16) {
-        setError("NIK harus berupa 16 digit angka.");
+        const msg = "NIK harus berupa 16 digit angka.";
+        setError(msg);
+        showToast("error", "Validasi Form", msg);
         return;
       }
       if (!name.trim()) {
-        setError("Nama lengkap pasien harus diisi.");
+        const msg = "Nama lengkap pasien harus diisi.";
+        setError(msg);
+        showToast("error", "Validasi Form", msg);
         return;
       }
       if (!email || !email.includes("@")) {
-        setError("Masukkan alamat email yang valid.");
+        const msg = "Masukkan alamat email yang valid.";
+        setError(msg);
+        showToast("error", "Validasi Form", msg);
         return;
       }
     } else if (role === "rumah_sakit") {
       if (!name.trim()) {
-        setError("Nama fasilitas kesehatan / RS harus diisi.");
+        const msg = "Nama fasilitas kesehatan / RS harus diisi.";
+        setError(msg);
+        showToast("error", "Validasi Form", msg);
         return;
       }
       if (!email || !email.includes("@")) {
-        setError("Masukkan alamat email yang valid.");
+        const msg = "Masukkan alamat email yang valid.";
+        setError(msg);
+        showToast("error", "Validasi Form", msg);
         return;
       }
     }
@@ -103,17 +125,23 @@ export default function RegisterPage() {
     setSuccess("");
 
     if (!password || password.length < 8) {
-      setError("Password minimal harus 8 karakter.");
+      const msg = "Password minimal harus 8 karakter.";
+      setError(msg);
+      showToast("error", "Validasi Password", msg);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Konfirmasi password tidak cocok dengan password.");
+      const msg = "Konfirmasi password tidak cocok dengan password.";
+      setError(msg);
+      showToast("error", "Validasi Password", msg);
       return;
     }
 
     if (!isContractAccepted) {
-      setError("Anda harus menyetujui Kontrak Digital SatuData sebelum mendaftar.");
+      const msg = "Anda harus menyetujui Kontrak Digital SatuData sebelum mendaftar.";
+      setError(msg);
+      showToast("error", "Persetujuan Kontrak", msg);
       return;
     }
 
@@ -137,10 +165,18 @@ export default function RegisterPage() {
       const result = await apiPost("/api/auth/register", payload);
 
       if (result.success) {
+        showToast("success", "Registrasi Berhasil", "Akun Anda telah berhasil dibuat. Silakan cek email aktivasi.");
         setShowSuccessModal(true);
       }
     } catch (err) {
-      setError(err.message || "Registrasi gagal, periksa kembali kelengkapan data Anda.");
+      let msg = err.message || "Registrasi gagal, periksa kembali kelengkapan data Anda.";
+      if (msg.toLowerCase().includes("failed to fetch") || err.status === 0) {
+        msg = "Gagal terhubung ke API backend (Failed to fetch). Pastikan server backend berjalan di http://localhost:3000.";
+        showToast("error", "Koneksi Backend Gagal", msg);
+      } else {
+        showToast("error", "Registrasi Gagal", msg);
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -791,6 +827,9 @@ export default function RegisterPage() {
           </div>
         </div>
       )}
+
+      {/* Toast Notification */}
+      <Toast toast={toast} onClose={hideToast} />
     </div>
   );
 }

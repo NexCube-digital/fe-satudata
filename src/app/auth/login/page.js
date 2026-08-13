@@ -7,6 +7,7 @@ import Image from "next/image";
 import Script from "next/script";
 import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
+import Toast from "@/components/ui/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +22,17 @@ export default function LoginPage() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
 
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, type: "info", title: "", message: "" });
+
+  const showToast = (type, title, message) => {
+    setToast({ show: true, type, title, message });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, show: false }));
+  };
+
   const handleGoogleLoginSuccess = async (response) => {
     setError("");
     setLoading(true);
@@ -30,19 +42,29 @@ export default function LoginPage() {
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
+        showToast("success", "Login Berhasil", "Selamat datang di SatuData!");
 
         // Redirect berdasarkan role
         const userRole = result.data.user.role;
-        if (userRole === "admin") {
-          router.push("/dashboard/admin");
-        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
-          router.push("/dashboard/faskes");
-        } else {
-          router.push("/dashboard/pasien");
-        }
+        setTimeout(() => {
+          if (userRole === "admin") {
+            router.push("/dashboard/admin");
+          } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
+            router.push("/dashboard/faskes");
+          } else {
+            router.push("/dashboard/pasien");
+          }
+        }, 500);
       }
     } catch (err) {
-      setError(err.message || "Gagal masuk menggunakan Google");
+      let msg = err.message || "Gagal masuk menggunakan Google";
+      if (msg.toLowerCase().includes("failed to fetch") || err.status === 0) {
+        msg = "Gagal terhubung ke API backend (Failed to fetch). Pastikan server backend berjalan.";
+        showToast("error", "Koneksi Backend Gagal", msg);
+      } else {
+        showToast("error", "Login Google Gagal", msg);
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -88,19 +110,28 @@ export default function LoginPage() {
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
+        showToast("success", "Login Berhasil", "Selamat datang kembali di SatuData!");
 
         // Redirect berdasarkan role user
         const userRole = result.data.user.role;
-        if (userRole === "admin") {
-          router.push("/dashboard/admin");
-        } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
-          router.push("/dashboard/faskes");
-        } else {
-          router.push("/dashboard/pasien");
-        }
+        setTimeout(() => {
+          if (userRole === "admin") {
+            router.push("/dashboard/admin");
+          } else if (userRole === "rumah_sakit" || userRole === "dokter" || userRole === "faskes" || userRole === "staf_rs") {
+            router.push("/dashboard/faskes");
+          } else {
+            router.push("/dashboard/pasien");
+          }
+        }, 500);
       }
     } catch (err) {
-      const msg = err.message || "Login gagal, silakan periksa kredensial Anda.";
+      let msg = err.message || "Login gagal, silakan periksa kredensial Anda.";
+      if (msg.toLowerCase().includes("failed to fetch") || err.status === 0) {
+        msg = "Gagal terhubung ke API backend (Failed to fetch). Pastikan server backend berjalan di http://localhost:3000.";
+        showToast("error", "Koneksi Backend Gagal", msg);
+      } else {
+        showToast("error", "Login Gagal", msg);
+      }
       setError(msg);
       if (err.status === 403 || msg.toLowerCase().includes("aktif")) {
         setIsInactive(true);
@@ -112,16 +143,27 @@ export default function LoginPage() {
 
   const handleResendActivation = async () => {
     if (!identifier) {
-      setError("Masukkan alamat email Anda terlebih dahulu.");
+      const msg = "Masukkan alamat email Anda terlebih dahulu.";
+      setError(msg);
+      showToast("error", "Perhatian", msg);
       return;
     }
     setResendLoading(true);
     setResendMsg("");
     try {
       const result = await apiPost("/api/auth/resend-activation", { email: identifier });
-      setResendMsg(result.message || "Email aktivasi berhasil dikirim ulang.");
+      const msg = result.message || "Email aktivasi berhasil dikirim ulang.";
+      setResendMsg(msg);
+      showToast("success", "Aktivasi Terkirim", msg);
     } catch (err) {
-      setError(err.message || "Gagal mengirim ulang email aktivasi.");
+      let msg = err.message || "Gagal mengirim ulang email aktivasi.";
+      if (msg.toLowerCase().includes("failed to fetch") || err.status === 0) {
+        msg = "Gagal terhubung ke API backend (Failed to fetch).";
+        showToast("error", "Koneksi Backend Gagal", msg);
+      } else {
+        showToast("error", "Gagal Kirim Email", msg);
+      }
+      setError(msg);
     } finally {
       setResendLoading(false);
     }
@@ -464,6 +506,7 @@ export default function LoginPage() {
         onLoad={handleScriptLoad}
       />
 
+      <Toast toast={toast} onClose={hideToast} />
     </div>
   );
 }

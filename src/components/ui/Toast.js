@@ -1,8 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
 export default function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (toast && toast.show) {
+      const timer = setTimeout(() => {
+        if (onClose) onClose();
+      }, toast.duration || 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast, onClose]);
+
   if (!toast || !toast.show) return null;
 
   const isSuccess = toast.type === "success";

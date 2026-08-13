@@ -204,10 +204,10 @@ export default function Sidebar({ role }) {
         const isStaff = currentUser?.role === "staf_rs";
 
         const baseFaskesMenu = [
-          { href: "/dashboard/faskes", label: "Overview Faskes", icon: Home, badge: badgeCounts.tokens || null },
-          { href: "/dashboard/faskes/patient-flow", label: "Indikator Pasien", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
+          { href: "/dashboard/faskes", label: "HOME", icon: Home, badge: badgeCounts.tokens || null },
+          { href: "/dashboard/faskes/patient-flow", label: "FLOW PASIEN", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
           { 
-            label: "KelolaData Pasien", 
+            label: "KELOLA PASIEN", 
             icon: Users,
             permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
             children: [
@@ -217,7 +217,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Kelola Dokter", 
+            label: "KELOLA DOKTER", 
             icon: Stethoscope,
             dropdownKey: "doctors",
             permissionRequired: ["staff:manage", "role:manage"],
@@ -228,7 +228,7 @@ export default function Sidebar({ role }) {
             ]
           },
           {
-            label: "Kelola Rekam Medis",
+            label: "KELOLA REKAM MEDIS",
             icon: FileText,
             dropdownKey: "medicalRecords",
             badge: badgeCounts.records || "EHR",
@@ -239,7 +239,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Kelola Farmasi", 
+            label: "BADAN LAYANAN FARMASI", 
             icon: Pill,
             dropdownKey: "pharmacy",
             badge: "POS",
@@ -252,7 +252,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Master Data", 
+            label: "BADAN LAYANAN UMUM", 
             icon: Database,
             dropdownKey: "masterData",
             badge: "Master",
@@ -265,7 +265,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "Kelola Keuangan", 
+            label: "BADAN KEUANGAN", 
             icon: DollarSign,
             dropdownKey: "finance",
             badge: "Finance",
@@ -275,8 +275,8 @@ export default function Sidebar({ role }) {
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
-          { href: "/dashboard/faskes/staffs", label: "Kelola Staf", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
-          { href: "/dashboard/faskes/audit", label: "Audit Log", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/staffs", label: "STAFF MEDIS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/audit", label: "AUDIT", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 
         if (Array.isArray(userPerms)) {
