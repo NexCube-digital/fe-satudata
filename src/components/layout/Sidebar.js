@@ -204,7 +204,7 @@ export default function Sidebar({ role }) {
         const isStaff = currentUser?.role === "staf_rs";
 
         const baseFaskesMenu = [
-          { href: "/dashboard/faskes", label: "HOME", icon: Home, badge: badgeCounts.tokens || null },
+          { href: "/dashboard/faskes", label: "DASHBOARD", icon: Home, badge: badgeCounts.tokens || null },
           { href: "/dashboard/faskes/patient-flow", label: "FLOW PASIEN", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
           { 
             label: "KELOLA PASIEN", 
@@ -239,7 +239,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "BADAN LAYANAN FARMASI", 
+            label: "KELOLA FARMASI", 
             icon: Pill,
             dropdownKey: "pharmacy",
             badge: "POS",
@@ -252,7 +252,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "BADAN LAYANAN UMUM", 
+            label: "KELOLA DATA UMUM", 
             icon: Database,
             dropdownKey: "masterData",
             badge: "Master",
@@ -265,7 +265,7 @@ export default function Sidebar({ role }) {
             ]
           },
           { 
-            label: "BADAN KEUANGAN", 
+            label: "KELOLA KEUANGAN", 
             icon: DollarSign,
             dropdownKey: "finance",
             badge: "Finance",

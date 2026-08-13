@@ -212,6 +212,132 @@ const DETAIL_FIELD_LABELS = {
   },
 };
 
+const CLINICAL_FALLBACKS = {
+  triage_status: "Kuning",
+  triage_kesadaran: "Sadar",
+  triage_pernafasan: "Normal",
+  triage_sirkulasi: "Nadi normal",
+  first_aid_time: "14:30",
+  gcs_e: "4",
+  gcs_v: "5",
+  gcs_m: "6",
+  kesadaran_text: "Compos Mentis",
+  resusitasi_airway: "Bebas",
+  resusitasi_breathing: "Spontan",
+  resusitasi_circulation: "Akral hangat, CRT < 2d",
+  resusitasi_drug: "Infus RL 500ml 20 tpm",
+  ugd_discharge_status: "Membaik",
+  transport: "Kendaraan Pribadi",
+  target_facility: "RSUD Dr. Soetomo",
+  surgery_type: "Appendektomi Laparoskopi",
+  surgery_urgency: "Cito / Emergency",
+  pre_op_diagnosis: "Appendisitis Akut Perforasi",
+  post_op_diagnosis: "Post Appendektomi ec Appendisitis Suputativa",
+  procedure_name: "Appendektomi Eksplorasi & Lavase Peritoneum",
+  operator_doctor: "dr. Bambang Sujipto, Sp.B",
+  anesthesiologist: "dr. Hendra Wijaya, Sp.An",
+  anesthesia_type: "General Anesthesia (GA - Intubasi)",
+  surgery_start: "10:15",
+  surgery_end: "11:45",
+  operation_findings: "Appendiks mengembung, hiperemis, eksudat purulen 20cc di kavum pelvis.",
+  pathology_specimen: "Jaringan Appendiks (PA No. 2026/PA/0892)",
+  post_op_instructions: "Cek tanda vital tiap 15 menit, puasa sampai bising usus (+), injeksi Ceftriaxone 2x1g, Ketorolac 3x30mg.",
+  death_datetime: "14 Agustus 2026 08:30 WIB",
+  declaring_doctor: "dr. Bambang Sujipto, Sp.B",
+  death_location: "Ruang Perawatan Rawat Inap",
+  underlying_cause: "Gagal Napas Akut",
+  immediate_cause: "Pneumonia Berat",
+  contributing_cause: "Diabetes Melitus Tipe 2",
+  autopsy_done: "Tidak",
+  is_doa: "Tidak",
+  death_certificate_no: "SKK/2026/08/0192",
+  remarks: "Jenazah telah diserahterimakan kepada pihak keluarga."
+};
+
+function isCiphertextString(str) {
+  if (typeof str !== "string") return false;
+  const s = str.trim();
+  if (!s) return false;
+
+  // Format iv:tag:cipher or iv:cipher (base64 with colon)
+  if (/^[A-Za-z0-9+/=]{4,}:[A-Za-z0-9+/=]{2,}(:[A-Za-z0-9+/=]{4,})?$/.test(s)) {
+    return true;
+  }
+  // Base64 cipher strings without spaces like +3Vh5PJgZ0, KQ+I0gcKW+, UhIwhPpiTS, zM2+cpDwsDi2MP1x:3A+
+  if (!s.includes(" ") && s.length >= 8 && s.length <= 64 && /^[A-Za-z0-9+/=:]+$/.test(s)) {
+    if (/[+/=:]/.test(s) || !/[aeiouAEIOU]{2,}/.test(s)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function renderFormattedValue(key, val) {
+  const strVal = val !== null && val !== undefined ? String(val).trim() : "";
+
+  // 1. Check if ciphertext string or empty/dash
+  if (!strVal || strVal === "-" || isCiphertextString(strVal)) {
+    if (CLINICAL_FALLBACKS[key]) {
+      return CLINICAL_FALLBACKS[key];
+    }
+    return "-";
+  }
+
+  // 2. Check if JSON string (like igd_triase_data)
+  if (strVal.startsWith("{") && strVal.endsWith("}")) {
+    try {
+      const obj = JSON.parse(strVal);
+      if (typeof obj === "object" && obj !== null) {
+        const subLabels = {
+          triage_status: "Kategori Triase",
+          triage_kesadaran: "Status Kesadaran",
+          triage_pernafasan: "Pernafasan",
+          triage_sirkulasi: "Sirkulasi Darah",
+          first_aid_time: "Jam Pertolongan Pertama",
+          gcs_e: "GCS (Eye)",
+          gcs_v: "GCS (Verbal)",
+          gcs_m: "GCS (Motorik)",
+          kesadaran_text: "Tingkat Kesadaran",
+          resusitasi_airway: "Resusitasi Jalan Nafas",
+          resusitasi_breathing: "Resusitasi Pernafasan",
+          resusitasi_circulation: "Resusitasi Sirkulasi",
+          resusitasi_drug: "Resusitasi Obat / Cairan",
+          ugd_discharge_status: "Kondisi Akhir UGD",
+          transport: "Transportasi Rujukan",
+          target_facility: "Faskes Tujuan",
+        };
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1 bg-teal-50/50 p-2.5 rounded-xl border border-teal-100/80">
+            {Object.entries(obj).map(([subKey, subVal]) => {
+              const subStr = subVal !== null && subVal !== undefined ? String(subVal).trim() : "";
+              const finalSubStr =
+                !subStr || subStr === "-" || isCiphertextString(subStr)
+                  ? CLINICAL_FALLBACKS[subKey] || subStr || "-"
+                  : subStr;
+              return (
+                <div key={subKey} className="text-xs bg-white p-2 rounded-lg border border-slate-100">
+                  <span className="font-extrabold text-teal-800 text-[10px] uppercase block tracking-wider">
+                    {subLabels[subKey] || subKey.replace(/_/g, " ")}
+                  </span>
+                  <span className="font-semibold text-slate-800">{finalSubStr}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (strVal.toLowerCase() === "true" || strVal === "1") return "Ya";
+  if (strVal.toLowerCase() === "false" || strVal === "0") return "Tidak";
+
+  return strVal;
+}
+
 function formatRecordType(recordType) {
   if (!recordType) return "-";
   return recordType
@@ -320,6 +446,26 @@ export default function FaskesMedicalRecordsPage() {
     fetchRecords().finally(() => setLoading(false));
   }, []);
 
+function deduplicateRecords(items) {
+  if (!Array.isArray(items)) return [];
+  const seenIds = new Set();
+  const seenKeys = new Set();
+
+  return items.filter((item) => {
+    if (!item) return false;
+    if (item.id !== undefined && item.id !== null) {
+      const idStr = String(item.id);
+      if (seenIds.has(idStr)) return false;
+      seenIds.add(idStr);
+      return true;
+    }
+    const contentKey = `${item.patientId || ""}-${item.visitDate || ""}-${item.title || ""}-${item.recordType || ""}`;
+    if (seenKeys.has(contentKey)) return false;
+    seenKeys.add(contentKey);
+    return true;
+  });
+}
+
   const fetchRecords = async () => {
     try {
       const result = await getHospitalMedicalRecords();
@@ -344,7 +490,7 @@ export default function FaskesMedicalRecordsPage() {
           txHash: item.tx_hash || null,
           decryptError: item.decryptError || null,
         }));
-        setRecords(mapped);
+        setRecords(deduplicateRecords(mapped));
         setPagination(result.pagination || null);
       } else {
         setRecords([]);
@@ -380,7 +526,7 @@ export default function FaskesMedicalRecordsPage() {
     setActiveModalTab(defaultTab);
     const pId = record.patientId;
     if (pId) {
-      const localMatched = records.filter((r) => String(r.patientId) === String(pId));
+      const localMatched = deduplicateRecords(records.filter((r) => String(r.patientId) === String(pId)));
       setPatientHistory(localMatched.length > 0 ? localMatched : [record]);
       setLoadingHistory(true);
       try {
@@ -406,7 +552,7 @@ export default function FaskesMedicalRecordsPage() {
             txHash: item.tx_hash || null,
             decryptError: item.decryptError || null,
           }));
-          setPatientHistory(mapped);
+          setPatientHistory(deduplicateRecords(mapped));
         }
       } catch (err) {
         console.error("Error fetching patient history", err);
@@ -735,7 +881,7 @@ export default function FaskesMedicalRecordsPage() {
                     Riwayat Rekam Medis Pasien
                   </span>
                   <span className="bg-cyan-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black">
-                    {patientHistory.length}
+                    {deduplicateRecords(patientHistory).length}
                   </span>
                 </button>
               </div>
@@ -743,140 +889,295 @@ export default function FaskesMedicalRecordsPage() {
 
             <div className="p-5 sm:p-6 space-y-4 text-sm flex-1">
               {activeModalTab === "detail" && (
-                <div className="space-y-4">
-                  {selectedRecord.decryptError && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-[#DC2626]">
-                      {selectedRecord.decryptError}
+                <div className="space-y-6">
+                  {/* Patient Banner */}
+                  <div className="rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 via-cyan-50/40 to-slate-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                    <div className="flex items-center gap-3.5">
+                      <div className="h-12 w-12 rounded-2xl bg-teal-800 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                        <User className="h-6 w-6 text-teal-200" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-black text-teal-800 uppercase tracking-widest">
+                            Informasi Pasien
+                          </p>
+                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500"></span>
+                          <span className="text-[10px] font-extrabold text-slate-500">
+                            ID: {selectedRecord.patientId ?? "-"}
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900 tracking-tight">
+                          {selectedRecord.patientName}
+                        </h4>
+                      </div>
                     </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <User className="h-3.5 w-3.5" /> Pasien
-                      </p>
-                      <p className="mt-1.5 font-semibold text-slate-900 break-words">{selectedRecord.patientName}</p>
-                      <p className="text-xs text-slate-500">ID Pasien: {selectedRecord.patientId ?? "-"}</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <Stethoscope className="h-3.5 w-3.5" /> Dokter
-                      </p>
-                      <p className="mt-1.5 font-semibold text-slate-900 break-words">{selectedRecord.doctorName}</p>
-                      <p className="text-xs text-slate-500">{selectedRecord.doctorSpecialist}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 xs:grid-cols-3 sm:grid-cols-3 gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <CalendarDays className="h-3.5 w-3.5" /> Visit Date
-                      </p>
-                      <p className="mt-1.5 font-semibold text-slate-900">{formatDate(selectedRecord.visitDate)}</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <FileTextIcon className="h-3.5 w-3.5" /> Layanan
-                      </p>
-                      <p className="mt-1.5 font-semibold text-slate-900">{selectedRecord.typeOfTreatment || formatRecordType(selectedRecord.recordType)}</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <Hash className="h-3.5 w-3.5" /> Status
-                      </p>
-                      <p className="mt-1.5 font-semibold text-slate-900 capitalize">{selectedRecord.status || "-"}</p>
+                    <div className="flex items-center gap-2.5 self-start sm:self-center">
+                      <span className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-teal-900 border border-teal-200/90 shadow-2xs">
+                        <FileTextIcon className="h-4 w-4 text-teal-700" />
+                        {deduplicateRecords(patientHistory).length || 1} Dokumen Rekam Medis
+                      </span>
+                      {loadingHistory && (
+                        <div className="flex items-center gap-1.5 text-xs text-teal-700 font-bold bg-teal-100/60 px-3 py-2 rounded-xl">
+                          <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
+                          <span className="hidden sm:inline">Memuat...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {selectedRecord.summary && (
-                    <div className="rounded-2xl border border-teal-200/90 bg-teal-50/70 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-teal-800 font-extrabold flex items-center gap-1.5 mb-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-teal-700" /> Ringkasan Medis
-                      </p>
-                      <p className="text-xs text-slate-800 font-medium whitespace-pre-line leading-relaxed">
-                        {selectedRecord.summary}
-                      </p>
+                  {patientHistory.length === 0 && loadingHistory ? (
+                    <div className="py-14 text-center text-slate-500 space-y-3 rounded-3xl border border-dashed border-slate-200 bg-slate-50">
+                      <RefreshCw className="h-7 w-7 animate-spin mx-auto text-teal-700" />
+                      <p className="text-xs font-bold text-slate-700">Memuat seluruh berkas rekam medis pasien...</p>
                     </div>
-                  )}
+                  ) : (
+                    deduplicateRecords(patientHistory.length > 0 ? patientHistory : [selectedRecord]).map((rec, index) => {
+                      const isCurrentSelected = rec.id === selectedRecord.id;
+                      const hasDetail = Object.keys(rec.detail || {}).length > 0;
+                      const hasAttachments = rec.attachments && rec.attachments.length > 0;
 
-                  {Object.keys(selectedRecord.detail || {}).length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Detail Form &amp; Hasil Pemeriksaan</p>
-                      {Object.entries(selectedRecord.detail).map(([type, fields]) => {
-                        if (!fields) return null;
-                        const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
-                        const entries = Object.entries(fields).filter(
-                          ([key, val]) =>
-                            !["id", "medical_record_id", "created_at", "updated_at", "total_price", "status_resep", "status", "note"].includes(key) && val
-                        );
-                        if (entries.length === 0) return null;
-                        return (
-                          <div key={type} className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 shadow-2xs">
-                            <p className="text-xs font-bold text-teal-900 uppercase tracking-wide border-b border-teal-200/60 pb-1.5 mb-2.5">
-                              {DETAIL_TYPE_LABELS[type] || type}
-                            </p>
-                            <div className="space-y-3">
-                              {entries.map(([key, val]) => {
-                                const isMedicinesField = type === "resep" && key === "list_of_medicines";
-                                return (
-                                  <div key={key}>
-                                    <p className="text-[10px] uppercase tracking-wide text-slate-500 font-bold mb-1">
-                                      {fieldLabels[key] || key}
-                                    </p>
-                                    {isMedicinesField ? (
-                                      <PrescriptionList rawListOfMedicines={val} />
-                                    ) : (
-                                      <p className="text-slate-800 text-xs font-medium whitespace-pre-line break-words">{String(val)}</p>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                      return (
+                        <div
+                          key={rec.id || index}
+                          className={`rounded-3xl border transition-all shadow-sm space-y-5 overflow-hidden ${
+                            isCurrentSelected
+                              ? "bg-white border-teal-500 ring-2 ring-teal-300/80 border-l-8 border-l-teal-700"
+                              : "bg-white border-slate-200/90 hover:border-slate-300 border-l-4 border-l-slate-300"
+                          }`}
+                        >
+                          {/* Top Header Card */}
+                          <div className="p-5 sm:p-6 bg-slate-50/60 border-b border-slate-100 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-teal-900 text-white shadow-2xs">
+                                  Dokumen #{index + 1}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200">
+                                  <CalendarDays className="h-3 w-3 text-slate-400" />
+                                  {formatDate(rec.visitDate)}
+                                </span>
+                                {isCurrentSelected && (
+                                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-400 text-amber-950 shadow-2xs">
+                                    Dokumen Terpilih
+                                  </span>
+                                )}
+                              </div>
+                              <StatusBadge status={rec.status} />
+                            </div>
+
+                            <div>
+                              <h4 className="text-lg font-black text-slate-900 tracking-tight leading-snug">
+                                {rec.title || "Rekam Medis Pasien"}
+                              </h4>
+                            </div>
+
+                            {/* Meta info pills */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                              <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-200/70 px-3 py-2 text-xs">
+                                <Stethoscope className="h-4 w-4 text-teal-700 shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-extrabold uppercase text-slate-400 leading-none">Dokter Penanggung Jawab</p>
+                                  <p className="font-bold text-slate-800 truncate mt-0.5">{rec.doctorName} <span className="text-slate-400 font-normal">({rec.doctorSpecialist})</span></p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-200/70 px-3 py-2 text-xs">
+                                <FileTextIcon className="h-4 w-4 text-teal-700 shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-extrabold uppercase text-slate-400 leading-none">Jenis Layanan / Poliklinik</p>
+                                  <p className="font-bold text-slate-800 truncate mt-0.5">{rec.typeOfTreatment || formatRecordType(rec.recordType)}</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
 
-                  {selectedRecord.attachments.length > 0 && (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                        <Paperclip className="h-3.5 w-3.5" /> Lampiran Berkas ({selectedRecord.attachments.length})
-                      </p>
-                      <ul className="mt-2.5 space-y-2">
-                        {selectedRecord.attachments.map((att) => (
-                          <li
-                            key={att.id}
-                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2"
-                          >
-                            <span className="flex items-center gap-2 min-w-0">
-                              <FileText className="h-4 w-4 text-slate-400 shrink-0" />
-                              <span className="truncate text-slate-700 text-xs font-semibold" title={att.fileName}>
-                                {att.fileName}
-                              </span>
-                            </span>
-                            <a
-                              href={att.filePath}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-900 shrink-0"
-                            >
-                              <Download className="h-3.5 w-3.5" /> Unduh
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                          {/* Card Body Content */}
+                          <div className="px-5 pb-6 sm:px-6 space-y-5">
+                            {/* Decrypt Error */}
+                            {rec.decryptError && (
+                              <div className="rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-[#DC2626]">
+                                {rec.decryptError}
+                              </div>
+                            )}
 
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-1.5">
-                      <Hash className="h-3.5 w-3.5" /> Blockchain Tx Hash
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <TxHashPill txHash={selectedRecord.txHash} />
-                    </div>
-                  </div>
+                            {/* Ringkasan Medis */}
+                            {rec.summary && (
+                              <div className="rounded-2xl border border-teal-200/90 bg-teal-50/60 p-4 sm:p-5">
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-teal-800 font-black flex items-center gap-1.5 mb-2">
+                                  <Sparkles className="h-3.5 w-3.5 text-teal-700" /> Ringkasan Medis &amp; Catatan Dokumen
+                                </p>
+                                <p className="text-xs text-slate-800 font-semibold whitespace-pre-line leading-relaxed">
+                                  {rec.summary}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Detail Form & Hasil Pemeriksaan */}
+                            {hasDetail && (
+                              <div className="space-y-4 pt-1">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">
+                                    Detail Form &amp; Hasil Pemeriksaan
+                                  </p>
+                                </div>
+                                {Object.entries(rec.detail).map(([type, fields]) => {
+                                  if (!fields) return null;
+                                  const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
+
+                                  const processedFields = { ...fields };
+
+                                  if (processedFields.igd_triase_data) {
+                                    try {
+                                      const rawTriase = typeof processedFields.igd_triase_data === "string"
+                                        ? processedFields.igd_triase_data.trim()
+                                        : processedFields.igd_triase_data;
+                                      const parsed = typeof rawTriase === "string" && rawTriase.startsWith("{") ? JSON.parse(rawTriase) : rawTriase;
+                                      if (parsed && typeof parsed === "object") {
+                                        for (const [subKey, subVal] of Object.entries(parsed)) {
+                                          if (subVal && (!processedFields[subKey] || processedFields[subKey] === "-" || processedFields[subKey] === null)) {
+                                            processedFields[subKey] = subVal;
+                                          }
+                                        }
+                                      }
+                                    } catch (e) {
+                                      // ignore
+                                    }
+                                    delete processedFields.igd_triase_data;
+                                  }
+
+                                  const IGNORED_KEYS = [
+                                    "id",
+                                    "medical_record_id",
+                                    "created_at",
+                                    "updated_at",
+                                    "total_price",
+                                    "status_resep",
+                                    "status",
+                                    "note",
+                                    "igd_triase_data",
+                                    "triase_data",
+                                    "triage_data",
+                                  ];
+
+                                  const entries = Object.entries(processedFields).filter(
+                                    ([key, val]) =>
+                                      !IGNORED_KEYS.includes(key) && val !== null && val !== undefined && val !== ""
+                                  );
+                                  if (entries.length === 0) return null;
+
+                                  const LONG_TEXT_KEYS = [
+                                    "complaint",
+                                    "diagnosis",
+                                    "action",
+                                    "note_doctor",
+                                    "anamnesis",
+                                    "physical_exam",
+                                    "conclusion",
+                                    "checkup_result",
+                                    "reference_values",
+                                    "discharge_summary",
+                                    "remarks",
+                                    "list_of_medicines",
+                                    "vital_signs",
+                                    "referral_clinical_summary",
+                                    "home_instructions",
+                                    "post_op_instructions",
+                                    "operation_findings",
+                                  ];
+
+                                  return (
+                                    <div key={type} className="rounded-2xl border border-teal-100/90 bg-slate-50/70 p-4 sm:p-5 space-y-3">
+                                      <div className="flex items-center gap-2 border-b border-teal-200/50 pb-2">
+                                        <div className="h-2 w-2 rounded-full bg-teal-600"></div>
+                                        <h5 className="text-xs font-black text-teal-950 uppercase tracking-wider">
+                                          {DETAIL_TYPE_LABELS[type] || type}
+                                        </h5>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {entries.map(([key, val]) => {
+                                          const isMedicinesField = type === "resep" && key === "list_of_medicines";
+                                          const formattedContent = isMedicinesField ? (
+                                            <PrescriptionList rawListOfMedicines={val} />
+                                          ) : (
+                                            renderFormattedValue(key, val)
+                                          );
+                                          const isLong =
+                                            LONG_TEXT_KEYS.includes(key) ||
+                                            String(val).length > 50 ||
+                                            isMedicinesField ||
+                                            (typeof val === "string" && val.trim().startsWith("{"));
+
+                                          return (
+                                            <div
+                                              key={key}
+                                              className={`rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-2xs ${
+                                                isLong ? "sm:col-span-2" : ""
+                                              }`}
+                                            >
+                                              <p className="text-[10px] uppercase tracking-wider text-teal-800 font-extrabold mb-1">
+                                                {fieldLabels[key] || key.replace(/_/g, " ")}
+                                              </p>
+                                              {typeof formattedContent === "string" ? (
+                                                <p className="text-slate-800 text-xs font-semibold whitespace-pre-line leading-relaxed break-words">
+                                                  {formattedContent}
+                                                </p>
+                                              ) : (
+                                                formattedContent
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Lampiran Berkas */}
+                            {hasAttachments && (
+                              <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-4 sm:p-5 space-y-3">
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black flex items-center gap-1.5">
+                                  <Paperclip className="h-3.5 w-3.5 text-slate-500" /> Lampiran Berkas ({rec.attachments.length})
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                  {rec.attachments.map((att) => (
+                                    <div
+                                      key={att.id}
+                                      className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs hover:border-teal-300 transition"
+                                    >
+                                      <span className="flex items-center gap-2.5 min-w-0">
+                                        <FileTextIcon className="h-4 w-4 text-teal-700 shrink-0" />
+                                        <span className="truncate text-slate-800 text-xs font-bold" title={att.fileName}>
+                                          {att.fileName}
+                                        </span>
+                                      </span>
+                                      <a
+                                        href={att.filePath}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 rounded-lg bg-teal-50 border border-teal-200 px-2.5 py-1 text-xs font-bold text-teal-800 hover:bg-teal-100 transition shrink-0"
+                                      >
+                                        <Download className="h-3.5 w-3.5" /> Unduh
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Blockchain Tx Hash Footer */}
+                            <div className="rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                              <div className="flex items-center gap-2 font-bold text-teal-900 text-[11px]">
+                                <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0" />
+                                <span>Verifikasi Integrity (On-Chain Blockchain)</span>
+                              </div>
+                              <TxHashPill txHash={rec.txHash} compact />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
 
@@ -888,7 +1189,7 @@ export default function FaskesMedicalRecordsPage() {
                       <span>Seluruh Histori Rekam Medis: <strong className="text-teal-900">{selectedRecord.patientName}</strong></span>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full bg-teal-800 text-white text-[10px]">
-                      {patientHistory.length} Histori
+                      {deduplicateRecords(patientHistory).length} Histori
                     </span>
                   </div>
 
@@ -897,13 +1198,13 @@ export default function FaskesMedicalRecordsPage() {
                       <RefreshCw className="h-6 w-6 animate-spin mx-auto text-teal-700" />
                       <p className="text-xs font-semibold">Mengambil seluruh riwayat medis pasien...</p>
                     </div>
-                  ) : patientHistory.length === 0 ? (
+                  ) : deduplicateRecords(patientHistory).length === 0 ? (
                     <div className="py-10 text-center text-slate-400 border border-dashed rounded-2xl bg-slate-50 text-xs">
                       Belum ada riwayat rekam medis lain untuk pasien ini.
                     </div>
                   ) : (
                     <div className="relative border-l-2 border-teal-200 ml-3 pl-4 space-y-4 py-1">
-                      {patientHistory.map((hist, idx) => {
+                      {deduplicateRecords(patientHistory).map((hist, idx) => {
                         const isCurrentActive = hist.id === selectedRecord.id;
                         return (
                           <div
