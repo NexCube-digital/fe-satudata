@@ -928,10 +928,10 @@ function deduplicateRecords(items) {
                   {patientHistory.length === 0 && loadingHistory ? (
                     <div className="py-14 text-center text-slate-500 space-y-3 rounded-3xl border border-dashed border-slate-200 bg-slate-50">
                       <RefreshCw className="h-7 w-7 animate-spin mx-auto text-teal-700" />
-                      <p className="text-xs font-bold text-slate-700">Memuat seluruh berkas rekam medis pasien...</p>
+                      <p className="text-xs font-bold text-slate-700">Memuat berkas rekam medis pasien...</p>
                     </div>
                   ) : (
-                    deduplicateRecords(patientHistory.length > 0 ? patientHistory : [selectedRecord]).map((rec, index) => {
+                    [selectedRecord].map((rec, index) => {
                       const isCurrentSelected = rec.id === selectedRecord.id;
                       const hasDetail = Object.keys(rec.detail || {}).length > 0;
                       const hasAttachments = rec.attachments && rec.attachments.length > 0;
