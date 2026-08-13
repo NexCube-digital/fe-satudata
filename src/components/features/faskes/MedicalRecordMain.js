@@ -612,6 +612,8 @@ function StepIndicator({ steps, currentIndex, onStepClick, disabled, stepJenis, 
 		if (rawLabel.includes("Bedah") || type === "bedah_sentral" || type === "bedah_central") return "Bedah Sentral";
 		if (rawLabel.includes("Rehab") || type === "rehab_medik") return "Rehab Medik";
 		if (rawLabel.includes("One Day Care") || type === "one_day_care") return "One Day Care";
+		if (rawLabel.includes("Rujuk") || type === "rujukan_medis" || type === "rujukan") return "Rujukan Medis";
+		if (rawLabel.includes("Kematian") || rawLabel.includes("Meninggal") || type === "death_certificate") return "Surat Kematian";
 		return rawLabel.replace(/^Instalasi\s+/, "").replace(/^Pelayanan\s+/, "");
 	};
 
@@ -1216,6 +1218,36 @@ export default function MedicalRecordMain(props) {
 								const ranapVal = (recordTypes || []).find((r) => r.value.includes("inap") || r.value.includes("ranap") || (r.label || "").toLowerCase().includes("inap"))?.value || "rawat_inap";
 								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(ranapVal)) {
 									onToggleRecordType(ranapVal);
+								}
+							},
+							onNavigateToRujuk: (customType) => {
+								const rujukVal = customType || (recordTypes || []).find((r) => r.value.includes("rujuk") || r.value.includes("referral") || (r.label || "").toLowerCase().includes("rujuk"))?.value || "rujukan_medis";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(rujukVal)) {
+									onToggleRecordType(rujukVal);
+								}
+								if (onGoToStep) {
+									onGoToStep(`detail_${rujukVal}`);
+								}
+							},
+							onEnsureRujukStep: () => {
+								const rujukVal = (recordTypes || []).find((r) => r.value.includes("rujuk") || r.value.includes("referral") || (r.label || "").toLowerCase().includes("rujuk"))?.value || "rujukan_medis";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(rujukVal)) {
+									onToggleRecordType(rujukVal);
+								}
+							},
+							onNavigateToDeath: (customType) => {
+								const deathVal = customType || (recordTypes || []).find((r) => r.value.includes("death") || r.value.includes("meninggal") || r.value.includes("mati") || (r.label || "").toLowerCase().includes("meninggal"))?.value || "death_certificate";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(deathVal)) {
+									onToggleRecordType(deathVal);
+								}
+								if (onGoToStep) {
+									onGoToStep(`detail_${deathVal}`);
+								}
+							},
+							onEnsureDeathStep: () => {
+								const deathVal = (recordTypes || []).find((r) => r.value.includes("death") || r.value.includes("meninggal") || r.value.includes("mati") || (r.label || "").toLowerCase().includes("meninggal"))?.value || "death_certificate";
+								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(deathVal)) {
+									onToggleRecordType(deathVal);
 								}
 							},
 						};

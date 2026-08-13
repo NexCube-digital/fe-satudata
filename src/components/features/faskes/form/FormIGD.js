@@ -668,6 +668,10 @@ export function UgdDischargeSummary({
 	onUpdateDetailField,
 	onNavigateToRanap,
 	onEnsureRanapStep,
+	onNavigateToRujuk,
+	onEnsureRujukStep,
+	onNavigateToDeath,
+	onEnsureDeathStep,
 }) {
 	const currentObj = (() => {
 		try {
@@ -677,11 +681,39 @@ export function UgdDischargeSummary({
 		}
 	})();
 
+	const isMatch = (val1, val2) => {
+		if (!val1 || !val2) return false;
+		if (val1 === val2) return true;
+		const s1 = String(val1).toLowerCase().trim();
+		const s2 = String(val2).toLowerCase().trim();
+		if (s1 === s2) return true;
+		if (s1.includes("membaik") && s2.includes("membaik")) return true;
+		if (s1.includes("inap") && s2.includes("inap")) return true;
+		if (s1.includes("rujuk") && s2.includes("rujuk")) return true;
+		if ((s1.includes("meninggal") || s1.includes("mati")) && (s2.includes("meninggal") || s2.includes("mati"))) return true;
+		return false;
+	};
+
+	const currentStatus = (() => {
+		const raw = currentObj?.status || entryDetail?.discharge_status || entryDetail?.status;
+		if (Array.isArray(raw)) return raw[0] || "Membaik";
+		if (typeof raw === "string" && raw.trim()) return raw;
+		return "Membaik";
+	})();
+
 	const updateStatus = (key, val) => {
 		const updated = { ...currentObj, [key]: val };
-		onUpdateDetailField(type, field.name, JSON.stringify(updated));
-		if (key === "status" && val === "Rawat Inap") {
-			onEnsureRanapStep?.();
+		onUpdateDetailField?.(type, field.name, JSON.stringify(updated));
+		if (key === "status") {
+			onUpdateDetailField?.(type, "discharge_status", val);
+			onUpdateDetailField?.(type, "status", val);
+			if (isMatch(val, "Rawat Inap")) {
+				onEnsureRanapStep?.();
+			} else if (isMatch(val, "Rujuk ke Faskes Lain")) {
+				onEnsureRujukStep?.();
+			} else if (isMatch(val, "Meninggal")) {
+				onEnsureDeathStep?.();
+			}
 		}
 	};
 
@@ -698,7 +730,7 @@ export function UgdDischargeSummary({
 						{ value: "Rujuk ke Faskes Lain", label: "Rujuk Faskes Lain" },
 						{ value: "Meninggal", label: "Meninggal Dunia" },
 					].map((opt) => {
-						const isSelected = currentObj.status === opt.value;
+						const isSelected = isMatch(currentStatus, opt.value);
 						return (
 							<button
 								key={opt.value}
@@ -706,7 +738,7 @@ export function UgdDischargeSummary({
 								onClick={() => updateStatus("status", opt.value)}
 								className={`py-2.5 px-3.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
 									isSelected
-										? "bg-purple-900 text-white border-purple-900 shadow-md ring-2 ring-purple-300"
+										? "bg-purple-900 text-white border-purple-900 shadow-md ring-2 ring-purple-300 font-black"
 										: "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
 								}`}
 							>
@@ -717,30 +749,74 @@ export function UgdDischargeSummary({
 				</div>
 			</div>
 
-			{currentObj.status === "Rujuk ke Faskes Lain" && (
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-purple-100">
-					<div>
-						<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Sarana Transportasi Rujukan</label>
-						<select
-							value={currentObj.transport || "Ambulans"}
-							onChange={(e) => updateStatus("transport", e.target.value)}
-							className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600"
+			{isMatch(currentStatus, "Rawat Inap") && (
+				<div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs font-semibold text-purple-900 flex items-center justify-between">
+					<span>Formulir Rawat Inap telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+					{onNavigateToRanap && (
+						<button
+							type="button"
+							onClick={() => onNavigateToRanap?.()}
+							className="px-3 py-1 bg-purple-800 text-white rounded-lg font-bold text-[11px] hover:bg-purple-900 transition cursor-pointer"
 						>
-							<option value="Ambulans">Ambulans Faskes / IGD</option>
-							<option value="Kendaraan Pribadi">Kendaraan Pribadi</option>
-							<option value="Lainnya">Lainnya</option>
-						</select>
+							Buka Form Ranap &rarr;
+						</button>
+					)}
+				</div>
+			)}
+
+			{isMatch(currentStatus, "Rujuk ke Faskes Lain") && (
+				<div className="space-y-3 pt-3 border-t border-purple-100">
+					<div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-900 flex items-center justify-between">
+						<span>Formulir Rujukan Medis (FormRujuk) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+						{onNavigateToRujuk && (
+							<button
+								type="button"
+								onClick={() => onNavigateToRujuk?.()}
+								className="px-3 py-1 bg-indigo-800 text-white rounded-lg font-bold text-[11px] hover:bg-indigo-900 transition cursor-pointer"
+							>
+								Buka Form Rujuk &rarr;
+							</button>
+						)}
 					</div>
-					<div>
-						<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Faskes Tujuan Rujukan</label>
-						<input
-							type="text"
-							value={currentObj.target_facility || ""}
-							onChange={(e) => updateStatus("target_facility", e.target.value)}
-							placeholder="Contoh: RSUD Dr. Soetomo / RS Tipe A"
-							className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600"
-						/>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Sarana Transportasi Rujukan</label>
+							<select
+								value={currentObj.transport || "Ambulans"}
+								onChange={(e) => updateStatus("transport", e.target.value)}
+								className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600"
+							>
+								<option value="Ambulans">Ambulans Faskes / IGD</option>
+								<option value="Kendaraan Pribadi">Kendaraan Pribadi</option>
+								<option value="Lainnya">Lainnya</option>
+							</select>
+						</div>
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">Faskes Tujuan Rujukan</label>
+							<input
+								type="text"
+								value={currentObj.target_facility || ""}
+								onChange={(e) => updateStatus("target_facility", e.target.value)}
+								placeholder="Contoh: RSUD Dr. Soetomo / RS Tipe A"
+								className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600"
+							/>
+						</div>
 					</div>
+				</div>
+			)}
+
+			{isMatch(currentStatus, "Meninggal") && (
+				<div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-900 flex items-center justify-between">
+					<span>Formulir Surat Keterangan Kematian (DeathCertificate) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+					{onNavigateToDeath && (
+						<button
+							type="button"
+							onClick={() => onNavigateToDeath?.()}
+							className="px-3 py-1 bg-rose-800 text-white rounded-lg font-bold text-[11px] hover:bg-rose-900 transition cursor-pointer"
+						>
+							Buka Surat Kematian &rarr;
+						</button>
+					)}
 				</div>
 			)}
 		</div>

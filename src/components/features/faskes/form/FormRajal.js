@@ -61,6 +61,10 @@ export default function FormRajal({
 	penunjangSubItems = [],
 	onNavigateToRanap,
 	onEnsureRanapStep,
+	onNavigateToRujuk,
+	onEnsureRujukStep,
+	onNavigateToDeath,
+	onEnsureDeathStep,
 }) {
 	// Parse Vital Signs (T, N, R, S, BB)
 	const vs = parseVitalSigns ? parseVitalSigns(entryDetail.vital_signs) : {};
@@ -582,6 +586,10 @@ export default function FormRajal({
 											onUpdateDetailField(type, "status", opt.value);
 											if (opt.value === "Rawat Inap") {
 												onEnsureRanapStep?.();
+											} else if (opt.value === "Rujuk ke Faskes Lain") {
+												onEnsureRujukStep?.();
+											} else if (opt.value === "Meninggal") {
+												onEnsureDeathStep?.();
 											}
 										}}
 										className={`py-2.5 px-3.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
@@ -595,6 +603,51 @@ export default function FormRajal({
 								);
 							})}
 						</div>
+
+						{((entryDetail.discharge_status || entryDetail.status) === "Rawat Inap") && (
+							<div className="mt-3 p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs font-semibold text-teal-900 flex items-center justify-between">
+								<span>Formulir Rawat Inap telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+								{onNavigateToRanap && (
+									<button
+										type="button"
+										onClick={() => onNavigateToRanap?.()}
+										className="px-3 py-1 bg-teal-700 text-white rounded-lg font-bold text-[11px] hover:bg-teal-800 transition cursor-pointer"
+									>
+										Buka Form Ranap &rarr;
+									</button>
+								)}
+							</div>
+						)}
+
+						{((entryDetail.discharge_status || entryDetail.status) === "Rujuk ke Faskes Lain") && (
+							<div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-900 flex items-center justify-between">
+								<span>Formulir Rujukan Medis (FormRujuk) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+								{onNavigateToRujuk && (
+									<button
+										type="button"
+										onClick={() => onNavigateToRujuk?.()}
+										className="px-3 py-1 bg-indigo-700 text-white rounded-lg font-bold text-[11px] hover:bg-indigo-800 transition cursor-pointer"
+									>
+										Buka Form Rujuk &rarr;
+									</button>
+								)}
+							</div>
+						)}
+
+						{((entryDetail.discharge_status || entryDetail.status) === "Meninggal") && (
+							<div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-900 flex items-center justify-between">
+								<span>Formulir Surat Keterangan Kematian (DeathCertificate) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
+								{onNavigateToDeath && (
+									<button
+										type="button"
+										onClick={() => onNavigateToDeath?.()}
+										className="px-3 py-1 bg-rose-700 text-white rounded-lg font-bold text-[11px] hover:bg-rose-800 transition cursor-pointer"
+									>
+										Buka Surat Kematian &rarr;
+									</button>
+								)}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

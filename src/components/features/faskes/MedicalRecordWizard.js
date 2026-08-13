@@ -30,6 +30,8 @@ const DEFAULT_PELAYANAN_MEDIS = [
   { value: "bedah_sentral", label: "Instalasi Bedah Sentral" },
   { value: "rehab_medik", label: "Pelayanan Rehabilitas Medik" },
   { value: "one_day_care", label: "One Day Care" },
+  { value: "rujukan_medis", label: "Surat Rujukan Medis" },
+  { value: "death_certificate", label: "Surat Keterangan Kematian" },
 ];
 
 function getMedisOrderRank(val, label = "") {
@@ -42,6 +44,8 @@ function getMedisOrderRank(val, label = "") {
   if (normVal.includes("bedah") || normLbl.includes("bedah")) return 4;
   if (normVal.includes("rehab") || normLbl.includes("rehabilitas")) return 5;
   if (normVal.includes("one_day_care") || normLbl.includes("one day care") || normVal.includes("odc")) return 6;
+  if (normVal.includes("rujuk") || normLbl.includes("rujuk")) return 7;
+  if (normVal.includes("death") || normVal.includes("kematian") || normVal.includes("meninggal") || normLbl.includes("kematian")) return 8;
   return 99;
 }
 
@@ -146,6 +150,40 @@ function getDetailFieldsConfig(type) {
       { name: "examination_type", label: "Jenis Pemeriksaan Radiologi", section: "O", inputType: "textarea" },
       { name: "checkup_result", label: "Temuan Radiologi", section: "O", inputType: "textarea" },
       { name: "conclusion", label: "Kesimpulan / Impresi Dokter Radiologi", section: "A", inputType: "textarea" },
+    ];
+  }
+
+  if (
+    normType === "rujukan_medis" ||
+    normType.includes("rujukan") ||
+    normType.includes("rujuk") ||
+    normType.includes("referral")
+  ) {
+    return [
+      { name: "referral_type", label: "Jenis Rujukan Medis", section: "P", inputType: "text" },
+      { name: "referral_urgency", label: "Sifat / Urgensi Rujukan", section: "P", inputType: "text" },
+      { name: "target_faskes_name", label: "Faskes Tujuan", section: "P", inputType: "text" },
+      { name: "target_specialty", label: "Poli/Spesialis Tujuan", section: "P", inputType: "text" },
+      { name: "referral_reasons", label: "Alasan Rujukan", section: "P", inputType: "text" },
+      { name: "referral_clinical_summary", label: "Resume Klinis Rujukan", section: "S", inputType: "textarea" },
+      { name: "attached_files", label: "Berkas Lampiran Rujukan", section: "P", inputType: "text" },
+      { name: "transportation", label: "Sarana Transportasi", section: "P", inputType: "text" },
+    ];
+  }
+
+  if (
+    normType === "death_certificate" ||
+    normType.includes("death") ||
+    normType.includes("kematian") ||
+    normType.includes("meninggal") ||
+    normType.includes("mati")
+  ) {
+    return [
+      { name: "death_datetime", label: "Waktu Kematian", section: "P", inputType: "text" },
+      { name: "declaring_doctor", label: "Dokter Yang Menyatakan", section: "P", inputType: "text" },
+      { name: "death_location", label: "Lokasi Kematian", section: "P", inputType: "text" },
+      { name: "underlying_cause", label: "Penyebab Utama Kematian", section: "A", inputType: "textarea" },
+      { name: "autopsy_done", label: "Autopsi / Pemeriksaan Luar", section: "P", inputType: "text" },
     ];
   }
 
