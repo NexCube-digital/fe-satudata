@@ -6,6 +6,8 @@ const LEGACY_ENDPOINTS = {
 	klinik: "/api/service/service-price-klinik",
 };
 
+const VALID_SOURCES = ["medis", "klinik"];
+
 const extractArray = (response) => {
 	if (!response) return [];
 	if (Array.isArray(response)) return response;
@@ -64,12 +66,20 @@ const withSource = (item, source) => {
 
 const getLegacyEndpoint = (source) => LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis;
 
-const withFallback = async (primaryCall, fallbackCall) => {
+// PENTING: pola fallback-retry ini HANYA aman dipakai untuk operasi READ (GET),
+// karena GET bersifat idempotent — dipanggil berkali-kali tidak menimbulkan efek
+// samping. JANGAN pakai pola ini untuk create/update/delete (POST/PUT/DELETE):
+// kalau primaryCall SUDAH berhasil menyimpan/mengubah/menghapus data di server,
+// tapi client salah membaca response-nya sebagai error, maka fallbackCall akan
+// mengirim ulang request yang sama dan menghasilkan data duplikat / operasi ganda.
+const withFallbackForRead = async (primaryCall, fallbackCall) => {
 	try {
 		return await primaryCall();
 	} catch (error) {
 		const status = Number(error?.status || 0);
-		if (status === 404 || status === 405 || status === 400) {
+		// 404/405 = rute memang tidak ada di backend baru -> aman coba endpoint lama.
+		// (400 sengaja TIDAK termasuk, karena itu berarti endpoint ADA tapi query-nya ditolak)
+		if (status === 404 || status === 405) {
 			return fallbackCall();
 		}
 		throw error;
@@ -82,8 +92,10 @@ const normalizeMainListResponse = (response, source) => {
 };
 
 /* ==================== MEDIS ==================== */
+
+// READ - aman pakai fallback, GET idempotent
 export const getServicePriceMedis = async (params = {}) => {
-	const response = await withFallback(
+	const response = await withFallbackForRead(
 		() => fetchAllPages(AGGREGATED_ENDPOINT, { ...params, source: "medis" }),
 		() => fetchAllPages(getLegacyEndpoint("medis"), params)
 	);
@@ -91,36 +103,31 @@ export const getServicePriceMedis = async (params = {}) => {
 };
 
 export const getServicePriceMedisById = async (id) => {
-	return withFallback(
+	return withFallbackForRead(
 		() => apiGet(`${AGGREGATED_ENDPOINT}/${id}`, { source: "medis" }),
 		() => apiGet(`${getLegacyEndpoint("medis")}/${id}`)
 	);
 };
 
+// WRITE - TIDAK pakai fallback, cukup satu kali panggil ke endpoint baru,
+// supaya tidak ada risiko double-submit
 export const createServicePriceMedis = async (payload) => {
-	return withFallback(
-		() => apiPost(AGGREGATED_ENDPOINT, { ...payload, source: "medis" }),
-		() => apiPost(getLegacyEndpoint("medis"), payload)
-	);
+	return apiPost(AGGREGATED_ENDPOINT, { ...payload, source: "medis" });
 };
 
 export const updateServicePriceMedis = async (id, payload) => {
-	return withFallback(
-		() => apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source: "medis" }),
-		() => apiPut(`${getLegacyEndpoint("medis")}/${id}`, payload)
-	);
+	return apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source: "medis" });
 };
 
 export const deleteServicePriceMedis = async (id) => {
-	return withFallback(
-		() => apiDelete(`${AGGREGATED_ENDPOINT}/${id}?source=medis`),
-		() => apiDelete(`${getLegacyEndpoint("medis")}/${id}`)
-	);
+	return apiDelete(`${AGGREGATED_ENDPOINT}/${id}?source=medis`);
 };
 
 /* ==================== KLINIK ==================== */
+
+// READ - aman pakai fallback, GET idempotent
 export const getServicePriceKlinik = async (params = {}) => {
-	const response = await withFallback(
+	const response = await withFallbackForRead(
 		() => fetchAllPages(AGGREGATED_ENDPOINT, { ...params, source: "klinik" }),
 		() => fetchAllPages(getLegacyEndpoint("klinik"), params)
 	);
@@ -128,31 +135,23 @@ export const getServicePriceKlinik = async (params = {}) => {
 };
 
 export const getServicePriceKlinikById = async (id) => {
-	return withFallback(
+	return withFallbackForRead(
 		() => apiGet(`${AGGREGATED_ENDPOINT}/${id}`, { source: "klinik" }),
 		() => apiGet(`${getLegacyEndpoint("klinik")}/${id}`)
 	);
 };
 
+// WRITE - TIDAK pakai fallback
 export const createServicePriceKlinik = async (payload) => {
-	return withFallback(
-		() => apiPost(AGGREGATED_ENDPOINT, { ...payload, source: "klinik" }),
-		() => apiPost(getLegacyEndpoint("klinik"), payload)
-	);
+	return apiPost(AGGREGATED_ENDPOINT, { ...payload, source: "klinik" });
 };
 
 export const updateServicePriceKlinik = async (id, payload) => {
-	return withFallback(
-		() => apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source: "klinik" }),
-		() => apiPut(`${getLegacyEndpoint("klinik")}/${id}`, payload)
-	);
+	return apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source: "klinik" });
 };
 
 export const deleteServicePriceKlinik = async (id) => {
-	return withFallback(
-		() => apiDelete(`${AGGREGATED_ENDPOINT}/${id}?source=klinik`),
-		() => apiDelete(`${getLegacyEndpoint("klinik")}/${id}`)
-	);
+	return apiDelete(`${AGGREGATED_ENDPOINT}/${id}?source=klinik`);
 };
 
 /* ==================== GABUNGAN (untuk ringkasan/summary) ==================== */
@@ -180,20 +179,35 @@ const normalizeCreateArgs = (sourceOrPayload, maybePayload) => {
 	};
 };
 
-const normalizeUpdateArgs = (sourceOrId, idOrPayload, maybePayload) => {
-	if (typeof sourceOrId === "number" || typeof sourceOrId === "string") {
-		return {
-			source: maybePayload?.source || "medis",
-			id: Number(sourceOrId),
-			payload: idOrPayload || {},
-		};
+/**
+ * Mendukung 3 gaya pemanggilan:
+ *  1. updateServicePrice(source, id, payload)   <- dipakai RuanganFinancePage.jsx
+ *  2. updateServicePrice(id, payload, source?)  <- gaya lama/alternatif
+ *  3. updateServicePrice(itemObject, id?)       <- kalau argumen pertama object utuh
+ *
+ * PENTING: argumen pertama dicek dulu apakah dia salah satu dari VALID_SOURCES
+ * ("medis"/"klinik") sebelum diasumsikan sebagai id. Sebelumnya kode ini cuma
+ * cek typeof === "number" || "string", padahal "medis"/"klinik" juga string,
+ * jadi ke-detect salah sebagai id -> Number("medis") = NaN.
+ */
+const normalizeUpdateArgs = (a, b, c) => {
+	// Signature 1: (source, id, payload)
+	if (typeof a === "string" && VALID_SOURCES.includes(a)) {
+		return { source: a, id: Number(b), payload: c || {} };
 	}
 
-	const payload = { ...sourceOrId };
+	// Signature 2: (id, payload, source?)
+	if (typeof a === "number" || typeof a === "string") {
+		const source = typeof c === "string" && VALID_SOURCES.includes(c) ? c : "medis";
+		return { source, id: Number(a), payload: b || {} };
+	}
+
+	// Signature 3: (itemObject, id?)
+	const payload = { ...a };
 	const source = payload.source || "medis";
 	return {
 		source,
-		id: Number(idOrPayload || payload.id),
+		id: Number(b || payload.id),
 		payload,
 	};
 };
@@ -203,20 +217,36 @@ export const createServicePrice = (sourceOrPayload, maybePayload) => {
 	return source === "klinik" ? createServicePriceKlinik(payload) : createServicePriceMedis(payload);
 };
 
-export const updateServicePrice = (sourceOrId, idOrPayload, maybePayload) => {
-	const { source, id, payload } = normalizeUpdateArgs(sourceOrId, idOrPayload, maybePayload);
+export const updateServicePrice = (a, b, c) => {
+	const { source, id, payload } = normalizeUpdateArgs(a, b, c);
 	return source === "klinik" ? updateServicePriceKlinik(id, payload) : updateServicePriceMedis(id, payload);
 };
 
-export const deleteServicePrice = (sourceOrId, maybeId) => {
-	if (typeof sourceOrId === "number" || typeof sourceOrId === "string") {
-		const source = maybeId && typeof maybeId === "string" ? maybeId : "medis";
-		return source === "klinik" ? deleteServicePriceKlinik(Number(sourceOrId)) : deleteServicePriceMedis(Number(sourceOrId));
+/**
+ * Mendukung 3 gaya pemanggilan:
+ *  1. deleteServicePrice(source, id)     <- dipakai RuanganFinancePage.jsx
+ *  2. deleteServicePrice(id, source?)    <- gaya lama/alternatif
+ *  3. deleteServicePrice(itemObject, id?)
+ *
+ * Sama seperti update: argumen pertama dicek dulu apakah dia valid source
+ * sebelum diasumsikan sebagai id.
+ */
+export const deleteServicePrice = (a, b) => {
+	// Signature 1: (source, id)
+	if (typeof a === "string" && VALID_SOURCES.includes(a)) {
+		return a === "klinik" ? deleteServicePriceKlinik(Number(b)) : deleteServicePriceMedis(Number(b));
 	}
 
-	const item = sourceOrId && typeof sourceOrId === "object" ? sourceOrId : {};
+	// Signature 2: (id, source?)
+	if (typeof a === "number" || typeof a === "string") {
+		const source = typeof b === "string" && VALID_SOURCES.includes(b) ? b : "medis";
+		return source === "klinik" ? deleteServicePriceKlinik(Number(a)) : deleteServicePriceMedis(Number(a));
+	}
+
+	// Signature 3: (itemObject, id?)
+	const item = a && typeof a === "object" ? a : {};
 	const source = item.source || "medis";
-	const id = Number(item.id ?? maybeId ?? 0);
+	const id = Number(item.id ?? b ?? 0);
 	return source === "klinik" ? deleteServicePriceKlinik(id) : deleteServicePriceMedis(id);
 };
 

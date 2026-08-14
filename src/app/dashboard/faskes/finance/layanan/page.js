@@ -92,37 +92,31 @@ export default function ServiceUnitPage() {
 	// promise resolve tanpa throw, itu artinya request SUKSES — tidak ada
 	// field `success` untuk dicek. Ambil datanya langsung dari `res.data`.
 	const loadData = async ({ silent = false } = {}) => {
-		silent ? setRefreshing(true) : setLoading(true);
-		try {
-			const [spRes, uRes] = await Promise.all([
-				getServicePrices({ status: "active" }),
-				getServiceUnits(),
-			]);
+	silent ? setRefreshing(true) : setLoading(true);
+	try {
+		const [spRes, uRes] = await Promise.all([
+			getServicePrices({ status: "active" }),
+			getServiceUnits(),
+		]);
 
-			// Debug: log response structure
-			console.log("[DEBUG] spRes:", spRes);
-			console.log("[DEBUG] uRes:", uRes);
+		const priceData = spRes?.data || [];
+		const unitData = uRes?.data || [];
 
-			// Extract data dengan lebih robust
-			const priceData = spRes?.data || [];
-			const unitData = uRes?.data || [];
+		const pricesArray = Array.isArray(priceData) ? priceData : [];
+		const unitsArray = Array.isArray(unitData) ? unitData : [];
 
-			// Ensure data adalah array
-			const pricesArray = Array.isArray(priceData) ? priceData : [];
-			const unitsArray = Array.isArray(unitData) ? unitData : [];
+		setServicePrices(pricesArray);
+		setUnits(unitsArray);
 
-			console.log("[DEBUG] Setting servicePrices:", pricesArray.length, "items");
-			console.log("[DEBUG] Setting units:", unitsArray.length, "items");
-
-			setServicePrices(pricesArray);
-			setUnits(unitsArray);
-		} catch (err) {
-			console.error("[ERROR] loadData failed:", err);
-			notify(setToast, { type: "error", message: err.message || "Gagal memuat data." });
-		} finally {
-			silent ? setRefreshing(false) : setLoading(false);
-		}
-	};
+		return unitsArray;
+	} catch (err) {
+		console.error("[ERROR] loadData failed:", err);
+		notify(setToast, { type: "error", message: err.message || "Gagal memuat data." });
+		return null;
+	} finally {
+		silent ? setRefreshing(false) : setLoading(false);
+	}
+};
 
 	useEffect(() => {
 		loadData();
@@ -215,54 +209,77 @@ export default function ServiceUnitPage() {
 	};
 
 	const handleSubmit = async (e) => {
-		e && e.preventDefault();
-		if (!validateForm()) return;
+	e && e.preventDefault();
+	if (!validateForm()) return;
 
-		setSubmitting(true);
-		try {
-			const payload = {
-				code: form.code.trim() || null,
-				name: form.name.trim(),
-				category: form.category,
-				price: form.price === "" ? 0 : Number(form.price),
-				status: form.status,
-			};
+	setSubmitting(true);
+	try {
+		const payload = {
+			code: form.code.trim() || null,
+			name: form.name.trim(),
+			category: form.category,
+			price: form.price === "" ? 0 : Number(form.price),
+			status: form.status,
+		};
 
-			if (editing) {
-				await updateServiceUnit(editing.id, payload);
-				notify(setToast, { type: "success", message: `Unit "${payload.name}" berhasil diperbarui.` });
-			} else {
-				await createServiceUnit(payload);
-				notify(setToast, { type: "success", message: `Unit "${payload.name}" berhasil dibuat.` });
+		if (editing) {
+			const res = await updateServiceUnit(editing.id, payload);
+			const updated = res?.data || { ...editing, ...payload };
+
+			// update langsung di state lokal, tidak nunggu refetch
+			setUnits((prev) => prev.map((u) => (u.id === editing.id ? { ...u, ...updated } : u)));
+
+			notify(setToast, { type: "success", message: `Unit "${payload.name}" berhasil diperbarui.` });
+		} else {
+			const res = await createServiceUnit(payload);
+			const created = res?.data;
+
+			if (created && created.id) {
+				// data baru langsung dimasukkan ke state, tabel tidak pernah kosong
+				setUnits((prev) => [created, ...prev]);
 			}
 
-			setIsModalOpen(false);
-			// Refresh data setelah create/update berhasil
-			console.log("[DEBUG] Refreshing data after submit...");
-			await loadData({ silent: true });
-		} catch (err) {
-			console.error("[ERROR] handleSubmit failed:", err);
-			notify(setToast, { type: "error", message: err.message || "Gagal menyimpan unit layanan." });
-		} finally {
-			setSubmitting(false);
+			notify(setToast, { type: "success", message: `Unit "${payload.name}" berhasil dibuat.` });
 		}
-	};
+
+		setIsModalOpen(false);
+
+		// sinkronisasi ulang di background, TAPI kalau hasilnya kosong/gagal,
+		// state optimistic di atas tetap dipertahankan (tidak ditimpa jadi kosong)
+		const fresh = await loadData({ silent: true });
+		if (!fresh || fresh.length === 0) {
+			console.warn("[WARN] Refetch setelah submit kosong/gagal — mempertahankan state optimistic.");
+		}
+	} catch (err) {
+		console.error("[ERROR] handleSubmit failed:", err);
+		notify(setToast, { type: "error", message: err.message || "Gagal menyimpan unit layanan." });
+	} finally {
+		setSubmitting(false);
+	}
+};
 
 	const handleDelete = async (id, name) => {
-		if (!confirm(`Hapus unit layanan "${name}"? Tarif medis & klinik yang terkait juga akan ikut terhapus.`)) return;
+	if (!confirm(`Hapus unit layanan "${name}"? Tarif medis & klinik yang terkait juga akan ikut terhapus.`)) return;
 
-		setDeletingId(id);
-		try {
-			await deleteServiceUnit(id);
-			notify(setToast, { type: "success", message: `Unit "${name}" berhasil dihapus.` });
-			loadData({ silent: true });
-		} catch (err) {
-			console.error(err);
-			notify(setToast, { type: "error", message: err.message || "Gagal menghapus unit layanan." });
-		} finally {
-			setDeletingId(null);
+	setDeletingId(id);
+	const prevUnits = units; // simpan untuk rollback kalau gagal
+	try {
+		setUnits((prev) => prev.filter((u) => u.id !== id)); // optimistic remove
+		await deleteServiceUnit(id);
+		notify(setToast, { type: "success", message: `Unit "${name}" berhasil dihapus.` });
+
+		const fresh = await loadData({ silent: true });
+		if (!fresh) {
+			console.warn("[WARN] Refetch setelah delete gagal — mempertahankan state optimistic.");
 		}
-	};
+	} catch (err) {
+		console.error(err);
+		setUnits(prevUnits); // rollback kalau delete gagal
+		notify(setToast, { type: "error", message: err.message || "Gagal menghapus unit layanan." });
+	} finally {
+		setDeletingId(null);
+	}
+};
 
 	if (loading) {
 		return (
