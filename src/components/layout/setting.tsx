@@ -694,19 +694,13 @@ export const Setting: React.FC = () => {
   const canUseWallet = ['admin', 'rumah_sakit', 'faskes'].includes(user?.role);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel={roleLabelMap[user?.role] || 'Dashboard'} onLogout={handleLogout} />
-
-      <div className="flex flex-1">
-        <Sidebar role={user?.role} />
-
-        <main className="flex-1 max-w-5xl mx-auto px-6 py-10 w-full">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">Pengaturan Akun</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Kelola profil pribadi, kata sandi keamanan, dan koneksi dompet MetaMask Anda.
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-800">Pengaturan Akun</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Kelola profil pribadi, kata sandi keamanan, dan koneksi dompet MetaMask Anda.
+        </p>
+      </div>
 
           <div className="flex gap-2 border-b border-slate-200 mb-8">
             <button
@@ -1410,8 +1404,6 @@ export const Setting: React.FC = () => {
               )}
             </div>
           )}
-        </main>
-      </div>
 
       {isPhotoModalOpen && (
         <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">

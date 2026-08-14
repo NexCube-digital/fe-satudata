@@ -329,14 +329,8 @@ export const UsersComponent: React.FC<UsersComponentProps> = ({ forcedRole }) =>
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
-      <Navbar user={currentUser} roleLabel="Administrator" onLogout={handleLogout} />
-
-      <div className="flex flex-1">
-        <Sidebar role={currentUser?.role || 'admin'} />
-
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2">
                 <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-100 text-teal-800 border border-teal-200">
@@ -665,8 +659,6 @@ export const UsersComponent: React.FC<UsersComponentProps> = ({ forcedRole }) =>
               </table>
             </div>
           </div>
-        </main>
-      </div>
 
       {isAddFaskesModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">

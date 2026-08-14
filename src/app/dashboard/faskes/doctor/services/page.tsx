@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import {
   Stethoscope,
   Plus,
@@ -221,17 +219,17 @@ export default function DoctorServicesPage() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        <div className="space-y-6">
           {/* Header Banner */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6 bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
             <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
@@ -467,7 +465,7 @@ export default function DoctorServicesPage() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* FORM MODAL: Tambah / Edit Layanan */}

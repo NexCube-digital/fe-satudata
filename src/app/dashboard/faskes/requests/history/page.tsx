@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import ModernSelect from "@/components/ui/ModernSelect";
 import {
@@ -78,7 +76,7 @@ export default function FaskesRequestsHistory() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   const filteredRequests = requestsList.filter((req) => {
@@ -94,7 +92,7 @@ export default function FaskesRequestsHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
       </div>
     );
@@ -102,12 +100,12 @@ export default function FaskesRequestsHistory() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+      <div className="space-y-6">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
           <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-teal-800 text-white font-bold text-sm shadow-md hover:bg-teal-700 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-teal-800 text-white font-bold text-sm shadow-md hover:bg-teal-700 transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -116,13 +114,13 @@ export default function FaskesRequestsHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="space-y-6">
           {/* Header Banner */}
           <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-900 p-6 sm:p-8 text-white shadow-xl mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-700/10 blur-3xl" />
@@ -234,7 +232,7 @@ export default function FaskesRequestsHistory() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

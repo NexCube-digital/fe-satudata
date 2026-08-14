@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import ModernSelect from "@/components/ui/ModernSelect";
 import {
   DollarSign,
@@ -237,10 +235,10 @@ export default function LayananPenunjangPage() {
   }, [servicePrices]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/login")} />
+    <div className="space-y-6">
+      
       <div className="flex flex-1">
-        <Sidebar role="faskes" />
+        
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">

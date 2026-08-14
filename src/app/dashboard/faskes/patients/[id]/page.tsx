@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import Toast from "@/components/ui/Toast";
 import ModernSelect from "@/components/ui/ModernSelect";
@@ -39,8 +37,7 @@ import {
 export default function PatientEhrDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const rawPatientId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
-  const patientId = rawPatientId || "";
+  const patientId = params?.id;
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,9 +47,9 @@ export default function PatientEhrDetailPage() {
   const [doctorsList, setDoctorsList] = useState([]);
 
   // Toast Notification State
-  const [toast, setToast] = useState<any>({ show: false, type: "success", title: "", message: "" });
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message: any, type: string = "success", title: string = "", tipe?: any) =>
+  const showToast = (message, type = "success", title = "", tipe) =>
     notify(setToast, { type, title, message, tipe });
 
   // Add EHR Record Modal State
@@ -228,7 +225,7 @@ export default function PatientEhrDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
+      <div className="space-y-6">
         <div className="relative flex items-center justify-center">
           <div className="h-16 w-16 rounded-full border-4 border-teal-100 border-t-teal-700 animate-spin" />
           <Stethoscope className="h-7 w-7 text-teal-700 absolute" />
@@ -239,13 +236,13 @@ export default function PatientEhrDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="space-y-6">
           {/* Top Navigation & Back Button */}
           <div className="mb-6 flex items-center justify-between">
             <Link
@@ -417,7 +414,7 @@ export default function PatientEhrDetailPage() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Add EHR Modal */}

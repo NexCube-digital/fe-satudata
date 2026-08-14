@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import { apiGet } from "@/lib/api";
 import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
 
@@ -71,7 +69,7 @@ export default function InvoiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
+    <div className="space-y-6">
         <Loader2 className="h-10 w-10 animate-spin text-rose-600" />
       </div>
     );
@@ -79,10 +77,10 @@ export default function InvoiceDetailPage() {
 
   if (error || !invoice) {
     return (
-      <div className="min-h-screen bg-[#faf7f2] flex flex-col">
-        <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
+    <div className="space-y-6">
+        
         <div className="flex flex-1">
-          <Sidebar role="faskes" />
+          
           <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-rose-700 mb-6">
@@ -105,10 +103,10 @@ export default function InvoiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdfcf8] via-[#fbf7f1] to-[#f7f1ea] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
+    <div className="space-y-6">
+      
       <div className="flex flex-1">
-        <Sidebar role="faskes" />
+        
         <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">

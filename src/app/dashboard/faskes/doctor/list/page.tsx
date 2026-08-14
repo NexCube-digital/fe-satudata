@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import { maskSip } from "@/utils/masking";
 import {
   getDoctors,
@@ -131,17 +129,12 @@ export default function FaskesDoctorsList() {
   }, [isModalOpen]);
 
   useEffect(() => {
-    const fetchSpecs = async () => {
-      try {
-        const res: any = await getSpecialties();
-        const rawList = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-        const activeSpecs = rawList.filter((s: any) => s.status === "active");
-        setSpecialtiesList(activeSpecs);
-      } catch (e) {
-        console.error("Gagal memuat spesialisasi", e);
-      }
-    };
-    fetchSpecs();
+    try {
+      const activeSpecs = getSpecialties().filter((s) => s.status === "active");
+      setSpecialtiesList(activeSpecs);
+    } catch (e) {
+      console.error("Gagal memuat spesialisasi", e);
+    }
 
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -186,7 +179,7 @@ export default function FaskesDoctorsList() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   const parseSchedule = (scheduleStr) => {
@@ -532,7 +525,7 @@ export default function FaskesDoctorsList() {
 
   if (loading && doctors.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
       </div>
     );
@@ -540,12 +533,12 @@ export default function FaskesDoctorsList() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="space-y-6">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
           <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-850 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-850 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
             Kembali ke Halaman Login
           </button>
         </div>
@@ -554,13 +547,13 @@ export default function FaskesDoctorsList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="space-y-6">
           {/* Header Banner */}
           <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-700/10 blur-3xl" />
@@ -746,7 +739,7 @@ export default function FaskesDoctorsList() {
               ))}
             </div>
           )}
-        </main>
+        </div>
       </div>
 
       {/* CRUD Doctor Modal (Only for Edit Mode) */}

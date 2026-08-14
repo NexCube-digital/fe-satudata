@@ -1581,12 +1581,8 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
   const nextButtonLabel = isNextStepRanap ? 'Lanjutkan mengisi form Ranap' : 'Lanjutkan';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push('/login')} />
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">Dashboard Faskes</p>
               <h1 className="text-3xl font-extrabold text-slate-900 mt-3">{pageTitle}</h1>
@@ -1726,8 +1722,6 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
               onFinalSubmit: handleFinalSubmit,
             }}
           />
-        </main>
-      </div>
 
       {showSuccessModal && uploadedResult && (
         <div

@@ -1,8 +1,5 @@
-'use client';
-
-import React from 'react';
-import SettingComponent from '@/components/layout/setting';
+import SettingPage from "@/components/features/SettingPage";
 
 export default function FaskesSettingsPage() {
-  return <SettingComponent />;
+  return <SettingPage />;
 }

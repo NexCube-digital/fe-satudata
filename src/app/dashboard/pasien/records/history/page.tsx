@@ -12,7 +12,7 @@ export default function RedirectRecordsHistory() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+    <div className="space-y-6">
       <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
     </div>
   );

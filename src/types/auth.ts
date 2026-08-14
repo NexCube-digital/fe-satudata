@@ -13,6 +13,7 @@ export interface User {
   isActivated?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: any;
 }
 
 export interface Session {

@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
 import notify from "@/lib/notify";
 import { createDoctor } from "@/services/doctorService";
@@ -43,9 +41,9 @@ export default function FaskesAddDoctor() {
   const [specialtiesList, setSpecialtiesList] = useState([]);
 
   // Toast Notification State
-  const [toast, setToast] = useState<any>({ show: false, type: "success", title: "", message: "" });
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message: any, type: string = "success", title: string = "", tipe?: any) =>
+  const showToast = (message, type = "success", title = "", tipe) =>
     notify(setToast, { type, title, message, tipe });
 
   // Form State
@@ -90,17 +88,12 @@ export default function FaskesAddDoctor() {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    const fetchSpecs = async () => {
-      try {
-        const res: any = await getSpecialties();
-        const rawList = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-        const activeSpecs = rawList.filter((s: any) => s.status === "active");
-        setSpecialtiesList(activeSpecs);
-      } catch (e) {
-        console.error("Gagal memuat spesialisasi", e);
-      }
-    };
-    fetchSpecs();
+    try {
+      const activeSpecs = getSpecialties().filter((s) => s.status === "active");
+      setSpecialtiesList(activeSpecs);
+    } catch (e) {
+      console.error("Gagal memuat spesialisasi", e);
+    }
 
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -117,7 +110,7 @@ export default function FaskesAddDoctor() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   // Camera stream controllers
@@ -338,7 +331,7 @@ export default function FaskesAddDoctor() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
@@ -346,12 +339,12 @@ export default function FaskesAddDoctor() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="space-y-6">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
           <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
+          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
             Kembali ke Halaman Login
           </button>
         </div>
@@ -360,13 +353,13 @@ export default function FaskesAddDoctor() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full animate-fade-in">
+        <div className="space-y-6">
           {/* Header Navigation */}
           <div className="mb-6">
             <div className="flex items-center gap-3">
@@ -578,7 +571,7 @@ export default function FaskesAddDoctor() {
               </div>
             </form>
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Photo Crop & Upload Modal */}

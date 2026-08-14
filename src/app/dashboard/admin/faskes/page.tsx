@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import Toast from "@/components/ui/Toast";
 import notify from "@/lib/notify";
@@ -35,9 +33,9 @@ function AdminGeotaggingContent() {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" });
   const searchParams = useSearchParams();
-  const [toast, setToast] = useState<any>({ show: false, message: "", type: "success" });
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  const showToast = (msg: any, type: string = "success", title: string = "", tipe?: any) =>
+  const showToast = (msg, type = "success", title = "", tipe) =>
     notify(setToast, { type, title, message: msg, tipe });
 
   useEffect(() => {
@@ -141,7 +139,7 @@ function AdminGeotaggingContent() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   const handleGetCurrentLocation = () => {
@@ -198,7 +196,7 @@ function AdminGeotaggingContent() {
       return;
     }
 
-    const payload: Record<string, any> = {
+    const payload = {
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
     };
@@ -346,18 +344,18 @@ function AdminGeotaggingContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0 font-sans">
-      <Navbar user={user} roleLabel="Administrator System" onLogout={handleLogout} />
-      <div className="flex flex-1">
-        <Sidebar role="admin" />
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+    <div className="space-y-6">
+      
+      <div>
+        
+        <div className="space-y-6">
           {/* Header Banner */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
             <div>
@@ -519,7 +517,7 @@ function AdminGeotaggingContent() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Toast Notification */}

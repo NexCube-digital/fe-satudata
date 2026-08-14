@@ -30,13 +30,41 @@ async function pushToNotificationBell({ tipe = 'info', message }: { tipe?: strin
 
 export function notify(
   setToast: any,
-  { type = 'info', title, message, tipe, pushBell = true }: { type?: string; title?: string; message: string; tipe?: string; pushBell?: boolean }
+  arg2: any,
+  arg3?: any,
+  arg4?: any
 ) {
-  setToast({ show: true, type, title, message });
-  setTimeout(() => setToast({ show: false }), 4500);
+  let type = "info";
+  let title = "";
+  let message = "";
+  let tipe: string | undefined;
+  let pushBell = true;
 
-  if (pushBell && type !== 'error') {
-    const resolvedTipe = tipe || ACTION_TO_TIPE[type] || 'info';
+  if (typeof arg2 === "object" && arg2 !== null) {
+    type = arg2.type || "info";
+    title = arg2.title || "";
+    message = arg2.message || "";
+    tipe = arg2.tipe;
+    pushBell = arg2.pushBell ?? true;
+  } else {
+    type = arg2 || "info";
+    if (arg4 !== undefined) {
+      title = arg3 || "";
+      message = arg4 || "";
+    } else {
+      message = arg3 || "";
+    }
+  }
+
+  if (setToast && typeof setToast === "function") {
+    setToast({ show: true, type, title, message });
+    setTimeout(() => {
+      setToast((prev: any) => (typeof prev === 'object' && prev !== null ? { ...prev, show: false } : { show: false }));
+    }, 4500);
+  }
+
+  if (pushBell && type !== "error") {
+    const resolvedTipe = tipe || ACTION_TO_TIPE[type] || "info";
     pushToNotificationBell({ tipe: resolvedTipe, message: title ? `${title}: ${message}` : message });
   }
 }

@@ -12,7 +12,7 @@ export default function FaskesFinanceIndexRedirect() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="space-y-6">
       <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
     </div>
   );

@@ -1,2 +1,5 @@
-import UsersComponent from '@/components/features/admin/UsersComponent';
-export default UsersComponent;
+import { redirect } from "next/navigation";
+
+export default function AdminUsersDashboardPage() {
+  redirect("/dashboard/admin/users/pasien");
+}

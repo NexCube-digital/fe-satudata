@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import Script from "next/script";
 import { Plus, RefreshCw, ShoppingCart, FileText, ChevronRight, CheckCircle2, CreditCard, Search, Trash2 } from "lucide-react";
 import {
@@ -283,7 +281,7 @@ const pollInvoiceStatus = (invoiceId, attempt = 0) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdfcf8] via-[#fbf7f1] to-[#f7f1ea] flex flex-col pb-16 md:pb-0">
+    <div className="space-y-6">
         <Script
             src="https://app.sandbox.midtrans.com/snap/snap.js"
             data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
@@ -291,9 +289,9 @@ const pollInvoiceStatus = (invoiceId, attempt = 0) => {
             onLoad={() => setMidtransReady(true)}
             onError={(e) => console.error("Gagal memuat Midtrans Snap SDK", e)}
             />
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/login")} />
+      
       <div className="flex flex-1">
-        <Sidebar role="faskes" />
+        
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
             <div className="space-y-2">

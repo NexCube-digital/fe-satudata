@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import { getHospitalAuditLogs } from "@/services/hospitalService";
 import {
@@ -118,18 +116,18 @@ export default function FaskesAuditLogPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/login")} />
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <div className="space-y-6">
+      
+      <div>
+        
+        <div className="space-y-6">
 
           {/* Header Banner */}
           <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-6">
@@ -302,7 +300,7 @@ export default function FaskesAuditLogPage() {
             </div>
 
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

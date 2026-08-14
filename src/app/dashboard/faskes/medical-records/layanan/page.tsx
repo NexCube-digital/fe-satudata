@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import {
   Coins,
   Plus,
@@ -21,7 +19,7 @@ import {
   deleteServicePrice,
   getServicePrices,
   updateServicePrice,
-} from "@/services/finance-service";
+} from "@/services/layananservice";
 
 const emptyForm = {
   code: "",
@@ -183,15 +181,15 @@ export default function ServicePriceManagementPage() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
-        <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+    <div className="space-y-6">
+      
+      <div>
+        
+        <div className="space-y-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] text-rose-700">Dashboard Faskes</p>
@@ -326,7 +324,7 @@ export default function ServicePriceManagementPage() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {modalOpen && (

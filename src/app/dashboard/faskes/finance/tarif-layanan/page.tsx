@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
 import { notify } from "@/lib/notify";
 import ModernSelect from "@/components/ui/ModernSelect";
@@ -191,14 +189,14 @@ export default function TarifLayananKlinikPage() {
 	const [unitFilter, setUnitFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage] = useState(10);
-	const [toast, setToast] = useState<any>({ show: false });
+	const [toast, setToast] = useState({ show: false });
 	const [deletingId, setDeletingId] = useState(null);
 
 	// Modal state
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingItem, setEditingItem] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState<Record<string, any>>({});
+	const [formErrors, setFormErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
 
 	// NOTE: apiFetch (lib/api.js) melempar error kalau request gagal dan
@@ -277,7 +275,7 @@ export default function TarifLayananKlinikPage() {
 		return prices.filter((item) => {
 			const q = searchTerm.trim().toLowerCase();
 			if (q) {
-				const haystack = `${item.name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
+				const haystack = `${(item as any).name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
 				if (!haystack.includes(q)) return false;
 			}
 			if (statusFilter !== "all" && item.status !== statusFilter) return false;
@@ -352,11 +350,11 @@ export default function TarifLayananKlinikPage() {
 		setForm({
 			service_unit_id: item.service_unit_id ? String(item.service_unit_id) : "",
 			kptl: item.kptl || "",
-			name: item.name || "",
+			name: (item as any).name || "",
 			satuan: item.satuan || "Per Tindakan",
 			class: item.class || "umum",
 			category: item.category || "",
-			price: item.price !== undefined && item.price !== null ? String(item.price) : "",
+			price: (item as any).price !== undefined && (item as any).price !== null ? String((item as any).price) : "",
 			status: item.status || "active",
 		});
 		setFormErrors({});
@@ -379,7 +377,7 @@ export default function TarifLayananKlinikPage() {
 	};
 
 	const validate = () => {
-		const errors: Record<string, string> = {};
+		const errors = {};
 		if (!form.service_unit_id) errors.service_unit_id = "Unit layanan wajib dipilih.";
 		if (!form.name.trim()) errors.name = "Nama layanan wajib diisi.";
 		if (categoryConfig.mode === "select" && !form.category) {
@@ -444,18 +442,18 @@ export default function TarifLayananKlinikPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-slate-50">
+			<div className="space-y-6">
 				<RefreshCw className="h-8 w-8 animate-spin text-indigo-800" />
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-			<Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/login")} />
-			<div className="flex flex-1">
-				<Sidebar role="faskes" />
-				<main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+		<div className="space-y-6">
+			
+			<div>
+				
+				<div className="space-y-6">
 					{/* Header Banner */}
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
 						<div className="flex-1 min-w-0">
@@ -621,13 +619,13 @@ export default function TarifLayananKlinikPage() {
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-										{paginatedPrices.map((item) => {
+										{paginatedPrices.map((item: any) => {
 											const unit = unitMap[item.service_unit_id];
 											const meta = CATEGORY_META[unit?.category];
 											return (
 												<tr key={item.id} className="hover:bg-slate-50/60 transition">
 													<td className="py-4 px-4 font-mono font-bold text-indigo-900 whitespace-nowrap">{item.kptl || "-"}</td>
-													<td className="py-4 px-4 font-extrabold text-slate-900">{item.name}</td>
+													<td className="py-4 px-4 font-extrabold text-slate-900">{(item as any).name}</td>
 													<td className="py-4 px-4">
 														{unit ? (
 															<span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">
@@ -653,7 +651,7 @@ export default function TarifLayananKlinikPage() {
 													</td>
 													<td className="py-4 px-4 text-slate-500">{item.satuan || "-"}</td>
 													<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
-														{formatRupiah(item.price)}
+														{formatRupiah((item as any).price)}
 													</td>
 													<td className="py-4 px-4">
 														<span className={`inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold ${item.status === "active" ? "bg-emerald-50 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
@@ -669,7 +667,7 @@ export default function TarifLayananKlinikPage() {
 															<Pencil className="h-3.5 w-3.5" /> Edit
 														</button>
 														<button
-															onClick={() => handleDelete(item.id, item.name)}
+															onClick={() => handleDelete(item.id, (item as any).name)}
 															disabled={deletingId === item.id}
 															className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-3 py-1.5 font-bold disabled:opacity-50 transition inline-flex items-center"
 														>
@@ -990,7 +988,7 @@ export default function TarifLayananKlinikPage() {
 					)}
 
 					<Toast toast={toast} onClose={() => setToast({ show: false })} />
-				</main>
+				</div>
 			</div>
 
 			<style jsx global>{`

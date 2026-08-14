@@ -1,50 +1,711 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { apiGet } from '@/lib/api-client';
-import Table from '@/components/ui/table';
-import Badge from '@/components/ui/badge';
-import { maskNik } from '@/lib/utils/masking';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import TxHashLink from "@/components/ui/TxHashLink";
+import Toast from "@/components/ui/Toast";
+import ModernSelect from "@/components/ui/ModernSelect";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import notify from "@/lib/notify";
+import { getDoctors } from "@/services/doctorService";
+import {
+  Stethoscope,
+  Building2,
+  Users,
+  Search,
+  RefreshCw,
+  Plus,
+  Eye,
+  FileText,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Lock,
+  Unlock,
+  ShieldAlert,
+  ShieldCheck,
+  Calendar,
+  User,
+  Heart,
+  ChevronRight,
+  Sparkles,
+  UserPlus,
+  X,
+  Activity
+} from "lucide-react";
 
-export default function FaskesPatientsPage() {
-  const [patients, setPatients] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export default function FaskesPatients() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activePatients, setActivePatients] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [doctorsList, setDoctorsList] = useState([]);
+
+  // Medical records drawer / view state
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientRecords, setPatientRecords] = useState([]);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+  const [decryptionKeys, setDecryptionKeys] = useState({}); // patientId -> key
+  const [decryptionErrors, setDecryptionErrors] = useState({});
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
+
+  const showToast = (message, type = "success", title = "", tipe) =>
+    notify(setToast, { type, title, message, tipe });
+
+  // Add EHR record modal state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalPatient, setModalPatient] = useState(null);
+  const [submittingEhr, setSubmittingEhr] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // New EHR Form State
+  const [recordType, setRecordType] = useState("umum");
+  const [recordTitle, setRecordTitle] = useState("");
+  const [visitDate, setVisitDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [ehrSummary, setEhrSummary] = useState("");
+  const [ehrSignature, setEhrSignature] = useState(""); // signature to encrypt/decrypt
+
+  // Dynamic EHR Detail State
+  const [umumDetail, setUmumDetail] = useState({ complaint: "", diagnosis: "", action: "", note_doctor: "" });
+  const [labDetail, setLabDetail] = useState({ checkup_result: "", reference_values: "", conclusion: "" });
+  const [radiologyDetail, setRadiologyDetail] = useState({ checkup_result: "", conclusion: "" });
+  const [prescriptionDetail, setPrescriptionDetail] = useState({ list_of_medicines: "", note: "" });
 
   useEffect(() => {
-    async function loadPatients() {
+    const userData = localStorage.getItem("user");
+    if (userData) {
       try {
-        const res = await apiGet('/api/hospital/patients');
-        if (res.success && Array.isArray(res.data)) {
-          setPatients(res.data);
-        }
-      } catch (err) {
-      } finally {
-        setLoading(false);
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error(e);
       }
     }
-    loadPatients();
+    fetchActivePatients();
+    fetchDoctors();
+    setLoading(false);
   }, []);
 
-  const columns = [
-    { header: 'Nama Pasien', accessor: 'nama' as const },
-    { header: 'NIK', accessor: (row: any) => maskNik(row.nik || '') },
-    { header: 'No Telepon', accessor: 'no_telp' as const },
-    { header: 'Alamat', accessor: 'alamat' as const },
-    { header: 'Status', accessor: (row: any) => <Badge variant="success">Terdaftar</Badge> },
-  ];
+  const fetchActivePatients = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        // Tampilkan semua pasien (meskipun belum diaktivasi / akun baru)
+        const mapped = result.data.map((item) => ({
+          requestId: item.id,
+          patientId: item.patient_id,
+          patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
+          nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
+          walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
+          poli: item.requested_data || "Klinik Umum",
+          status: item.status,
+          approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
+          txHash: item.tx_hash || item.txHash || null,
+          expiryTime: item.expiry_time ? new Date(item.expiry_time).toLocaleDateString("id-ID") : "Selamanya"
+        }));
+        setActivePatients(mapped);
+      }
+    } catch (err) {
+      console.error("Error loading active patients:", err);
+    }
+  };
+
+  const [syncingPatientId, setSyncingPatientId] = useState(null);
+
+  const handleSyncBlockchain = async (patient) => {
+    if (!patient?.requestId) return;
+    setSyncingPatientId(patient.patientId);
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests/${patient.requestId}/sync-blockchain`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        showToast("Data otorisasi NIK pasien berhasil di-upload ulang dan disinkronkan ke blockchain (bc-satudata)!", "success", "Sinkronisasi Blockchain Sukses");
+        fetchActivePatients();
+      } else {
+        showToast(result.message || "Gagal meng-upload ulang data ke blockchain", "error", "Sinkronisasi Gagal");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan koneksi saat sync ke blockchain", "error", "Koneksi Error");
+    } finally {
+      setSyncingPatientId(null);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctors();
+      if (res.success && res.data) {
+        setDoctorsList(res.data);
+        if (res.data.length > 0) {
+          setSelectedDoctorId(res.data[0].id.toString());
+        }
+      }
+    } catch (err) {
+      console.error("Error loading doctors:", err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    router.push("/auth/login");
+  };
+
+  const loadPatientRecords = async (patient, forceSignature = null) => {
+    setLoadingRecords(true);
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    // Use MetaMask or custom signature key for decryption.
+    // If not supplied, we generate a dummy random key (similar to faskes/page.js dashboard)
+    const signature = forceSignature || decryptionKeys[patient.patientId] || "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/patient/${patient.patientId}?signature=${signature}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      if (res.ok && result.data) {
+        setPatientRecords(result.data);
+        setSelectedPatient(patient);
+        // Save the used key for reference
+        setDecryptionKeys(prev => ({ ...prev, [patient.patientId]: signature }));
+        setDecryptionErrors(prev => ({ ...prev, [patient.patientId]: null }));
+      } else {
+        showToast(result.message || "Gagal memuat rekam medis", "error", "Gagal Memuat");
+      }
+    } catch (err) {
+      console.error(err);
+      setDecryptionErrors(prev => ({ ...prev, [patient.patientId]: "Dekripsi Gagal: Kunci Tanda Tangan digital tidak cocok atau data rusak." }));
+    } finally {
+      setLoadingRecords(false);
+    }
+  };
+
+  const generateAutoSignature = (patientId) => {
+    const randSig = "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+    setDecryptionKeys(prev => ({ ...prev, [patientId]: randSig }));
+  };
+
+  const openAddEhrModal = (patient) => {
+    setModalPatient(patient);
+    setRecordTitle("");
+    setEhrSummary("");
+    // Generate a default signature for the upload
+    const defaultSig = decryptionKeys[patient.patientId] || "0x" + Array.from({ length: 130 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+    setEhrSignature(defaultSig);
+
+    // Clear details
+    setUmumDetail({ complaint: "", diagnosis: "", action: "", note_doctor: "" });
+    setLabDetail({ checkup_result: "", reference_values: "", conclusion: "" });
+    setRadiologyDetail({ checkup_result: "", conclusion: "" });
+    setPrescriptionDetail({ list_of_medicines: "", note: "" });
+
+    setIsAddModalOpen(true);
+  };
+
+  const handleAddEhrSubmit = async (e) => {
+    e.preventDefault();
+    if (!recordTitle || !ehrSignature || !selectedDoctorId) {
+      showToast("Harap lengkapi semua field utama dan pilih dokter", "error", "Form Belum Lengkap");
+      return;
+    }
+
+    setSubmittingEhr(true);
+    const token = localStorage.getItem("accessToken");
+
+    let detail = {};
+    if (recordType === "umum") detail = umumDetail;
+    else if (recordType === "lab") detail = labDetail;
+    else if (recordType === "radiologi") detail = radiologyDetail;
+    else if (recordType === "resep") detail = prescriptionDetail;
+
+    const payload = {
+      patientId: modalPatient.patientId,
+      requestId: modalPatient.requestId,
+      recordType,
+      title: recordTitle,
+      visitDate,
+      doctorId: parseInt(selectedDoctorId),
+      summary: ehrSummary,
+      detail,
+      signature: ehrSignature
+    };
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/medical-record`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setSuccessMessage("Rekam Medis Terenkripsi berhasil diunggah ke Blockchain & Database!");
+        // Reload patient records if currently viewing this patient
+        if (selectedPatient && selectedPatient.patientId === modalPatient.patientId) {
+          loadPatientRecords(selectedPatient, ehrSignature);
+        }
+        setTimeout(() => {
+          setIsAddModalOpen(false);
+          setSuccessMessage("");
+        }, 3000);
+      } else {
+        showToast(result.message || "Gagal mengunggah rekam medis", "error", "Gagal Upload");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan koneksi backend", "error", "System Error");
+    } finally {
+      setSubmittingEhr(false);
+    }
+  };
+
+  const maskNik = (nik) => {
+    if (!nik) return "";
+    const str = String(nik);
+    if (str.length < 16) return str;
+    return str.slice(0, 6) + "******" + str.slice(12);
+  };
+
+  const filteredPatients = activePatients.filter(
+    (p) =>
+      p.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.walletAddress.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return <LoadingScreen message="Memuat Data Pasien Terdaftar..." fullScreen={false} />;
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
+          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
+          <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
+            Kembali ke Halaman Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      
+
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Daftar Pasien Faskes</h1>
-        <p className="text-xs text-slate-500 mt-1">Data master pasien terhubung di Faskes ini.</p>
+        
+
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-700/10 blur-3xl" />
+            <div className="relative z-10">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                <Users className="h-8 w-8 text-teal-300" />
+                Data & Rekam Medis Pasien
+              </h1>
+              <p className="text-xs sm:text-sm text-teal-100 mt-2 max-w-2xl leading-relaxed">
+                Kelola data pasien terotorisasi. Tinjau EHR, dekripsi secara aman dengan tanda tangan digital blockchain pasien, dan terbitkan berkas rekam medis terenkripsi baru.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full space-y-6">
+            {/* Active Patient List */}
+            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+              {/* Search Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-teal-800" />
+                    Pasien Terotorisasi Aktif
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Daftar pasien yang memberikan izin akses EHR ke instansi Anda.</p>
+                </div>
+
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari pasien / wallet..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-teal-600 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Patient List Table */}
+              {filteredPatients.length === 0 ? (
+                <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                  <UserPlus className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm font-bold text-slate-600">Tidak Ada Pasien Aktif</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Kirim permohonan akses baru ke NIK/wallet pasien terlebih dahulu di menu "Request Akses".</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                        <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
+                        <th className="py-3 px-4">Tx Hash Otorisasi</th>
+                        <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredPatients.map((patient) => (
+                        <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
+                          <td className="py-4 px-4">
+                            <p className="font-bold text-slate-900">{patient.patientName}</p>
+                            <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
+                          </td>
+                          <td className="py-4 px-4 font-mono text-[10px]">
+                            {patient.txHash ? (
+                              <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1 font-bold text-teal-900" title={patient.txHash}>
+                                <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A] shrink-0" />
+                                <span className="truncate max-w-[140px] font-mono">{patient.txHash}</span>
+                              </TxHashLink>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleSyncBlockchain(patient)}
+                                disabled={syncingPatientId === patient.patientId}
+                                className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-[#D97706] px-2 py-1 text-[10px] font-bold transition cursor-pointer"
+                                title="Upload Ulang ke Blockchain (bc-satudata)"
+                              >
+                                <RefreshCw className={`h-3 w-3 text-[#D97706] ${syncingPatientId === patient.patientId ? "animate-spin" : ""}`} />
+                                <span>{syncingPatientId === patient.patientId ? "Syncing..." : "Upload Ulang (Sync)"}</span>
+                              </button>
+                            )}
+                          </td>
+                          <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                            <Link
+                              href={`/dashboard/faskes/patients/${patient.patientId}`}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-teal-700 hover:text-white hover:border-teal-700 px-3 py-2 font-semibold transition cursor-pointer"
+                            >
+                              <Eye className="h-3.5 w-3.5" /> EHR
+                            </Link>
+                            <button
+                              onClick={() => openAddEhrModal(patient)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-3 py-2 font-bold transition shadow-xs cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" /> Tambah
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="py-12 text-center text-xs text-slate-400 font-semibold">Memuat daftar pasien...</div>
-      ) : (
-        <Table columns={columns} data={patients} emptyMessage="Belum ada pasien terdaftar." />
+      {/* Add EHR Modal */}
+      {isAddModalOpen && modalPatient && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-6 sm:p-8">
+
+            {/* Modal Header */}
+            <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="h-5.5 w-5.5 text-teal-800" />
+                  Tambah Rekam Medis Baru (EHR)
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Pasien: <span className="font-bold text-slate-700">{modalPatient.patientName}</span></p>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold transition text-sm cursor-pointer"
+              >
+                Tutup [X]
+              </button>
+            </div>
+
+            {successMessage ? (
+              <div className="py-12 text-center space-y-3">
+                <CheckCircle className="h-16 w-16 text-teal-800 mx-auto animate-bounce" />
+                <h4 className="text-base font-bold text-slate-800">{successMessage}</h4>
+                <p className="text-xs text-slate-400">Data telah dienkripsi menggunakan kunci otorisasi.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleAddEhrSubmit} className="space-y-6 flex-1">
+                {/* Form Main Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tipe Rekam Medis</label>
+                    <ModernSelect
+                      options={[
+                        { value: "umum", label: "Umum (Pemeriksaan Dokter)" },
+                        { value: "lab", label: "Laboratorium / Tes Darah" },
+                        { value: "radiologi", label: "Radiologi / Rontgen / USG" },
+                        { value: "resep", label: "Resep Obat" },
+                      ]}
+                      value={recordType}
+                      onChange={(val) => setRecordType(val)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Judul Rekam Medis</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Konsultasi Gastritis"
+                      value={recordTitle}
+                      onChange={(e) => setRecordTitle(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tanggal Kunjungan</label>
+                    <input
+                      type="date"
+                      required
+                      value={visitDate}
+                      onChange={(e) => setVisitDate(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Dokter Penanggung Jawab</label>
+                    {doctorsList.length === 0 ? (
+                      <div className="w-full rounded-xl border border-red-200 px-4 py-2 text-xs text-[#DC2626] bg-red-50 font-bold">
+                        Belum ada dokter terdaftar di RS ini!
+                      </div>
+                    ) : (
+                      <ModernSelect
+                        options={doctorsList.map((d) => ({
+                          value: d.id,
+                          label: d.name,
+                          sublabel: d.specialist
+                        }))}
+                        value={selectedDoctorId}
+                        onChange={(val) => setSelectedDoctorId(val)}
+                        icon={Stethoscope}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Ringkasan Klinis (Umum)</label>
+                  <textarea
+                    rows={2}
+                    value={ehrSummary}
+                    onChange={(e) => setEhrSummary(e.target.value)}
+                    placeholder="Tulis ringkasan singkat kondisi pasien..."
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-teal-600 focus:outline-hidden"
+                  />
+                </div>
+
+                {/* Form Encryption Key/Signature */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Kunci Enkripsi (Signature MetaMask Otorisasi)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={ehrSignature}
+                    onChange={(e) => setEhrSignature(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs font-mono bg-slate-50 focus:bg-white focus:border-teal-600 focus:outline-hidden text-slate-700"
+                    placeholder="Signature digital enkripsi"
+                  />
+                  <p className="text-[9px] text-slate-400 mt-1">Gunakan signature MetaMask pasang-non-aktif pasien atau gunakan signature otomatis untuk simulasi.</p>
+                </div>
+
+                {/* Dynamic Details Forms based on recordType */}
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/50 space-y-4">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Detail Rekam Medis (Enkripsi AES-256)</h4>
+
+                  {recordType === "umum" && (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Keluhan Utama</label>
+                        <input
+                          type="text"
+                          value={umumDetail.complaint}
+                          onChange={(e) => setUmumDetail({ ...umumDetail, complaint: e.target.value })}
+                          placeholder="Keluhan utama pasien"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Diagnosis Kerja</label>
+                        <input
+                          type="text"
+                          value={umumDetail.diagnosis}
+                          onChange={(e) => setUmumDetail({ ...umumDetail, diagnosis: e.target.value })}
+                          placeholder="Diagnosis medis"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Tindakan / Terapi</label>
+                        <input
+                          type="text"
+                          value={umumDetail.action}
+                          onChange={(e) => setUmumDetail({ ...umumDetail, action: e.target.value })}
+                          placeholder="Tindakan klinis yang diberikan"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Catatan Tambahan Dokter</label>
+                        <textarea
+                          rows={2}
+                          value={umumDetail.note_doctor}
+                          onChange={(e) => setUmumDetail({ ...umumDetail, note_doctor: e.target.value })}
+                          placeholder="Catatan penunjang kontrol medis"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {recordType === "lab" && (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hasil Pemeriksaan Lab</label>
+                        <textarea
+                          rows={2}
+                          value={labDetail.checkup_result}
+                          onChange={(e) => setLabDetail({ ...labDetail, checkup_result: e.target.value })}
+                          placeholder="Contoh: Hb 14.2 g/dL, Kolesterol 190 mg/dL"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nilai Rujukan</label>
+                        <input
+                          type="text"
+                          value={labDetail.reference_values}
+                          onChange={(e) => setLabDetail({ ...labDetail, reference_values: e.target.value })}
+                          placeholder="Contoh: Hb 13.5-17.5 g/dL"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Kesimpulan Lab</label>
+                        <input
+                          type="text"
+                          value={labDetail.conclusion}
+                          onChange={(e) => setLabDetail({ ...labDetail, conclusion: e.target.value })}
+                          placeholder="Kesimpulan hasil tes laboratorium"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {recordType === "radiologi" && (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Temuan / Hasil Pemeriksaan Radiologi</label>
+                        <textarea
+                          rows={2}
+                          value={radiologyDetail.checkup_result}
+                          onChange={(e) => setRadiologyDetail({ ...radiologyDetail, checkup_result: e.target.value })}
+                          placeholder="Contoh: Cor dan Pulmo dalam batas normal"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Kesimpulan Radiologi</label>
+                        <input
+                          type="text"
+                          value={radiologyDetail.conclusion}
+                          onChange={(e) => setRadiologyDetail({ ...radiologyDetail, conclusion: e.target.value })}
+                          placeholder="Kesimpulan rontgen/USG"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {recordType === "resep" && (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Daftar Obat & Dosis</label>
+                        <textarea
+                          rows={2}
+                          value={prescriptionDetail.list_of_medicines}
+                          onChange={(e) => setPrescriptionDetail({ ...prescriptionDetail, list_of_medicines: e.target.value })}
+                          placeholder="Contoh: Amoxicillin 500mg 3x1 (Habiskan), Paracetamol 500mg 3x1 (Bila perlu)"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Catatan Penggunaan</label>
+                        <input
+                          type="text"
+                          value={prescriptionDetail.note}
+                          onChange={(e) => setPrescriptionDetail({ ...prescriptionDetail, note: e.target.value })}
+                          placeholder="Aturan makan / instruksi khusus resep"
+                          className="w-full rounded-lg border border-slate-200 px-3 py-1.5 bg-white text-xs focus:border-teal-600 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Form Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 px-5 py-2.5 text-xs font-bold transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingEhr || doctorsList.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {submittingEhr ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    Upload EHR Terenkripsi
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
       )}
+      <Toast toast={toast} onClose={() => setToast({ show: false })} />
     </div>
   );
 }

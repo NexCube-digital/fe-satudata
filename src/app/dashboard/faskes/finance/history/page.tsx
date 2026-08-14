@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import Script from "next/script";
 import {
   History,
@@ -274,23 +272,23 @@ export default function FaskesPatientInvoiceHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
+    <div className="space-y-6">
       <Script
         src={process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""}
         strategy="lazyOnload"
       />
-      <Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/login")} />
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      
+      <div>
+        
+        <div className="space-y-6">
           {/* Header Banner */}
           <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-950 p-6 sm:p-8 text-white shadow-xl mb-8">
             <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-600/15 blur-3xl" />
@@ -753,7 +751,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
               </div>
             </div>
           )}
-        </main>
+        </div>
       </div>
     </div>
   );

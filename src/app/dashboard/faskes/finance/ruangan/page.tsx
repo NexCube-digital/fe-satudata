@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
 import { notify } from "@/lib/notify";
 import ModernSelect from "@/components/ui/ModernSelect";
@@ -90,13 +88,13 @@ export default function RuanganFinancePage() {
 	const [roomFilter, setRoomFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage] = useState(10);
-	const [toast, setToast] = useState<any>({ show: false });
+	const [toast, setToast] = useState({ show: false });
 	const [deletingId, setDeletingId] = useState(null);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingItem, setEditingItem] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState<Record<string, any>>({});
+	const [formErrors, setFormErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
 
 	// NOTE: apiFetch melempar error kalau gagal dan tidak pernah mengirim
@@ -257,7 +255,7 @@ export default function RuanganFinancePage() {
 	};
 
 	const validate = () => {
-		const errors: Record<string, string> = {};
+		const errors = {};
 		if (!form.service_unit_id) errors.service_unit_id = "Kamar/ruangan wajib dipilih.";
 		if (!form.name.trim()) errors.name = "Nama tipe kamar wajib diisi.";
 		if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) {
@@ -319,18 +317,18 @@ export default function RuanganFinancePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-slate-50">
+			<div className="space-y-6">
 				<RefreshCw className="h-8 w-8 animate-spin text-cyan-800" />
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
-			<Navbar user={user} roleLabel="Staf Keuangan Faskes" onLogout={() => router.push("/login")} />
-			<div className="flex flex-1">
-				<Sidebar role="faskes" />
-				<main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+		<div className="space-y-6">
+			
+			<div>
+				
+				<div className="space-y-6">
 					{/* Header Banner */}
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
 						<div className="flex-1 min-w-0">
@@ -828,7 +826,7 @@ export default function RuanganFinancePage() {
 					)}
 
 					<Toast toast={toast} onClose={() => setToast({ show: false })} />
-				</main>
+				</div>
 			</div>
 
 			<style jsx global>{`

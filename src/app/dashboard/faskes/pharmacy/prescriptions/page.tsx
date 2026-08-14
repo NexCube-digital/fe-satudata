@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/layout/Sidebar";
-import Navbar from "@/components/layout/Navbar";
 import { apiGet, apiPut } from "@/lib/api";
 import { 
   FileText, 
@@ -125,7 +123,7 @@ export default function PrescriptionsPage() {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   const fetchPrescriptions = async () => {
@@ -182,13 +180,13 @@ export default function PrescriptionsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0 font-sans text-slate-900">
-      <Navbar user={user} roleLabel="Staf Farmasi & Apotek" onLogout={handleLogout} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6">
+        <div className="space-y-6">
           {/* Top Title Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -353,7 +351,7 @@ export default function PrescriptionsPage() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Modal Detail Resep */}

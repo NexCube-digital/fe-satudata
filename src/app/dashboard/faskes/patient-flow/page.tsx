@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
 import {
   Activity,
@@ -266,20 +264,20 @@ export default function FaskesPatientFlowPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+      <div className="space-y-6">
         <RefreshCw className="h-8 w-8 animate-spin text-teal-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] flex flex-col pb-16 md:pb-0">
-      <Navbar user={user} roleLabel="Staf Rumah Sakit / Faskes" onLogout={() => router.push("/login")} />
+    <div className="space-y-6">
+      
 
-      <div className="flex flex-1">
-        <Sidebar role="faskes" />
+      <div>
+        
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="space-y-6">
           {/* Toast Alert Notification */}
           {toastMessage && (
             <div className="fixed top-20 right-6 z-50 rounded-2xl bg-emerald-900 text-white px-5 py-3.5 shadow-2xl border border-emerald-700 flex items-center gap-3 animate-fade-in text-xs font-bold">
@@ -524,7 +522,7 @@ export default function FaskesPatientFlowPage() {
               })
             )}
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

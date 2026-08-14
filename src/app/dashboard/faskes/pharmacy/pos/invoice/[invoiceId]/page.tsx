@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Script from "next/script";
-import Sidebar from "@/components/layout/Sidebar";
-import Navbar from "@/components/layout/Navbar";
 import { apiGet } from "@/lib/api";
 import { payInvoiceMidtrans } from "@/services/invoiceService";
 import { ArrowLeft, Loader2, AlertTriangle, CreditCard, RefreshCw } from "lucide-react";
@@ -159,7 +157,7 @@ export default function PharmacyPOSInvoicePage() {
 
   if (!invoiceId) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+    <div className="space-y-6">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <AlertTriangle className="mx-auto h-12 w-12 text-[#DC2626]" />
           <h1 className="mt-4 text-xl font-bold text-slate-900">Invoice tidak ditemukan</h1>
@@ -177,16 +175,16 @@ export default function PharmacyPOSInvoicePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="space-y-6">
         <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
         strategy="afterInteractive"
         onLoad={() => setMidtransReady(true)}
       />
-      <Sidebar role={user?.role || "staf_rs"} />
+      
       <div className="flex flex-1 flex-col transition-all duration-300">
-        <Navbar />
+        
 
         <main className="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
