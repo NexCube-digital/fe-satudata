@@ -1,5 +1,11 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 
+const AGGREGATED_ENDPOINT = "/api/service/service-prices";
+const LEGACY_ENDPOINTS = {
+  medis: "/api/service/service-price-medis",
+  klinik: "/api/service/service-price-klinik",
+};
+
 const normalizeLegacyItem = (item, source = "medis") => {
   if (!item || typeof item !== "object") return item;
 
@@ -35,8 +41,24 @@ const extractArray = (response) => {
   return [];
 };
 
+const withFallback = async (primaryCall, fallbackCall) => {
+  try {
+    return await primaryCall();
+  } catch (error) {
+    const status = Number(error?.status || 0);
+    if (status === 404 || status === 405 || status === 400) {
+      return fallbackCall();
+    }
+    throw error;
+  }
+};
+
 export const getServicePriceMedis = async (params = {}) => {
-  const response = await apiGet("/api/service/service-price-medis", params);
+  const response = await withFallback(
+    () => apiGet(AGGREGATED_ENDPOINT, { ...params, source: "medis" }),
+    () => apiGet(LEGACY_ENDPOINTS.medis, params)
+  );
+
   return {
     ...response,
     data: extractArray(response).map((item) => normalizeLegacyItem(item, "medis")),
@@ -44,7 +66,11 @@ export const getServicePriceMedis = async (params = {}) => {
 };
 
 export const getServicePriceKlinik = async (params = {}) => {
-  const response = await apiGet("/api/service/service-price-klinik", params);
+  const response = await withFallback(
+    () => apiGet(AGGREGATED_ENDPOINT, { ...params, source: "klinik" }),
+    () => apiGet(LEGACY_ENDPOINTS.klinik, params)
+  );
+
   return {
     ...response,
     data: extractArray(response).map((item) => normalizeLegacyItem(item, "klinik")),
@@ -52,9 +78,15 @@ export const getServicePriceKlinik = async (params = {}) => {
 };
 
 export const getServicePrices = async (params = {}) => {
+  const { source, ...rest } = params;
+
+  if (source) {
+    return source === "klinik" ? getServicePriceKlinik(rest) : getServicePriceMedis(rest);
+  }
+
   const [medis, klinik] = await Promise.all([
-    getServicePriceMedis(params),
-    getServicePriceKlinik(params),
+    getServicePriceMedis(rest),
+    getServicePriceKlinik(rest),
   ]);
 
   const allItems = [...extractArray(medis), ...extractArray(klinik)];
@@ -72,39 +104,80 @@ export const getServicePrices = async (params = {}) => {
   };
 };
 
-export const getServicePriceById = async (id) => {
-  const response = await apiGet(`/api/service/service-price-medis/${id}`);
-  if (response?.success || response?.id) {
-    return { ...response, data: normalizeLegacyItem(response.data || response, "medis") };
-  }
+export const getServicePriceById = async (id, source = "medis") => {
+  const response = await withFallback(
+    () => apiGet(`${AGGREGATED_ENDPOINT}/${id}`, { source }),
+    () => apiGet(`${LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis}/${id}`)
+  );
 
-  const klinikResponse = await apiGet(`/api/service/service-price-klinik/${id}`);
-  if (klinikResponse?.success || klinikResponse?.id) {
-    return { ...klinikResponse, data: normalizeLegacyItem(klinikResponse.data || klinikResponse, "klinik") };
+  if (response?.success || response?.id) {
+    return { ...response, data: normalizeLegacyItem(response.data || response, source) };
   }
 
   return response;
 };
 
-export const createServicePrice = async (payload) => {
-  const response = await apiPost("/api/service/service-price-medis", payload);
-  if (response?.success || response?.id) return response;
+const normalizeCreateArgs = (sourceOrPayload, maybePayload) => {
+  if (sourceOrPayload && typeof sourceOrPayload === "object" && !Array.isArray(sourceOrPayload)) {
+    const payload = { ...sourceOrPayload };
+    return { source: payload.source || "medis", payload };
+  }
 
-  return apiPost("/api/service/service-price-klinik", payload);
+  return {
+    source: sourceOrPayload || "medis",
+    payload: maybePayload || {},
+  };
 };
 
-export const updateServicePrice = async (id, payload) => {
-  const response = await apiPut(`/api/service/service-price-medis/${id}`, payload);
-  if (response?.success || response?.id) return response;
+const normalizeUpdateArgs = (sourceOrId, idOrPayload, maybePayload) => {
+  if (typeof sourceOrId === "number" || typeof sourceOrId === "string") {
+    return {
+      source: maybePayload?.source || "medis",
+      id: Number(sourceOrId),
+      payload: idOrPayload || {},
+    };
+  }
 
-  return apiPut(`/api/service/service-price-klinik/${id}`, payload);
+  const payload = { ...sourceOrId };
+  return {
+    source: payload.source || "medis",
+    id: Number(idOrPayload || payload.id),
+    payload,
+  };
 };
 
-export const deleteServicePrice = async (id) => {
-  const response = await apiDelete(`/api/service/service-price-medis/${id}`);
-  if (response?.success || response?.id) return response;
+export const createServicePrice = async (sourceOrPayload, maybePayload) => {
+  const { source, payload } = normalizeCreateArgs(sourceOrPayload, maybePayload);
+  return withFallback(
+    () => apiPost(AGGREGATED_ENDPOINT, { ...payload, source }),
+    () => apiPost(LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis, payload)
+  );
+};
 
-  return apiDelete(`/api/service/service-price-klinik/${id}`);
+export const updateServicePrice = async (sourceOrId, idOrPayload, maybePayload) => {
+  const { source, id, payload } = normalizeUpdateArgs(sourceOrId, idOrPayload, maybePayload);
+  return withFallback(
+    () => apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source }),
+    () => apiPut(`${LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis}/${id}`, payload)
+  );
+};
+
+export const deleteServicePrice = async (sourceOrId, maybeId) => {
+  if (typeof sourceOrId === "number" || typeof sourceOrId === "string") {
+    const source = maybeId && typeof maybeId === "string" ? maybeId : "medis";
+    return withFallback(
+      () => apiDelete(`${AGGREGATED_ENDPOINT}/${sourceOrId}?source=${source}`),
+      () => apiDelete(`${LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis}/${sourceOrId}`)
+    );
+  }
+
+  const item = sourceOrId && typeof sourceOrId === "object" ? sourceOrId : {};
+  const source = item.source || "medis";
+  const id = Number(item.id ?? maybeId ?? 0);
+  return withFallback(
+    () => apiDelete(`${AGGREGATED_ENDPOINT}/${id}?source=${source}`),
+    () => apiDelete(`${LEGACY_ENDPOINTS[source] || LEGACY_ENDPOINTS.medis}/${id}`)
+  );
 };
 
 export default {

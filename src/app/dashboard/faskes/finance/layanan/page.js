@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
@@ -28,6 +28,8 @@ import {
 	Layers,
 	ChevronLeft,
 	ChevronRight,
+	Tag,
+	DollarSign,
 } from "lucide-react";
 
 const CATEGORY_LABEL = {
@@ -43,6 +45,15 @@ const CATEGORY_BADGE = {
 	penunjang: "bg-cyan-50 text-cyan-800 border-cyan-200",
 	ruangan: "bg-amber-50 text-[#B45309] border-amber-200",
 };
+
+const formatRupiah = (value) =>
+	new Intl.NumberFormat("id-ID", {
+		style: "currency",
+		currency: "IDR",
+		maximumFractionDigits: 0,
+	}).format(value || 0);
+
+const emptyForm = { code: "", name: "", category: "utama", price: "", status: "active" };
 
 export default function ServiceUnitPage() {
 	const router = useRouter();
@@ -68,7 +79,7 @@ export default function ServiceUnitPage() {
 	// Form state
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editing, setEditing] = useState(null);
-	const [form, setForm] = useState({ name: "", category: "utama", status: "active" });
+	const [form, setForm] = useState(emptyForm);
 	const [formErrors, setFormErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
 	const [deletingId, setDeletingId] = useState(null);
@@ -91,18 +102,18 @@ export default function ServiceUnitPage() {
 			// Debug: log response structure
 			console.log("[DEBUG] spRes:", spRes);
 			console.log("[DEBUG] uRes:", uRes);
-			
+
 			// Extract data dengan lebih robust
 			const priceData = spRes?.data || [];
 			const unitData = uRes?.data || [];
-			
+
 			// Ensure data adalah array
 			const pricesArray = Array.isArray(priceData) ? priceData : [];
 			const unitsArray = Array.isArray(unitData) ? unitData : [];
-			
+
 			console.log("[DEBUG] Setting servicePrices:", pricesArray.length, "items");
 			console.log("[DEBUG] Setting units:", unitsArray.length, "items");
-			
+
 			setServicePrices(pricesArray);
 			setUnits(unitsArray);
 		} catch (err) {
@@ -122,7 +133,7 @@ export default function ServiceUnitPage() {
 	const filteredUnits = units.filter((u) => {
 		const q = searchTerm.trim().toLowerCase();
 		if (q) {
-			const haystack = `${u.name || ""} ${u.category || ""}`.toLowerCase();
+			const haystack = `${u.name || ""} ${u.category || ""} ${u.code || ""}`.toLowerCase();
 			if (!haystack.includes(q)) return false;
 		}
 		if (statusFilter === "active") return u.status === "active";
@@ -135,19 +146,54 @@ export default function ServiceUnitPage() {
 	const safeCurrentPage = Math.min(currentPage, totalPages);
 	const paginatedUnits = filteredUnits.slice((safeCurrentPage - 1) * perPage, safeCurrentPage * perPage);
 
+	// Nomor halaman dipadatkan (contoh: 1, 2, 3 ... 10) supaya tidak render
+	// semua nomor halaman saat datanya banyak.
+	const pageNumbers = useMemo(() => {
+		const delta = 1;
+		const range = [];
+		const withDots = [];
+		let last;
+
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= safeCurrentPage - delta && i <= safeCurrentPage + delta)) {
+				range.push(i);
+			}
+		}
+
+		range.forEach((i) => {
+			if (last !== undefined) {
+				if (i - last === 2) {
+					withDots.push(last + 1);
+				} else if (i - last !== 1) {
+					withDots.push("...");
+				}
+			}
+			withDots.push(i);
+			last = i;
+		});
+
+		return withDots;
+	}, [totalPages, safeCurrentPage]);
+
 	const activeCount = units.filter((i) => i.status === "active").length;
 	const avgComponents = units.length === 0 ? 0 : Math.round(servicePrices.length / units.length);
 
 	const openAdd = () => {
 		setEditing(null);
-		setForm({ name: "", category: "utama", status: "active" });
+		setForm({ ...emptyForm });
 		setFormErrors({});
 		setIsModalOpen(true);
 	};
 
 	const openEdit = (item) => {
 		setEditing(item);
-		setForm({ name: item.name || "", category: item.category || "utama", status: item.status || "active" });
+		setForm({
+			code: item.code || "",
+			name: item.name || "",
+			category: item.category || "utama",
+			price: item.price !== undefined && item.price !== null ? String(item.price) : "",
+			status: item.status || "active",
+		});
 		setFormErrors({});
 		setIsModalOpen(true);
 	};
@@ -161,6 +207,9 @@ export default function ServiceUnitPage() {
 		const errors = {};
 		if (!form.name.trim()) errors.name = "Nama unit wajib diisi.";
 		else if (form.name.trim().length < 3) errors.name = "Nama unit minimal 3 karakter.";
+		if (form.price !== "" && (isNaN(Number(form.price)) || Number(form.price) < 0)) {
+			errors.price = "Harga harus berupa angka dan tidak boleh negatif.";
+		}
 		setFormErrors(errors);
 		return Object.keys(errors).length === 0;
 	};
@@ -172,8 +221,10 @@ export default function ServiceUnitPage() {
 		setSubmitting(true);
 		try {
 			const payload = {
+				code: form.code.trim() || null,
 				name: form.name.trim(),
 				category: form.category,
+				price: form.price === "" ? 0 : Number(form.price),
 				status: form.status,
 			};
 
@@ -301,7 +352,7 @@ export default function ServiceUnitPage() {
 								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
 								<input
 									type="text"
-									placeholder="Cari nama atau kategori unit layanan..."
+									placeholder="Cari nama, kode, atau kategori unit layanan..."
 									value={searchTerm}
 									onChange={(e) => {
 										setSearchTerm(e.target.value);
@@ -351,8 +402,10 @@ export default function ServiceUnitPage() {
 								<table className="w-full text-left text-xs border-collapse">
 									<thead>
 										<tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50">
+											<th className="py-3 px-4">Kode</th>
 											<th className="py-3 px-4">Nama Unit</th>
 											<th className="py-3 px-4">Kategori</th>
+											<th className="py-3 px-4 text-right">Harga</th>
 											<th className="py-3 px-4">Status</th>
 											<th className="py-3 px-4">Komponen Tarif</th>
 											<th className="py-3 px-4 text-right">Aksi</th>
@@ -363,6 +416,7 @@ export default function ServiceUnitPage() {
 											const unitPrices = getUnitPrices(u.id, servicePrices);
 											return (
 												<tr key={u.id} className="hover:bg-slate-50/60 transition">
+													<td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">{u.code || "-"}</td>
 													<td className="py-4 px-4 font-bold text-slate-900">{u.name}</td>
 													<td className="py-4 px-4">
 														<span
@@ -370,6 +424,9 @@ export default function ServiceUnitPage() {
 														>
 															{CATEGORY_LABEL[u.category] || u.category}
 														</span>
+													</td>
+													<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
+														{formatRupiah(u.price)}
 													</td>
 													<td className="py-4 px-4">
 														<span
@@ -400,6 +457,12 @@ export default function ServiceUnitPage() {
 														</div>
 													</td>
 													<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+														<button
+															onClick={() => router.push(`/dashboard/faskes/finance/layanan/sublayanan?unitId=${u.id}&unitName=${encodeURIComponent(u.name)}&category=${u.category}`)}
+															className="rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
+														>
+															<Layers className="h-3.5 w-3.5" /> Sub Layanan
+														</button>
 														<button
 															onClick={() => openEdit(u)}
 															className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
@@ -440,17 +503,26 @@ export default function ServiceUnitPage() {
 									>
 										<ChevronLeft className="h-3.5 w-3.5" />
 									</button>
-									{Array.from({ length: totalPages }).map((_, i) => (
-										<button
-											key={i}
-											onClick={() => setCurrentPage(i + 1)}
-											className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
-												safeCurrentPage === i + 1 ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-											}`}
-										>
-											{i + 1}
-										</button>
-									))}
+									{pageNumbers.map((p, idx) =>
+										p === "..." ? (
+											<span
+												key={`dots-${idx}`}
+												className="h-8 w-8 flex items-center justify-center text-slate-400 text-[11px] font-bold select-none"
+											>
+												…
+											</span>
+										) : (
+											<button
+												key={p}
+												onClick={() => setCurrentPage(p)}
+												className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
+													safeCurrentPage === p ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+												}`}
+											>
+												{p}
+											</button>
+										)
+									)}
 									<button
 										disabled={safeCurrentPage === totalPages}
 										onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -471,10 +543,10 @@ export default function ServiceUnitPage() {
 						>
 							<div
 								onClick={(e) => e.stopPropagation()}
-								className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-[scaleIn_.15s_ease-out]"
+								className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-[scaleIn_.15s_ease-out] max-h-[90vh] flex flex-col"
 							>
 								{/* Modal Header */}
-								<div className="relative bg-gradient-to-r from-teal-700 to-cyan-800 px-6 sm:px-8 py-6">
+								<div className="relative bg-gradient-to-r from-teal-700 to-cyan-800 px-6 sm:px-8 py-6 shrink-0">
 									<button
 										onClick={closeModal}
 										disabled={submitting}
@@ -498,7 +570,33 @@ export default function ServiceUnitPage() {
 								</div>
 
 								{/* Modal Body */}
-								<form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-5">
+								<form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-5 overflow-y-auto">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										<div>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode Unit</label>
+											<input
+												value={form.code}
+												onChange={(e) => setForm({ ...form, code: e.target.value })}
+												placeholder="Contoh: UNIT-IGD-01"
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+											/>
+										</div>
+
+										<div>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kategori</label>
+											<select
+												value={form.category}
+												onChange={(e) => setForm({ ...form, category: e.target.value })}
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+											>
+												<option value="utama">Utama</option>
+												<option value="penunjang">Penunjang</option>
+												<option value="ruangan">Ruangan</option>
+												<option value="admin">Admin</option>
+											</select>
+										</div>
+									</div>
+
 									<div>
 										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
 											Nama Unit <span className="text-[#DC2626]">*</span>
@@ -523,17 +621,32 @@ export default function ServiceUnitPage() {
 
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kategori</label>
-											<select
-												value={form.category}
-												onChange={(e) => setForm({ ...form, category: e.target.value })}
-												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
-											>
-												<option value="utama">Utama</option>
-												<option value="penunjang">Penunjang</option>
-												<option value="ruangan">Ruangan</option>
-												<option value="admin">Admin</option>
-											</select>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Harga (Rp)</label>
+											<div className="relative">
+												<span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400">Rp</span>
+												<input
+													type="number"
+													min="0"
+													step="1000"
+													value={form.price}
+													onChange={(e) => {
+														setForm({ ...form, price: e.target.value });
+														if (formErrors.price) setFormErrors({ ...formErrors, price: null });
+													}}
+													placeholder="0"
+													className={`w-full rounded-2xl border pl-10 pr-4 py-2.5 text-xs font-mono font-bold focus:outline-hidden transition ${
+														formErrors.price
+															? "border-red-300 bg-red-50/40 focus:border-red-500"
+															: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
+													}`}
+												/>
+											</div>
+											{formErrors.price && (
+												<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.price}</p>
+											)}
+											{!formErrors.price && form.price !== "" && !isNaN(Number(form.price)) && (
+												<p className="text-[10px] text-slate-400 font-medium mt-1">{formatRupiah(Number(form.price))}</p>
+											)}
 										</div>
 
 										<div>

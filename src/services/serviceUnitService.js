@@ -1,44 +1,101 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 
-// Robust array extraction from various response formats
+const UNIT_ENDPOINT = "/api/service/service-units";
+const LEGACY_ROOM_ENDPOINT = "/api/service/service-units/ruangan";
+
+// Ekstrak array dari berbagai kemungkinan bentuk response
 const extractArray = (response) => {
 	if (!response) return [];
 	if (Array.isArray(response)) return response;
-	// Try common field names for array data
 	if (Array.isArray(response.data)) return response.data;
 	if (Array.isArray(response.items)) return response.items;
 	if (Array.isArray(response.results)) return response.results;
-	// If response.data is nested object, try to extract from it
-	if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+	if (response.data && typeof response.data === "object" && !Array.isArray(response.data)) {
 		if (Array.isArray(response.data.data)) return response.data.data;
 		if (Array.isArray(response.data.items)) return response.data.items;
 	}
 	return [];
 };
 
-export const getServiceUnits = async (params = {}) => {
-	const res = await apiGet("/api/service/service-units", params);
-	// Ensure data field is always an array
+// Ambil info pagination dari response, dari berbagai kemungkinan lokasi nesting
+const extractPagination = (response) => {
+	return response?.data?.pagination || response?.pagination || null;
+};
+
+const fetchAllPages = async (endpoint, params = {}) => {
+	const callerSpecifiedPaging = params.limit !== undefined || params.offset !== undefined || params.page !== undefined;
+
+	if (callerSpecifiedPaging) {
+		return apiGet(endpoint, params);
+	}
+
+	const pageSize = 100;
+	let offset = 0;
+	let all = [];
+	let total = Infinity;
+	let lastRes = null;
+
+	while (offset < total) {
+		const res = await apiGet(endpoint, { ...params, limit: pageSize, offset });
+		lastRes = res;
+		const rows = extractArray(res);
+		all = all.concat(rows);
+
+		const pagination = extractPagination(res);
+		total = pagination?.total ?? rows.length;
+
+		if (rows.length === 0) break;
+		offset += pageSize;
+	}
+
 	return {
-		...res,
-		data: extractArray(res)
+		...(lastRes || {}),
+		data: { data: all, pagination: extractPagination(lastRes) },
 	};
 };
 
+const fallbackIfNeeded = async (callPrimary, callFallback) => {
+	try {
+		return await callPrimary();
+	} catch (error) {
+		const status = Number(error?.status || 0);
+		if (status === 404 || status === 405 || status === 400) {
+			return callFallback();
+		}
+		throw error;
+	}
+};
+
+export const getServiceUnits = async (params = {}) => {
+	const res = await fetchAllPages(UNIT_ENDPOINT, params);
+	return { ...res, data: extractArray(res) };
+};
+
+// Unit layanan khusus kategori "ruangan". Backend baru memfilter lewat query param,
+// sementara backend lama masih punya endpoint dedicated, jadi kita tetap support fallback.
+export const getRuanganUnits = async (params = {}) => {
+	const res = await fallbackIfNeeded(
+		() => fetchAllPages(UNIT_ENDPOINT, { ...params, category: "ruangan" }),
+		() => fetchAllPages(LEGACY_ROOM_ENDPOINT, params)
+	);
+	return { ...res, data: extractArray(res) };
+};
+
 export const getServiceUnitById = (id) =>
-	apiGet(`/api/service/service-units/${id}`);
+	apiGet(`${UNIT_ENDPOINT}/${id}`);
 
 export const createServiceUnit = (payload) =>
-	apiPost("/api/service/service-units", payload);
+	apiPost(UNIT_ENDPOINT, payload);
 
 export const updateServiceUnit = (id, payload) =>
-	apiPut(`/api/service/service-units/${id}`, payload);
+	apiPut(`${UNIT_ENDPOINT}/${id}`, payload);
 
 export const deleteServiceUnit = (id) =>
-	apiDelete(`/api/service/service-units/${id}`);
+	apiDelete(`${UNIT_ENDPOINT}/${id}`);
 
 export default {
 	getServiceUnits,
+	getRuanganUnits,
 	getServiceUnitById,
 	createServiceUnit,
 	updateServiceUnit,

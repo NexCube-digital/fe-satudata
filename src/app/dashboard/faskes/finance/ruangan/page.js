@@ -185,6 +185,35 @@ export default function RuanganFinancePage() {
 	const safeCurrentPage = Math.min(currentPage, totalPages);
 	const paginatedPrices = filteredPrices.slice((safeCurrentPage - 1) * perPage, safeCurrentPage * perPage);
 
+	// Nomor halaman yang ditampilkan dipadatkan (contoh: 1, 2, 3 ... 10)
+	// supaya tidak render semua nomor halaman saat datanya banyak.
+	const pageNumbers = useMemo(() => {
+		const delta = 1;
+		const range = [];
+		const withDots = [];
+		let last;
+
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= safeCurrentPage - delta && i <= safeCurrentPage + delta)) {
+				range.push(i);
+			}
+		}
+
+		range.forEach((i) => {
+			if (last !== undefined) {
+				if (i - last === 2) {
+					withDots.push(last + 1);
+				} else if (i - last !== 1) {
+					withDots.push("...");
+				}
+			}
+			withDots.push(i);
+			last = i;
+		});
+
+		return withDots;
+	}, [totalPages, safeCurrentPage]);
+
 	const vipCount = useMemo(
 		() => roomPrices.filter((i) => /vip|utama/i.test(i.name || "")).length,
 		[roomPrices]
@@ -539,17 +568,26 @@ export default function RuanganFinancePage() {
 									>
 										<ChevronLeft className="h-3.5 w-3.5" />
 									</button>
-									{Array.from({ length: totalPages }).map((_, i) => (
-										<button
-											key={i}
-											onClick={() => setCurrentPage(i + 1)}
-											className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
-												safeCurrentPage === i + 1 ? "bg-cyan-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-											}`}
-										>
-											{i + 1}
-										</button>
-									))}
+									{pageNumbers.map((p, idx) =>
+										p === "..." ? (
+											<span
+												key={`dots-${idx}`}
+												className="h-8 w-8 flex items-center justify-center text-slate-400 text-[11px] font-bold select-none"
+											>
+												…
+											</span>
+										) : (
+											<button
+												key={p}
+												onClick={() => setCurrentPage(p)}
+												className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
+													safeCurrentPage === p ? "bg-cyan-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+												}`}
+											>
+												{p}
+											</button>
+										)
+									)}
 									<button
 										disabled={safeCurrentPage === totalPages}
 										onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
