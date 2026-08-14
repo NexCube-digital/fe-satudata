@@ -78,7 +78,7 @@ export const DoctorsShowcase: React.FC = () => {
         </div>
 
         <Link
-          href="/faskes"
+          href="/doctor"
           className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 hover:border-teal-300 hover:text-teal-800 hover:bg-teal-50/50 transition cursor-pointer self-start md:self-auto shadow-2xs"
         >
           Lihat Semua Dokter <ArrowRight className="h-4 w-4" />

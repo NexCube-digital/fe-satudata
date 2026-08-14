@@ -1,6 +1,6 @@
 import React from 'react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/LandingFooter';
+import LandingNavbar from '@/components/layout/LandingNavbar';
+import LandingFooter from '@/components/layout/LandingFooter';
 
 export default function FAQPage() {
   const faqs = [
@@ -20,8 +20,8 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar />
-      <main className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
+      <LandingNavbar />
+      <main className="flex-1 max-w-4xl mx-auto px-6 pt-28 sm:pt-32 pb-12 w-full">
         <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Frequently Asked Questions (FAQ)</h1>
         <p className="text-sm text-slate-500 mb-8">Pertanyaan yang sering diajukan mengenai sistem SatuData & EMR Blockchain.</p>
 
@@ -34,7 +34,7 @@ export default function FAQPage() {
           ))}
         </div>
       </main>
-      <Footer />
+      <LandingFooter />
     </div>
   );
 }
