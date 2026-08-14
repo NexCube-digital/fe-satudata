@@ -117,6 +117,28 @@ export default function Sidebar({ role }: SidebarProps) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Auto expand parent dropdown when an active child route is visited
+  useEffect(() => {
+    const items = getMenuItems();
+    setOpenDropdowns((prev) => {
+      const next = { ...prev };
+      let updated = false;
+
+      items.forEach((item, index) => {
+        if (item.children && item.children.length > 0) {
+          const key = item.dropdownKey || `dropdown_${index}`;
+          const isChildActive = item.children.some((child) => isRouteActive(pathname, child.href));
+          if (isChildActive && !next[key]) {
+            next[key] = true;
+            updated = true;
+          }
+        }
+      });
+
+      return updated ? next : prev;
+    });
+  }, [pathname, role]);
+
   const toggleCollapse = () => {
     setIsCollapsed(prev => {
       const nextState = !prev;
@@ -567,17 +589,18 @@ export default function Sidebar({ role }: SidebarProps) {
                   return (
                     <div key={key} className="space-y-1">
                       <button
+                        type="button"
                         onClick={() => toggleDropdown(key)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isAnyChildActive
-                            ? "bg-teal-50/80 text-teal-900 border border-teal-100"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-teal-50/90 text-teal-950 border border-teal-200/80 shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 overflow-hidden">
-                          <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+                          <div className={`h-7 w-7 rounded-xl flex items-center justify-center border transition-all duration-200 shrink-0 ${
                             isAnyChildActive
-                              ? "bg-teal-700 border-teal-600 text-white"
+                              ? "bg-gradient-to-r from-teal-700 to-cyan-800 border-teal-600 text-white shadow-xs"
                               : "bg-slate-100 border-slate-200 text-slate-500"
                           }`}>
                             <Icon className="h-3.5 w-3.5" />
@@ -587,55 +610,63 @@ export default function Sidebar({ role }: SidebarProps) {
 
                         <div className="flex items-center gap-1.5 shrink-0">
                           {item.badge && (
-                            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                            <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
                               isAnyChildActive
-                                ? "bg-teal-200/60 text-teal-900"
+                                ? "bg-teal-200/70 text-teal-950 border border-teal-300"
                                 : "bg-slate-100 text-slate-500 border border-slate-200"
                             }`}>
                               {item.badge}
                             </span>
                           )}
-                          <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-teal-700" : "text-slate-400"}`} />
                         </div>
                       </button>
 
-                      {/* Expandable Submenu */}
-                      {isOpen && (
-                        <div className="pl-9 pr-1 py-1 space-y-1 border-l-2 border-slate-100 ml-5">
-                          {item.children?.map((child) => {
-                            const ChildIcon = child.icon;
-                            const isChildItemActive = isRouteActive(pathname, child.href);
+                      {/* Smooth Height Expandable Submenu */}
+                      <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 my-1" : "grid-rows-[0fr] opacity-0 overflow-hidden"}`}>
+                        <div className="overflow-hidden">
+                          <div className="pl-4 pr-1 py-1 space-y-1.5 border-l-2 border-teal-500/30 ml-5">
+                            {item.children?.map((child) => {
+                              const ChildIcon = child.icon;
+                              const isChildItemActive = isRouteActive(pathname, child.href);
 
-                            return (
-                              <Link
-                                key={child.href}
-                                href={child.href}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all ${
-                                  isChildItemActive
-                                    ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm shadow-teal-900/10"
-                                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                  {ChildIcon && (
-                                    <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
-                                  )}
-                                  <span className="truncate">{child.label}</span>
-                                </div>
-                                {child.badge && (
-                                  <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold shrink-0 ${
+                              return (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                                     isChildItemActive
-                                      ? "bg-white/20 text-white border border-white/30"
-                                      : "bg-slate-100 text-slate-500 border border-slate-200"
-                                  }`}>
-                                    {child.badge}
-                                  </span>
-                                )}
-                              </Link>
-                            );
-                          })}
+                                      ? "bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white shadow-md shadow-teal-900/15 font-black translate-x-1"
+                                      : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 overflow-hidden">
+                                    {ChildIcon && (
+                                      <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
+                                    )}
+                                    <span className="truncate">{child.label}</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    {isChildItemActive && (
+                                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-xs animate-pulse" />
+                                    )}
+                                    {child.badge && (
+                                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${
+                                        isChildItemActive
+                                          ? "bg-white/20 text-white border border-white/30"
+                                          : "bg-slate-100 text-slate-500 border border-slate-200"
+                                      }`}>
+                                        {child.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 }

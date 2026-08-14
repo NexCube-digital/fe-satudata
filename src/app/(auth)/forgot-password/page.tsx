@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, ArrowLeft, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import { requestPasswordReset } from '@/services/auth-service';
+import { sanitizeInput, isValidEmail } from '@/lib/security';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState<string>('');
@@ -15,10 +16,17 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    const cleanEmail = sanitizeInput(email);
+    if (!isValidEmail(cleanEmail)) {
+      setError('Silakan masukkan alamat email yang valid.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await requestPasswordReset(email);
+      const res = await requestPasswordReset(cleanEmail);
       if (res.success) {
         setMessage('Instruksi reset password telah dikirim ke email Anda.');
       } else {
@@ -60,8 +68,9 @@ export default function ForgotPasswordPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="contoh@email.com"
+              placeholder="Masukkan alamat email"
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              maxLength={100}
               required
             />
           </div>

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Script from 'next/script';
 import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from 'lucide-react';
 import { apiPost, setTokens, setUser } from '@/lib/api-client';
+import { sanitizeIdentifier } from '@/lib/security';
 import Toast from '@/components/ui/Toast';
 import { ENV } from '@/constants/env';
 
@@ -166,75 +167,67 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full space-y-4">
-      <div className="flex justify-end">
-        <Link href="/" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800 shadow-xs hover:bg-slate-50 transition">
-          <Home className="h-4 w-4" />
-        </Link>
-      </div>
-
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-slate-900">
-          {loginStep === 'select' ? 'Pilih Metode Masuk' : `Masuk sebagai ${role === 'pasien' ? 'Pasien' : 'Fasilitas Kesehatan'}`}
-        </h2>
-        <p className="text-xs text-slate-500 mt-1">
-          {loginStep === 'select' ? 'Tentukan peran Anda untuk mengakses sistem SatuData' : 'Silakan isi kredensial akun Anda'}
-        </p>
-      </div>
-
-      {loginStep === 'select' ? (
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => {
-              setRole('pasien');
-              setLoginStep('form');
-              setError('');
-            }}
-            className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
-                <User className="h-5 w-5" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">Pasien Terdaftar</h4>
-                <p className="text-[10px] text-slate-500">Akses EHR & kontrol izin medis</p>
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setRole('rumah_sakit');
-              setLoginStep('form');
-              setError('');
-            }}
-            className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
-                <Building2 className="h-5 w-5" />
-              </span>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
-                <p className="text-[10px] text-slate-500">Kelola data medis & blockchain log</p>
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
-          </button>
-
-          <div className="pt-3 border-t border-slate-200 text-center">
-            <p className="text-xs text-slate-600">
-              Belum punya akun?{' '}
-              <Link href="/register" className="text-teal-800 font-semibold hover:underline">
-                Daftar di sini
-              </Link>
-            </p>
-          </div>
+    <div className="w-full h-full flex flex-col justify-between">
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <Link href="/" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800 shadow-xs hover:bg-slate-50 transition">
+            <Home className="h-4 w-4" />
+          </Link>
         </div>
+
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-bold text-slate-900">
+            {loginStep === 'select' ? 'Pilih Metode Masuk' : `Masuk sebagai ${role === 'pasien' ? 'Pasien' : 'Fasilitas Kesehatan'}`}
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">
+            {loginStep === 'select' ? 'Tentukan peran Anda untuk mengakses sistem SatuData' : 'Silakan isi kredensial akun Anda'}
+          </p>
+        </div>
+
+        {loginStep === 'select' ? (
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                setRole('pasien');
+                setLoginStep('form');
+                setError('');
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
+                  <User className="h-5 w-5" />
+                </span>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Pasien Terdaftar</h4>
+                  <p className="text-[10px] text-slate-500">Akses EHR & kontrol izin medis</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setRole('rumah_sakit');
+                setLoginStep('form');
+                setError('');
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
+                  <Building2 className="h-5 w-5" />
+                </span>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                  <p className="text-[10px] text-slate-500">Kelola data medis & blockchain log</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
+            </button>
+          </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <button
@@ -287,8 +280,9 @@ export default function LoginPage() {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder={role === 'pasien' ? 'contoh: pasien@email.com' : 'contoh: admin@rumahsakit.com'}
+              placeholder={role === 'pasien' ? 'Masukkan email atau NIK Anda' : 'Masukkan email fasilitas kesehatan'}
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              maxLength={100}
               required
               disabled={loading}
             />
@@ -306,8 +300,9 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Masukkan password"
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 pr-10"
+                maxLength={128}
                 required
                 disabled={loading}
               />
@@ -335,6 +330,15 @@ export default function LoginPage() {
           </div>
         </form>
       )}
+      </div>
+
+      {/* Fixed Bottom Footer Link */}
+      <div className="pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
+        Belum punya akun?{' '}
+        <Link href="/register" className="text-teal-800 font-bold hover:underline">
+          Daftar di sini
+        </Link>
+      </div>
 
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={handleScriptLoad} />
       <Toast toast={toast} onClose={hideToast} />
