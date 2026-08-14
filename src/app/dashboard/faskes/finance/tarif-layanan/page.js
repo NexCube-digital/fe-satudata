@@ -27,6 +27,7 @@ import {
 	Building2,
 	ChevronLeft,
 	ChevronRight,
+	Info,
 } from "lucide-react";
 import {
 	getServicePriceKlinik,
@@ -43,6 +44,9 @@ const formatRupiah = (value) =>
 		maximumFractionDigits: 0,
 	}).format(value || 0);
 
+// Kategori level UNIT (utama/penunjang/ruangan/admin) - dipakai untuk badge
+// & konteks unit di form. Ini BEDA dari kategori sub layanan (di bawah),
+// yang levelnya per-item tarif dan mengikuti nama unit yang dipilih.
 const CATEGORY_META = {
 	utama: { label: "Pelayanan Utama", icon: "🩺", badge: "bg-teal-50 text-teal-800 border-teal-200" },
 	penunjang: { label: "Penunjang", icon: "🧪", badge: "bg-cyan-50 text-cyan-800 border-cyan-200" },
@@ -56,12 +60,106 @@ const CLASS_BADGE = {
 	eksekutif: "bg-amber-50 text-[#B45309] border-amber-200",
 };
 
+// ==== Aturan kategori sub layanan, mengikuti nama Unit Layanan ====
+// Sama persis dengan yang dipakai di SubLayananPage & TarifLayananMedisPage,
+// supaya konsisten di seluruh modul.
+const UNIT_CATEGORY_RULES = [
+	{
+		key: "pendaftaran",
+		match: ["pendaftaran", "administrasi"],
+		options: ["Pendaftaran", "Administrasi"],
+	},
+	{
+		key: "akomodasi",
+		match: ["akomodasi"],
+		options: null,
+	},
+	{
+		key: "pelayanan_medis",
+		match: ["pelayanan medis"],
+		options: ["Visit", "Pemeriksaan", "Konsultasi", "Konseling"],
+	},
+	{
+		key: "gawat_darurat",
+		match: ["gawat darurat", "igd"],
+		options: ["Tindakan Kecil", "Tindakan Sedang", "Tindakan Besar", "Tindakan Lainnya"],
+	},
+	{
+		key: "rawat_inap",
+		match: ["rawat inap", "ranap"],
+		options: [
+			"Kelas II Tindakan Kecil",
+			"Kelas II Tindakan Sedang",
+			"Kelas II Tindakan Besar",
+			"Kelas II Tindakan Lainnya",
+		],
+	},
+	{
+		key: "rawat_jalan",
+		match: ["rawat jalan", "rajal"],
+		options: ["Tindakan Kecil", "Tindakan Sedang", "Tindakan Besar", "Tindakan Lainnya"],
+	},
+	{
+		key: "icu",
+		match: ["icu", "intensive"],
+		options: ["Tindakan Kecil", "Tindakan Sedang", "Tindakan Besar", "Tindakan Khusus"],
+	},
+	{
+		key: "bedah",
+		match: ["bedah", "operasi"],
+		options: ["Tindakan Kecil", "Tindakan Sedang", "Tindakan Besar", "Tindakan Khusus"],
+	},
+	{
+		key: "laboratorium",
+		match: ["laboratorium", "lab"],
+		options: [
+			"Sederhana - Hematologi",
+			"Sederhana - Kimia Klinik",
+			"Sederhana - Urin Rutin",
+			"Sederhana - Imunologi Serologi",
+			"Sederhana - Mikrobiologi",
+			"Sederhana - Biomolekular",
+			"Sedang - Hematologi",
+			"Sedang - Kimia Klinik",
+			"Sedang - Klinik Rutin",
+			"Sedang - Mikrobiologi",
+			"Sedang - Patologi Anatomi",
+			"Sedang - Biomolekular",
+			"Sedang - Imunologi Serologi",
+		],
+	},
+	{
+		key: "radiologi",
+		match: ["radiologi", "rontgen"],
+		options: ["Sederhana", "Sedang", "Sulit", "Khusus"],
+	},
+	{
+		key: "rehab_medik",
+		match: ["rehab medik", "rehabilitasi", "fisioterapi"],
+		options: ["Kecil", "Sedang", "Besar"],
+	},
+];
+
+function resolveCategoryRule(unitName) {
+	const name = (unitName || "").toLowerCase();
+	return UNIT_CATEGORY_RULES.find((rule) => rule.match.some((kw) => name.includes(kw))) || null;
+}
+
+// mode: "free" (input bebas, unit tidak dikenali), "none" (tidak pakai kategori),
+// "select" (harus pilih dari daftar tetap)
+function getCategoryConfig(unitName) {
+	const rule = resolveCategoryRule(unitName);
+	const mode = !rule ? "free" : rule.options === null ? "none" : "select";
+	return { rule, mode, options: rule?.options || [] };
+}
+
 const emptyForm = {
 	service_unit_id: "",
 	kptl: "",
 	name: "",
 	satuan: "Per Tindakan",
 	class: "umum",
+	category: "",
 	price: "",
 	status: "active",
 };
@@ -172,11 +270,14 @@ export default function TarifLayananKlinikPage() {
 		};
 	}, [selectedUnit]);
 
+	// Aturan kategori SUB LAYANAN untuk unit yang sedang dipilih di form (dari nama unitnya)
+	const categoryConfig = useMemo(() => getCategoryConfig(selectedUnit?.name), [selectedUnit]);
+
 	const filteredPrices = useMemo(() => {
 		return prices.filter((item) => {
 			const q = searchTerm.trim().toLowerCase();
 			if (q) {
-				const haystack = `${item.name || ""} ${item.kptl || ""}`.toLowerCase();
+				const haystack = `${item.name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
 				if (!haystack.includes(q)) return false;
 			}
 			if (statusFilter !== "all" && item.status !== statusFilter) return false;
@@ -227,9 +328,21 @@ export default function TarifLayananKlinikPage() {
 	}, [prices]);
 	const ruanganCount = useMemo(() => prices.filter((i) => unitMap[i.service_unit_id]?.category === "ruangan").length, [prices, unitMap]);
 
+	// Hitung default kategori sub layanan untuk sebuah unit id (dipakai saat ganti unit / buka form)
+	const getDefaultCategoryForUnit = (unitId) => {
+		const unit = units.find((u) => String(u.id) === String(unitId));
+		const config = getCategoryConfig(unit?.name);
+		return config.mode === "select" ? config.options[0] || "" : "";
+	};
+
 	const openAdd = () => {
 		setEditingItem(null);
-		setForm({ ...emptyForm, service_unit_id: unitFilter !== "all" ? unitFilter : units[0]?.id ? String(units[0].id) : "" });
+		const defaultUnitId = unitFilter !== "all" ? unitFilter : (units[0]?.id ? String(units[0].id) : "");
+		setForm({
+			...emptyForm,
+			service_unit_id: defaultUnitId,
+			category: getDefaultCategoryForUnit(defaultUnitId),
+		});
 		setFormErrors({});
 		setIsModalOpen(true);
 	};
@@ -242,6 +355,7 @@ export default function TarifLayananKlinikPage() {
 			name: item.name || "",
 			satuan: item.satuan || "Per Tindakan",
 			class: item.class || "umum",
+			category: item.category || "",
 			price: item.price !== undefined && item.price !== null ? String(item.price) : "",
 			status: item.status || "active",
 		});
@@ -254,10 +368,23 @@ export default function TarifLayananKlinikPage() {
 		setIsModalOpen(false);
 	};
 
+	const handleUnitChange = (newUnitId) => {
+		setForm((prev) => ({
+			...prev,
+			service_unit_id: newUnitId,
+			category: getDefaultCategoryForUnit(newUnitId),
+		}));
+		if (formErrors.service_unit_id) setFormErrors((prev) => ({ ...prev, service_unit_id: null }));
+		if (formErrors.category) setFormErrors((prev) => ({ ...prev, category: null }));
+	};
+
 	const validate = () => {
 		const errors = {};
 		if (!form.service_unit_id) errors.service_unit_id = "Unit layanan wajib dipilih.";
 		if (!form.name.trim()) errors.name = "Nama layanan wajib diisi.";
+		if (categoryConfig.mode === "select" && !form.category) {
+			errors.category = "Kategori wajib dipilih.";
+		}
 		if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) {
 			errors.price = "Tarif harus berupa angka dan tidak boleh negatif.";
 		}
@@ -277,6 +404,7 @@ export default function TarifLayananKlinikPage() {
 				name: form.name.trim(),
 				satuan: form.satuan.trim() || "Per Tindakan",
 				class: form.class,
+				category: categoryConfig.mode === "none" ? null : form.category.trim() || null,
 				price: Number(form.price),
 				status: form.status,
 			};
@@ -417,7 +545,7 @@ export default function TarifLayananKlinikPage() {
 								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
 								<input
 									type="text"
-									placeholder="Cari nama layanan atau kode KPTL..."
+									placeholder="Cari nama layanan, kode KPTL, atau kategori..."
 									value={searchTerm}
 									onChange={(e) => {
 										setSearchTerm(e.target.value);
@@ -484,6 +612,7 @@ export default function TarifLayananKlinikPage() {
 											<th className="py-3.5 px-4">KPTL</th>
 											<th className="py-3.5 px-4">Nama Layanan</th>
 											<th className="py-3.5 px-4">Unit Layanan</th>
+											<th className="py-3.5 px-4">Kategori</th>
 											<th className="py-3.5 px-4">Kelas</th>
 											<th className="py-3.5 px-4">Satuan</th>
 											<th className="py-3.5 px-4 text-right">Tarif (Rp)</th>
@@ -506,6 +635,15 @@ export default function TarifLayananKlinikPage() {
 															</span>
 														) : (
 															<span className="italic text-slate-400">Unit tidak ditemukan</span>
+														)}
+													</td>
+													<td className="py-4 px-4">
+														{item.category ? (
+															<span className="text-[10px] px-2.5 py-1 rounded-full font-bold border bg-slate-100 border-slate-200 text-slate-700">
+																{item.category}
+															</span>
+														) : (
+															<span className="text-[10px] text-slate-400 italic">-</span>
 														)}
 													</td>
 													<td className="py-4 px-4">
@@ -644,10 +782,7 @@ export default function TarifLayananKlinikPage() {
 										<ModernSelect
 											options={unitOptionsForModal}
 											value={form.service_unit_id}
-											onChange={(val) => {
-												setForm({ ...form, service_unit_id: val });
-												if (formErrors.service_unit_id) setFormErrors({ ...formErrors, service_unit_id: null });
-											}}
+											onChange={handleUnitChange}
 											placeholder="Pilih unit layanan..."
 											icon={FolderTree}
 											searchable={true}
@@ -662,6 +797,50 @@ export default function TarifLayananKlinikPage() {
 											</span>
 										</div>
 									</div>
+
+									{/* Kategori sub layanan - otomatis mengikuti unit yang dipilih di atas */}
+									{form.service_unit_id && categoryConfig.mode !== "none" && (
+										<div className="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-200/80 space-y-2">
+											<label className="text-xs font-extrabold text-indigo-900 flex items-center gap-1.5">
+												Kategori Layanan {categoryConfig.mode === "select" && <span className="text-[#DC2626]">*</span>}
+											</label>
+											{categoryConfig.mode === "select" ? (
+												<select
+													value={form.category}
+													onChange={(e) => {
+														setForm({ ...form, category: e.target.value });
+														if (formErrors.category) setFormErrors({ ...formErrors, category: null });
+													}}
+													className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-bold focus:outline-hidden transition ${
+														formErrors.category
+															? "border-red-300 bg-red-50/40 focus:border-red-500"
+															: "border-indigo-200 bg-white focus:border-indigo-600"
+													}`}
+												>
+													<option value="">Pilih kategori...</option>
+													{categoryConfig.options.map((c) => (
+														<option key={c} value={c}>{c}</option>
+													))}
+												</select>
+											) : (
+												<input
+													value={form.category}
+													onChange={(e) => setForm({ ...form, category: e.target.value })}
+													placeholder="Kategori (opsional)"
+													className="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-xs font-medium focus:border-indigo-600 focus:outline-hidden transition"
+												/>
+											)}
+											{formErrors.category && (
+												<p className="text-[10px] text-[#DC2626] font-semibold">{formErrors.category}</p>
+											)}
+										</div>
+									)}
+									{form.service_unit_id && categoryConfig.mode === "none" && (
+										<div className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[10px] font-semibold text-slate-500 flex items-start gap-2">
+											<Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+											<span>Unit ini tidak memakai kategori sub layanan.</span>
+										</div>
+									)}
 
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 										<div>
