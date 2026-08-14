@@ -1,6 +1,6 @@
 {
   "name": "fe-satudata",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 5173",
