@@ -68,7 +68,7 @@ export default function Sidebar({ role }) {
     geotagging: pathname.startsWith("/dashboard/admin/faskes"),
     consent: pathname.startsWith("/dashboard/pasien/consent"),
     pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy"),
-    masterData: pathname.startsWith("/dashboard/faskes/finance/tarif-layanan") || pathname.startsWith("/dashboard/faskes/finance/pelayanan-medis") || pathname.startsWith("/dashboard/faskes/finance/layanan-penunjang") || pathname.startsWith("/dashboard/faskes/finance/ruangan"),
+    masterData: pathname.startsWith("/dashboard/faskes/finance/tarif-layanan") || pathname.startsWith("/dashboard/faskes/finance/pelayanan-medis") || pathname.startsWith("/dashboard/faskes/finance/layanan") || pathname.startsWith("/dashboard/faskes/finance/ruangan"),
     finance: pathname.startsWith("/dashboard/faskes/finance/invoice") || pathname.startsWith("/dashboard/faskes/finance/history")
   });
 
@@ -258,9 +258,9 @@ export default function Sidebar({ role }) {
             badge: "Master",
             permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
             children: [
-              { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan", icon: DollarSign, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Layanan Medis", icon: Stethoscope, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/layanan-penunjang", label: "Layanan Penunjang", icon: Activity, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/layanan", label: "Unit Layanan", icon: Building2, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Tarif Layanan Medis", icon: Stethoscope, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan Klinik", icon: DollarSign, permission: "master_data:read" },
               { href: "/dashboard/faskes/finance/ruangan", label: "Kelola Ruangan", icon: Building2, permission: "master_data:read" }
             ]
           },
@@ -416,13 +416,24 @@ export default function Sidebar({ role }) {
       return false;
     }
     if (targetHref === "/dashboard/faskes/finance/layanan-penunjang" && 
-       (currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
+       (currentPath.startsWith("/dashboard/faskes/finance/layanan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+        currentPath.startsWith("/dashboard/faskes/finance/history"))) {
+      return false;
+    }
+    if (targetHref === "/dashboard/faskes/finance/layanan" && 
+       (currentPath.startsWith("/dashboard/faskes/finance/tarif-layanan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/pelayanan-medis") ||
+        currentPath.startsWith("/dashboard/faskes/finance/layanan-penunjang") ||
+        currentPath.startsWith("/dashboard/faskes/finance/ruangan") ||
         currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
         currentPath.startsWith("/dashboard/faskes/finance/history"))) {
       return false;
     }
     if (targetHref === "/dashboard/faskes/finance/ruangan" && 
-       (currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
+       (currentPath.startsWith("/dashboard/faskes/finance/layanan") ||
+        currentPath.startsWith("/dashboard/faskes/finance/invoice") ||
         currentPath.startsWith("/dashboard/faskes/finance/history"))) {
       return false;
     }
