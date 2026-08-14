@@ -1,0 +1,23 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "bytes32", "name": "recordIdHash", "type": "bytes32" },
+      { "indexed": true, "internalType": "bytes32", "name": "dataHash", "type": "bytes32" },
+      { "indexed": true, "internalType": "address", "name": "actor", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "RecordLogged",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "recordId", "type": "string" },
+      { "internalType": "string", "name": "dataHashStr", "type": "string" }
+    ],
+    "name": "logRecord",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
