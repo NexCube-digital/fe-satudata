@@ -1,67 +1,41 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Toast from "@/components/ui/Toast";
 import { notify } from "@/lib/notify";
+import ModernSelect from "@/components/ui/ModernSelect";
 import {
+	DollarSign,
 	Plus,
 	RefreshCw,
-	Trash2,
-	Pencil,
-	X,
 	Search,
+	Pencil,
+	Trash2,
 	CheckCircle2,
-	ArrowLeft,
+	ArrowRight,
+	SlidersHorizontal,
+	X,
+	FileText,
 	Layers,
+	FolderTree,
+	Stethoscope,
+	Sparkles,
 	Loader2,
+	Building2,
 	ChevronLeft,
 	ChevronRight,
-	DollarSign,
 	Info,
 } from "lucide-react";
 import {
-	getServicePriceMedis,
 	getServicePriceKlinik,
-	createServicePriceMedis,
 	createServicePriceKlinik,
-	updateServicePriceMedis,
 	updateServicePriceKlinik,
-	deleteServicePriceMedis,
 	deleteServicePriceKlinik,
 } from "@/services/servicePriceService";
-
-const CATEGORY_LABEL = {
-	admin: "Admin",
-	utama: "Utama",
-	penunjang: "Penunjang",
-	ruangan: "Ruangan",
-};
-
-const CATEGORY_BADGE = {
-	admin: "bg-slate-100 text-slate-600 border-slate-200",
-	utama: "bg-teal-50 text-teal-800 border-teal-200",
-	penunjang: "bg-cyan-50 text-cyan-800 border-cyan-200",
-	ruangan: "bg-amber-50 text-[#B45309] border-amber-200",
-};
-
-const CLASS_LABEL = { umum: "Umum", eksekutif: "Eksekutif" };
-const CLASS_BADGE = {
-	umum: "bg-teal-50 text-teal-800 border-teal-200",
-	eksekutif: "bg-amber-50 text-[#B45309] border-amber-200",
-};
-const SOURCE_LABEL = { medis: "Medis", klinik: "Klinik" };
-const SOURCE_BADGE = {
-	medis: "bg-indigo-50 text-indigo-800 border-indigo-200",
-	klinik: "bg-cyan-50 text-cyan-800 border-cyan-200",
-};
-
-const sourceOptionsForForm = [
-	{ value: "klinik", label: "Klinik" },
-	{ value: "medis", label: "Medis" },
-];
+import { getServiceUnits } from "@/services/serviceUnitService";
 
 const formatRupiah = (value) =>
 	new Intl.NumberFormat("id-ID", {
@@ -70,6 +44,25 @@ const formatRupiah = (value) =>
 		maximumFractionDigits: 0,
 	}).format(value || 0);
 
+// Kategori level UNIT (utama/penunjang/ruangan/admin) - dipakai untuk badge
+// & konteks unit di form. Ini BEDA dari kategori sub layanan (di bawah),
+// yang levelnya per-item tarif dan mengikuti nama unit yang dipilih.
+const CATEGORY_META = {
+	utama: { label: "Pelayanan Utama", icon: "🩺", badge: "bg-teal-50 text-teal-800 border-teal-200" },
+	penunjang: { label: "Penunjang", icon: "🧪", badge: "bg-cyan-50 text-cyan-800 border-cyan-200" },
+	ruangan: { label: "Ruangan", icon: "🛏", badge: "bg-amber-50 text-[#B45309] border-amber-200" },
+	admin: { label: "Administrasi", icon: "📋", badge: "bg-slate-100 text-slate-700 border-slate-200" },
+};
+
+const CLASS_LABEL = { umum: "Umum", eksekutif: "Eksekutif" };
+const CLASS_BADGE = {
+	umum: "bg-teal-50 text-teal-800 border-teal-200",
+	eksekutif: "bg-amber-50 text-[#B45309] border-amber-200",
+};
+
+// ==== Aturan kategori sub layanan, mengikuti nama Unit Layanan ====
+// Sama persis dengan yang dipakai di SubLayananPage & TarifLayananMedisPage,
+// supaya konsisten di seluruh modul.
 const UNIT_CATEGORY_RULES = [
 	{
 		key: "pendaftaran",
@@ -152,8 +145,16 @@ function resolveCategoryRule(unitName) {
 	return UNIT_CATEGORY_RULES.find((rule) => rule.match.some((kw) => name.includes(kw))) || null;
 }
 
+// mode: "free" (input bebas, unit tidak dikenali), "none" (tidak pakai kategori),
+// "select" (harus pilih dari daftar tetap)
+function getCategoryConfig(unitName) {
+	const rule = resolveCategoryRule(unitName);
+	const mode = !rule ? "free" : rule.options === null ? "none" : "select";
+	return { rule, mode, options: rule?.options || [] };
+}
+
 const emptyForm = {
-	source: "klinik",
+	service_unit_id: "",
 	kptl: "",
 	name: "",
 	satuan: "Per Tindakan",
@@ -163,14 +164,14 @@ const emptyForm = {
 	status: "active",
 };
 
-export default function SubLayananPage() {
+const statusOptionsForFilter = [
+	{ value: "all", label: "Semua Status", sublabel: "Aktif & Non-Aktif", badge: "All" },
+	{ value: "active", label: "✔ Aktif", sublabel: "Dapat digunakan untuk transaksi", badge: "Aktif" },
+	{ value: "inactive", label: "✖ Non-Aktif", sublabel: "Disembunyikan dari transaksi", badge: "Non-Aktif" },
+];
+
+export default function TarifLayananKlinikPage() {
 	const router = useRouter();
-	const searchParams = useSearchParams();
-
-	const unitId = searchParams.get("unitId");
-	const unitName = searchParams.get("unitName") || "-";
-	const category = searchParams.get("category");
-
 	const [user, setUser] = useState(() => {
 		if (typeof window === "undefined") return null;
 		try {
@@ -183,109 +184,173 @@ export default function SubLayananPage() {
 
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
-	const [subLayanan, setSubLayanan] = useState([]);
+	const [prices, setPrices] = useState([]);
+	const [units, setUnits] = useState([]);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
-	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [unitFilter, setUnitFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage] = useState(10);
 	const [toast, setToast] = useState({ show: false });
+	const [deletingId, setDeletingId] = useState(null);
 
+	// Modal state
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [editing, setEditing] = useState(null);
+	const [editingItem, setEditingItem] = useState(null);
 	const [form, setForm] = useState(emptyForm);
 	const [formErrors, setFormErrors] = useState({});
 	const [submitting, setSubmitting] = useState(false);
-	const [deletingId, setDeletingId] = useState(null);
 
-	// Aturan kategori untuk unit yang sedang dibuka halamannya ini
-	const categoryRule = useMemo(() => resolveCategoryRule(unitName), [unitName]);
-	const categoryMode = !categoryRule ? "free" : categoryRule.options === null ? "none" : "select";
-	const categoryOptions = categoryRule?.options || [];
-
+	// NOTE: apiFetch (lib/api.js) melempar error kalau request gagal dan
+	// hanya mengembalikan { message, data } (tanpa `success`) kalau berhasil.
+	// Jadi kalau lolos dari await tanpa exception, itu sudah pasti sukses.
 	const loadData = async ({ silent = false } = {}) => {
-		if (!unitId) return;
-
 		silent ? setRefreshing(true) : setLoading(true);
 		try {
-			const [medisRes, klinikRes] = await Promise.all([
-				getServicePriceMedis({ service_unit_id: unitId }),
-				getServicePriceKlinik({ service_unit_id: unitId }),
+			const [priceRes, unitRes] = await Promise.all([
+				getServicePriceKlinik(),
+				getServiceUnits(),
 			]);
-
-			const medisData = Array.isArray(medisRes?.data) ? medisRes.data : [];
-			const klinikData = Array.isArray(klinikRes?.data) ? klinikRes.data : [];
-
-			const combined = [...medisData, ...klinikData].filter(
-				(item) => String(item.service_unit_id) === String(unitId)
-			);
-
-			setSubLayanan(combined);
+			setPrices(Array.isArray(priceRes?.data) ? priceRes.data : []);
+			setUnits(Array.isArray(unitRes?.data) ? unitRes.data : []);
 		} catch (err) {
-			console.error("[ERROR] loadData failed:", err);
-			notify(setToast, { type: "error", message: err.message || "Gagal memuat data sub layanan." });
+			console.error(err);
+			notify(setToast, { type: "error", message: err.message || "Gagal memuat data tarif layanan klinik." });
 		} finally {
 			silent ? setRefreshing(false) : setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		if (unitId) {
-			loadData();
-		}
+		loadData();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [unitId]);
+	}, []);
 
-	const filteredSubLayanan = useMemo(() => {
-		return subLayanan.filter((s) => {
+	const unitMap = useMemo(() => {
+		const map = {};
+		units.forEach((u) => (map[u.id] = u));
+		return map;
+	}, [units]);
+
+	// Opsi dropdown Unit Layanan untuk ModernSelect, dikelompokkan info kategori aslinya
+	const unitOptionsForModal = useMemo(() => {
+		return units.map((u) => {
+			const meta = CATEGORY_META[u.category] || { label: u.category, icon: "⚡" };
+			return {
+				value: String(u.id),
+				label: u.name,
+				sublabel: meta.label,
+				badge: `${meta.icon} ${meta.label}`,
+			};
+		});
+	}, [units]);
+
+	const unitOptionsForFilter = useMemo(() => {
+		return [
+			{ value: "all", label: "Semua Unit Layanan", sublabel: `${units.length} unit terdaftar`, badge: "All" },
+			...unitOptionsForModal,
+		];
+	}, [unitOptionsForModal, units.length]);
+
+	// Konteks dinamis pada form, mengikuti kategori unit yang dipilih (bukan lagi kategori teks bebas)
+	const selectedUnit = unitMap[Number(form.service_unit_id)];
+	const categoryContext = useMemo(() => {
+		const meta = CATEGORY_META[selectedUnit?.category] || null;
+		if (!meta) {
+			return {
+				badgeIcon: "⚡",
+				badgeText: "Pilih unit layanan terlebih dahulu",
+				badgeStyle: "bg-slate-100 text-slate-500 border-slate-200",
+			};
+		}
+		return {
+			badgeIcon: meta.icon,
+			badgeText: `${selectedUnit.name} • ${meta.label}`,
+			badgeStyle: meta.badge,
+		};
+	}, [selectedUnit]);
+
+	// Aturan kategori SUB LAYANAN untuk unit yang sedang dipilih di form (dari nama unitnya)
+	const categoryConfig = useMemo(() => getCategoryConfig(selectedUnit?.name), [selectedUnit]);
+
+	const filteredPrices = useMemo(() => {
+		return prices.filter((item) => {
 			const q = searchTerm.trim().toLowerCase();
 			if (q) {
-				const haystack = `${s.name || ""} ${s.kptl || ""} ${s.category || ""}`.toLowerCase();
+				const haystack = `${item.name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
 				if (!haystack.includes(q)) return false;
 			}
-			if (statusFilter === "active" && s.status !== "active") return false;
-			if (statusFilter === "inactive" && s.status !== "inactive") return false;
-			if (categoryFilter !== "all" && (s.category || "") !== categoryFilter) return false;
+			if (statusFilter !== "all" && item.status !== statusFilter) return false;
+			if (unitFilter !== "all" && String(item.service_unit_id) !== String(unitFilter)) return false;
 			return true;
 		});
-	}, [subLayanan, searchTerm, statusFilter, categoryFilter]);
+	}, [prices, searchTerm, statusFilter, unitFilter]);
 
-	const totalItems = filteredSubLayanan.length;
+	const totalItems = filteredPrices.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
 	const safeCurrentPage = Math.min(currentPage, totalPages);
-	const paginatedSubLayanan = filteredSubLayanan.slice(
-		(safeCurrentPage - 1) * perPage,
-		safeCurrentPage * perPage
-	);
+	const paginatedPrices = filteredPrices.slice((safeCurrentPage - 1) * perPage, safeCurrentPage * perPage);
 
-	const activeCount = subLayanan.filter((i) => i.status === "active").length;
+	// Nomor halaman yang ditampilkan dipadatkan (contoh: 1, 2, 3 ... 10)
+	// supaya tidak render semua nomor halaman saat datanya banyak.
+	const pageNumbers = useMemo(() => {
+		const delta = 1;
+		const range = [];
+		const withDots = [];
+		let last;
+
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= safeCurrentPage - delta && i <= safeCurrentPage + delta)) {
+				range.push(i);
+			}
+		}
+
+		range.forEach((i) => {
+			if (last !== undefined) {
+				if (i - last === 2) {
+					withDots.push(last + 1);
+				} else if (i - last !== 1) {
+					withDots.push("...");
+				}
+			}
+			withDots.push(i);
+			last = i;
+		});
+
+		return withDots;
+	}, [totalPages, safeCurrentPage]);
+
+	const activeCount = useMemo(() => prices.filter((i) => i.status === "active").length, [prices]);
 	const averagePrice = useMemo(() => {
-		if (subLayanan.length === 0) return 0;
-		const sum = subLayanan.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
-		return Math.round(sum / subLayanan.length);
-	}, [subLayanan]);
+		if (prices.length === 0) return 0;
+		const sum = prices.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
+		return Math.round(sum / prices.length);
+	}, [prices]);
+	const ruanganCount = useMemo(() => prices.filter((i) => unitMap[i.service_unit_id]?.category === "ruangan").length, [prices, unitMap]);
 
-	// daftar kategori unik yang benar-benar sudah dipakai di data (untuk filter,
-	// berguna juga saat mode "free" di mana kategorinya bukan daftar tetap)
-	const usedCategories = useMemo(() => {
-		const set = new Set(subLayanan.map((s) => s.category).filter(Boolean));
-		return Array.from(set).sort();
-	}, [subLayanan]);
+	// Hitung default kategori sub layanan untuk sebuah unit id (dipakai saat ganti unit / buka form)
+	const getDefaultCategoryForUnit = (unitId) => {
+		const unit = units.find((u) => String(u.id) === String(unitId));
+		const config = getCategoryConfig(unit?.name);
+		return config.mode === "select" ? config.options[0] || "" : "";
+	};
 
 	const openAdd = () => {
-		setEditing(null);
+		setEditingItem(null);
+		const defaultUnitId = unitFilter !== "all" ? unitFilter : (units[0]?.id ? String(units[0].id) : "");
 		setForm({
 			...emptyForm,
-			category: categoryMode === "select" ? categoryOptions[0] : "",
+			service_unit_id: defaultUnitId,
+			category: getDefaultCategoryForUnit(defaultUnitId),
 		});
 		setFormErrors({});
 		setIsModalOpen(true);
 	};
 
 	const openEdit = (item) => {
-		setEditing(item);
+		setEditingItem(item);
 		setForm({
-			source: item.source || "klinik",
+			service_unit_id: item.service_unit_id ? String(item.service_unit_id) : "",
 			kptl: item.kptl || "",
 			name: item.name || "",
 			satuan: item.satuan || "Per Tindakan",
@@ -303,91 +368,84 @@ export default function SubLayananPage() {
 		setIsModalOpen(false);
 	};
 
-	const validateForm = () => {
+	const handleUnitChange = (newUnitId) => {
+		setForm((prev) => ({
+			...prev,
+			service_unit_id: newUnitId,
+			category: getDefaultCategoryForUnit(newUnitId),
+		}));
+		if (formErrors.service_unit_id) setFormErrors((prev) => ({ ...prev, service_unit_id: null }));
+		if (formErrors.category) setFormErrors((prev) => ({ ...prev, category: null }));
+	};
+
+	const validate = () => {
 		const errors = {};
-		if (!form.name.trim()) errors.name = "Nama sub layanan wajib diisi.";
-		else if (form.name.trim().length < 3) errors.name = "Nama sub layanan minimal 3 karakter.";
+		if (!form.service_unit_id) errors.service_unit_id = "Unit layanan wajib dipilih.";
+		if (!form.name.trim()) errors.name = "Nama layanan wajib diisi.";
+		if (categoryConfig.mode === "select" && !form.category) {
+			errors.category = "Kategori wajib dipilih.";
+		}
 		if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) {
 			errors.price = "Tarif harus berupa angka dan tidak boleh negatif.";
-		}
-		if (categoryMode === "select" && !form.category) {
-			errors.category = "Kategori wajib dipilih.";
 		}
 		setFormErrors(errors);
 		return Object.keys(errors).length === 0;
 	};
 
 	const handleSubmit = async (e) => {
-		e && e.preventDefault();
-		if (!validateForm()) return;
+		e.preventDefault();
+		if (!validate()) return;
 
 		setSubmitting(true);
 		try {
 			const payload = {
-				service_unit_id: Number(unitId),
+				service_unit_id: Number(form.service_unit_id),
 				kptl: form.kptl.trim() || null,
 				name: form.name.trim(),
 				satuan: form.satuan.trim() || "Per Tindakan",
 				class: form.class,
-				category: categoryMode === "none" ? null : form.category.trim() || null,
+				category: categoryConfig.mode === "none" ? null : form.category.trim() || null,
 				price: Number(form.price),
 				status: form.status,
 			};
 
-			if (editing) {
-				const updateFn = editing.source === "medis" ? updateServicePriceMedis : updateServicePriceKlinik;
-				await updateFn(editing.id, payload);
-				notify(setToast, { type: "success", message: `Sub layanan "${payload.name}" berhasil diperbarui.` });
+			if (editingItem) {
+				await updateServicePriceKlinik(editingItem.id, payload);
+				notify(setToast, { type: "success", message: `Tarif "${payload.name}" berhasil diperbarui.` });
 			} else {
-				const createFn = form.source === "medis" ? createServicePriceMedis : createServicePriceKlinik;
-				await createFn(payload);
-				notify(setToast, { type: "success", message: `Sub layanan "${payload.name}" berhasil dibuat.` });
+				await createServicePriceKlinik(payload);
+				notify(setToast, { type: "success", message: `Tarif "${payload.name}" berhasil ditambahkan.` });
 			}
 
 			setIsModalOpen(false);
-			await loadData({ silent: true });
+			loadData({ silent: true });
 		} catch (err) {
-			console.error("[ERROR] handleSubmit failed:", err);
-			notify(setToast, { type: "error", message: err.message || "Gagal menyimpan sub layanan." });
+			console.error(err);
+			notify(setToast, { type: "error", message: err.message || "Gagal menyimpan tarif layanan klinik." });
 		} finally {
 			setSubmitting(false);
 		}
 	};
 
-	const handleDelete = async (item) => {
-		if (!confirm(`Hapus sub layanan "${item.name}"?`)) return;
-
-		setDeletingId(item.id);
+	const handleDelete = async (id, name) => {
+		if (!confirm(`Hapus tarif layanan klinik "${name}"?`)) return;
+		setDeletingId(id);
 		try {
-			const deleteFn = item.source === "medis" ? deleteServicePriceMedis : deleteServicePriceKlinik;
-			await deleteFn(item.id);
-			notify(setToast, { type: "success", message: `Sub layanan "${item.name}" berhasil dihapus.` });
+			await deleteServicePriceKlinik(id);
+			notify(setToast, { type: "success", message: `Tarif "${name}" berhasil dihapus.` });
 			loadData({ silent: true });
 		} catch (err) {
 			console.error(err);
-			notify(setToast, { type: "error", message: err.message || "Gagal menghapus sub layanan." });
+			notify(setToast, { type: "error", message: err.message || "Gagal menghapus tarif layanan klinik." });
 		} finally {
 			setDeletingId(null);
 		}
 	};
 
-	if (!unitId) {
-		return (
-			<div className="min-h-screen flex items-center justify-center bg-slate-50">
-				<div className="text-center">
-					<p className="text-slate-600 font-semibold mb-4">Unit ID tidak ditemukan di URL.</p>
-					<button onClick={() => router.back()} className="text-teal-700 font-bold hover:underline">
-						Kembali
-					</button>
-				</div>
-			</div>
-		);
-	}
-
 	if (loading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-slate-50">
-				<RefreshCw className="h-8 w-8 animate-spin text-teal-800" />
+				<RefreshCw className="h-8 w-8 animate-spin text-indigo-800" />
 			</div>
 		);
 	}
@@ -401,76 +459,71 @@ export default function SubLayananPage() {
 					{/* Header Banner */}
 					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
 						<div className="flex-1 min-w-0">
-							<button
-								onClick={() => router.back()}
-								className="inline-flex items-center gap-2 text-teal-700 hover:text-teal-800 font-bold text-sm mb-3 transition"
-							>
-								<ArrowLeft className="h-4 w-4" />
-								Kembali
-							</button>
-							<div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
-								<Layers className="h-3.5 w-3.5" /> Sub Layanan
+							<div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1 text-xs font-bold text-indigo-800 mb-2">
+								<Layers className="h-3.5 w-3.5" /> Modul Master Keuangan RS • Tarif Layanan Klinik
 							</div>
 							<h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-								Sub Layanan: {unitName}
+								Master Data Tarif Layanan Klinik
 							</h1>
-							<p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl flex items-center gap-2 flex-wrap">
-								Kelola tarif medis & klinik untuk unit <span className="font-bold">{unitName}</span>
-								{category && (
-									<span
-										className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${CATEGORY_BADGE[category] || "bg-slate-100 text-slate-600 border-slate-200"}`}
-									>
-										{CATEGORY_LABEL[category] || category}
-									</span>
-								)}
+							<p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+								Kelola tarif layanan klinik per unit layanan (poliklinik, kamar rawat inap, penunjang, administrasi), terpisah untuk kelas <strong>Umum</strong> dan <strong>Eksekutif</strong>.
 							</p>
 						</div>
 
 						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
 							<button
 								onClick={openAdd}
-								className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap"
+								disabled={units.length === 0}
+								title={units.length === 0 ? "Buat Unit Layanan terlebih dahulu" : undefined}
+								className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-700 to-cyan-800 hover:from-indigo-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
 							>
-								<Plus className="h-4 w-4" /> Tambah Sub Layanan
+								<Plus className="h-4 w-4" /> Tambah Tarif Klinik
+							</button>
+							<button
+								onClick={() => router.push("/dashboard/faskes/finance/pelayanan-medis")}
+								className="inline-flex items-center justify-center gap-2 rounded-2xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-800 px-4 py-2.5 text-xs font-bold transition cursor-pointer whitespace-nowrap"
+							>
+								<Stethoscope className="h-4 w-4 text-teal-700" /> Ke Tarif Medis <ArrowRight className="h-3.5 w-3.5" />
 							</button>
 						</div>
 					</div>
 
-					{/* Info kategori yang berlaku untuk unit ini */}
-					{categoryMode === "select" && (
-						<div className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-xs font-semibold text-teal-800 flex items-start gap-2">
-							<Info className="h-4 w-4 shrink-0 mt-0.5" />
-							<span>
-								Unit ini memakai kategori: <strong>{categoryOptions.join(", ")}</strong>. Pilih salah satu saat menambah sub layanan.
-							</span>
-						</div>
-					)}
-					{categoryMode === "none" && (
-						<div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500 flex items-start gap-2">
-							<Info className="h-4 w-4 shrink-0 mt-0.5" />
-							<span>Unit ini tidak memakai kategori sub layanan.</span>
+					{units.length === 0 && (
+						<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-[#B45309] flex items-center gap-2">
+							<Building2 className="h-4 w-4 shrink-0" />
+							Belum ada Unit Layanan. Buat Unit Layanan dulu di halaman Master Unit Layanan sebelum menambah tarif klinik.
 						</div>
 					)}
 
 					{/* Quick Metrics */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+					<div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
 						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 							<div>
-								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Sub Layanan</p>
-								<p className="text-2xl font-extrabold text-slate-900 mt-1">{subLayanan.length} Item</p>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tarif Klinik</p>
+								<p className="text-2xl font-extrabold text-slate-900 mt-1">{prices.length} Item</p>
 							</div>
-							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 font-bold">
-								<Layers className="h-5 w-5" />
+							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-800 font-bold">
+								<FileText className="h-5 w-5" />
 							</span>
 						</div>
 
 						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 							<div>
-								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sub Layanan Aktif</p>
-								<p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Item</p>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tarif Aktif</p>
+								<p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Aktif</p>
 							</div>
 							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A] font-bold">
 								<CheckCircle2 className="h-5 w-5" />
+							</span>
+						</div>
+
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+							<div>
+								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Terkait Unit Ruangan</p>
+								<p className="text-2xl font-extrabold text-cyan-900 mt-1">{ruanganCount} Item</p>
+							</div>
+							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-800 font-bold">
+								<FolderTree className="h-5 w-5" />
 							</span>
 						</div>
 
@@ -485,54 +538,48 @@ export default function SubLayananPage() {
 						</div>
 					</div>
 
-					{/* Search & Filters */}
-					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6 space-y-4">
+					{/* Search & Filter Bar */}
+					<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs mb-6 space-y-4">
 						<div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
 							<div className="relative sm:col-span-2">
 								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
 								<input
 									type="text"
-									placeholder="Cari nama sub layanan, KPTL, atau kategori..."
+									placeholder="Cari nama layanan, kode KPTL, atau kategori..."
 									value={searchTerm}
 									onChange={(e) => {
 										setSearchTerm(e.target.value);
 										setCurrentPage(1);
 									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:bg-white focus:outline-hidden font-medium"
 								/>
 							</div>
-							{(categoryMode !== "none") && (
-								<div>
-									<select
-										value={categoryFilter}
-										onChange={(e) => {
-											setCategoryFilter(e.target.value);
-											setCurrentPage(1);
-										}}
-										className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-									>
-										<option value="all">Semua Kategori</option>
-										{(categoryMode === "select" ? categoryOptions : usedCategories).map((c) => (
-											<option key={c} value={c}>
-												{c}
-											</option>
-										))}
-									</select>
-								</div>
-							)}
+
 							<div>
-								<select
-									value={statusFilter}
-									onChange={(e) => {
-										setStatusFilter(e.target.value);
+								<ModernSelect
+									options={unitOptionsForFilter}
+									value={unitFilter}
+									onChange={(val) => {
+										setUnitFilter(val);
 										setCurrentPage(1);
 									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-								>
-									<option value="all">Semua Status</option>
-									<option value="active">Aktif</option>
-									<option value="inactive">Non-Aktif</option>
-								</select>
+									placeholder="Semua Unit Layanan"
+									icon={FolderTree}
+									searchable={true}
+								/>
+							</div>
+
+							<div>
+								<ModernSelect
+									options={statusOptionsForFilter}
+									value={statusFilter}
+									onChange={(val) => {
+										setStatusFilter(val);
+										setCurrentPage(1);
+									}}
+									placeholder="Semua Status"
+									searchable={false}
+								/>
 							</div>
 						</div>
 					</div>
@@ -541,112 +588,111 @@ export default function SubLayananPage() {
 					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
 						<div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
 							<h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-								<Layers className="h-5 w-5 text-teal-800" />
-								Daftar Sub Layanan ({filteredSubLayanan.length})
+								<SlidersHorizontal className="h-5 w-5 text-indigo-800" />
+								Katalog Tarif Layanan Klinik ({filteredPrices.length})
 							</h3>
 							<button
 								onClick={() => loadData({ silent: true })}
 								disabled={refreshing}
 								className="text-slate-400 hover:text-slate-600 transition cursor-pointer disabled:opacity-50"
-								title="Muat ulang data"
 							>
 								<RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
 							</button>
 						</div>
+
 						{totalItems === 0 ? (
 							<div className="py-12 text-center text-slate-400 italic text-xs">
-								{subLayanan.length === 0
-									? "Belum ada sub layanan untuk unit ini. Klik \"Tambah Sub Layanan\" untuk membuat yang pertama."
-									: "Tidak ada sub layanan yang cocok dengan pencarian/filter."}
+								{prices.length === 0 ? "Belum ada tarif layanan klinik." : "Tidak ada data yang cocok dengan pencarian/filter."}
 							</div>
 						) : (
 							<div className="overflow-x-auto">
 								<table className="w-full text-left text-xs border-collapse">
 									<thead>
 										<tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50">
-											<th className="py-3 px-4">KPTL</th>
-											<th className="py-3 px-4">Nama Sub Layanan</th>
-											{categoryMode !== "none" && <th className="py-3 px-4">Kategori</th>}
-											<th className="py-3 px-4">Sumber</th>
-											<th className="py-3 px-4">Kelas</th>
-											<th className="py-3 px-4">Satuan</th>
-											<th className="py-3 px-4 text-right">Tarif (Rp)</th>
-											<th className="py-3 px-4">Status</th>
-											<th className="py-3 px-4 text-right">Aksi</th>
+											<th className="py-3.5 px-4">KPTL</th>
+											<th className="py-3.5 px-4">Nama Layanan</th>
+											<th className="py-3.5 px-4">Unit Layanan</th>
+											<th className="py-3.5 px-4">Kategori</th>
+											<th className="py-3.5 px-4">Kelas</th>
+											<th className="py-3.5 px-4">Satuan</th>
+											<th className="py-3.5 px-4 text-right">Tarif (Rp)</th>
+											<th className="py-3.5 px-4">Status</th>
+											<th className="py-3.5 px-4 text-right">Aksi</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-										{paginatedSubLayanan.map((s) => (
-											<tr key={`${s.source}-${s.id}`} className="hover:bg-slate-50/60 transition">
-												<td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">{s.kptl || "-"}</td>
-												<td className="py-4 px-4 font-bold text-slate-900">{s.name}</td>
-												{categoryMode !== "none" && (
+										{paginatedPrices.map((item) => {
+											const unit = unitMap[item.service_unit_id];
+											const meta = CATEGORY_META[unit?.category];
+											return (
+												<tr key={item.id} className="hover:bg-slate-50/60 transition">
+													<td className="py-4 px-4 font-mono font-bold text-indigo-900 whitespace-nowrap">{item.kptl || "-"}</td>
+													<td className="py-4 px-4 font-extrabold text-slate-900">{item.name}</td>
 													<td className="py-4 px-4">
-														{s.category ? (
+														{unit ? (
+															<span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">
+																{meta?.icon} {unit.name}
+															</span>
+														) : (
+															<span className="italic text-slate-400">Unit tidak ditemukan</span>
+														)}
+													</td>
+													<td className="py-4 px-4">
+														{item.category ? (
 															<span className="text-[10px] px-2.5 py-1 rounded-full font-bold border bg-slate-100 border-slate-200 text-slate-700">
-																{s.category}
+																{item.category}
 															</span>
 														) : (
 															<span className="text-[10px] text-slate-400 italic">-</span>
 														)}
 													</td>
-												)}
-												<td className="py-4 px-4">
-													<span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${SOURCE_BADGE[s.source] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
-														{SOURCE_LABEL[s.source] || s.source}
-													</span>
-												</td>
-												<td className="py-4 px-4">
-													<span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${CLASS_BADGE[s.class] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
-														{CLASS_LABEL[s.class] || s.class}
-													</span>
-												</td>
-												<td className="py-4 px-4 text-slate-500">{s.satuan || "-"}</td>
-												<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
-													{formatRupiah(s.price)}
-												</td>
-												<td className="py-4 px-4">
-													<span
-														className={`inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold ${
-															s.status === "active" ? "bg-emerald-50 text-[#16A34A]" : "bg-slate-100 text-slate-500"
-														}`}
-													>
-														<span className={`h-1.5 w-1.5 rounded-full ${s.status === "active" ? "bg-[#16A34A]" : "bg-slate-400"}`} />
-														{s.status === "active" ? "Aktif" : "Non-Aktif"}
-													</span>
-												</td>
-												<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-													<button
-														onClick={() => openEdit(s)}
-														className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
-													>
-														<Pencil className="h-3.5 w-3.5" /> Edit
-													</button>
-													<button
-														onClick={() => handleDelete(s)}
-														disabled={deletingId === s.id}
-														className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-3 py-1.5 font-bold disabled:opacity-50 transition inline-flex items-center"
-													>
-														{deletingId === s.id ? (
-															<Loader2 className="h-3.5 w-3.5 animate-spin" />
-														) : (
-															<Trash2 className="h-3.5 w-3.5" />
-														)}
-													</button>
-												</td>
-											</tr>
-										))}
+													<td className="py-4 px-4">
+														<span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${CLASS_BADGE[item.class] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
+															{CLASS_LABEL[item.class] || item.class}
+														</span>
+													</td>
+													<td className="py-4 px-4 text-slate-500">{item.satuan || "-"}</td>
+													<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
+														{formatRupiah(item.price)}
+													</td>
+													<td className="py-4 px-4">
+														<span className={`inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold ${item.status === "active" ? "bg-emerald-50 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
+															<span className={`h-1.5 w-1.5 rounded-full ${item.status === "active" ? "bg-[#16A34A]" : "bg-slate-400"}`} />
+															{item.status === "active" ? "Aktif" : "Non-Aktif"}
+														</span>
+													</td>
+													<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+														<button
+															onClick={() => openEdit(item)}
+															className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
+														>
+															<Pencil className="h-3.5 w-3.5" /> Edit
+														</button>
+														<button
+															onClick={() => handleDelete(item.id, item.name)}
+															disabled={deletingId === item.id}
+															className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-3 py-1.5 font-bold disabled:opacity-50 transition inline-flex items-center"
+														>
+															{deletingId === item.id ? (
+																<Loader2 className="h-3.5 w-3.5 animate-spin" />
+															) : (
+																<Trash2 className="h-3.5 w-3.5" />
+															)}
+														</button>
+													</td>
+												</tr>
+											);
+										})}
 									</tbody>
 								</table>
 							</div>
 						)}
 
-						{/* Pagination Controls */}
+						{/* Pagination */}
 						{totalItems > 0 && (
 							<div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
 								<div className="text-[11px] text-slate-500 font-medium">
-									Menampilkan {Math.min((safeCurrentPage - 1) * perPage + 1, totalItems)}–{Math.min(safeCurrentPage * perPage, totalItems)} dari{" "}
-									{totalItems} sub layanan
+									Menampilkan {Math.min((safeCurrentPage - 1) * perPage + 1, totalItems)}–{Math.min(safeCurrentPage * perPage, totalItems)} dari {totalItems} tarif
 								</div>
 								<div className="flex items-center gap-1.5">
 									<button
@@ -656,19 +702,26 @@ export default function SubLayananPage() {
 									>
 										<ChevronLeft className="h-3.5 w-3.5" />
 									</button>
-									{Array.from({ length: totalPages }).map((_, i) => (
-										<button
-											key={i}
-											onClick={() => setCurrentPage(i + 1)}
-											className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
-												safeCurrentPage === i + 1
-													? "bg-teal-700 text-white shadow-sm"
-													: "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-											}`}
-										>
-											{i + 1}
-										</button>
-									))}
+									{pageNumbers.map((p, idx) =>
+										p === "..." ? (
+											<span
+												key={`dots-${idx}`}
+												className="h-8 w-8 flex items-center justify-center text-slate-400 text-[11px] font-bold select-none"
+											>
+												…
+											</span>
+										) : (
+											<button
+												key={p}
+												onClick={() => setCurrentPage(p)}
+												className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
+													safeCurrentPage === p ? "bg-indigo-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+												}`}
+											>
+												{p}
+											</button>
+										)
+									)}
 									<button
 										disabled={safeCurrentPage === totalPages}
 										onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -692,7 +745,7 @@ export default function SubLayananPage() {
 								className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-[scaleIn_.15s_ease-out] max-h-[90vh] flex flex-col"
 							>
 								{/* Header */}
-								<div className="relative bg-gradient-to-r from-teal-700 to-cyan-800 px-6 sm:px-8 py-6 shrink-0">
+								<div className="relative bg-gradient-to-r from-indigo-700 to-cyan-800 px-6 sm:px-8 py-6 shrink-0">
 									<button
 										onClick={closeModal}
 										disabled={submitting}
@@ -700,16 +753,19 @@ export default function SubLayananPage() {
 									>
 										<X className="h-4 w-4" />
 									</button>
+									<div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-cyan-100 mb-1.5">
+										<Sparkles className="h-3.5 w-3.5" /> Terhubung ke Unit Layanan Sungguhan
+									</div>
 									<div className="flex items-center gap-3">
 										<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
-											<Layers className="h-5 w-5" />
+											<DollarSign className="h-5 w-5" />
 										</span>
 										<div>
 											<h3 className="text-base font-extrabold text-white">
-												{editing ? "Edit Sub Layanan" : "Tambah Sub Layanan"}
+												{editingItem ? "Edit Tarif Layanan Klinik" : "Tambah Tarif Layanan Klinik"}
 											</h3>
-											<p className="text-[11px] text-teal-50/80 mt-0.5">
-												{editing ? `Perbarui data untuk "${editing.name}"` : `Untuk unit "${unitName}"`}
+											<p className="text-[11px] text-indigo-50/80 mt-0.5">
+												{editingItem ? `Perbarui data untuk "${editingItem.name}"` : "Tambahkan layanan klinik baru beserta tarifnya"}
 											</p>
 										</div>
 									</div>
@@ -717,33 +773,38 @@ export default function SubLayananPage() {
 
 								{/* Body */}
 								<form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-4 overflow-y-auto">
-									{!editing && (
-										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Simpan Sebagai</label>
-											<div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
-												{sourceOptionsForForm.map((opt) => (
-													<button
-														key={opt.value}
-														type="button"
-														onClick={() => setForm({ ...form, source: opt.value })}
-														className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-															form.source === opt.value ? "bg-white text-teal-800 shadow-sm" : "text-slate-400"
-														}`}
-													>
-														{opt.label}
-													</button>
-												))}
-											</div>
+									{/* Unit Layanan (ModernSelect, mengganti dropdown "5 kategori" lama) */}
+									<div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
+										<label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+											<FolderTree className="h-4 w-4 text-indigo-600" />
+											Unit Layanan <span className="text-[#DC2626]">*</span>
+										</label>
+										<ModernSelect
+											options={unitOptionsForModal}
+											value={form.service_unit_id}
+											onChange={handleUnitChange}
+											placeholder="Pilih unit layanan..."
+											icon={FolderTree}
+											searchable={true}
+										/>
+										{formErrors.service_unit_id && (
+											<p className="text-[10px] text-[#DC2626] font-semibold">{formErrors.service_unit_id}</p>
+										)}
+										<div className="flex items-center gap-2 pt-1">
+											<span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-extrabold ${categoryContext.badgeStyle}`}>
+												<span>{categoryContext.badgeIcon}</span>
+												<span>{categoryContext.badgeText}</span>
+											</span>
 										</div>
-									)}
+									</div>
 
-									{/* Kategori sub layanan - hanya muncul kalau unit ini pakai kategori */}
-									{categoryMode !== "none" && (
-										<div className="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200/80 space-y-2">
-											<label className="text-xs font-extrabold text-teal-900 flex items-center gap-1.5">
-												Kategori Sub Layanan {categoryMode === "select" && <span className="text-[#DC2626]">*</span>}
+									{/* Kategori sub layanan - otomatis mengikuti unit yang dipilih di atas */}
+									{form.service_unit_id && categoryConfig.mode !== "none" && (
+										<div className="bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-200/80 space-y-2">
+											<label className="text-xs font-extrabold text-indigo-900 flex items-center gap-1.5">
+												Kategori Layanan {categoryConfig.mode === "select" && <span className="text-[#DC2626]">*</span>}
 											</label>
-											{categoryMode === "select" ? (
+											{categoryConfig.mode === "select" ? (
 												<select
 													value={form.category}
 													onChange={(e) => {
@@ -753,14 +814,12 @@ export default function SubLayananPage() {
 													className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-bold focus:outline-hidden transition ${
 														formErrors.category
 															? "border-red-300 bg-red-50/40 focus:border-red-500"
-															: "border-teal-200 bg-white focus:border-teal-600"
+															: "border-indigo-200 bg-white focus:border-indigo-600"
 													}`}
 												>
 													<option value="">Pilih kategori...</option>
-													{categoryOptions.map((c) => (
-														<option key={c} value={c}>
-															{c}
-														</option>
+													{categoryConfig.options.map((c) => (
+														<option key={c} value={c}>{c}</option>
 													))}
 												</select>
 											) : (
@@ -768,12 +827,18 @@ export default function SubLayananPage() {
 													value={form.category}
 													onChange={(e) => setForm({ ...form, category: e.target.value })}
 													placeholder="Kategori (opsional)"
-													className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:outline-hidden transition"
+													className="w-full rounded-2xl border border-indigo-200 bg-white px-4 py-2.5 text-xs font-medium focus:border-indigo-600 focus:outline-hidden transition"
 												/>
 											)}
 											{formErrors.category && (
 												<p className="text-[10px] text-[#DC2626] font-semibold">{formErrors.category}</p>
 											)}
+										</div>
+									)}
+									{form.service_unit_id && categoryConfig.mode === "none" && (
+										<div className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[10px] font-semibold text-slate-500 flex items-start gap-2">
+											<Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+											<span>Unit ini tidak memakai kategori sub layanan.</span>
 										</div>
 									)}
 
@@ -783,8 +848,8 @@ export default function SubLayananPage() {
 											<input
 												value={form.kptl}
 												onChange={(e) => setForm({ ...form, kptl: e.target.value })}
-												placeholder="Contoh: RJ-KONS-01"
-												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+												placeholder="Contoh: KLN-0012"
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-indigo-600 focus:bg-white focus:outline-hidden transition"
 											/>
 										</div>
 										<div>
@@ -793,14 +858,14 @@ export default function SubLayananPage() {
 												value={form.satuan}
 												onChange={(e) => setForm({ ...form, satuan: e.target.value })}
 												placeholder="Per Tindakan"
-												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-indigo-600 focus:bg-white focus:outline-hidden transition"
 											/>
 										</div>
 									</div>
 
 									<div>
 										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
-											Nama Sub Layanan <span className="text-[#DC2626]">*</span>
+											Nama Layanan <span className="text-[#DC2626]">*</span>
 										</label>
 										<input
 											value={form.name}
@@ -808,14 +873,16 @@ export default function SubLayananPage() {
 												setForm({ ...form, name: e.target.value });
 												if (formErrors.name) setFormErrors({ ...formErrors, name: null });
 											}}
-											placeholder="Contoh: Konsultasi Umum"
+											placeholder="Contoh: Konsultasi Klinik Jantung"
 											className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-bold focus:outline-hidden transition ${
 												formErrors.name
 													? "border-red-300 bg-red-50/40 focus:border-red-500"
-													: "border-teal-200 bg-teal-50/20 focus:border-teal-600 focus:bg-white"
+													: "border-indigo-200/90 bg-indigo-50/20 focus:border-indigo-600 focus:bg-white"
 											}`}
 										/>
-										{formErrors.name && <p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.name}</p>}
+										{formErrors.name && (
+											<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.name}</p>
+										)}
 									</div>
 
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -870,7 +937,7 @@ export default function SubLayananPage() {
 
 									<div>
 										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
-											Tarif (Rp) <span className="text-[#DC2626]">*</span>
+											Nominal Tarif (Rp) <span className="text-[#DC2626]">*</span>
 										</label>
 										<div className="relative">
 											<span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400">Rp</span>
@@ -887,11 +954,13 @@ export default function SubLayananPage() {
 												className={`w-full rounded-2xl border pl-10 pr-4 py-2.5 text-xs font-mono font-bold focus:outline-hidden transition ${
 													formErrors.price
 														? "border-red-300 bg-red-50/40 focus:border-red-500"
-														: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
+														: "border-slate-200 bg-slate-50/50 focus:border-indigo-600 focus:bg-white"
 												}`}
 											/>
 										</div>
-										{formErrors.price && <p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.price}</p>}
+										{formErrors.price && (
+											<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.price}</p>
+										)}
 										{!formErrors.price && form.price !== "" && !isNaN(Number(form.price)) && (
 											<p className="text-[10px] text-slate-400 font-medium mt-1">{formatRupiah(Number(form.price))}</p>
 										)}
@@ -909,10 +978,10 @@ export default function SubLayananPage() {
 										<button
 											type="submit"
 											disabled={submitting}
-											className="rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white px-5 py-2.5 text-xs font-extrabold hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-60 inline-flex items-center gap-2"
+											className="rounded-2xl bg-gradient-to-r from-indigo-700 to-cyan-800 text-white px-5 py-2.5 text-xs font-extrabold hover:from-indigo-800 hover:to-cyan-900 transition disabled:opacity-60 inline-flex items-center gap-2"
 										>
 											{submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-											{submitting ? "Menyimpan..." : editing ? "Simpan Perubahan" : "Simpan Sub Layanan"}
+											{submitting ? "Menyimpan..." : editingItem ? "Simpan Perubahan" : "Simpan Tarif"}
 										</button>
 									</div>
 								</form>
