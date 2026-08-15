@@ -376,8 +376,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }: Navba
     <nav className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-xl shadow-sm" style={{boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06), 0 4px 20px -4px rgb(0 0 0 / 0.05)"}}>
       <div className="mx-auto flex items-center justify-between px-5 py-2.5">
         
-        {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
+        {/* Brand / Logo (Mobile Only, Desktop handled by Sidebar) */}
+        <div className="flex items-center gap-3 md:hidden">
           <Link href="/" className="group flex items-center gap-3 transition-all duration-200">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-700 to-cyan-800 shadow-md shadow-teal-900/20 ring-1 ring-teal-700/30 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
@@ -397,7 +397,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }: Navba
         </div>
 
         {/* Right Action Icons: Notification Bell & Profile Dropdown */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {/* TOKEN BALANCE BADGE (untuk faskes/rumah_sakit) */}
           {tokenBalance !== null && (
             <div className="hidden sm:flex items-center gap-1.5 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-1.5 text-xs font-bold text-[#D97706] shadow-xs">

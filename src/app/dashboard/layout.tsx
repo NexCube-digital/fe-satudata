@@ -7,15 +7,21 @@ import { useAuth } from '@/hooks/use-auth';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, handleLogout } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    setMounted(true);
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    if (savedState === "true") {
+      setIsCollapsed(true);
+    }
+
     const handleCollapsedChange = () => {
-      const savedState = localStorage.getItem("sidebarCollapsed");
-      setIsCollapsed(savedState === "true");
+      const state = localStorage.getItem("sidebarCollapsed");
+      setIsCollapsed(state === "true");
     };
 
-    handleCollapsedChange();
     window.addEventListener("sidebarCollapsedChanged", handleCollapsedChange);
     window.addEventListener("storage", handleCollapsedChange);
 
@@ -31,9 +37,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-1 min-w-0 relative">
         <Sidebar role={user?.role} />
         <main
-          className={`flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 md:pt-8 md:pb-12 w-full transition-all duration-300 ${
-            isCollapsed ? 'md:ml-20' : 'md:ml-64'
-          }`}
+          className={`flex-1 min-w-0 px-4 sm:px-6 lg:px-8 pt-6 pb-24 md:pt-8 md:pb-12 w-full ${
+            mounted ? "transition-all duration-300" : "transition-none"
+          } ${isCollapsed ? 'md:ml-20 max-w-full' : 'md:ml-64 max-w-7xl mx-auto'}`}
         >
           {children}
         </main>

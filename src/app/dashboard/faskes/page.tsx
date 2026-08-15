@@ -155,7 +155,7 @@ export default function FaskesDashboard() {
   };
 
   if (loading) {
-    return <LoadingScreen message="Memuat Portal Faskes & Data Medis..." fullScreen={false} />;
+    return <LoadingScreen message="Memuat Portal Faskes & Data Medis..." fullScreen={true} />;
   }
 
   if (!user) {

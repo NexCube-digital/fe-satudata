@@ -145,7 +145,7 @@ export default function SearchableSelect({
 
       {open && !isLoading && (
         <div className="absolute left-0 right-0 z-50 mt-1.5 max-h-64 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-1 duration-150">
-          {searchable && normalizedOptions.length > 5 && (
+          {searchable && (
             <div className="p-2 border-b border-slate-100 bg-slate-50/50">
               <div className="relative">
                 <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />

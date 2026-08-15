@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import SearchableSelect, { SearchableOption } from "@/components/ui/SearchableSelect";
 import { 
-  Home, 
-  Users, 
-  FileText, 
-  Plus,
   Settings, 
   BarChart3, 
   Stethoscope, 
@@ -25,13 +23,20 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronRight,
+  ChevronLeft,
   Pill,
   ShoppingCart,
   Package,
   Lock,
   DollarSign,
   CreditCard,
-  LucideIcon
+  Search,
+  X,
+  LucideIcon,
+  Home,
+  FileText,
+  Plus,
+  Users
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -57,21 +62,46 @@ interface SidebarProps {
   role?: string;
 }
 
+function isRouteActive(currentPath: string, targetHref?: string) {
+  if (!currentPath || !targetHref) return false;
+  if (currentPath === targetHref) return true;
+
+  if (targetHref === "/dashboard/admin" || targetHref === "/dashboard/faskes" || targetHref === "/dashboard/pasien") {
+    return currentPath === targetHref;
+  }
+
+  if (targetHref === "/dashboard/faskes/requests" && currentPath.startsWith("/dashboard/faskes/requests/history")) {
+    return false;
+  }
+  if (targetHref === "/dashboard/faskes/medical-records" && 
+     (currentPath.startsWith("/dashboard/faskes/medical-records/upload") ||
+      currentPath.startsWith("/dashboard/faskes/medical-records/layanan") ||
+      currentPath.startsWith("/dashboard/faskes/medical-records/invoice"))) {
+    return false;
+  }
+
+  return currentPath.startsWith(targetHref);
+}
+
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [sidebarSearchQuery, setSidebarSearchQuery] = useState<string>("");
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Lazy initialize isCollapsed from localStorage synchronously on client to eliminate page transition jump/flicker
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("sidebarCollapsed") === "true";
-    }
-    return false;
-  });
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
-
   const [activeHoverMenu, setActiveHoverMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem("sidebarCollapsed") === "true";
+    if (stored) {
+      setIsCollapsed(true);
+    }
+  }, []);
 
   const [badgeCounts, setBadgeCounts] = useState<Record<string, string | null>>({
     users: null,
@@ -83,29 +113,39 @@ export default function Sidebar({ role }: SidebarProps) {
     consent: null
   });
 
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
-    patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
-    medicalRecords: pathname.startsWith("/dashboard/faskes/medical-records"),
-    users: pathname.startsWith("/dashboard/admin/users"),
-    doctors: pathname.startsWith("/dashboard/faskes/doctor"),
-    geotagging: pathname.startsWith("/dashboard/admin/faskes"),
-    consent: pathname.startsWith("/dashboard/pasien/consent"),
-    pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy"),
-    masterData: pathname.startsWith("/dashboard/faskes/finance/tarif-layanan") || pathname.startsWith("/dashboard/faskes/finance/pelayanan-medis") || pathname.startsWith("/dashboard/faskes/finance/layanan") || pathname.startsWith("/dashboard/faskes/finance/ruangan"),
-    finance: pathname.startsWith("/dashboard/faskes/finance/invoice") || pathname.startsWith("/dashboard/faskes/finance/history")
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(() => {
+    const p = pathname || "";
+    return {
+      patients: p.startsWith("/dashboard/faskes/patients") || p.startsWith("/dashboard/faskes/requests"),
+      medicalRecords: p.startsWith("/dashboard/faskes/medical-records"),
+      users: p.startsWith("/dashboard/admin/users"),
+      doctors: p.startsWith("/dashboard/faskes/doctor"),
+      geotagging: p.startsWith("/dashboard/admin/faskes"),
+      consent: p.startsWith("/dashboard/pasien/consent"),
+      pharmacy: p.startsWith("/dashboard/faskes/pharmacy"),
+      masterData: p.startsWith("/dashboard/faskes/finance/tarif-layanan") || p.startsWith("/dashboard/faskes/finance/pelayanan-medis") || p.startsWith("/dashboard/faskes/finance/layanan") || p.startsWith("/dashboard/faskes/finance/ruangan"),
+      finance: p.startsWith("/dashboard/faskes/finance/invoice") || p.startsWith("/dashboard/faskes/finance/history")
+    };
   });
 
-  // Enable CSS transitions after initial render mount
   useEffect(() => {
+    setMounted(true);
     const stored = localStorage.getItem("sidebarCollapsed") === "true";
-    setIsCollapsed(stored);
-    const timer = setTimeout(() => {
-      setMounted(true);
-    }, 100);
-    return () => clearTimeout(timer);
+    if (stored) {
+      setIsCollapsed(true);
+    }
   }, []);
 
-  // Close floating dropdown popover when clicking outside
+  useEffect(() => {
+    const handleClickOutsideSearch = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutsideSearch);
+    return () => document.removeEventListener("mousedown", handleClickOutsideSearch);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -116,39 +156,6 @@ export default function Sidebar({ role }: SidebarProps) {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
-
-  // Auto expand parent dropdown when an active child route is visited
-  useEffect(() => {
-    const items = getMenuItems();
-    setOpenDropdowns((prev) => {
-      const next = { ...prev };
-      let updated = false;
-
-      items.forEach((item, index) => {
-        if (item.children && item.children.length > 0) {
-          const key = item.dropdownKey || `dropdown_${index}`;
-          const isChildActive = item.children.some((child) => isRouteActive(pathname, child.href));
-          if (isChildActive && !next[key]) {
-            next[key] = true;
-            updated = true;
-          }
-        }
-      });
-
-      return updated ? next : prev;
-    });
-  }, [pathname, role]);
-
-  const toggleCollapse = () => {
-    setIsCollapsed(prev => {
-      const nextState = !prev;
-      localStorage.setItem("sidebarCollapsed", String(nextState));
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event("sidebarCollapsedChanged"));
-      }
-      return nextState;
-    });
-  };
 
   useEffect(() => {
     const loadUserData = () => {
@@ -218,7 +225,6 @@ export default function Sidebar({ role }: SidebarProps) {
     fetchBadgeData();
   }, [role]);
 
-  // Define menu items based on role
   const getMenuItems = (): MenuItem[] => {
     switch (role) {
       case "admin":
@@ -344,7 +350,6 @@ export default function Sidebar({ role }: SidebarProps) {
               if (filteredChildren.length === 0) return;
 
               if (isStaff) {
-                // Untuk Staf RS: Keluarkan menu dari dropdown menjadi menu utama terpisah
                 filteredChildren.forEach(child => {
                   filtered.push({
                     href: child.href,
@@ -354,7 +359,6 @@ export default function Sidebar({ role }: SidebarProps) {
                   });
                 });
               } else {
-                // Untuk Admin RS (rumah_sakit): Tetap dalam dropdown
                 filtered.push({ ...item, children: filteredChildren });
               }
             } else {
@@ -375,6 +379,27 @@ export default function Sidebar({ role }: SidebarProps) {
         ];
     }
   };
+
+  useEffect(() => {
+    const items = getMenuItems();
+    setOpenDropdowns((prev) => {
+      const next = { ...prev };
+      let updated = false;
+
+      items.forEach((item, index) => {
+        if (item.children && item.children.length > 0) {
+          const key = item.dropdownKey || `dropdown_${index}`;
+          const isChildActive = item.children.some((child) => isRouteActive(pathname || "", child.href));
+          if (isChildActive && !next[key]) {
+            next[key] = true;
+            updated = true;
+          }
+        }
+      });
+
+      return updated ? next : prev;
+    });
+  }, [pathname, role]);
 
   const getRoleHeader = () => {
     switch (role) {
@@ -430,27 +455,15 @@ export default function Sidebar({ role }: SidebarProps) {
     }
   };
 
-  const isRouteActive = (currentPath: string, targetHref?: string) => {
-    if (!currentPath || !targetHref) return false;
-    if (currentPath === targetHref) return true;
-
-    // Root dashboard hubs exact match check
-    if (targetHref === "/dashboard/admin" || targetHref === "/dashboard/faskes" || targetHref === "/dashboard/pasien") {
-      return currentPath === targetHref;
-    }
-
-    // Exclude distinct sub-menu routes that share a path prefix with shorter parent menu hrefs
-    if (targetHref === "/dashboard/faskes/requests" && currentPath.startsWith("/dashboard/faskes/requests/history")) {
-      return false;
-    }
-    if (targetHref === "/dashboard/faskes/medical-records" && 
-       (currentPath.startsWith("/dashboard/faskes/medical-records/upload") ||
-        currentPath.startsWith("/dashboard/faskes/medical-records/layanan") ||
-        currentPath.startsWith("/dashboard/faskes/medical-records/invoice"))) {
-      return false;
-    }
-
-    return currentPath.startsWith(targetHref);
+  const toggleCollapse = () => {
+    const nextState = !isCollapsed;
+    setIsCollapsed(nextState);
+    localStorage.setItem("sidebarCollapsed", String(nextState));
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("sidebarCollapsedChanged"));
+      }
+    }, 0);
   };
 
   const toggleDropdown = (key: string) => {
@@ -464,266 +477,433 @@ export default function Sidebar({ role }: SidebarProps) {
   const roleHeader = getRoleHeader();
   const accountStatus = getAccountStatus();
 
+  const searchableMenuOptions: SearchableOption[] = useMemo(() => {
+    const opts: SearchableOption[] = [];
+    menuItems.forEach((item) => {
+      if (item.children && item.children.length > 0) {
+        item.children.forEach((child) => {
+          opts.push({
+            value: child.href,
+            label: `${item.label} → ${child.label}`,
+            badge: child.badge || undefined,
+          });
+        });
+      } else if (item.href) {
+        opts.push({
+          value: item.href,
+          label: item.label,
+          badge: item.badge || undefined,
+        });
+      }
+    });
+    return opts;
+  }, [menuItems]);
+
+  const filteredSearchOptions = useMemo(() => {
+    if (!sidebarSearchQuery.trim()) return searchableMenuOptions;
+    const q = sidebarSearchQuery.toLowerCase().trim();
+    return searchableMenuOptions.filter((opt) =>
+      String(opt.label).toLowerCase().includes(q)
+    );
+  }, [searchableMenuOptions, sidebarSearchQuery]);
+
+  const searchQuery = sidebarSearchQuery.toLowerCase().trim();
+  const filteredMenuItems = searchQuery
+    ? menuItems
+        .filter((item) => {
+          const parentMatch = item.label.toLowerCase().includes(searchQuery);
+          const childMatch = item.children?.some((c) =>
+            c.label.toLowerCase().includes(searchQuery)
+          );
+          return parentMatch || childMatch;
+        })
+        .map((item) => {
+          if (item.children) {
+            const parentMatch = item.label.toLowerCase().includes(searchQuery);
+            if (parentMatch) return item;
+            return {
+              ...item,
+              children: item.children.filter((c) =>
+                c.label.toLowerCase().includes(searchQuery)
+              ),
+            };
+          }
+          return item;
+        })
+    : menuItems;
+
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className={`hidden md:flex flex-col fixed top-0 bottom-0 left-0 z-30 bg-white border-r border-slate-200 shadow-sm ${
-        mounted ? "transition-all duration-300 ease-in-out" : ""
-      } ${isCollapsed ? "w-20" : "w-64"}`}>
+      <aside
+        className={`hidden md:flex flex-col fixed top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-200 shadow-sm overflow-visible ${
+          mounted ? "transition-all duration-300 ease-in-out" : "transition-none"
+        } ${isCollapsed ? "w-20" : "w-64"}`}
+      >
         
+        {/* Floating Outer Edge Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="absolute -right-3.5 top-20 z-[60] h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-600 hover:text-teal-700 hover:border-teal-400 shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
+          title={isCollapsed ? "Tampilkan Sidebar" : "Sembunyikan Sidebar"}
+          aria-label={isCollapsed ? "Tampilkan Sidebar" : "Sembunyikan Sidebar"}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+
         {/* Brand Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100 shrink-0">
           <Link href="/" className="flex items-center gap-3 overflow-hidden">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-teal-700 via-teal-800 to-cyan-900 flex items-center justify-center text-white shadow-md shadow-teal-900/20 shrink-0">
-              <Zap className="h-5 w-5 fill-white/20" />
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-700 to-cyan-800 shadow-md shadow-teal-900/20 ring-1 ring-teal-700/30 shrink-0 overflow-hidden">
+              <Image
+                src="/images/logo.png"
+                alt="Satu Data logo"
+                width={24}
+                height={24}
+                className="relative z-10 h-6 w-6 object-contain brightness-0 invert"
+              />
             </div>
             {!isCollapsed && (
               <div className="flex flex-col overflow-hidden">
                 <span className="font-extrabold text-sm tracking-tight text-slate-900 leading-tight">
-                  SATUDATA<span className="text-teal-700">MEDIS</span>
+                  Satu Data
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">
-                  EHR & Blockchain
+                <span className="text-[9px] font-bold text-teal-700 uppercase tracking-wider truncate">
+                  {roleHeader.title}
                 </span>
               </div>
             )}
           </Link>
-
-          <button
-            onClick={toggleCollapse}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
-            title={isCollapsed ? "Perluas Sidebar" : "Ciutkan Sidebar"}
-          >
-            {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-          </button>
         </div>
 
-        {/* Dynamic Context Header */}
-        {!isCollapsed && (
-          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 shrink-0">
-            <div className={`p-2.5 rounded-xl border bg-gradient-to-r ${roleHeader.bg}`}>
-              <div className="text-[11px] font-black uppercase tracking-wider truncate">{roleHeader.title}</div>
-              <div className="text-[9px] font-semibold opacity-75 truncate">{roleHeader.subtitle}</div>
+        {/* Direct Sidebar Search Input Form with Instant Dropdown Options */}
+        {!isCollapsed ? (
+          <div className="px-3 py-2.5 border-b border-slate-100 bg-slate-50/50 shrink-0 relative" ref={searchContainerRef}>
+            <div className="relative flex items-center">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-teal-700 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari menu / fitur..."
+                value={sidebarSearchQuery}
+                onFocus={() => setIsSearchOpen(true)}
+                onChange={(e) => {
+                  setSidebarSearchQuery(e.target.value);
+                  setIsSearchOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setIsSearchOpen(false);
+                }}
+                className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition shadow-2xs font-medium"
+              />
+              {sidebarSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSidebarSearchQuery("");
+                    setIsSearchOpen(false);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
+
+            {/* Instant Dropdown Suggestions Popup */}
+            {isSearchOpen && (
+              <div className="absolute left-3 right-3 top-full mt-1.5 max-h-60 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-black/5 z-50 overflow-y-auto space-y-0.5 custom-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
+                {filteredSearchOptions.length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-slate-400 text-center font-medium">
+                    Menu tidak ditemukan
+                  </div>
+                ) : (
+                  filteredSearchOptions.map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        setSidebarSearchQuery("");
+                        router.push(opt.value);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl font-semibold transition-all text-left text-slate-700 hover:bg-teal-50 hover:text-teal-900 cursor-pointer"
+                    >
+                      <span className="truncate">{opt.label}</span>
+                      {opt.badge && (
+                        <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0 ml-1.5">
+                          {opt.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-2 border-b border-slate-100 flex justify-center shrink-0">
+            <button
+              onClick={() => setIsCollapsed(false)}
+              title="Cari Menu"
+              className="h-8 w-8 rounded-xl bg-slate-100 hover:bg-teal-50 text-slate-500 hover:text-teal-700 flex items-center justify-center transition cursor-pointer"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
         )}
 
         {/* Scrollable Navigation Area */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
+        <div className={`flex-1 px-3 py-4 space-y-1 custom-scrollbar ${isCollapsed ? "overflow-visible" : "overflow-y-auto"}`}>
           <div className="space-y-1">
             <nav className="space-y-1">
-              {menuItems.map((item, index) => {
-                const Icon = item.icon;
-                const hasChildren = Boolean(item.children && item.children.length > 0);
+              {filteredMenuItems.length === 0 ? (
+                <div className="px-3 py-8 text-center space-y-1">
+                  <Search className="h-5 w-5 text-slate-300 mx-auto mb-1" />
+                  <p className="text-xs font-bold text-slate-600">Menu tidak ditemukan</p>
+                  <p className="text-[10px] text-slate-400">Coba kata kunci lain</p>
+                </div>
+              ) : (
+                filteredMenuItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const hasChildren = Boolean(item.children && item.children.length > 0);
 
-                // Handling Parent Items with Collapsible Submenu
-                if (hasChildren) {
-                  const key = item.dropdownKey || `dropdown_${index}`;
-                  const isOpen = Boolean(openDropdowns[key]);
-                  const isAnyChildActive = item.children?.some(c => isRouteActive(pathname, c.href));
+                  // Handling Parent Items with Collapsible Submenu
+                  if (hasChildren) {
+                    const key = item.dropdownKey || `dropdown_${index}`;
+                    const isOpen = Boolean(openDropdowns[key]) || Boolean(searchQuery);
+                    const isAnyChildActive = item.children?.some(c => isRouteActive(pathname || "", c.href));
 
-                  if (isCollapsed) {
-                    const isHovered = activeHoverMenu === key;
+                    if (isCollapsed) {
+                      const isHovered = activeHoverMenu === key;
+
+                      return (
+                        <div 
+                          key={key} 
+                          className="relative floating-dropdown-container flex justify-center"
+                        >
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveHoverMenu(isHovered ? null : key);
+                            }}
+                            className={`flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 ${
+                              isAnyChildActive || isHovered
+                                ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
+                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            }`}
+                            title={item.label}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </button>
+
+                          {/* Floating Circular Submenu Icon Buttons for Collapsed Sidebar */}
+                          {isHovered && (
+                            <div className="absolute left-full top-0 ml-3 z-[100] flex flex-col gap-2 p-2.5 bg-white/98 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-left-3 duration-200 min-w-[210px]">
+                              {/* Header Title */}
+                              <div className="px-2.5 py-1 border-b border-slate-100 mb-0.5 flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-wider text-teal-800">{item.label}</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
+                              </div>
+
+                              {/* Floating Circular Submenu Buttons */}
+                              <div className="space-y-1.5">
+                                {item.children?.map((child) => {
+                                  const ChildIcon = child.icon || Icon;
+                                  const isChildActive = isRouteActive(pathname || "", child.href);
+
+                                  return (
+                                    <Link
+                                      key={child.href}
+                                      href={child.href}
+                                      onClick={() => setActiveHoverMenu(null)}
+                                      className={`flex items-center gap-3 p-1.5 pr-3.5 rounded-2xl transition-all duration-200 group cursor-pointer ${
+                                        isChildActive
+                                          ? "bg-teal-50/90 border border-teal-200/80 shadow-2xs"
+                                          : "hover:bg-slate-50 border border-transparent"
+                                      }`}
+                                    >
+                                      {/* Circular Floating Icon Button */}
+                                      <div className={`relative h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 shrink-0 group-hover:scale-110 shadow-md ${
+                                        isChildActive
+                                          ? "bg-gradient-to-br from-teal-700 via-teal-800 to-cyan-900 text-white shadow-teal-900/20 ring-2 ring-teal-500/30"
+                                          : "bg-slate-100 text-slate-600 group-hover:bg-gradient-to-br group-hover:from-teal-700 group-hover:to-cyan-800 group-hover:text-white border border-slate-200/80"
+                                      }`}>
+                                        <ChildIcon className="h-4 w-4" />
+                                        {child.badge && (
+                                          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cyan-600 px-1 text-[8px] font-extrabold text-white ring-2 ring-white shadow-xs">
+                                            {child.badge.split(" ")[0]}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* Submenu Item Label */}
+                                      <div className="flex-1 min-w-0 overflow-hidden">
+                                        <p className={`text-xs font-bold truncate transition-colors ${
+                                          isChildActive ? "text-teal-950 font-black" : "text-slate-700 group-hover:text-teal-900"
+                                        }`}>
+                                          {child.label}
+                                        </p>
+                                        {child.badge && (
+                                          <span className="text-[9px] font-bold text-slate-400 block truncate">
+                                            {child.badge}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
 
                     return (
-                      <div 
-                        key={key} 
-                        className="relative floating-dropdown-container flex justify-center"
-                      >
+                      <div key={key} className="space-y-1">
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveHoverMenu(isHovered ? null : key);
-                          }}
-                          className={`flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 ${
-                            isAnyChildActive || isHovered
-                              ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
-                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          onClick={() => toggleDropdown(key)}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                            isAnyChildActive
+                              ? "bg-teal-50/90 text-teal-950 border border-teal-200/80 shadow-2xs"
+                              : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                           }`}
-                          title={item.label}
                         >
-                          <Icon className="h-4 w-4" />
+                          <div className="flex items-center gap-2.5 overflow-hidden">
+                            <div className={`h-7 w-7 rounded-xl flex items-center justify-center border transition-all duration-200 shrink-0 ${
+                              isAnyChildActive
+                                ? "bg-gradient-to-r from-teal-700 to-cyan-800 border-teal-600 text-white shadow-xs"
+                                : "bg-slate-100 border-slate-200 text-slate-500"
+                            }`}>
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
+                            <span className="truncate">{item.label}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {item.badge && (
+                              <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
+                                isAnyChildActive
+                                  ? "bg-teal-200/70 text-teal-950 border border-teal-300"
+                                  : "bg-slate-100 text-slate-500 border border-slate-200"
+                              }`}>
+                                {item.badge}
+                              </span>
+                            )}
+                            <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-teal-700" : "text-slate-400"}`} />
+                          </div>
                         </button>
 
-                        {/* Floating Submenu Popup for Collapsed Sidebar */}
-                        {isHovered && (
-                          <div className="absolute left-full top-0 ml-3 w-56 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-left-2 duration-150">
-                            <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{item.label}</span>
-                            </div>
-                            <div className="space-y-1">
+                        {/* Smooth Height Expandable Submenu */}
+                        <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 my-1" : "grid-rows-[0fr] opacity-0 overflow-hidden"}`}>
+                          <div className="overflow-hidden">
+                            <div className="pl-4 pr-1 py-1 space-y-1.5 border-l-2 border-teal-500/30 ml-5">
                               {item.children?.map((child) => {
                                 const ChildIcon = child.icon;
-                                const isChildActive = isRouteActive(pathname, child.href);
+                                const isChildItemActive = isRouteActive(pathname || "", child.href);
+
                                 return (
                                   <Link
                                     key={child.href}
                                     href={child.href}
-                                    onClick={() => setActiveHoverMenu(null)}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-                                      isChildActive
-                                        ? "bg-teal-50 text-teal-900 font-black"
-                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                      isChildItemActive
+                                        ? "bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white shadow-md shadow-teal-900/15 font-black translate-x-1"
+                                        : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1"
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 overflow-hidden">
-                                      {ChildIcon && <ChildIcon className={`h-3.5 w-3.5 ${isChildActive ? "text-teal-700" : "text-slate-400"}`} />}
+                                      {ChildIcon && (
+                                        <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
+                                      )}
                                       <span className="truncate">{child.label}</span>
                                     </div>
-                                    {child.badge && (
-                                      <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] font-bold text-slate-500">
-                                        {child.badge}
-                                      </span>
-                                    )}
+
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      {isChildItemActive && (
+                                        <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-xs animate-pulse" />
+                                      )}
+                                      {child.badge && (
+                                        <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${
+                                          isChildItemActive
+                                            ? "bg-white/20 text-white border border-white/30"
+                                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                                        }`}>
+                                          {child.badge}
+                                        </span>
+                                      )}
+                                    </div>
                                   </Link>
                                 );
                               })}
                             </div>
                           </div>
-                        )}
+                        </div>
                       </div>
                     );
                   }
 
-                  return (
-                    <div key={key} className="space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleDropdown(key)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                          isAnyChildActive
-                            ? "bg-teal-50/90 text-teal-950 border border-teal-200/80 shadow-2xs"
-                            : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                  // Handling Single Link Items
+                  const isActive = isRouteActive(pathname || "", item.href);
+
+                  if (isCollapsed) {
+                    return (
+                      <Link
+                        key={item.href || index}
+                        href={item.href || "#"}
+                        title={item.label}
+                        className={`flex items-center justify-center h-10 w-10 mx-auto rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 overflow-hidden">
-                          <div className={`h-7 w-7 rounded-xl flex items-center justify-center border transition-all duration-200 shrink-0 ${
-                            isAnyChildActive
-                              ? "bg-gradient-to-r from-teal-700 to-cyan-800 border-teal-600 text-white shadow-xs"
-                              : "bg-slate-100 border-slate-200 text-slate-500"
-                          }`}>
-                            <Icon className="h-3.5 w-3.5" />
-                          </div>
-                          <span className="truncate">{item.label}</span>
-                        </div>
+                        <Icon className="h-4 w-4" />
+                      </Link>
+                    );
+                  }
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {item.badge && (
-                            <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
-                              isAnyChildActive
-                                ? "bg-teal-200/70 text-teal-950 border border-teal-300"
-                                : "bg-slate-100 text-slate-500 border border-slate-200"
-                            }`}>
-                              {item.badge}
-                            </span>
-                          )}
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-teal-700" : "text-slate-400"}`} />
-                        </div>
-                      </button>
-
-                      {/* Smooth Height Expandable Submenu */}
-                      <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 my-1" : "grid-rows-[0fr] opacity-0 overflow-hidden"}`}>
-                        <div className="overflow-hidden">
-                          <div className="pl-4 pr-1 py-1 space-y-1.5 border-l-2 border-teal-500/30 ml-5">
-                            {item.children?.map((child) => {
-                              const ChildIcon = child.icon;
-                              const isChildItemActive = isRouteActive(pathname, child.href);
-
-                              return (
-                                <Link
-                                  key={child.href}
-                                  href={child.href}
-                                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                                    isChildItemActive
-                                      ? "bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white shadow-md shadow-teal-900/15 font-black translate-x-1"
-                                      : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2.5 overflow-hidden">
-                                    {ChildIcon && (
-                                      <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
-                                    )}
-                                    <span className="truncate">{child.label}</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    {isChildItemActive && (
-                                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-xs animate-pulse" />
-                                    )}
-                                    {child.badge && (
-                                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${
-                                        isChildItemActive
-                                          ? "bg-white/20 text-white border border-white/30"
-                                          : "bg-slate-100 text-slate-500 border border-slate-200"
-                                      }`}>
-                                        {child.badge}
-                                      </span>
-                                    )}
-                                  </div>
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // Handling Single Link Items
-                const isActive = isRouteActive(pathname, item.href);
-
-                if (isCollapsed) {
                   return (
                     <Link
                       key={item.href || index}
                       href={item.href || "#"}
-                      title={item.label}
-                      className={`flex items-center justify-center h-10 w-10 mx-auto rounded-xl transition-all duration-200 ${
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                         isActive
-                          ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm shadow-teal-900/15"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
-                      <Icon className="h-4 w-4" />
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+                          isActive
+                            ? "bg-white/15 border-white/20 text-teal-200"
+                            : "bg-slate-100 border-slate-200 text-slate-500"
+                        }`}>
+                          <Icon className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="truncate">{item.label}</span>
+                      </div>
+
+                      {item.badge && (
+                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold shrink-0 ${
+                          isActive
+                            ? "bg-white/20 text-white border border-white/30"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   );
-                }
-
-                return (
-                  <Link
-                    key={item.href || index}
-                    href={item.href || "#"}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                      isActive
-                        ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm shadow-teal-900/15"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 overflow-hidden">
-                      <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
-                        isActive
-                          ? "bg-white/15 border-white/20 text-teal-200"
-                          : "bg-slate-100 border-slate-200 text-slate-500"
-                      }`}>
-                        <Icon className="h-3.5 w-3.5" />
-                      </div>
-                      <span className="truncate">{item.label}</span>
-                    </div>
-
-                    {item.badge && (
-                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold shrink-0 ${
-                        isActive
-                          ? "bg-white/20 text-white border border-white/30"
-                          : "bg-slate-100 text-slate-500 border border-slate-200"
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+                })
+              )}
             </nav>
           </div>
         </div>
@@ -798,7 +978,7 @@ export default function Sidebar({ role }: SidebarProps) {
           <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
             {menuItems.slice(0, 4).map((item, idx) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.children && item.children.some((c) => pathname === c.href));
+              const isActive = (pathname || "") === item.href || (item.children && item.children.some((c) => (pathname || "") === c.href));
               const href = item.href || (item.children ? item.children[0].href : "#");
               return (
                 <Link
