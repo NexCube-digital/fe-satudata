@@ -22,6 +22,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Info,
+	Download,
 } from "lucide-react";
 import {
 	getServicePriceMedis,
@@ -168,6 +169,9 @@ export default function TarifLayananMedisPage() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [unitFilter, setUnitFilter] = useState("all");
+	// Filter kelas: "all" | "umum" | "eksekutif" — ditampilkan sebagai
+	// tombol kecil (bukan dropdown) sesuai permintaan.
+	const [classFilter, setClassFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage] = useState(10);
 	const [toast, setToast] = useState({ show: false });
@@ -219,6 +223,14 @@ export default function TarifLayananMedisPage() {
 		return map;
 	}, [units]);
 
+	// Daftar unit yang dipakai khusus untuk dropdown FILTER tabel.
+	// Unit "Akomodasi" sengaja disembunyikan dari filter ini (bukan dari
+	// form Tambah/Edit) karena tidak relevan untuk tarif layanan medis.
+	const filterableUnits = useMemo(
+		() => units.filter((u) => !/akomodasi/i.test(u.name || "")),
+		[units]
+	);
+
 	// Unit layanan yang sedang dipilih di form Tambah/Edit, dipakai untuk
 	// menentukan aturan kategori sub layanan (mengikuti nama unitnya).
 	const selectedUnit = useMemo(
@@ -242,9 +254,10 @@ export default function TarifLayananMedisPage() {
 			}
 			if (statusFilter !== "all" && item.status !== statusFilter) return false;
 			if (unitFilter !== "all" && String(item.service_unit_id) !== String(unitFilter)) return false;
+			if (classFilter !== "all" && item.class !== classFilter) return false;
 			return true;
 		});
-	}, [prices, searchTerm, statusFilter, unitFilter]);
+	}, [prices, searchTerm, statusFilter, unitFilter, classFilter]);
 
 	const totalItems = filteredPrices.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
@@ -402,6 +415,26 @@ export default function TarifLayananMedisPage() {
 		}
 	};
 
+	// Ringkasan filter yang sedang aktif, ditampilkan di kop laporan PDF/cetak.
+	const filterSummaryText = () => {
+		const parts = [];
+		if (searchTerm.trim()) parts.push(`Pencarian: "${searchTerm.trim()}"`);
+		if (unitFilter !== "all") {
+			const u = unitMap[unitFilter];
+			parts.push(`Unit: ${u?.name || "-"}`);
+		}
+		if (classFilter !== "all") parts.push(`Kelas: ${CLASS_LABEL[classFilter] || classFilter}`);
+		if (statusFilter !== "all") parts.push(`Status: ${statusFilter === "active" ? "Aktif" : "Non-Aktif"}`);
+		return parts.length ? parts.join(" • ") : "Semua data (tanpa filter)";
+	};
+
+	// Unduh PDF: memakai dialog print bawaan browser (Ctrl+P). Area yang
+	// dicetak hanya bagian laporan (.print-area) berisi SELURUH data yang
+	// sesuai filter aktif, bukan cuma satu halaman tabel yang tampil.
+	const handleDownloadPdf = () => {
+		window.print();
+	};
+
 	if (loading) {
 		return (
 			<div className="space-y-6">
@@ -411,520 +444,628 @@ export default function TarifLayananMedisPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			
-			<div>
-				
-				<div className="space-y-6">
-					{/* Header Banner */}
-					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
-						<div className="flex-1 min-w-0">
-							<div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
-								<Stethoscope className="h-3.5 w-3.5" /> Modul Master Keuangan RS • Tarif Layanan Medis
-							</div>
-							<h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-								Master Data Tarif Layanan Medis
-							</h1>
-							<p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-								Kelola tarif tindakan medis per unit layanan, terpisah untuk kelas <strong>Umum</strong> dan <strong>Eksekutif</strong>.
-							</p>
-						</div>
+		<>
+			<div className="space-y-6 no-print">
 
-						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
-							<button
-								onClick={openAdd}
-								disabled={units.length === 0}
-								title={units.length === 0 ? "Buat Unit Layanan terlebih dahulu" : undefined}
-								className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								<Plus className="h-4 w-4" /> Tambah Tarif Medis
-							</button>
-						</div>
-					</div>
+				<div>
 
-					{units.length === 0 && (
-						<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-[#B45309] flex items-center gap-2">
-							<Building2 className="h-4 w-4 shrink-0" />
-							Belum ada Unit Layanan. Buat Unit Layanan dulu di halaman Master Unit Layanan sebelum menambah tarif.
-						</div>
-					)}
-
-					{/* Quick Metrics */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-							<div>
-								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tarif Medis</p>
-								<p className="text-2xl font-extrabold text-slate-900 mt-1">{prices.length} Item</p>
-							</div>
-							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-800 font-bold">
-								<Tag className="h-5 w-5" />
-							</span>
-						</div>
-
-						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-							<div>
-								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tarif Aktif</p>
-								<p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Aktif</p>
-							</div>
-							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A] font-bold">
-								<CheckCircle2 className="h-5 w-5" />
-							</span>
-						</div>
-
-						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
-							<div>
-								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rata-Rata Tarif</p>
-								<p className="text-xl font-extrabold text-slate-900 font-mono mt-1">{formatRupiah(averagePrice)}</p>
-							</div>
-							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-[#D97706] font-bold">
-								<DollarSign className="h-5 w-5" />
-							</span>
-						</div>
-					</div>
-
-					{/* Search & Filter */}
-					<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs mb-6 space-y-4">
-						<div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-							<div className="relative sm:col-span-2">
-								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-								<input
-									type="text"
-									placeholder="Cari nama layanan, kode KPTL, atau kategori..."
-									value={searchTerm}
-									onChange={(e) => {
-										setSearchTerm(e.target.value);
-										setCurrentPage(1);
-									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-								/>
+					<div className="space-y-6">
+						{/* Header Banner */}
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
+							<div className="flex-1 min-w-0">
+								<div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
+									<Stethoscope className="h-3.5 w-3.5" /> Modul Master Keuangan RS • Tarif Layanan Medis
+								</div>
+								<h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+									Master Data Tarif Layanan Medis
+								</h1>
+								<p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+									Kelola tarif tindakan medis per unit layanan, terpisah untuk kelas <strong>Umum</strong> dan <strong>Eksekutif</strong>.
+								</p>
 							</div>
 
-							<div>
-								<select
-									value={unitFilter}
-									onChange={(e) => {
-										setUnitFilter(e.target.value);
-										setCurrentPage(1);
-									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+							<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
+								<button
+									onClick={handleDownloadPdf}
+									disabled={filteredPrices.length === 0}
+									title={filteredPrices.length === 0 ? "Tidak ada data untuk diunduh" : "Unduh data sesuai filter yang aktif sebagai PDF"}
+									className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 text-xs font-extrabold shadow-xs hover:shadow-sm transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<option value="all">Semua Unit Layanan</option>
-									{units.map((u) => (
-										<option key={u.id} value={u.id}>{u.name}</option>
-									))}
-								</select>
-							</div>
-
-							<div>
-								<select
-									value={statusFilter}
-									onChange={(e) => {
-										setStatusFilter(e.target.value);
-										setCurrentPage(1);
-									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+									<Download className="h-4 w-4" /> Unduh PDF
+								</button>
+								<button
+									onClick={openAdd}
+									disabled={units.length === 0}
+									title={units.length === 0 ? "Buat Unit Layanan terlebih dahulu" : undefined}
+									className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<option value="all">Semua Status</option>
-									<option value="active">Aktif</option>
-									<option value="inactive">Non-Aktif</option>
-								</select>
+									<Plus className="h-4 w-4" /> Tambah Tarif Medis
+								</button>
 							</div>
 						</div>
-					</div>
 
-					{/* Table */}
-					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-						<div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-							<h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-								<SlidersHorizontal className="h-5 w-5 text-teal-800" />
-								Daftar Tarif Layanan Medis ({filteredPrices.length})
-							</h3>
-							<button
-								onClick={() => loadData({ silent: true })}
-								disabled={refreshing}
-								className="text-slate-400 hover:text-slate-600 transition cursor-pointer disabled:opacity-50"
-							>
-								<RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-							</button>
-						</div>
-
-						{totalItems === 0 ? (
-							<div className="py-12 text-center text-slate-400 italic text-xs">
-								{prices.length === 0 ? "Belum ada tarif layanan medis." : "Tidak ada data yang cocok dengan pencarian/filter."}
-							</div>
-						) : (
-							<div className="overflow-x-auto">
-								<table className="w-full text-left text-xs border-collapse">
-									<thead>
-										<tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50">
-											<th className="py-3.5 px-4">KPTL</th>
-											<th className="py-3.5 px-4">Nama Layanan</th>
-											<th className="py-3.5 px-4">Unit Layanan</th>
-											<th className="py-3.5 px-4">Kategori</th>
-											<th className="py-3.5 px-4">Kelas</th>
-											<th className="py-3.5 px-4">Satuan</th>
-											<th className="py-3.5 px-4 text-right">Tarif (Rp)</th>
-											<th className="py-3.5 px-4">Status</th>
-											<th className="py-3.5 px-4 text-right">Aksi</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-										{paginatedPrices.map((item) => {
-											const unit = unitMap[item.service_unit_id];
-											return (
-												<tr key={item.id} className="hover:bg-slate-50/60 transition">
-													<td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">{item.kptl || "-"}</td>
-													<td className="py-4 px-4 font-extrabold text-slate-900">{item.name}</td>
-													<td className="py-4 px-4 text-slate-600">{unit?.name || <span className="italic text-slate-400">Unit tidak ditemukan</span>}</td>
-													<td className="py-4 px-4">
-														{item.category ? (
-															<span className="text-[10px] px-2.5 py-1 rounded-full font-bold border bg-slate-100 border-slate-200 text-slate-700">
-																{item.category}
-															</span>
-														) : (
-															<span className="text-[10px] text-slate-400 italic">-</span>
-														)}
-													</td>
-													<td className="py-4 px-4">
-														<span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${CLASS_BADGE[item.class] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
-															{CLASS_LABEL[item.class] || item.class}
-														</span>
-													</td>
-													<td className="py-4 px-4 text-slate-500">{item.satuan || "-"}</td>
-													<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
-														{formatRupiah(item.price)}
-													</td>
-													<td className="py-4 px-4">
-														<span className={`inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold ${item.status === "active" ? "bg-emerald-50 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
-															<span className={`h-1.5 w-1.5 rounded-full ${item.status === "active" ? "bg-[#16A34A]" : "bg-slate-400"}`} />
-															{item.status === "active" ? "Aktif" : "Non-Aktif"}
-														</span>
-													</td>
-													<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-														<button
-															onClick={() => openEdit(item)}
-															className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
-														>
-															<Pencil className="h-3.5 w-3.5" /> Edit
-														</button>
-														<button
-															onClick={() => handleDelete(item.id, item.name)}
-															disabled={deletingId === item.id}
-															className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-3 py-1.5 font-bold disabled:opacity-50 transition inline-flex items-center"
-														>
-															{deletingId === item.id ? (
-																<Loader2 className="h-3.5 w-3.5 animate-spin" />
-															) : (
-																<Trash2 className="h-3.5 w-3.5" />
-															)}
-														</button>
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
+						{units.length === 0 && (
+							<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-[#B45309] flex items-center gap-2">
+								<Building2 className="h-4 w-4 shrink-0" />
+								Belum ada Unit Layanan. Buat Unit Layanan dulu di halaman Master Unit Layanan sebelum menambah tarif.
 							</div>
 						)}
 
-						{/* Pagination */}
-						{totalItems > 0 && (
-							<div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-								<div className="text-[11px] text-slate-500 font-medium">
-									Menampilkan {Math.min((safeCurrentPage - 1) * perPage + 1, totalItems)}–{Math.min(safeCurrentPage * perPage, totalItems)} dari {totalItems} tarif
+						{/* Quick Metrics */}
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+							<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+								<div>
+									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tarif Medis</p>
+									<p className="text-2xl font-extrabold text-slate-900 mt-1">{prices.length} Item</p>
 								</div>
-								<div className="flex items-center gap-1.5">
-									<button
-										disabled={safeCurrentPage === 1}
-										onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-										className="h-8 w-8 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition"
+								<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-800 font-bold">
+									<Tag className="h-5 w-5" />
+								</span>
+							</div>
+
+							<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+								<div>
+									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tarif Aktif</p>
+									<p className="text-2xl font-extrabold text-[#16A34A] mt-1">{activeCount} Aktif</p>
+								</div>
+								<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A] font-bold">
+									<CheckCircle2 className="h-5 w-5" />
+								</span>
+							</div>
+
+							<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
+								<div>
+									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rata-Rata Tarif</p>
+									<p className="text-xl font-extrabold text-slate-900 font-mono mt-1">{formatRupiah(averagePrice)}</p>
+								</div>
+								<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-[#D97706] font-bold">
+									<DollarSign className="h-5 w-5" />
+								</span>
+							</div>
+						</div>
+
+						{/* Search & Filter */}
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs mb-6 space-y-4">
+							<div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+								<div className="relative sm:col-span-2">
+									<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+									<input
+										type="text"
+										placeholder="Cari nama layanan, kode KPTL, atau kategori..."
+										value={searchTerm}
+										onChange={(e) => {
+											setSearchTerm(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+									/>
+								</div>
+
+								<div>
+									<select
+										value={unitFilter}
+										onChange={(e) => {
+											setUnitFilter(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
 									>
-										<ChevronLeft className="h-3.5 w-3.5" />
-									</button>
-									{pageNumbers.map((p, idx) =>
-										p === "..." ? (
-											<span
-												key={`dots-${idx}`}
-												className="h-8 w-8 flex items-center justify-center text-slate-400 text-[11px] font-bold select-none"
-											>
-												…
+										<option value="all">Semua Unit Layanan</option>
+										{filterableUnits.map((u) => (
+											<option key={u.id} value={u.id}>{u.name}</option>
+										))}
+									</select>
+								</div>
+
+								<div>
+									<select
+										value={statusFilter}
+										onChange={(e) => {
+											setStatusFilter(e.target.value);
+											setCurrentPage(1);
+										}}
+										className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+									>
+										<option value="all">Semua Status</option>
+										<option value="active">Aktif</option>
+										<option value="inactive">Non-Aktif</option>
+									</select>
+								</div>
+							</div>
+
+							{/* Filter Kelas — tombol kecil, bukan dropdown */}
+							<div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+								<span className="text-[11px] font-bold text-slate-500 mr-1">Kelas:</span>
+								<button
+									type="button"
+									onClick={() => {
+										setClassFilter("all");
+										setCurrentPage(1);
+									}}
+									className={`rounded-full px-3 py-1.5 text-[11px] font-bold border transition cursor-pointer ${
+										classFilter === "all"
+											? "bg-slate-800 text-white border-slate-800"
+											: "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+									}`}
+								>
+									Semua
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setClassFilter("umum");
+										setCurrentPage(1);
+									}}
+									className={`rounded-full px-3 py-1.5 text-[11px] font-bold border transition cursor-pointer ${
+										classFilter === "umum"
+											? "bg-teal-700 text-white border-teal-700"
+											: "bg-white text-teal-800 border-teal-200 hover:bg-teal-50"
+									}`}
+								>
+									Umum
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setClassFilter("eksekutif");
+										setCurrentPage(1);
+									}}
+									className={`rounded-full px-3 py-1.5 text-[11px] font-bold border transition cursor-pointer ${
+										classFilter === "eksekutif"
+											? "bg-amber-600 text-white border-amber-600"
+											: "bg-white text-[#B45309] border-amber-200 hover:bg-amber-50"
+									}`}
+								>
+									Eksekutif
+								</button>
+							</div>
+						</div>
+
+						{/* Table */}
+						<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+							<div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+								<h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+									<SlidersHorizontal className="h-5 w-5 text-teal-800" />
+									Daftar Tarif Layanan Medis ({filteredPrices.length})
+								</h3>
+								<button
+									onClick={() => loadData({ silent: true })}
+									disabled={refreshing}
+									className="text-slate-400 hover:text-slate-600 transition cursor-pointer disabled:opacity-50"
+								>
+									<RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+								</button>
+							</div>
+
+							{totalItems === 0 ? (
+								<div className="py-12 text-center text-slate-400 italic text-xs">
+									{prices.length === 0 ? "Belum ada tarif layanan medis." : "Tidak ada data yang cocok dengan pencarian/filter."}
+								</div>
+							) : (
+								<div className="overflow-x-auto">
+									<table className="w-full text-left text-xs border-collapse">
+										<thead>
+											<tr className="border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider bg-slate-50/50">
+												<th className="py-3.5 px-4">KPTL</th>
+												<th className="py-3.5 px-4">Nama Layanan</th>
+												<th className="py-3.5 px-4">Unit Layanan</th>
+												<th className="py-3.5 px-4">Kategori</th>
+												<th className="py-3.5 px-4">Kelas</th>
+												<th className="py-3.5 px-4">Satuan</th>
+												<th className="py-3.5 px-4 text-right">Tarif (Rp)</th>
+												<th className="py-3.5 px-4">Status</th>
+												<th className="py-3.5 px-4 text-right">Aksi</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+											{paginatedPrices.map((item) => {
+												const unit = unitMap[item.service_unit_id];
+												return (
+													<tr key={item.id} className="hover:bg-slate-50/60 transition">
+														<td className="py-4 px-4 font-mono font-bold text-teal-900 whitespace-nowrap">{item.kptl || "-"}</td>
+														<td className="py-4 px-4 font-extrabold text-slate-900">{item.name}</td>
+														<td className="py-4 px-4 text-slate-600">{unit?.name || <span className="italic text-slate-400">Unit tidak ditemukan</span>}</td>
+														<td className="py-4 px-4">
+															{item.category ? (
+																<span className="text-[10px] px-2.5 py-1 rounded-full font-bold border bg-slate-100 border-slate-200 text-slate-700">
+																	{item.category}
+																</span>
+															) : (
+																<span className="text-[10px] text-slate-400 italic">-</span>
+															)}
+														</td>
+														<td className="py-4 px-4">
+															<span className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${CLASS_BADGE[item.class] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
+																{CLASS_LABEL[item.class] || item.class}
+															</span>
+														</td>
+														<td className="py-4 px-4 text-slate-500">{item.satuan || "-"}</td>
+														<td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
+															{formatRupiah(item.price)}
+														</td>
+														<td className="py-4 px-4">
+															<span className={`inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold ${item.status === "active" ? "bg-emerald-50 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
+																<span className={`h-1.5 w-1.5 rounded-full ${item.status === "active" ? "bg-[#16A34A]" : "bg-slate-400"}`} />
+																{item.status === "active" ? "Aktif" : "Non-Aktif"}
+															</span>
+														</td>
+														<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+															<button
+																onClick={() => openEdit(item)}
+																className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
+															>
+																<Pencil className="h-3.5 w-3.5" /> Edit
+															</button>
+															<button
+																onClick={() => handleDelete(item.id, item.name)}
+																disabled={deletingId === item.id}
+																className="rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-[#DC2626] px-3 py-1.5 font-bold disabled:opacity-50 transition inline-flex items-center"
+															>
+																{deletingId === item.id ? (
+																	<Loader2 className="h-3.5 w-3.5 animate-spin" />
+																) : (
+																	<Trash2 className="h-3.5 w-3.5" />
+																)}
+															</button>
+														</td>
+													</tr>
+												);
+											})}
+										</tbody>
+									</table>
+								</div>
+							)}
+
+							{/* Pagination */}
+							{totalItems > 0 && (
+								<div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+									<div className="text-[11px] text-slate-500 font-medium">
+										Menampilkan {Math.min((safeCurrentPage - 1) * perPage + 1, totalItems)}–{Math.min(safeCurrentPage * perPage, totalItems)} dari {totalItems} tarif
+									</div>
+									<div className="flex items-center gap-1.5">
+										<button
+											disabled={safeCurrentPage === 1}
+											onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+											className="h-8 w-8 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition"
+										>
+											<ChevronLeft className="h-3.5 w-3.5" />
+										</button>
+										{pageNumbers.map((p, idx) =>
+											p === "..." ? (
+												<span
+													key={`dots-${idx}`}
+													className="h-8 w-8 flex items-center justify-center text-slate-400 text-[11px] font-bold select-none"
+												>
+													…
+												</span>
+											) : (
+												<button
+													key={p}
+													onClick={() => setCurrentPage(p)}
+													className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
+														safeCurrentPage === p ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+													}`}
+												>
+													{p}
+												</button>
+											)
+										)}
+										<button
+											disabled={safeCurrentPage === totalPages}
+											onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+											className="h-8 w-8 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition"
+										>
+											<ChevronRight className="h-3.5 w-3.5" />
+										</button>
+									</div>
+								</div>
+							)}
+						</div>
+
+						{/* Modal Tambah/Edit Tarif */}
+						{isModalOpen && (
+							<div
+								className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-[fadeIn_.15s_ease-out]"
+								onClick={closeModal}
+							>
+								<div
+									onClick={(e) => e.stopPropagation()}
+									className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-[scaleIn_.15s_ease-out] max-h-[90vh] flex flex-col"
+								>
+									{/* Header */}
+									<div className="relative bg-gradient-to-r from-teal-700 to-cyan-800 px-6 sm:px-8 py-6 shrink-0">
+										<button
+											onClick={closeModal}
+											disabled={submitting}
+											className="absolute top-4 right-4 rounded-xl p-1.5 text-white/80 hover:text-white hover:bg-white/10 transition disabled:opacity-50"
+										>
+											<X className="h-4 w-4" />
+										</button>
+										<div className="flex items-center gap-3">
+											<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
+												<Stethoscope className="h-5 w-5" />
 											</span>
-										) : (
-											<button
-												key={p}
-												onClick={() => setCurrentPage(p)}
-												className={`h-8 w-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition ${
-													safeCurrentPage === p ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+											<div>
+												<h3 className="text-base font-extrabold text-white">
+													{editingItem ? "Edit Tarif Layanan Medis" : "Tambah Tarif Layanan Medis"}
+												</h3>
+												<p className="text-[11px] text-teal-50/80 mt-0.5">
+													{editingItem ? `Perbarui data untuk "${editingItem.name}"` : "Tambahkan tindakan medis baru beserta tarifnya"}
+												</p>
+											</div>
+										</div>
+									</div>
+
+									{/* Body */}
+									<form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-4 overflow-y-auto">
+										<div>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
+												Unit Layanan <span className="text-[#DC2626]">*</span>
+											</label>
+											<select
+												value={form.service_unit_id}
+												onChange={(e) => handleUnitChange(e.target.value)}
+												className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
+													formErrors.service_unit_id
+														? "border-red-300 bg-red-50/40 focus:border-red-500"
+														: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
 												}`}
 											>
-												{p}
-											</button>
-										)
-									)}
-									<button
-										disabled={safeCurrentPage === totalPages}
-										onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-										className="h-8 w-8 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition"
-									>
-										<ChevronRight className="h-3.5 w-3.5" />
-									</button>
-								</div>
-							</div>
-						)}
-					</div>
-
-					{/* Modal Tambah/Edit Tarif */}
-					{isModalOpen && (
-						<div
-							className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-[fadeIn_.15s_ease-out]"
-							onClick={closeModal}
-						>
-							<div
-								onClick={(e) => e.stopPropagation()}
-								className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl overflow-hidden animate-[scaleIn_.15s_ease-out] max-h-[90vh] flex flex-col"
-							>
-								{/* Header */}
-								<div className="relative bg-gradient-to-r from-teal-700 to-cyan-800 px-6 sm:px-8 py-6 shrink-0">
-									<button
-										onClick={closeModal}
-										disabled={submitting}
-										className="absolute top-4 right-4 rounded-xl p-1.5 text-white/80 hover:text-white hover:bg-white/10 transition disabled:opacity-50"
-									>
-										<X className="h-4 w-4" />
-									</button>
-									<div className="flex items-center gap-3">
-										<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white">
-											<Stethoscope className="h-5 w-5" />
-										</span>
-										<div>
-											<h3 className="text-base font-extrabold text-white">
-												{editingItem ? "Edit Tarif Layanan Medis" : "Tambah Tarif Layanan Medis"}
-											</h3>
-											<p className="text-[11px] text-teal-50/80 mt-0.5">
-												{editingItem ? `Perbarui data untuk "${editingItem.name}"` : "Tambahkan tindakan medis baru beserta tarifnya"}
-											</p>
+												<option value="">Pilih unit layanan...</option>
+												{units.map((u) => (
+													<option key={u.id} value={u.id}>{u.name}</option>
+												))}
+											</select>
+											{formErrors.service_unit_id && (
+												<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.service_unit_id}</p>
+											)}
 										</div>
-									</div>
-								</div>
 
-								{/* Body */}
-								<form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-4 overflow-y-auto">
-									<div>
-										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
-											Unit Layanan <span className="text-[#DC2626]">*</span>
-										</label>
-										<select
-											value={form.service_unit_id}
-											onChange={(e) => handleUnitChange(e.target.value)}
-											className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
-												formErrors.service_unit_id
-													? "border-red-300 bg-red-50/40 focus:border-red-500"
-													: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
-											}`}
-										>
-											<option value="">Pilih unit layanan...</option>
-											{units.map((u) => (
-												<option key={u.id} value={u.id}>{u.name}</option>
-											))}
-										</select>
-										{formErrors.service_unit_id && (
-											<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.service_unit_id}</p>
+										{/* Kategori sub layanan - otomatis mengikuti unit yang dipilih di atas */}
+										{form.service_unit_id && categoryConfig.mode !== "none" && (
+											<div className="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200/80 space-y-2">
+												<label className="text-xs font-extrabold text-teal-900 flex items-center gap-1.5">
+													Kategori Layanan {categoryConfig.mode === "select" && <span className="text-[#DC2626]">*</span>}
+												</label>
+												{categoryConfig.mode === "select" ? (
+													<select
+														value={form.category}
+														onChange={(e) => {
+															setForm({ ...form, category: e.target.value });
+															if (formErrors.category) setFormErrors({ ...formErrors, category: null });
+														}}
+														className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-bold focus:outline-hidden transition ${
+															formErrors.category
+																? "border-red-300 bg-red-50/40 focus:border-red-500"
+																: "border-teal-200 bg-white focus:border-teal-600"
+														}`}
+													>
+														<option value="">Pilih kategori...</option>
+														{categoryConfig.options.map((c) => (
+															<option key={c} value={c}>{c}</option>
+														))}
+													</select>
+												) : (
+													<input
+														value={form.category}
+														onChange={(e) => setForm({ ...form, category: e.target.value })}
+														placeholder="Kategori (opsional)"
+														className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:outline-hidden transition"
+													/>
+												)}
+												{formErrors.category && (
+													<p className="text-[10px] text-[#DC2626] font-semibold">{formErrors.category}</p>
+												)}
+											</div>
 										)}
-									</div>
+										{form.service_unit_id && categoryConfig.mode === "none" && (
+											<div className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[10px] font-semibold text-slate-500 flex items-start gap-2">
+												<Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+												<span>Unit ini tidak memakai kategori sub layanan.</span>
+											</div>
+										)}
 
-									{/* Kategori sub layanan - otomatis mengikuti unit yang dipilih di atas */}
-									{form.service_unit_id && categoryConfig.mode !== "none" && (
-										<div className="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200/80 space-y-2">
-											<label className="text-xs font-extrabold text-teal-900 flex items-center gap-1.5">
-												Kategori Layanan {categoryConfig.mode === "select" && <span className="text-[#DC2626]">*</span>}
-											</label>
-											{categoryConfig.mode === "select" ? (
-												<select
-													value={form.category}
-													onChange={(e) => {
-														setForm({ ...form, category: e.target.value });
-														if (formErrors.category) setFormErrors({ ...formErrors, category: null });
-													}}
-													className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-bold focus:outline-hidden transition ${
-														formErrors.category
-															? "border-red-300 bg-red-50/40 focus:border-red-500"
-															: "border-teal-200 bg-white focus:border-teal-600"
-													}`}
-												>
-													<option value="">Pilih kategori...</option>
-													{categoryConfig.options.map((c) => (
-														<option key={c} value={c}>{c}</option>
-													))}
-												</select>
-											) : (
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+											<div>
+												<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode KPTL</label>
 												<input
-													value={form.category}
-													onChange={(e) => setForm({ ...form, category: e.target.value })}
-													placeholder="Kategori (opsional)"
-													className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:outline-hidden transition"
+													value={form.kptl}
+													onChange={(e) => setForm({ ...form, kptl: e.target.value })}
+													placeholder="Contoh: MED-0012"
+													className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
 												/>
-											)}
-											{formErrors.category && (
-												<p className="text-[10px] text-[#DC2626] font-semibold">{formErrors.category}</p>
-											)}
-										</div>
-									)}
-									{form.service_unit_id && categoryConfig.mode === "none" && (
-										<div className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[10px] font-semibold text-slate-500 flex items-start gap-2">
-											<Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-											<span>Unit ini tidak memakai kategori sub layanan.</span>
-										</div>
-									)}
-
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode KPTL</label>
-											<input
-												value={form.kptl}
-												onChange={(e) => setForm({ ...form, kptl: e.target.value })}
-												placeholder="Contoh: MED-0012"
-												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
-											/>
-										</div>
-										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Satuan</label>
-											<input
-												value={form.satuan}
-												onChange={(e) => setForm({ ...form, satuan: e.target.value })}
-												placeholder="Per Tindakan"
-												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
-											/>
-										</div>
-									</div>
-
-									<div>
-										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
-											Nama Layanan <span className="text-[#DC2626]">*</span>
-										</label>
-										<input
-											value={form.name}
-											onChange={(e) => {
-												setForm({ ...form, name: e.target.value });
-												if (formErrors.name) setFormErrors({ ...formErrors, name: null });
-											}}
-											placeholder="Contoh: Konsultasi Dokter Umum"
-											className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
-												formErrors.name
-													? "border-red-300 bg-red-50/40 focus:border-red-500"
-													: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
-											}`}
-										/>
-										{formErrors.name && (
-											<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.name}</p>
-										)}
-									</div>
-
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kelas</label>
-											<div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
-												<button
-													type="button"
-													onClick={() => setForm({ ...form, class: "umum" })}
-													className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-														form.class === "umum" ? "bg-white text-teal-800 shadow-sm" : "text-slate-400"
-													}`}
-												>
-													Umum
-												</button>
-												<button
-													type="button"
-													onClick={() => setForm({ ...form, class: "eksekutif" })}
-													className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-														form.class === "eksekutif" ? "bg-white text-[#B45309] shadow-sm" : "text-slate-400"
-													}`}
-												>
-													Eksekutif
-												</button>
+											</div>
+											<div>
+												<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Satuan</label>
+												<input
+													value={form.satuan}
+													onChange={(e) => setForm({ ...form, satuan: e.target.value })}
+													placeholder="Per Tindakan"
+													className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-medium focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+												/>
 											</div>
 										</div>
 
 										<div>
-											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Status</label>
-											<div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
-												<button
-													type="button"
-													onClick={() => setForm({ ...form, status: "active" })}
-													className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-														form.status === "active" ? "bg-white text-[#16A34A] shadow-sm" : "text-slate-400"
-													}`}
-												>
-													Aktif
-												</button>
-												<button
-													type="button"
-													onClick={() => setForm({ ...form, status: "inactive" })}
-													className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-														form.status === "inactive" ? "bg-white text-slate-600 shadow-sm" : "text-slate-400"
-													}`}
-												>
-													Non-Aktif
-												</button>
-											</div>
-										</div>
-									</div>
-
-									<div>
-										<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
-											Tarif (Rp) <span className="text-[#DC2626]">*</span>
-										</label>
-										<div className="relative">
-											<span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
+												Nama Layanan <span className="text-[#DC2626]">*</span>
+											</label>
 											<input
-												type="number"
-												min="0"
-												step="1000"
-												value={form.price}
+												value={form.name}
 												onChange={(e) => {
-													setForm({ ...form, price: e.target.value });
-													if (formErrors.price) setFormErrors({ ...formErrors, price: null });
+													setForm({ ...form, name: e.target.value });
+													if (formErrors.name) setFormErrors({ ...formErrors, name: null });
 												}}
-												placeholder="150000"
-												className={`w-full rounded-2xl border pl-10 pr-4 py-2.5 text-xs font-mono font-bold focus:outline-hidden transition ${
-													formErrors.price
+												placeholder="Contoh: Konsultasi Dokter Umum"
+												className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
+													formErrors.name
 														? "border-red-300 bg-red-50/40 focus:border-red-500"
 														: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
 												}`}
 											/>
+											{formErrors.name && (
+												<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.name}</p>
+											)}
 										</div>
-										{formErrors.price && (
-											<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.price}</p>
-										)}
-										{!formErrors.price && form.price !== "" && !isNaN(Number(form.price)) && (
-											<p className="text-[10px] text-slate-400 font-medium mt-1">{formatRupiah(Number(form.price))}</p>
-										)}
-									</div>
 
-									<div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
-										<button
-											type="button"
-											onClick={closeModal}
-											disabled={submitting}
-											className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition disabled:opacity-50"
-										>
-											Batal
-										</button>
-										<button
-											type="submit"
-											disabled={submitting}
-											className="rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white px-5 py-2.5 text-xs font-extrabold hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-60 inline-flex items-center gap-2"
-										>
-											{submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-											{submitting ? "Menyimpan..." : editingItem ? "Simpan Perubahan" : "Simpan Tarif"}
-										</button>
-									</div>
-								</form>
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+											<div>
+												<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kelas</label>
+												<div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
+													<button
+														type="button"
+														onClick={() => setForm({ ...form, class: "umum" })}
+														className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+															form.class === "umum" ? "bg-white text-teal-800 shadow-sm" : "text-slate-400"
+														}`}
+													>
+														Umum
+													</button>
+													<button
+														type="button"
+														onClick={() => setForm({ ...form, class: "eksekutif" })}
+														className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+															form.class === "eksekutif" ? "bg-white text-[#B45309] shadow-sm" : "text-slate-400"
+														}`}
+													>
+														Eksekutif
+													</button>
+												</div>
+											</div>
+
+											<div>
+												<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Status</label>
+												<div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
+													<button
+														type="button"
+														onClick={() => setForm({ ...form, status: "active" })}
+														className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+															form.status === "active" ? "bg-white text-[#16A34A] shadow-sm" : "text-slate-400"
+														}`}
+													>
+														Aktif
+													</button>
+													<button
+														type="button"
+														onClick={() => setForm({ ...form, status: "inactive" })}
+														className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+															form.status === "inactive" ? "bg-white text-slate-600 shadow-sm" : "text-slate-400"
+														}`}
+													>
+														Non-Aktif
+													</button>
+												</div>
+											</div>
+										</div>
+
+										<div>
+											<label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
+												Tarif (Rp) <span className="text-[#DC2626]">*</span>
+											</label>
+											<div className="relative">
+												<span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+												<input
+													type="number"
+													min="0"
+													step="1000"
+													value={form.price}
+													onChange={(e) => {
+														setForm({ ...form, price: e.target.value });
+														if (formErrors.price) setFormErrors({ ...formErrors, price: null });
+													}}
+													placeholder="150000"
+													className={`w-full rounded-2xl border pl-10 pr-4 py-2.5 text-xs font-mono font-bold focus:outline-hidden transition ${
+														formErrors.price
+															? "border-red-300 bg-red-50/40 focus:border-red-500"
+															: "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
+													}`}
+												/>
+											</div>
+											{formErrors.price && (
+												<p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.price}</p>
+											)}
+											{!formErrors.price && form.price !== "" && !isNaN(Number(form.price)) && (
+												<p className="text-[10px] text-slate-400 font-medium mt-1">{formatRupiah(Number(form.price))}</p>
+											)}
+										</div>
+
+										<div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+											<button
+												type="button"
+												onClick={closeModal}
+												disabled={submitting}
+												className="rounded-2xl border border-slate-200 px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition disabled:opacity-50"
+											>
+												Batal
+											</button>
+											<button
+												type="submit"
+												disabled={submitting}
+												className="rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white px-5 py-2.5 text-xs font-extrabold hover:from-teal-800 hover:to-cyan-900 transition disabled:opacity-60 inline-flex items-center gap-2"
+											>
+												{submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+												{submitting ? "Menyimpan..." : editingItem ? "Simpan Perubahan" : "Simpan Tarif"}
+											</button>
+										</div>
+									</form>
+								</div>
 							</div>
-						</div>
-					)}
+						)}
 
-					<Toast toast={toast} onClose={() => setToast({ show: false })} />
+						<Toast toast={toast} onClose={() => setToast({ show: false })} />
+					</div>
 				</div>
+			</div>
+
+			{/* ==== Area khusus cetak/PDF ====
+			    Tersembunyi di layar (hidden), hanya muncul saat print/Ctrl+P
+			    (print:block). Berisi SELURUH data sesuai filter aktif, tanpa
+			    pagination, supaya PDF yang diunduh lengkap sesuai yang difilter. */}
+			<div className="print-area hidden print:block p-6">
+				<div className="mb-5 border-b-2 border-slate-800 pb-3">
+					<h1 className="text-lg font-extrabold text-slate-900">Master Data Tarif Layanan Medis</h1>
+					<p className="text-[11px] text-slate-600 mt-1">
+						Dicetak pada: {new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}
+					</p>
+					<p className="text-[11px] text-slate-600">Filter aktif: {filterSummaryText()}</p>
+					<p className="text-[11px] text-slate-600">Total data: {filteredPrices.length} item</p>
+				</div>
+
+				{filteredPrices.length === 0 ? (
+					<p className="text-xs italic text-slate-500">Tidak ada data untuk ditampilkan.</p>
+				) : (
+					<table className="w-full text-left text-[10px] border-collapse">
+						<thead>
+							<tr className="border-b-2 border-slate-800 text-[9px] uppercase font-bold text-slate-700">
+								<th className="py-2 px-2">KPTL</th>
+								<th className="py-2 px-2">Nama Layanan</th>
+								<th className="py-2 px-2">Unit Layanan</th>
+								<th className="py-2 px-2">Kategori</th>
+								<th className="py-2 px-2">Kelas</th>
+								<th className="py-2 px-2">Satuan</th>
+								<th className="py-2 px-2 text-right">Tarif (Rp)</th>
+								<th className="py-2 px-2">Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredPrices.map((item) => {
+								const unit = unitMap[item.service_unit_id];
+								return (
+									<tr key={item.id} className="border-b border-slate-200">
+										<td className="py-1.5 px-2 font-mono">{item.kptl || "-"}</td>
+										<td className="py-1.5 px-2 font-bold">{item.name}</td>
+										<td className="py-1.5 px-2">{unit?.name || "-"}</td>
+										<td className="py-1.5 px-2">{item.category || "-"}</td>
+										<td className="py-1.5 px-2">{CLASS_LABEL[item.class] || item.class}</td>
+										<td className="py-1.5 px-2">{item.satuan || "-"}</td>
+										<td className="py-1.5 px-2 text-right font-mono font-bold">{formatRupiah(item.price)}</td>
+										<td className="py-1.5 px-2">{item.status === "active" ? "Aktif" : "Non-Aktif"}</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				)}
 			</div>
 
 			<style jsx global>{`
@@ -936,7 +1077,24 @@ export default function TarifLayananMedisPage() {
 					from { opacity: 0; transform: scale(0.96) translateY(4px); }
 					to { opacity: 1; transform: scale(1) translateY(0); }
 				}
+
+				@media print {
+					.no-print {
+						display: none !important;
+					}
+					.print-area {
+						display: block !important;
+					}
+					@page {
+						size: A4 landscape;
+						margin: 12mm;
+					}
+					body {
+						-webkit-print-color-adjust: exact;
+						print-color-adjust: exact;
+					}
+				}
 			`}</style>
-		</div>
+		</>
 	);
 }
