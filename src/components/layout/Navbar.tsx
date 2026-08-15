@@ -23,7 +23,7 @@ import {
   Trash2,
   LucideIcon
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { apiGet, apiPost, apiPut, apiDelete, clearAuth, getAvatarUrl } from "@/lib/api";
 
 interface NotificationItem {
@@ -47,6 +47,12 @@ interface NavbarProps {
 
 export default function Navbar({ user: initialUser, roleLabel, onLogout }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (pathname?.includes("/settings")) {
+    return null;
+  }
+  
   const [currentUser, setCurrentUser] = useState<any>(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -540,8 +546,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }: Navba
             )}
           </div>
 
-          {/* Profil & Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Profil & Dropdown (Hidden on mobile, available in mobile bottom navigation bar) */}
+          <div className="relative hidden sm:block" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`flex cursor-pointer items-center gap-2.5 rounded-2xl border px-2.5 py-1.5 transition-all duration-200 ${

@@ -786,29 +786,55 @@ export default function Sidebar({ role }: SidebarProps) {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
-        {menuItems.slice(0, 5).map((item, idx) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href || (item.children && item.children.some((c) => pathname === c.href));
-          const href = item.href || (item.children ? item.children[0].href : "#");
-          return (
+      {(() => {
+        const settingsHref =
+          role === "admin"
+            ? "/dashboard/admin/settings"
+            : role === "rumah_sakit" || role === "faskes" || role === "dokter" || role === "staf_rs"
+            ? "/dashboard/faskes/settings"
+            : "/dashboard/pasien/settings";
+
+        return (
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
+            {menuItems.slice(0, 4).map((item, idx) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || (item.children && item.children.some((c) => pathname === c.href));
+              const href = item.href || (item.children ? item.children[0].href : "#");
+              return (
+                <Link
+                  key={item.label || idx}
+                  href={href}
+                  className={`flex flex-col items-center gap-1 text-[9px] font-bold transition-all ${
+                    isActive ? "text-teal-800 scale-105" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  <div className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
+                    isActive ? "bg-teal-100 text-teal-800" : "text-slate-400"
+                  }`}>
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <span className="uppercase tracking-wide">{item.label.split(" ")[0]}</span>
+                </Link>
+              );
+            })}
+
+            {/* Profil Tab */}
             <Link
-              key={item.label || idx}
-              href={href}
+              href={settingsHref}
               className={`flex flex-col items-center gap-1 text-[9px] font-bold transition-all ${
-                isActive ? "text-teal-800 scale-105" : "text-slate-400 hover:text-slate-600"
+                pathname?.includes("/settings") ? "text-teal-800 scale-105" : "text-slate-400 hover:text-slate-600"
               }`}
             >
               <div className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
-                isActive ? "bg-teal-100 text-teal-800" : "text-slate-400"
+                pathname?.includes("/settings") ? "bg-teal-100 text-teal-800" : "text-slate-400"
               }`}>
-                <Icon className="h-4.5 w-4.5" />
+                <User className="h-4.5 w-4.5" />
               </div>
-              <span className="uppercase tracking-wide">{item.label.split(" ")[0]}</span>
+              <span className="uppercase tracking-wide">Profil</span>
             </Link>
-          );
-        })}
-      </nav>
+          </nav>
+        );
+      })()}
     </>
   );
 }

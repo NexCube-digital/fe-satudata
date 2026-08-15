@@ -208,11 +208,11 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ walletConnected, s
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-teal-800 transition-colors duration-300">
+                <span className="block text-xs sm:text-sm font-extrabold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-teal-800 transition-colors duration-300">
                   Satu Data
                 </span>
               </div>
-              <span className="block text-[10px] font-medium text-slate-500">
+              <span className="hidden sm:block text-[10px] font-medium text-slate-500">
                 Hub Rekam Medis Berbasis Sovereign Blockchain
               </span>
             </div>

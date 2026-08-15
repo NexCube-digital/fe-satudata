@@ -169,21 +169,6 @@ export default function LoginPage() {
   return (
     <div className="w-full h-full flex flex-col justify-between">
       <div className="space-y-4">
-        <div className="flex justify-end">
-          <Link href="/" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800 shadow-xs hover:bg-slate-50 transition">
-            <Home className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-bold text-slate-900">
-            {loginStep === 'select' ? 'Pilih Metode Masuk' : `Masuk sebagai ${role === 'pasien' ? 'Pasien' : 'Fasilitas Kesehatan'}`}
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            {loginStep === 'select' ? 'Tentukan peran Anda untuk mengakses sistem SatuData' : 'Silakan isi kredensial akun Anda'}
-          </p>
-        </div>
-
         {loginStep === 'select' ? (
           <div className="space-y-3">
             <button
@@ -281,7 +266,7 @@ export default function LoginPage() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder={role === 'pasien' ? 'Masukkan email atau NIK Anda' : 'Masukkan email fasilitas kesehatan'}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
               maxLength={100}
               required
               disabled={loading}
@@ -290,7 +275,7 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-slate-700">Password</label>
+              <label className="block text-xs font-semibold text-slate-700">Password *</label>
               <Link href="/forgot-password" className="text-[11px] text-teal-800 font-medium hover:underline">
                 Lupa password?
               </Link>
@@ -301,7 +286,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 pr-10"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 pr-10 transition"
                 maxLength={128}
                 required
                 disabled={loading}
@@ -309,7 +294,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -319,21 +304,31 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white font-bold py-2.5 rounded-lg transition disabled:opacity-50 text-sm shadow-xs"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold py-2.5 sm:py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs sm:text-sm shadow-sm"
           >
             {loading ? <Loader className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
             <span>Masuk Sekarang</span>
           </button>
 
-          <div className="w-full flex flex-col items-center justify-center pt-2">
-            <div id="google-signin-btn-form" className="w-full flex justify-center" style={{ minHeight: '44px' }} />
+          {/* Divider 'atau' */}
+          <div className="relative my-3 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              atau
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col items-center justify-center overflow-hidden">
+            <div id="google-signin-btn-form" className="w-full flex justify-center max-w-full overflow-hidden" style={{ minHeight: '44px' }} />
           </div>
         </form>
       )}
       </div>
 
       {/* Fixed Bottom Footer Link */}
-      <div className="pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
+      <div className="pt-4 sm:pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
         Belum punya akun?{' '}
         <Link href="/register" className="text-teal-800 font-bold hover:underline">
           Daftar di sini

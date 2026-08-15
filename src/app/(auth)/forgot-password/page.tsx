@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Mail, ArrowLeft, Loader, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, Loader, CheckCircle, AlertCircle, Home } from 'lucide-react';
 import { requestPasswordReset } from '@/services/auth-service';
 import { sanitizeInput, isValidEmail } from '@/lib/security';
 
@@ -41,11 +41,20 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="w-full space-y-4">
-      <Link href="/login" className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-teal-800 transition">
-        <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke Login
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/login" className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-teal-800 transition">
+          <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke Login
+        </Link>
+        <Link
+          href="/"
+          title="Kembali ke Beranda"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-300 text-teal-800 transition shrink-0 cursor-pointer shadow-2xs"
+        >
+          <Home className="h-4 w-4" />
+        </Link>
+      </div>
 
-      <div className="text-center mb-4">
+      <div className="hidden lg:block mb-4">
         <h2 className="text-xl font-bold text-slate-900">Lupa Kata Sandi</h2>
         <p className="text-xs text-slate-500 mt-1">Masukkan email terdaftar Anda untuk mereset kata sandi</p>
       </div>
