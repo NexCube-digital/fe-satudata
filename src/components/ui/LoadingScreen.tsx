@@ -33,7 +33,7 @@ export default function LoadingScreen({
   }
 
   const containerClasses = fullScreen
-    ? 'fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4'
+    ? 'fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4'
     : `py-10 sm:py-20 flex flex-col items-center justify-center p-4 w-full ${className}`;
 
   return (
