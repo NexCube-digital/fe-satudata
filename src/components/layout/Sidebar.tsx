@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -52,6 +52,7 @@ interface MenuItem {
   href?: string;
   label: string;
   icon: LucideIcon;
+  category?: string;
   dropdownKey?: string;
   badge?: string | null;
   permissionRequired?: string | string[];
@@ -229,10 +230,11 @@ export default function Sidebar({ role }: SidebarProps) {
     switch (role) {
       case "admin":
         return [
-          { href: "/dashboard/admin", label: "Overview", icon: Home, badge: null },
+          { href: "/dashboard/admin", label: "Overview", icon: Home, category: "MENU UTAMA", badge: null },
           { 
             label: "Kelola Pengguna", 
             icon: Users,
+            category: "MANAJEMEN SISTEM",
             dropdownKey: "users",
             badge: badgeCounts.users || "Aktif",
             children: [
@@ -243,6 +245,7 @@ export default function Sidebar({ role }: SidebarProps) {
           { 
             label: "Geotagging Faskes", 
             icon: MapPin,
+            category: "MANAJEMEN SISTEM",
             dropdownKey: "geotagging",
             badge: null,
             children: [
@@ -250,7 +253,7 @@ export default function Sidebar({ role }: SidebarProps) {
               { href: "/dashboard/admin/faskes/add", label: "Tambah Titik Baru", icon: MapPin, badge: null }
             ]
           },
-          { href: "/dashboard/admin/logs", label: "Audit Trail", icon: FileText, badge: badgeCounts.logs || "Live" },
+          { href: "/dashboard/admin/logs", label: "Audit Trail", category: "AUDIT & UTILITY", icon: FileText, badge: badgeCounts.logs || "Live" },
         ];
       case "faskes":
       case "rumah_sakit":
@@ -259,11 +262,12 @@ export default function Sidebar({ role }: SidebarProps) {
         const isStaff = currentUser?.role === "staf_rs";
 
         const baseFaskesMenu: MenuItem[] = [
-          { href: "/dashboard/faskes", label: "DASHBOARD", icon: Home, badge: badgeCounts.tokens || null },
-          { href: "/dashboard/faskes/patient-flow", label: "FLOW PASIEN", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
+          { href: "/dashboard/faskes", label: "DASHBOARD", icon: Home, category: "MENU UTAMA", badge: badgeCounts.tokens || null },
+          { href: "/dashboard/faskes/patient-flow", label: "FLOW PASIEN", category: "MENU UTAMA", badge: "Live", icon: Activity, permissionRequired: ["patient:create", "access_request:create", "access_request:read", "patient_flow:read"] },
           { 
             label: "KELOLA PASIEN", 
             icon: Users,
+            category: "PELAYANAN MEDIS",
             permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
             children: [
               { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
@@ -274,6 +278,7 @@ export default function Sidebar({ role }: SidebarProps) {
           { 
             label: "KELOLA DOKTER", 
             icon: Stethoscope,
+            category: "PELAYANAN MEDIS",
             dropdownKey: "doctors",
             permissionRequired: ["staff:manage", "role:manage"],
             children: [
@@ -285,6 +290,7 @@ export default function Sidebar({ role }: SidebarProps) {
           {
             label: "KELOLA REKAM MEDIS",
             icon: FileText,
+            category: "PELAYANAN MEDIS",
             dropdownKey: "medicalRecords",
             badge: badgeCounts.records || "EHR",
             permissionRequired: ["medical_record:upload", "medical_record:read"],
@@ -296,6 +302,7 @@ export default function Sidebar({ role }: SidebarProps) {
           { 
             label: "KELOLA FARMASI", 
             icon: Pill,
+            category: "FARMASI & APOTEK",
             dropdownKey: "pharmacy",
             badge: "POS",
             permissionRequired: ["pharmacy:manage", "pharmacy:pos"],
@@ -309,6 +316,7 @@ export default function Sidebar({ role }: SidebarProps) {
           { 
             label: "KELOLA DATA UMUM", 
             icon: Database,
+            category: "DATA & KEUANGAN",
             dropdownKey: "masterData",
             badge: "Master",
             permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
@@ -322,6 +330,7 @@ export default function Sidebar({ role }: SidebarProps) {
           { 
             label: "KELOLA KEUANGAN", 
             icon: DollarSign,
+            category: "DATA & KEUANGAN",
             dropdownKey: "finance",
             badge: "Finance",
             permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
@@ -330,8 +339,8 @@ export default function Sidebar({ role }: SidebarProps) {
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
-          { href: "/dashboard/faskes/staffs", label: "STAFF MEDIS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
-          { href: "/dashboard/faskes/audit", label: "AUDIT", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/staffs", label: "STAFF MEDIS", category: "MANAJEMEN RS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/audit", label: "AUDIT", category: "MANAJEMEN RS", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 
         if (Array.isArray(userPerms)) {
@@ -355,6 +364,7 @@ export default function Sidebar({ role }: SidebarProps) {
                     href: child.href,
                     label: child.label,
                     icon: child.icon || item.icon,
+                    category: item.category,
                     badge: child.badge || null
                   });
                 });
@@ -372,10 +382,10 @@ export default function Sidebar({ role }: SidebarProps) {
       case "pasien":
       default:
         return [
-          { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, badge: null },
-          { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: ShieldCheck, badge: badgeCounts.pendingConsent },
-          { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: FileText, badge: badgeCounts.records || "EHR" },
-          { href: "/dashboard/pasien/history", label: "Riwayat Terpadu", icon: History, badge: "Histori" }
+          { href: "/dashboard/pasien", label: "Portal Kesehatan", icon: Home, category: "MENU UTAMA", badge: null },
+          { href: "/dashboard/pasien/consent", label: "Permintaan Baru", icon: ShieldCheck, category: "REKAM MEDIS PASIEN", badge: badgeCounts.pendingConsent },
+          { href: "/dashboard/pasien/records", label: "Rekam Medis Baru", icon: FileText, category: "REKAM MEDIS PASIEN", badge: badgeCounts.records || "EHR" },
+          { href: "/dashboard/pasien/history", label: "Riwayat Terpadu", icon: History, category: "REKAM MEDIS PASIEN", badge: "Histori" }
         ];
     }
   };
@@ -671,6 +681,21 @@ export default function Sidebar({ role }: SidebarProps) {
                 filteredMenuItems.map((item, index) => {
                   const Icon = item.icon;
                   const hasChildren = Boolean(item.children && item.children.length > 0);
+                  const prevCategory = index > 0 ? filteredMenuItems[index - 1].category : null;
+                  const isNewCategory = item.category && item.category !== prevCategory && !sidebarSearchQuery;
+
+                  const categoryHeader = isNewCategory && (
+                    isCollapsed ? (
+                      index > 0 ? <div key={`cat_sep_${index}`} className="my-2 border-t border-slate-200/80 mx-2" /> : null
+                    ) : (
+                      <div key={`cat_head_${index}`} className="pt-4 pb-1.5 px-3.5 flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-teal-800/80">
+                          {item.category}
+                        </span>
+                        <div className="h-px flex-1 ml-2.5 bg-gradient-to-r from-teal-500/25 to-transparent" />
+                      </div>
+                    )
+                  );
 
                   // Handling Parent Items with Collapsible Submenu
                   if (hasChildren) {
@@ -682,75 +707,164 @@ export default function Sidebar({ role }: SidebarProps) {
                       const isHovered = activeHoverMenu === key;
 
                       return (
-                        <div 
-                          key={key} 
-                          className="relative floating-dropdown-container flex justify-center"
-                        >
+                        <React.Fragment key={key}>
+                          {categoryHeader}
+                          <div 
+                            className="relative floating-dropdown-container flex justify-center"
+                          >
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveHoverMenu(isHovered ? null : key);
+                              }}
+                              className={`flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 ${
+                                isAnyChildActive || isHovered
+                                  ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
+                                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                              }`}
+                              title={item.label}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </button>
+
+                            {/* Floating Circular Submenu Icon Buttons for Collapsed Sidebar */}
+                            {isHovered && (
+                              <div className="absolute left-full top-0 ml-3 z-[100] flex flex-col gap-2 p-2.5 bg-white/98 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-left-3 duration-200 min-w-[210px]">
+                                {/* Header Title */}
+                                <div className="px-2.5 py-1 border-b border-slate-100 mb-0.5 flex items-center justify-between">
+                                  <span className="text-[9px] font-black uppercase tracking-wider text-teal-800">{item.label}</span>
+                                  <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
+                                </div>
+
+                                {/* Floating Circular Submenu Buttons */}
+                                <div className="space-y-1.5">
+                                  {item.children?.map((child) => {
+                                    const ChildIcon = child.icon || Icon;
+                                    const isChildActive = isRouteActive(pathname || "", child.href);
+
+                                    return (
+                                      <Link
+                                        key={child.href}
+                                        href={child.href}
+                                        onClick={() => setActiveHoverMenu(null)}
+                                        className={`flex items-center gap-3 p-1.5 pr-3.5 rounded-2xl transition-all duration-200 group cursor-pointer ${
+                                          isChildActive
+                                            ? "bg-teal-50/90 border border-teal-200/80 shadow-2xs"
+                                            : "hover:bg-slate-50 border border-transparent"
+                                        }`}
+                                      >
+                                        {/* Circular Floating Icon Button */}
+                                        <div className={`relative h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 shrink-0 group-hover:scale-110 shadow-md ${
+                                          isChildActive
+                                            ? "bg-gradient-to-br from-teal-700 via-teal-800 to-cyan-900 text-white shadow-teal-900/20 ring-2 ring-teal-500/30"
+                                            : "bg-slate-100 text-slate-600 group-hover:bg-gradient-to-br group-hover:from-teal-700 group-hover:to-cyan-800 group-hover:text-white border border-slate-200/80"
+                                        }`}>
+                                          <ChildIcon className="h-4 w-4" />
+                                          {child.badge && (
+                                            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cyan-600 px-1 text-[8px] font-extrabold text-white ring-2 ring-white shadow-xs">
+                                              {child.badge.split(" ")[0]}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        {/* Submenu Item Label */}
+                                        <div className="flex-1 min-w-0 overflow-hidden">
+                                          <p className={`text-xs font-bold truncate transition-colors ${
+                                            isChildActive ? "text-teal-950 font-black" : "text-slate-700 group-hover:text-teal-900"
+                                          }`}>
+                                            {child.label}
+                                          </p>
+                                          {child.badge && (
+                                            <span className="text-[9px] font-bold text-slate-400 block truncate">
+                                              {child.badge}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      );
+                    }
+
+                    return (
+                      <React.Fragment key={key}>
+                        {categoryHeader}
+                        <div className="space-y-1">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveHoverMenu(isHovered ? null : key);
-                            }}
-                            className={`flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 ${
-                              isAnyChildActive || isHovered
-                                ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
-                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            onClick={() => toggleDropdown(key)}
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                              isAnyChildActive
+                                ? "bg-teal-50/80 text-teal-900 font-extrabold border border-teal-200/60 shadow-2xs"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                             }`}
-                            title={item.label}
                           >
-                            <Icon className="h-4 w-4" />
+                            <div className="flex items-center gap-2.5 overflow-hidden">
+                              <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+                                isAnyChildActive
+                                  ? "bg-gradient-to-br from-teal-700 to-cyan-800 text-white border-transparent shadow-xs"
+                                  : "bg-slate-100 border-slate-200 text-slate-500"
+                              }`}>
+                                <Icon className="h-3.5 w-3.5" />
+                              </div>
+                              <span className="truncate tracking-tight">{item.label}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              {item.badge && (
+                                <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase ${
+                                  isAnyChildActive
+                                    ? "bg-teal-700 text-white shadow-2xs"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                                }`}>
+                                  {item.badge}
+                                </span>
+                              )}
+                              <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-teal-700" : "text-slate-400"}`} />
+                            </div>
                           </button>
 
-                          {/* Floating Circular Submenu Icon Buttons for Collapsed Sidebar */}
-                          {isHovered && (
-                            <div className="absolute left-full top-0 ml-3 z-[100] flex flex-col gap-2 p-2.5 bg-white/98 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-left-3 duration-200 min-w-[210px]">
-                              {/* Header Title */}
-                              <div className="px-2.5 py-1 border-b border-slate-100 mb-0.5 flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-wider text-teal-800">{item.label}</span>
-                                <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
-                              </div>
-
-                              {/* Floating Circular Submenu Buttons */}
-                              <div className="space-y-1.5">
+                          {/* Smooth Height Expandable Submenu */}
+                          <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 my-1" : "grid-rows-[0fr] opacity-0 overflow-hidden"}`}>
+                            <div className="overflow-hidden">
+                              <div className="pl-4 pr-1 py-1 space-y-1.5 border-l-2 border-teal-500/30 ml-5">
                                 {item.children?.map((child) => {
-                                  const ChildIcon = child.icon || Icon;
-                                  const isChildActive = isRouteActive(pathname || "", child.href);
+                                  const ChildIcon = child.icon;
+                                  const isChildItemActive = isRouteActive(pathname || "", child.href);
 
                                   return (
                                     <Link
                                       key={child.href}
                                       href={child.href}
-                                      onClick={() => setActiveHoverMenu(null)}
-                                      className={`flex items-center gap-3 p-1.5 pr-3.5 rounded-2xl transition-all duration-200 group cursor-pointer ${
-                                        isChildActive
-                                          ? "bg-teal-50/90 border border-teal-200/80 shadow-2xs"
-                                          : "hover:bg-slate-50 border border-transparent"
+                                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                        isChildItemActive
+                                          ? "bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white shadow-md shadow-teal-900/15 font-black translate-x-1"
+                                          : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1"
                                       }`}
                                     >
-                                      {/* Circular Floating Icon Button */}
-                                      <div className={`relative h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 shrink-0 group-hover:scale-110 shadow-md ${
-                                        isChildActive
-                                          ? "bg-gradient-to-br from-teal-700 via-teal-800 to-cyan-900 text-white shadow-teal-900/20 ring-2 ring-teal-500/30"
-                                          : "bg-slate-100 text-slate-600 group-hover:bg-gradient-to-br group-hover:from-teal-700 group-hover:to-cyan-800 group-hover:text-white border border-slate-200/80"
-                                      }`}>
-                                        <ChildIcon className="h-4 w-4" />
-                                        {child.badge && (
-                                          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cyan-600 px-1 text-[8px] font-extrabold text-white ring-2 ring-white shadow-xs">
-                                            {child.badge.split(" ")[0]}
-                                          </span>
+                                      <div className="flex items-center gap-2.5 overflow-hidden">
+                                        {ChildIcon && (
+                                          <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
                                         )}
+                                        <span className="truncate">{child.label}</span>
                                       </div>
 
-                                      {/* Submenu Item Label */}
-                                      <div className="flex-1 min-w-0 overflow-hidden">
-                                        <p className={`text-xs font-bold truncate transition-colors ${
-                                          isChildActive ? "text-teal-950 font-black" : "text-slate-700 group-hover:text-teal-900"
-                                        }`}>
-                                          {child.label}
-                                        </p>
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                        {isChildItemActive && (
+                                          <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-xs animate-pulse" />
+                                        )}
                                         {child.badge && (
-                                          <span className="text-[9px] font-bold text-slate-400 block truncate">
+                                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${
+                                            isChildItemActive
+                                              ? "bg-white/20 text-white border border-white/30"
+                                              : "bg-slate-100 text-slate-500 border border-slate-200"
+                                          }`}>
                                             {child.badge}
                                           </span>
                                         )}
@@ -760,93 +874,9 @@ export default function Sidebar({ role }: SidebarProps) {
                                 })}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div key={key} className="space-y-1">
-                        <button
-                          type="button"
-                          onClick={() => toggleDropdown(key)}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
-                            isAnyChildActive
-                              ? "bg-teal-50/90 text-teal-950 border border-teal-200/80 shadow-2xs"
-                              : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 overflow-hidden">
-                            <div className={`h-7 w-7 rounded-xl flex items-center justify-center border transition-all duration-200 shrink-0 ${
-                              isAnyChildActive
-                                ? "bg-gradient-to-r from-teal-700 to-cyan-800 border-teal-600 text-white shadow-xs"
-                                : "bg-slate-100 border-slate-200 text-slate-500"
-                            }`}>
-                              <Icon className="h-3.5 w-3.5" />
-                            </div>
-                            <span className="truncate">{item.label}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {item.badge && (
-                              <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
-                                isAnyChildActive
-                                  ? "bg-teal-200/70 text-teal-950 border border-teal-300"
-                                  : "bg-slate-100 text-slate-500 border border-slate-200"
-                              }`}>
-                                {item.badge}
-                              </span>
-                            )}
-                            <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-teal-700" : "text-slate-400"}`} />
-                          </div>
-                        </button>
-
-                        {/* Smooth Height Expandable Submenu */}
-                        <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 my-1" : "grid-rows-[0fr] opacity-0 overflow-hidden"}`}>
-                          <div className="overflow-hidden">
-                            <div className="pl-4 pr-1 py-1 space-y-1.5 border-l-2 border-teal-500/30 ml-5">
-                              {item.children?.map((child) => {
-                                const ChildIcon = child.icon;
-                                const isChildItemActive = isRouteActive(pathname || "", child.href);
-
-                                return (
-                                  <Link
-                                    key={child.href}
-                                    href={child.href}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                                      isChildItemActive
-                                        ? "bg-gradient-to-r from-teal-700 via-teal-800 to-cyan-900 text-white shadow-md shadow-teal-900/15 font-black translate-x-1"
-                                        : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-1"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2.5 overflow-hidden">
-                                      {ChildIcon && (
-                                        <ChildIcon className={`h-3.5 w-3.5 shrink-0 ${isChildItemActive ? "text-teal-200" : "text-slate-400"}`} />
-                                      )}
-                                      <span className="truncate">{child.label}</span>
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      {isChildItemActive && (
-                                        <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-xs animate-pulse" />
-                                      )}
-                                      {child.badge && (
-                                        <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${
-                                          isChildItemActive
-                                            ? "bg-white/20 text-white border border-white/30"
-                                            : "bg-slate-100 text-slate-500 border border-slate-200"
-                                        }`}>
-                                          {child.badge}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </Link>
-                                );
-                              })}
-                            </div>
                           </div>
                         </div>
-                      </div>
+                      </React.Fragment>
                     );
                   }
 
@@ -855,52 +885,58 @@ export default function Sidebar({ role }: SidebarProps) {
 
                   if (isCollapsed) {
                     return (
-                      <Link
-                        key={item.href || index}
-                        href={item.href || "#"}
-                        title={item.label}
-                        className={`flex items-center justify-center h-10 w-10 mx-auto rounded-xl transition-all duration-200 ${
-                          isActive
-                            ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </Link>
+                      <React.Fragment key={item.href || index}>
+                        {categoryHeader}
+                        <Link
+                          href={item.href || "#"}
+                          title={item.label}
+                          className={`flex items-center justify-center h-10 w-10 mx-auto rounded-xl transition-all duration-200 ${
+                            isActive
+                              ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-md shadow-teal-900/20"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </Link>
+                      </React.Fragment>
                     );
                   }
 
                   return (
-                    <Link
-                      key={item.href || index}
-                      href={item.href || "#"}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                        isActive
-                          ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm shadow-teal-900/15"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+                    <React.Fragment key={item.href || index}>
+                      {categoryHeader}
+                      <Link
+                        href={item.href || "#"}
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                           isActive
-                            ? "bg-white/15 border-white/20 text-teal-200"
-                            : "bg-slate-100 border-slate-200 text-slate-500"
-                        }`}>
-                          <Icon className="h-3.5 w-3.5" />
+                            ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm shadow-teal-900/15"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+                            isActive
+                              ? "bg-white/15 border-white/20 text-teal-200"
+                              : "bg-slate-100 border-slate-200 text-slate-500"
+                          }`}>
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                          <span className="truncate tracking-tight">{item.label}</span>
                         </div>
-                        <span className="truncate">{item.label}</span>
-                      </div>
 
-                      {item.badge && (
-                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold shrink-0 ${
-                          isActive
-                            ? "bg-white/20 text-white border border-white/30"
-                            : "bg-slate-100 text-slate-500 border border-slate-200"
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {item.badge && (
+                            <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase ${
+                              isActive
+                                ? "bg-white/20 text-white border border-white/30"
+                                : "bg-slate-100 text-slate-600 border border-slate-200"
+                            }`}>
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    </React.Fragment>
                   );
                 })
               )}
