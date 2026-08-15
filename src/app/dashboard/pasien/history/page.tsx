@@ -24,7 +24,8 @@ import {
   ChevronRight,
   History,
   Database,
-  XCircle
+  XCircle,
+  X
 } from "lucide-react";
 
 function PatientUnifiedHistoryContent() {
@@ -153,46 +154,87 @@ function PatientUnifiedHistoryContent() {
           {activeMainTab === "records" && (
             <div className="space-y-4 sm:space-y-6 animate-fade-in">
               {/* Search & Filter Bar */}
-              <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                  <div className="relative sm:col-span-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari RS, Dokter, atau Diagnosa..."
-                      value={searchTermRecords}
-                      onChange={(e) => setSearchTermRecords(e.target.value)}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
-                    />
-                  </div>
+              <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-3 sm:p-4 shadow-xs space-y-2.5 sm:space-y-3">
+                {/* Search Bar */}
+                <div className="relative w-full">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-700 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cari RS, Dokter, atau Diagnosa..."
+                    value={searchTermRecords}
+                    onChange={(e) => setSearchTermRecords(e.target.value)}
+                    className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-10 pr-9 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition shadow-2xs font-medium"
+                  />
+                  {searchTermRecords && (
+                    <button
+                      onClick={() => setSearchTermRecords("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                  <div>
+                {/* Filter Dropdowns Grid: 2 columns side-by-side on mobile */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  {/* Hospital Filter */}
+                  <div className="relative">
                     <select
                       value={hospitalFilter}
                       onChange={(e) => setHospitalFilter(e.target.value)}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 text-[11px] sm:text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+                      className="w-full appearance-none rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-3 pr-7 py-2 text-[11px] sm:text-xs font-bold text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition truncate cursor-pointer"
                     >
-                      <option value="all">Semua Rumah Sakit ({records.length})</option>
+                      <option value="all">Semua RS ({uniqueHospitals.length || records.length})</option>
                       {uniqueHospitals.map((h, i) => (
                         <option key={i} value={h}>{h}</option>
                       ))}
                     </select>
+                    <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                      <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                      </svg>
+                    </div>
                   </div>
 
-                  <div>
+                  {/* Category Filter */}
+                  <div className="relative">
                     <select
                       value={categoryFilter}
                       onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/50 px-3 py-2 sm:px-3.5 sm:py-2.5 text-[11px] sm:text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+                      className="w-full appearance-none rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-3 pr-7 py-2 text-[11px] sm:text-xs font-bold text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition truncate cursor-pointer"
                     >
-                      <option value="all">Semua Kategori Pemeriksaan</option>
-                      <option value="Rawat Jalan">Rawat Jalan</option>
-                      <option value="Pemeriksaan Lab">Pemeriksaan Lab</option>
-                      <option value="Radiologi / Rontgen">Radiologi / Rontgen</option>
-                      <option value="UGD / Emergency">UGD / Emergency</option>
+                      <option value="all">Semua Kategori</option>
+                      <option value="umum">Pemeriksaan Umum</option>
+                      <option value="resep">Resep & Obat</option>
+                      <option value="lab">Laboratorium</option>
+                      <option value="radiologi">Radiologi</option>
                     </select>
+                    <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                      <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+
+                {/* Reset Active Filter Bar */}
+                {(searchTermRecords || hospitalFilter !== "all" || categoryFilter !== "all") && (
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] text-slate-500">
+                    <span className="font-medium text-teal-800">
+                      Menampilkan <strong className="font-extrabold">{filteredRecords.length}</strong> hasil pencarian
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSearchTermRecords("");
+                        setHospitalFilter("all");
+                        setCategoryFilter("all");
+                      }}
+                      className="font-bold text-[#DC2626] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <X className="h-3 w-3" /> Reset Filter
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Records List Container */}

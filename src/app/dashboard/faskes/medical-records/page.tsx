@@ -574,7 +574,7 @@ function isCiphertextString(str) {
 function renderVitalSignsCard(val) {
   if (!val || val === "-") return "-";
 
-  let vitalsData = {};
+  let vitalsData: Record<string, any> = {};
 
   if (typeof val === "string" && val.trim().startsWith("{")) {
     try {
@@ -1484,7 +1484,7 @@ function deduplicateRecords(items) {
                                   </p>
                                 </div>
                                 {Object.entries(rec.detail).map(([type, fields]) => {
-                                  if (!fields) return null;
+                                  if (!fields || typeof fields !== "object") return null;
 
                                   const isDeathRecord = rec.recordType && (
                                     rec.recordType.includes("death") ||
@@ -1495,7 +1495,7 @@ function deduplicateRecords(items) {
 
                                   const fieldLabels = DETAIL_FIELD_LABELS[type] || {};
 
-                                  const processedFields = { ...fields };
+                                  const processedFields: Record<string, any> = { ...fields };
 
                                   if (processedFields.igd_triase_data) {
                                     try {

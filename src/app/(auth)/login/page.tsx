@@ -84,9 +84,19 @@ export default function LoginPage() {
         callback: handleGoogleLoginSuccess,
       });
 
-      const container = document.getElementById('google-signin-btn-form');
-      if (container) {
-        window.google.accounts.id.renderButton(container, {
+      const containerForm = document.getElementById('google-signin-btn-form');
+      if (containerForm) {
+        window.google.accounts.id.renderButton(containerForm, {
+          theme: 'outline',
+          size: 'large',
+          width: '320',
+          text: 'signin_with',
+        });
+      }
+
+      const containerSelect = document.getElementById('google-signin-btn-select');
+      if (containerSelect) {
+        window.google.accounts.id.renderButton(containerSelect, {
           theme: 'outline',
           size: 'large',
           width: '320',
@@ -97,12 +107,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (loginStep === 'form') {
-      const timer = setTimeout(() => {
-        handleScriptLoad();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      handleScriptLoad();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [loginStep, role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -167,168 +175,203 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col justify-between">
-      <div className="space-y-4">
-        {loginStep === 'select' ? (
-          <div className="space-y-3">
-            <button
-              type="button"
-              onClick={() => {
-                setRole('pasien');
-                setLoginStep('form');
-                setError('');
-              }}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
-                  <User className="h-5 w-5" />
-                </span>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">Pasien Terdaftar</h4>
-                  <p className="text-[10px] text-slate-500">Akses EHR & kontrol izin medis</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setRole('rumah_sakit');
-                setLoginStep('form');
-                setError('');
-              }}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all">
-                  <Building2 className="h-5 w-5" />
-                </span>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
-                  <p className="text-[10px] text-slate-500">Kelola data medis & blockchain log</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 transition-all" />
-            </button>
-          </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="w-full h-full flex flex-col justify-between flex-1 min-h-0">
+      {loginStep === 'form' && (
+        <div className="shrink-0 pb-2">
           <button
             type="button"
             onClick={() => {
               setLoginStep('select');
               setError('');
             }}
-            className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-teal-800 transition cursor-pointer mb-1"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-xs font-bold text-slate-600 hover:text-teal-800 transition cursor-pointer shadow-2xs"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5 text-slate-500" />
             <span>Kembali ke pilihan metode</span>
           </button>
+        </div>
+      )}
 
-          {error && (
-            <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 space-y-1">
-              <div className="flex items-center gap-1.5 font-semibold">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-              {isInactive && (
-                <div className="pt-1 border-t border-rose-200/60 flex items-center justify-between text-[10px]">
-                  <span>Belum aktivasi via email?</span>
-                  <button
-                    type="button"
-                    onClick={handleResendActivation}
-                    disabled={resendLoading}
-                    className="font-bold underline cursor-pointer"
-                  >
-                    {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3 inline mr-1" />}
-                    Kirim Ulang Email
-                  </button>
+      <div className="my-auto py-2 space-y-4">
+        {loginStep === 'select' ? (
+          <div className="space-y-4 my-auto">
+            <div className="text-center mb-1 sm:mb-3">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900">Masuk ke SatuData</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Pilih jenis akun atau masuk dengan Google</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setRole('pasien');
+                  setLoginStep('form');
+                  setError('');
+                }}
+                className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs hover:shadow-md"
+              >
+                <div className="flex items-center gap-3.5">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all shadow-2xs">
+                    <User className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">Pasien Terdaftar</h4>
+                    <p className="text-[10px] sm:text-xs text-slate-500">Akses EHR & kontrol izin medis</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:translate-x-0.5 transition-all" />
+              </button>
 
-          {resendMsg && (
-            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800 font-semibold">
-              <CheckCircle className="h-4 w-4 shrink-0" />
-              <span>{resendMsg}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setRole('rumah_sakit');
+                  setLoginStep('form');
+                  setError('');
+                }}
+                className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 hover:border-teal-600 hover:bg-teal-50/50 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs hover:shadow-md"
+              >
+                <div className="flex items-center gap-3.5">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-800 group-hover:bg-teal-800 group-hover:text-white transition-all shadow-2xs">
+                    <Building2 className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                    <p className="text-[10px] sm:text-xs text-slate-500">Kelola data medis & blockchain log</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:translate-x-0.5 transition-all" />
+              </button>
             </div>
-          )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {role === 'pasien' ? 'Email Pasien / NIK *' : 'Email Fasilitas Kesehatan *'}
-            </label>
-            <input
-              type="text"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder={role === 'pasien' ? 'Masukkan email atau NIK Anda' : 'Masukkan email fasilitas kesehatan'}
-              className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
-              maxLength={100}
-              required
-              disabled={loading}
-            />
+            {/* Divider 'atau' */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative bg-white px-3 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                atau masuk dengan
+              </div>
+            </div>
+
+            {/* Google Sign-In Button */}
+            <div className="w-full flex flex-col items-center justify-center overflow-hidden">
+              <div id="google-signin-btn-select" className="w-full flex justify-center max-w-full overflow-hidden" style={{ minHeight: '44px' }} />
+            </div>
           </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-slate-700">Password *</label>
-              <Link href="/forgot-password" className="text-[11px] text-teal-800 font-medium hover:underline">
-                Lupa password?
-              </Link>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            <div className="mb-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900">
+                {role === 'pasien' ? 'Login Pasien' : 'Login Fasilitas Kesehatan'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {role === 'pasien' ? 'Masukkan email / NIK dan kata sandi Anda' : 'Masukkan email fasilitas kesehatan dan kata sandi Anda'}
+              </p>
             </div>
-            <div className="relative">
+
+            {error && (
+              <div className="rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 space-y-1">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+                {isInactive && (
+                  <div className="pt-1 border-t border-rose-200/60 flex items-center justify-between text-[10px]">
+                    <span>Belum aktivasi via email?</span>
+                    <button
+                      type="button"
+                      onClick={handleResendActivation}
+                      disabled={resendLoading}
+                      className="font-bold underline cursor-pointer"
+                    >
+                      {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3 inline mr-1" />}
+                      Kirim Ulang Email
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {resendMsg && (
+              <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800 font-semibold">
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span>{resendMsg}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {role === 'pasien' ? 'Email Pasien / NIK *' : 'Email Fasilitas Kesehatan *'}
+              </label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 pr-10 transition"
-                maxLength={128}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={role === 'pasien' ? 'Masukkan email atau NIK Anda' : 'Masukkan email fasilitas kesehatan'}
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
+                maxLength={100}
                 required
                 disabled={loading}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold py-2.5 sm:py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs sm:text-sm shadow-sm"
-          >
-            {loading ? <Loader className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            <span>Masuk Sekarang</span>
-          </button>
-
-          {/* Divider 'atau' */}
-          <div className="relative my-3 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">Password *</label>
+                <Link href="/forgot-password" className="text-[11px] text-teal-800 font-medium hover:underline">
+                  Lupa password?
+                </Link>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 pr-10 transition"
+                  maxLength={128}
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-            <div className="relative bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              atau
-            </div>
-          </div>
 
-          <div className="w-full flex flex-col items-center justify-center overflow-hidden">
-            <div id="google-signin-btn-form" className="w-full flex justify-center max-w-full overflow-hidden" style={{ minHeight: '44px' }} />
-          </div>
-        </form>
-      )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold py-2.5 sm:py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs sm:text-sm shadow-sm"
+            >
+              {loading ? <Loader className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              <span>Masuk Sekarang</span>
+            </button>
+
+            {/* Divider 'atau' */}
+            <div className="relative my-3 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                atau
+              </div>
+            </div>
+
+            <div className="w-full flex flex-col items-center justify-center overflow-hidden">
+              <div id="google-signin-btn-form" className="w-full flex justify-center max-w-full overflow-hidden" style={{ minHeight: '44px' }} />
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Fixed Bottom Footer Link */}
-      <div className="pt-4 sm:pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
+      <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-600 font-medium shrink-0">
         Belum punya akun?{' '}
         <Link href="/register" className="text-teal-800 font-bold hover:underline">
           Daftar di sini

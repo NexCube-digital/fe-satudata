@@ -53,7 +53,7 @@ export default function FaskesPatients() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "", tipe) =>
+  const showToast = (message: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message, tipe });
 
   // Add EHR record modal state
@@ -705,7 +705,7 @@ export default function FaskesPatients() {
           </div>
         </div>
       )}
-      <Toast toast={toast} onClose={() => setToast({ show: false })} />
+      <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
     </div>
   );
 }

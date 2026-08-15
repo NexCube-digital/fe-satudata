@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-1 min-w-0 relative">
         <Sidebar role={user?.role} />
         <main
-          className={`flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full transition-all duration-300 ${
+          className={`flex-1 min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 md:pt-8 md:pb-12 w-full transition-all duration-300 ${
             isCollapsed ? 'md:ml-20' : 'md:ml-64'
           }`}
         >

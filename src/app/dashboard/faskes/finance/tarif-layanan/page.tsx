@@ -200,7 +200,7 @@ export default function TarifLayananKlinikPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingItem, setEditingItem] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState({});
+	const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
 	const [submitting, setSubmitting] = useState(false);
 
 	// NOTE: apiFetch (lib/api.js) melempar error kalau request gagal dan
@@ -400,7 +400,7 @@ export default function TarifLayananKlinikPage() {
 	};
 
 	const validate = () => {
-		const errors = {};
+		const errors: Record<string, string> = {};
 		if (!form.service_unit_id) errors.service_unit_id = "Unit layanan wajib dipilih.";
 		if (!form.name.trim()) errors.name = "Nama layanan wajib diisi.";
 		if (categoryConfig.mode === "select" && !form.category) {

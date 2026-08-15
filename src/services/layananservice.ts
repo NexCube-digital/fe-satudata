@@ -146,7 +146,7 @@ const normalizeUpdateArgs = (sourceOrId, idOrPayload, maybePayload) => {
   };
 };
 
-export const createServicePrice = async (sourceOrPayload, maybePayload) => {
+export const createServicePrice = async (sourceOrPayload?: any, maybePayload?: any) => {
   const { source, payload } = normalizeCreateArgs(sourceOrPayload, maybePayload);
   return withFallback(
     () => apiPost(AGGREGATED_ENDPOINT, { ...payload, source }),
@@ -154,7 +154,7 @@ export const createServicePrice = async (sourceOrPayload, maybePayload) => {
   );
 };
 
-export const updateServicePrice = async (sourceOrId, idOrPayload, maybePayload) => {
+export const updateServicePrice = async (sourceOrId?: any, idOrPayload?: any, maybePayload?: any) => {
   const { source, id, payload } = normalizeUpdateArgs(sourceOrId, idOrPayload, maybePayload);
   return withFallback(
     () => apiPut(`${AGGREGATED_ENDPOINT}/${id}`, { ...payload, source }),
@@ -162,7 +162,7 @@ export const updateServicePrice = async (sourceOrId, idOrPayload, maybePayload) 
   );
 };
 
-export const deleteServicePrice = async (sourceOrId, maybeId) => {
+export const deleteServicePrice = async (sourceOrId?: any, maybeId?: any) => {
   if (typeof sourceOrId === "number" || typeof sourceOrId === "string") {
     const source = maybeId && typeof maybeId === "string" ? maybeId : "medis";
     return withFallback(

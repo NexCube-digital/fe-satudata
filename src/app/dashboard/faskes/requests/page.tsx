@@ -36,7 +36,7 @@ export default function FaskesRequests() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "", tipe) =>
+  const showToast = (message: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message, tipe });
 
   // Form states
@@ -619,7 +619,7 @@ export default function FaskesRequests() {
           </div>
         </div>
       </div>
-      <Toast toast={toast} onClose={() => setToast({ show: false })} />
+      <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
     </div>
   );
 }

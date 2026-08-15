@@ -82,7 +82,7 @@ export default function ServiceUnitPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editing, setEditing] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState({});
+	const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
 	const [submitting, setSubmitting] = useState(false);
 	const [deletingId, setDeletingId] = useState(null);
 
@@ -201,7 +201,7 @@ export default function ServiceUnitPage() {
 	};
 
 	const validateForm = () => {
-		const errors = {};
+		const errors: Record<string, string> = {};
 		if (!form.name.trim()) errors.name = "Nama unit wajib diisi.";
 		else if (form.name.trim().length < 3) errors.name = "Nama unit minimal 3 karakter.";
 		if (form.price !== "" && (isNaN(Number(form.price)) || Number(form.price) < 0)) {

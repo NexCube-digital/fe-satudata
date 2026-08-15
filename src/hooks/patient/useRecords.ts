@@ -47,7 +47,10 @@ export function usePatientRecords() {
         if (currentId && invoiceList.some((invoice) => invoice.id === currentId)) return currentId;
         return invoiceList.find((invoice) => ["unpaid", "pending_cash"].includes(invoice.status))?.id || invoiceList[0]?.id || null;
       });
-      if (invoiceList.length > 0) setActiveStage(4);
+      if (invoiceList.length > 0) {
+        setActiveStage(4);
+        localStorage.setItem("activePatientStage", "4");
+      }
     } catch (err) {
       console.error("Error fetching patient invoices", err);
       setInvoiceError(err.message || "Gagal memuat daftar invoice pasien.");
@@ -59,6 +62,13 @@ export function usePatientRecords() {
 
   const selectedInvoice = invoices.find((invoice) => invoice.id === selectedInvoiceId) || null;
   const paymentStatus = selectedInvoice?.status || "pending";
+
+  useEffect(() => {
+    if (invoices.length > 0) {
+      setActiveStage(4);
+      localStorage.setItem("activePatientStage", "4");
+    }
+  }, [invoices]);
 
   useEffect(() => {
     if (stepperContainerRef.current) {
@@ -111,7 +121,16 @@ export function usePatientRecords() {
 
     const syncStage = () => {
       const saved = localStorage.getItem("activePatientStage");
-      if (saved) setActiveStage(parseInt(saved, 10));
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          setActiveStage((prev) => (invoices.length > 0 ? Math.max(parsed, 4) : parsed));
+          return;
+        }
+      }
+      if (invoices.length > 0) {
+        setActiveStage(4);
+      }
     };
     syncStage();
     window.addEventListener("storage", syncStage);
@@ -121,7 +140,7 @@ export function usePatientRecords() {
       clearInterval(interval);
       pollingActiveRef.current = false;
     };
-  }, []);
+  }, [invoices.length]);
 
   const mapBackendDetailToFrontend = (rec, backendData) => {
     const detail = backendData.detail || {};

@@ -106,7 +106,7 @@ export default function RuanganFinancePage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingItem, setEditingItem] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState({});
+	const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
 	const [submitting, setSubmitting] = useState(false);
 
 	// NOTE: apiFetch melempar error kalau gagal dan tidak pernah mengirim
@@ -269,7 +269,7 @@ export default function RuanganFinancePage() {
 	};
 
 	const validate = () => {
-		const errors = {};
+		const errors: Record<string, string> = {};
 		if (!form.service_unit_id) errors.service_unit_id = "Kamar/ruangan wajib dipilih.";
 		if (!form.name.trim()) errors.name = "Nama tipe kamar wajib diisi.";
 		if (form.price === "" || isNaN(Number(form.price)) || Number(form.price) < 0) {
