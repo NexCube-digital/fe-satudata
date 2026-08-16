@@ -114,6 +114,7 @@ export default function Sidebar({ role }: SidebarProps) {
     consent: null
   });
 
+<<<<<<< Updated upstream
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(() => {
     const p = pathname || "";
     return {
@@ -127,6 +128,18 @@ export default function Sidebar({ role }: SidebarProps) {
       masterData: p.startsWith("/dashboard/faskes/finance/tarif-layanan") || p.startsWith("/dashboard/faskes/finance/pelayanan-medis") || p.startsWith("/dashboard/faskes/finance/layanan") || p.startsWith("/dashboard/faskes/finance/ruangan"),
       finance: p.startsWith("/dashboard/faskes/finance/invoice") || p.startsWith("/dashboard/faskes/finance/history")
     };
+=======
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
+    patients: pathname.startsWith("/dashboard/faskes/patients") || pathname.startsWith("/dashboard/faskes/requests"),
+    medicalRecords: pathname.startsWith("/dashboard/faskes/medical-records"),
+    users: pathname.startsWith("/dashboard/admin/users"),
+    doctors: pathname.startsWith("/dashboard/faskes/doctor"),
+    geotagging: pathname.startsWith("/dashboard/admin/faskes"),
+    consent: pathname.startsWith("/dashboard/pasien/consent"),
+    pharmacy: pathname.startsWith("/dashboard/faskes/pharmacy"),
+    masterData: pathname.startsWith("/dashboard/faskes/finance/tarif-layanan") || pathname.startsWith("/dashboard/faskes/finance/pelayanan-medis") || pathname.startsWith("/dashboard/faskes/finance/layanan") || pathname.startsWith("/dashboard/faskes/finance/ruangan") || pathname.startsWith("/dashboard/faskes/finance/nonmedis"),
+    finance: pathname.startsWith("/dashboard/faskes/finance/invoice") || pathname.startsWith("/dashboard/faskes/finance/history")
+>>>>>>> Stashed changes
   });
 
   useEffect(() => {
@@ -324,7 +337,10 @@ export default function Sidebar({ role }: SidebarProps) {
               { href: "/dashboard/faskes/finance/layanan", label: "Unit Layanan", icon: Building2, permission: "master_data:read" },
               { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Tarif Layanan Medis", icon: Stethoscope, permission: "master_data:read" },
               { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan Klinik", icon: DollarSign, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/ruangan", label: "Kelola Ruangan", icon: Building2, permission: "master_data:read" }
+              { href: "/dashboard/faskes/finance/ruangan", label: "Kelola Ruangan", icon: Building2, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/nonmedis/layanannonmedis", label: "Layanan Non Medis", icon: Activity, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/nonmedis/nonmedisklinik", label: "Non Medis Klinik", icon: Plus, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/nonmedis/tariflayanan", label: "Tarif Layanan", icon: DollarSign, permission: "master_data:read" }
             ]
           },
           { 
