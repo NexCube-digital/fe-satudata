@@ -223,9 +223,13 @@ export default function TarifLayananMedisPage() {
 		return map;
 	}, [units]);
 
-	// Daftar unit yang dipakai khusus untuk dropdown FILTER tabel.
-	// Unit "Akomodasi" sengaja disembunyikan dari filter ini (bukan dari
-	// form Tambah/Edit) karena tidak relevan untuk tarif layanan medis.
+	const medicalUnitIds = useMemo(
+		() => new Set(units.filter((u) => !/akomodasi/i.test(u.name || "")).map((u) => String(u.id))),
+		[units]
+	);
+
+	// Daftar unit yang dipakai khusus untuk form & filter tabel.
+	// Unit "Akomodasi" disembunyikan di sini karena sudah dikelola di modul ruangan.
 	const filterableUnits = useMemo(
 		() => units.filter((u) => !/akomodasi/i.test(u.name || "")),
 		[units]
@@ -234,8 +238,8 @@ export default function TarifLayananMedisPage() {
 	// Unit layanan yang sedang dipilih di form Tambah/Edit, dipakai untuk
 	// menentukan aturan kategori sub layanan (mengikuti nama unitnya).
 	const selectedUnit = useMemo(
-		() => units.find((u) => String(u.id) === String(form.service_unit_id)) || null,
-		[units, form.service_unit_id]
+		() => filterableUnits.find((u) => String(u.id) === String(form.service_unit_id)) || null,
+		[filterableUnits, form.service_unit_id]
 	);
 	const categoryConfig = useMemo(() => getCategoryConfig(selectedUnit?.name), [selectedUnit]);
 
@@ -245,8 +249,13 @@ export default function TarifLayananMedisPage() {
 		return Array.from(set).sort();
 	}, [prices]);
 
+	const relevantPrices = useMemo(
+		() => prices.filter((item) => medicalUnitIds.has(String(item.service_unit_id))),
+		[prices, medicalUnitIds]
+	);
+
 	const filteredPrices = useMemo(() => {
-		return prices.filter((item) => {
+		return relevantPrices.filter((item) => {
 			const q = searchTerm.trim().toLowerCase();
 			if (q) {
 				const haystack = `${item.name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
@@ -257,7 +266,7 @@ export default function TarifLayananMedisPage() {
 			if (classFilter !== "all" && item.class !== classFilter) return false;
 			return true;
 		});
-	}, [prices, searchTerm, statusFilter, unitFilter, classFilter]);
+	}, [relevantPrices, searchTerm, statusFilter, unitFilter, classFilter]);
 
 	const totalItems = filteredPrices.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
@@ -293,23 +302,23 @@ export default function TarifLayananMedisPage() {
 		return withDots;
 	}, [totalPages, safeCurrentPage]);
 
-	const activeCount = useMemo(() => prices.filter((i) => i.status === "active").length, [prices]);
+	const activeCount = useMemo(() => relevantPrices.filter((i) => i.status === "active").length, [relevantPrices]);
 	const averagePrice = useMemo(() => {
-		if (prices.length === 0) return 0;
-		const sum = prices.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
-		return Math.round(sum / prices.length);
-	}, [prices]);
+		if (relevantPrices.length === 0) return 0;
+		const sum = relevantPrices.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
+		return Math.round(sum / relevantPrices.length);
+	}, [relevantPrices]);
 
 	// Hitung default kategori untuk sebuah unit id (dipakai saat ganti unit / buka form)
 	const getDefaultCategoryForUnit = (unitId) => {
-		const unit = units.find((u) => String(u.id) === String(unitId));
+		const unit = filterableUnits.find((u) => String(u.id) === String(unitId));
 		const config = getCategoryConfig(unit?.name);
 		return config.mode === "select" ? config.options[0] || "" : "";
 	};
 
 	const openAdd = () => {
 		setEditingItem(null);
-		const defaultUnitId = units[0]?.id ? String(units[0].id) : "";
+		const defaultUnitId = filterableUnits[0]?.id ? String(filterableUnits[0].id) : "";
 		setForm({
 			...emptyForm,
 			service_unit_id: defaultUnitId,
@@ -475,8 +484,8 @@ export default function TarifLayananMedisPage() {
 								</button>
 								<button
 									onClick={openAdd}
-									disabled={units.length === 0}
-									title={units.length === 0 ? "Buat Unit Layanan terlebih dahulu" : undefined}
+									disabled={filterableUnits.length === 0}
+									title={filterableUnits.length === 0 ? "Buat Unit Layanan medis terlebih dahulu" : undefined}
 									className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									<Plus className="h-4 w-4" /> Tambah Tarif Medis
@@ -484,10 +493,10 @@ export default function TarifLayananMedisPage() {
 							</div>
 						</div>
 
-						{units.length === 0 && (
+						{filterableUnits.length === 0 && (
 							<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-[#B45309] flex items-center gap-2">
 								<Building2 className="h-4 w-4 shrink-0" />
-								Belum ada Unit Layanan. Buat Unit Layanan dulu di halaman Master Unit Layanan sebelum menambah tarif.
+								Belum ada Unit Layanan medis yang relevan. Akomodasi sudah dipisahkan ke modul ruangan.
 							</div>
 						)}
 
@@ -496,7 +505,7 @@ export default function TarifLayananMedisPage() {
 							<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 								<div>
 									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tarif Medis</p>
-									<p className="text-2xl font-extrabold text-slate-900 mt-1">{prices.length} Item</p>
+									<p className="text-2xl font-extrabold text-slate-900 mt-1">{relevantPrices.length} Item</p>
 								</div>
 								<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-800 font-bold">
 									<Tag className="h-5 w-5" />
@@ -639,7 +648,7 @@ export default function TarifLayananMedisPage() {
 
 							{totalItems === 0 ? (
 								<div className="py-12 text-center text-slate-400 italic text-xs">
-									{prices.length === 0 ? "Belum ada tarif layanan medis." : "Tidak ada data yang cocok dengan pencarian/filter."}
+									{relevantPrices.length === 0 ? "Belum ada tarif layanan medis." : "Tidak ada data yang cocok dengan pencarian/filter."}
 								</div>
 							) : (
 								<div className="overflow-x-auto">
@@ -812,7 +821,7 @@ export default function TarifLayananMedisPage() {
 												}`}
 											>
 												<option value="">Pilih unit layanan...</option>
-												{units.map((u) => (
+												{filterableUnits.map((u) => (
 													<option key={u.id} value={u.id}>{u.name}</option>
 												))}
 											</select>
@@ -1017,10 +1026,7 @@ export default function TarifLayananMedisPage() {
 				</div>
 			</div>
 
-			{/* ==== Area khusus cetak/PDF ====
-			    Tersembunyi di layar (hidden), hanya muncul saat print/Ctrl+P
-			    (print:block). Berisi SELURUH data sesuai filter aktif, tanpa
-			    pagination, supaya PDF yang diunduh lengkap sesuai yang difilter. */}
+			{/* ==== Area khusus cetak/PDF ==== */}
 			<div className="print-area hidden print:block p-6">
 				<div className="mb-5 border-b-2 border-slate-800 pb-3">
 					<h1 className="text-lg font-extrabold text-slate-900">Master Data Tarif Layanan Medis</h1>
@@ -1055,7 +1061,7 @@ export default function TarifLayananMedisPage() {
 										<td className="py-1.5 px-2 font-mono">{item.kptl || "-"}</td>
 										<td className="py-1.5 px-2 font-bold">{item.name}</td>
 										<td className="py-1.5 px-2">{unit?.name || "-"}</td>
-										<td className="py-1.5 px-2">{item.category || "-"}</td>
+										<td className="py-1.5 px-2">{item.category || getCategoryConfig(unitMap[item.service_unit_id]?.name).rule?.options?.[0] || "Belum ada kategori"}</td>
 										<td className="py-1.5 px-2">{CLASS_LABEL[item.class] || item.class}</td>
 										<td className="py-1.5 px-2">{item.satuan || "-"}</td>
 										<td className="py-1.5 px-2 text-right font-mono font-bold">{formatRupiah(item.price)}</td>

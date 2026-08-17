@@ -224,8 +224,8 @@ export default function TarifLayananKlinikPage() {
 	};
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		loadData();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const unitMap = useMemo(() => {
@@ -234,10 +234,17 @@ export default function TarifLayananKlinikPage() {
 		return map;
 	}, [units]);
 
-	// Opsi dropdown Unit Layanan untuk ModernSelect di FORM Tambah/Edit —
-	// tetap menampilkan semua unit (termasuk Akomodasi).
+	// Unit yang dipakai khusus untuk dropdown FILTER tabel dan form Tambah/Edit.
+	// Akomodasi disembunyikan di sini karena tidak relevan untuk tarif layanan klinik.
+	const filterableUnits = useMemo(
+		() => units.filter((u) => !/akomodasi/i.test(u.name || "")),
+		[units]
+	);
+
+	// Opsi dropdown Unit Layanan untuk ModernSelect di FORM Tambah/Edit.
+	// Unit "Akomodasi" tidak ditampilkan karena sudah dikelola di modul ruangan.
 	const unitOptionsForModal = useMemo(() => {
-		return units.map((u) => {
+		return filterableUnits.map((u) => {
 			const meta = CATEGORY_META[u.category] || { label: u.category, icon: "⚡" };
 			return {
 				value: String(u.id),
@@ -246,15 +253,7 @@ export default function TarifLayananKlinikPage() {
 				badge: `${meta.icon} ${meta.label}`,
 			};
 		});
-	}, [units]);
-
-	// Unit yang dipakai khusus untuk dropdown FILTER tabel. Unit "Akomodasi"
-	// sengaja disembunyikan dari filter ini (bukan dari form Tambah/Edit)
-	// karena tidak relevan untuk tarif layanan klinik.
-	const filterableUnits = useMemo(
-		() => units.filter((u) => !/akomodasi/i.test(u.name || "")),
-		[units]
-	);
+	}, [filterableUnits]);
 
 	const unitOptionsForFilter = useMemo(() => {
 		const opts = filterableUnits.map((u) => {
@@ -293,8 +292,18 @@ export default function TarifLayananKlinikPage() {
 	// Aturan kategori SUB LAYANAN untuk unit yang sedang dipilih di form (dari nama unitnya)
 	const categoryConfig = useMemo(() => getCategoryConfig(selectedUnit?.name), [selectedUnit]);
 
+	const relevantUnitIds = useMemo(
+		() => new Set(filterableUnits.map((u) => String(u.id))),
+		[filterableUnits]
+	);
+
+	const relevantPrices = useMemo(
+		() => prices.filter((item) => relevantUnitIds.has(String(item.service_unit_id))),
+		[prices, relevantUnitIds]
+	);
+
 	const filteredPrices = useMemo(() => {
-		return prices.filter((item) => {
+		return relevantPrices.filter((item) => {
 			const q = searchTerm.trim().toLowerCase();
 			if (q) {
 				const haystack = `${(item as any).name || ""} ${item.kptl || ""} ${item.category || ""}`.toLowerCase();
@@ -305,7 +314,7 @@ export default function TarifLayananKlinikPage() {
 			if (classFilter !== "all" && item.class !== classFilter) return false;
 			return true;
 		});
-	}, [prices, searchTerm, statusFilter, unitFilter, classFilter]);
+	}, [relevantPrices, searchTerm, statusFilter, unitFilter, classFilter]);
 
 	const totalItems = filteredPrices.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
@@ -341,24 +350,24 @@ export default function TarifLayananKlinikPage() {
 		return withDots;
 	}, [totalPages, safeCurrentPage]);
 
-	const activeCount = useMemo(() => prices.filter((i) => i.status === "active").length, [prices]);
+	const activeCount = useMemo(() => relevantPrices.filter((i) => i.status === "active").length, [relevantPrices]);
 	const averagePrice = useMemo(() => {
-		if (prices.length === 0) return 0;
-		const sum = prices.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
-		return Math.round(sum / prices.length);
-	}, [prices]);
-	const ruanganCount = useMemo(() => prices.filter((i) => unitMap[i.service_unit_id]?.category === "ruangan").length, [prices, unitMap]);
+		if (relevantPrices.length === 0) return 0;
+		const sum = relevantPrices.reduce((acc, cur) => acc + (Number(cur.price) || 0), 0);
+		return Math.round(sum / relevantPrices.length);
+	}, [relevantPrices]);
+	const ruanganCount = useMemo(() => relevantPrices.filter((i) => unitMap[i.service_unit_id]?.category === "ruangan").length, [relevantPrices, unitMap]);
 
 	// Hitung default kategori sub layanan untuk sebuah unit id (dipakai saat ganti unit / buka form)
 	const getDefaultCategoryForUnit = (unitId) => {
-		const unit = units.find((u) => String(u.id) === String(unitId));
+		const unit = filterableUnits.find((u) => String(u.id) === String(unitId));
 		const config = getCategoryConfig(unit?.name);
 		return config.mode === "select" ? config.options[0] || "" : "";
 	};
 
 	const openAdd = () => {
 		setEditingItem(null);
-		const defaultUnitId = unitFilter !== "all" ? unitFilter : (units[0]?.id ? String(units[0].id) : "");
+		const defaultUnitId = unitFilter !== "all" ? unitFilter : (filterableUnits[0]?.id ? String(filterableUnits[0].id) : "");
 		setForm({
 			...emptyForm,
 			service_unit_id: defaultUnitId,
@@ -523,8 +532,8 @@ export default function TarifLayananKlinikPage() {
 								</button>
 								<button
 									onClick={openAdd}
-									disabled={units.length === 0}
-									title={units.length === 0 ? "Buat Unit Layanan terlebih dahulu" : undefined}
+									disabled={filterableUnits.length === 0}
+									title={filterableUnits.length === 0 ? "Buat Unit Layanan medis terlebih dahulu" : undefined}
 									className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-700 to-cyan-800 hover:from-indigo-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									<Plus className="h-4 w-4" /> Tambah Tarif Klinik
@@ -538,10 +547,10 @@ export default function TarifLayananKlinikPage() {
 							</div>
 						</div>
 
-						{units.length === 0 && (
+						{filterableUnits.length === 0 && (
 							<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-[#B45309] flex items-center gap-2">
 								<Building2 className="h-4 w-4 shrink-0" />
-								Belum ada Unit Layanan. Buat Unit Layanan dulu di halaman Master Unit Layanan sebelum menambah tarif klinik.
+								Belum ada Unit Layanan yang relevan. Akomodasi sudah dipisahkan ke modul ruangan.
 							</div>
 						)}
 
@@ -550,7 +559,7 @@ export default function TarifLayananKlinikPage() {
 							<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 								<div>
 									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Tarif Klinik</p>
-									<p className="text-2xl font-extrabold text-slate-900 mt-1">{prices.length} Item</p>
+									<p className="text-2xl font-extrabold text-slate-900 mt-1">{relevantPrices.length} Item</p>
 								</div>
 								<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-800 font-bold">
 									<FileText className="h-5 w-5" />
@@ -699,7 +708,7 @@ export default function TarifLayananKlinikPage() {
 
 							{totalItems === 0 ? (
 								<div className="py-12 text-center text-slate-400 italic text-xs">
-									{prices.length === 0 ? "Belum ada tarif layanan klinik." : "Tidak ada data yang cocok dengan pencarian/filter."}
+									{relevantPrices.length === 0 ? "Belum ada tarif layanan klinik." : "Tidak ada data yang cocok dengan pencarian/filter."}
 								</div>
 							) : (
 								<div className="overflow-x-auto">

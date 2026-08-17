@@ -8,27 +8,36 @@ export interface NonMedisService {
   id: number;
   code: string;
   name: string;
-  class: NonMedisClass;
+  class?: NonMedisClass;
   status: NonMedisStatus;
   createdAt?: string;
   updatedAt?: string;
+  nama?: string;
+  kelas?: string;
 }
 
 export interface NonMedisPrice {
   id: number;
   servicenonmedis_id: number;
+  nonmedis_service_id?: number | string | null;
+  service_nonmedis_id?: number | string | null;
   kptl?: string | null;
   name: string;
   category?: string | null;
   price: number;
   status: NonMedisStatus;
+  class?: NonMedisClass;
   createdAt?: string;
   updatedAt?: string;
   serviceNonMedis?: NonMedisService;
+  nama?: string;
+  kelas?: string;
+  harga?: number;
 }
 
 export interface PaginationMeta {
-  total: number;
+  total?: number;
+  totalItems?: number;
   page: number;
   limit: number;
   totalPages: number;
@@ -53,6 +62,7 @@ export interface NonMedisPricePayload {
   kptl?: string | null;
   name: string;
   category?: string | null;
+  class?: NonMedisClass;
   price: number;
   status?: NonMedisStatus;
 }

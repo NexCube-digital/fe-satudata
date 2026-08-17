@@ -101,7 +101,7 @@ export default function NonMedisKlinikPage() {
         ...(search ? { search } : {}),
       });
       setItems(res.data ?? []);
-      setTotal(res.meta?.total ?? 0);
+      setTotal(res.meta?.total ?? res.meta?.totalItems ?? 0);
       setTotalPages(res.meta?.totalPages ?? 1);
       setError(null);
     } catch (err: any) {
