@@ -111,6 +111,7 @@ export default function Sidebar({ role }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
   const [activeHoverMenu, setActiveHoverMenu] = useState<string | null>(null);
+  const [hoverMenuPos, setHoverMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 88 });
 
   useEffect(() => {
     setMounted(true);
@@ -777,9 +778,9 @@ export default function Sidebar({ role }: SidebarProps) {
           </div>
         )}
 
-        {/* Scrollable Navigation Area */}
-        <div className={`flex-1 px-3 py-4 space-y-1 custom-scrollbar ${isCollapsed ? "overflow-visible" : "overflow-y-auto"}`}>
-          <div className="space-y-1">
+        {/* Scrollable Navigation Area (Scrollbar on the Left side) */}
+        <div className={`flex-1 py-4 space-y-1 custom-scrollbar overflow-y-auto overflow-x-hidden [direction:rtl] ${isCollapsed ? "px-1.5" : "px-3"}`}>
+          <div className="space-y-1 [direction:ltr]">
             <nav className="space-y-1">
               {filteredMenuItems.length === 0 ? (
                 <div className="px-3 py-8 text-center space-y-1">
@@ -826,7 +827,13 @@ export default function Sidebar({ role }: SidebarProps) {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setHoverMenuPos({ top: rect.top, left: rect.right + 12 });
                                 setActiveHoverMenu(isHovered ? null : key);
+                              }}
+                              onMouseEnter={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setHoverMenuPos({ top: rect.top, left: rect.right + 12 });
                               }}
                               className={`flex items-center justify-center h-10 w-10 rounded-xl transition-all duration-200 ${
                                 isAnyChildActive || isHovered
@@ -840,7 +847,10 @@ export default function Sidebar({ role }: SidebarProps) {
 
                             {/* Floating Circular Submenu Icon Buttons for Collapsed Sidebar */}
                             {isHovered && (
-                              <div className="absolute left-full top-0 ml-3 z-[100] flex flex-col gap-2 p-2.5 bg-white/98 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-left-3 duration-200 min-w-[210px]">
+                              <div 
+                                className="fixed z-[100] flex flex-col gap-2 p-2.5 bg-white/98 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-left-3 duration-200 min-w-[210px]"
+                                style={{ top: `${Math.max(10, Math.min(hoverMenuPos.top, typeof window !== "undefined" ? window.innerHeight - 260 : hoverMenuPos.top))}px`, left: `${hoverMenuPos.left || 88}px` }}
+                              >
                                 {/* Header Title */}
                                 <div className="px-2.5 py-1 border-b border-slate-100 mb-0.5 flex items-center justify-between">
                                   <span className="text-[9px] font-black uppercase tracking-wider text-teal-800">{item.label}</span>
