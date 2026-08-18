@@ -24,6 +24,7 @@ export interface NonMedisPrice {
   kptl?: string | null;
   name: string;
   category?: string | null;
+  satuan?: string | null;
   price: number;
   status: NonMedisStatus;
   class?: NonMedisClass;
@@ -62,6 +63,7 @@ export interface NonMedisPricePayload {
   kptl?: string | null;
   name: string;
   category?: string | null;
+  satuan?: string | null;
   class?: NonMedisClass;
   price: number;
   status?: NonMedisStatus;
@@ -121,7 +123,7 @@ export const deleteNonMedisService = async (
 export const getNonMedisPrices = async (
   params: Record<string, any> = {},
 ): Promise<ApiResponse<NonMedisPrice[]>> => {
-  return await apiGet(PRICE_ENDPOINT, params);
+  return await apiGet(PRICE_ENDPOINT, { limit: 9999, ...params });
 };
 
 export const getNonMedisPricesByService = async (
