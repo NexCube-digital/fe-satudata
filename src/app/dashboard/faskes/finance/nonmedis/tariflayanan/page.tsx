@@ -16,6 +16,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
   Info,
   Download,
 } from "lucide-react";
@@ -89,12 +90,28 @@ const CATEGORY_OPTIONS_BY_SERVICE_CODE: Record<string, string[]> = {
   "NM-BKS": [], // non category
 };
 
+// Saran umum satuan tarif. Field ini tetap bebas diketik (tidak wajib cocok
+// dengan daftar), daftar ini hanya membantu supaya penulisan lebih konsisten.
+const SATUAN_SUGGESTIONS: string[] = [
+  "Per Hari",
+  "Per Kunjungan",
+  "Per Jam",
+  "Per Bulan",
+  "Per Kali",
+  "Per Unit",
+  "Per Paket",
+  "Per Orang",
+  "Per Tindakan",
+  "Per Kilometer",
+];
+
 type FormState = {
   id: number | null;
   servicenonmedis_id: string;
   name: string;
   category: string;
-  kptl: string; // dipakai sebagai "Satuan" (mis. per hari, per kunjungan)
+  kptl: string; // kode internal tarif (mis. ADM-001)
+  satuan: string; // satuan tarif (mis. per hari, per kunjungan)
   class: "utama" | "klinik";
   price: string;
   status: NonMedisStatus;
@@ -106,21 +123,26 @@ const emptyForm: FormState = {
   name: "",
   category: "",
   kptl: "",
+  satuan: "",
   class: "utama",
   price: "",
   status: "aktif",
 };
 
-// ===================== COMBOBOX KATEGORI (BISA DIKETIK / DIPILIH) =====================
-function CategoryCombobox({
+// ===================== COMBOBOX BEBAS KETIK (KATEGORI / SATUAN) =====================
+// Bisa diketik bebas ATAU dipilih dari daftar saran. Dipakai untuk field
+// yang nilainya tidak wajib persis sama dengan daftar (kategori & satuan).
+function FreeTextCombobox({
   value,
   onChange,
   options,
+  placeholder,
   hasError,
 }: {
   value: string;
   onChange: (val: string) => void;
   options: string[];
+  placeholder?: string;
   hasError?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -138,7 +160,7 @@ function CategoryCombobox({
 
   const handleInputChange = (val: string) => {
     setQuery(val);
-    onChange(val); // tetap terima input bebas, kategori tidak wajib cocok dengan daftar
+    onChange(val); // tetap terima input bebas, tidak wajib cocok dengan daftar
     setOpen(true);
   };
 
@@ -155,7 +177,7 @@ function CategoryCombobox({
         onChange={(e) => handleInputChange(e.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder={options.length ? "Ketik atau pilih kategori (opsional)..." : "Kategori (opsional)"}
+        placeholder={placeholder || (options.length ? "Ketik atau pilih (opsional)..." : "Opsional")}
         className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
           hasError
             ? "border-red-300 bg-red-50/40 focus:border-red-500"
@@ -176,6 +198,100 @@ function CategoryCombobox({
             </button>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ===================== DROPDOWN PILIHAN DENGAN PENCARIAN =====================
+// Untuk memilih 1 nilai dari daftar tetap (bukan bebas ketik), dengan kotak
+// pencarian di dalamnya supaya nyaman dipakai walau daftarnya panjang
+// (dipakai untuk memilih Layanan Non Medis, yang bisa berjumlah banyak).
+function SearchableSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "Pilih...",
+  hasError,
+  disabled,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  hasError?: boolean;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const selectedLabel = options.find((o) => o.value === value)?.label || "";
+
+  const filteredOptions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((opt) => opt.label.toLowerCase().includes(q));
+  }, [options, query]);
+
+  useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between gap-2 rounded-2xl border px-3.5 py-2.5 text-xs font-medium text-left transition focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed ${
+          hasError ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/50 hover:bg-white"
+        } ${open ? "border-teal-600 bg-white ring-2 ring-teal-100" : ""}`}
+      >
+        <span className={`truncate ${selectedLabel ? "text-slate-700" : "text-slate-400"}`}>
+          {selectedLabel || placeholder}
+        </span>
+        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute z-20 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+            <div className="sticky top-0 border-b border-slate-100 bg-white p-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Cari layanan..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-8 pr-3 text-xs focus:border-teal-600 focus:outline-hidden"
+                />
+              </div>
+            </div>
+            <div className="max-h-56 overflow-y-auto py-1">
+              {filteredOptions.length === 0 ? (
+                <p className="px-4 py-3 text-[11px] italic text-slate-400">Tidak ditemukan.</p>
+              ) : (
+                filteredOptions.map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-xs transition ${
+                      opt.value === value ? "bg-teal-50 font-bold text-teal-800" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -243,13 +359,34 @@ export default function TarifLayananNonMedisPage() {
     return map;
   }, [services]);
 
+  const serviceSelectOptions = useMemo(
+    () =>
+      services.map((s) => ({
+        value: String(s.id),
+        label: (s as any).code ? `${(s as any).code} — ${s.name}` : s.name,
+      })),
+    [services]
+  );
+
+  const serviceFilterOptions = useMemo(
+    () => [{ value: "all", label: "Semua Layanan" }, ...serviceSelectOptions],
+    [serviceSelectOptions]
+  );
+
+  // Daftar satuan yang sudah pernah dipakai, digabung dengan saran umum,
+  // supaya kombinasi input bebas ketik tetap punya saran relevan.
+  const satuanSuggestions = useMemo(() => {
+    const used = prices.map((p) => String((p as any).satuan || "")).filter(Boolean);
+    return Array.from(new Set([...used, ...SATUAN_SUGGESTIONS]));
+  }, [prices]);
+
   const filteredPrices = useMemo(() => {
     return prices.filter((item) => {
       const itemAny = item as any;
       const q = searchTerm.trim().toLowerCase();
       if (q) {
         const layananName = itemAny.serviceNonMedis?.name || "";
-        const haystack = `${item.name || ""} ${item.kptl || ""} ${item.category || ""} ${layananName}`.toLowerCase();
+        const haystack = `${item.name || ""} ${item.kptl || ""} ${itemAny.satuan || ""} ${item.category || ""} ${layananName}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       if (statusFilter !== "all" && item.status !== statusFilter) return false;
@@ -333,6 +470,7 @@ export default function TarifLayananNonMedisPage() {
       name: item.name ?? "",
       category: item.category ?? "",
       kptl: item.kptl ?? "",
+      satuan: String(itemAny.satuan || ""),
       class: (String(itemAny.class ?? itemAny.kelas ?? "utama").toLowerCase() === "klinik" ? "klinik" : "utama") as FormState["class"],
       price: String(item.price ?? ""),
       status: item.status,
@@ -374,6 +512,7 @@ export default function TarifLayananNonMedisPage() {
         name: form.name.trim(),
         category: categoryMode === "none" ? null : form.category.trim() || null, // kategori opsional -> null kalau kosong
         kptl: form.kptl.trim() || null,
+        satuan: form.satuan.trim() || null, // satuan opsional -> null kalau kosong
         class: form.class,
         price: Number(form.price),
         status: form.status,
@@ -528,7 +667,7 @@ export default function TarifLayananNonMedisPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari nama tarif, kode, kategori, atau layanan..."
+                placeholder="Cari nama tarif, kode, satuan, kategori, atau layanan..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -538,24 +677,15 @@ export default function TarifLayananNonMedisPage() {
               />
             </div>
 
-            <div>
-              <select
-                value={serviceFilter}
-                onChange={(e) => {
-                  setServiceFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-              >
-                <option value="all">Semua Layanan</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {(s as any).code ? `${(s as any).code} — ` : ""}
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect
+              value={serviceFilter}
+              onChange={(val) => {
+                setServiceFilter(val);
+                setCurrentPage(1);
+              }}
+              options={serviceFilterOptions}
+              placeholder="Semua Layanan"
+            />
 
             <div>
               <select
@@ -680,7 +810,7 @@ export default function TarifLayananNonMedisPage() {
                             {classLabel}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-slate-500">{item.kptl || "-"}</td>
+                        <td className="py-4 px-4 text-slate-500">{itemAny.satuan || "-"}</td>
                         <td className="py-4 px-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
                           {formatRupiah(item.price)}
                         </td>
@@ -801,23 +931,13 @@ export default function TarifLayananNonMedisPage() {
                   <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">
                     Layanan Non Medis <span className="text-[#DC2626]">*</span>
                   </label>
-                  <select
+                  <SearchableSelect
                     value={form.servicenonmedis_id}
-                    onChange={(e) => handleServiceChange(e.target.value)}
-                    className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
-                      formErrors.servicenonmedis_id
-                        ? "border-red-300 bg-red-50/40 focus:border-red-500"
-                        : "border-slate-200 bg-slate-50/50 focus:border-teal-600 focus:bg-white"
-                    }`}
-                  >
-                    <option value="">Pilih layanan...</option>
-                    {services.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {(s as any).code ? `${(s as any).code} — ` : ""}
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={handleServiceChange}
+                    options={serviceSelectOptions}
+                    placeholder="Pilih layanan..."
+                    hasError={!!formErrors.servicenonmedis_id}
+                  />
                   {formErrors.servicenonmedis_id && (
                     <p className="text-[10px] text-[#DC2626] font-semibold mt-1">{formErrors.servicenonmedis_id}</p>
                   )}
@@ -829,7 +949,7 @@ export default function TarifLayananNonMedisPage() {
                     <label className="text-xs font-extrabold text-teal-900 flex items-center gap-1.5">
                       Kategori Tarif {categoryMode === "select" && <span className="text-[#DC2626]">*</span>}
                     </label>
-                    <CategoryCombobox
+                    <FreeTextCombobox
                       value={form.category}
                       onChange={(val) => {
                         setForm({ ...form, category: val });
@@ -850,36 +970,46 @@ export default function TarifLayananNonMedisPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode / Satuan</label>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode</label>
                     <input
                       value={form.kptl}
                       onChange={(e) => setForm({ ...form, kptl: e.target.value })}
-                      placeholder="Contoh: per hari"
+                      placeholder="Contoh: ADM-001"
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kelas</label>
-                    <div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, class: "utama" })}
-                        className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-                          form.class === "utama" ? "bg-white text-teal-800 shadow-sm" : "text-slate-400"
-                        }`}
-                      >
-                        Utama
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, class: "klinik" })}
-                        className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
-                          form.class === "klinik" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-400"
-                        }`}
-                      >
-                        Klinik
-                      </button>
-                    </div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Satuan</label>
+                    <FreeTextCombobox
+                      value={form.satuan}
+                      onChange={(val) => setForm({ ...form, satuan: val })}
+                      options={satuanSuggestions}
+                      placeholder="Contoh: Per Hari"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kelas</label>
+                  <div className="flex rounded-2xl border border-slate-200 bg-slate-50/50 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, class: "utama" })}
+                      className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+                        form.class === "utama" ? "bg-white text-teal-800 shadow-sm" : "text-slate-400"
+                      }`}
+                    >
+                      Utama
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, class: "klinik" })}
+                      className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+                        form.class === "klinik" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-400"
+                      }`}
+                    >
+                      Klinik
+                    </button>
                   </div>
                 </div>
 
@@ -1064,7 +1194,7 @@ export default function TarifLayananNonMedisPage() {
                     <td className="py-1.5 px-2">{itemAny.serviceNonMedis?.name || (svc as any)?.name || "-"}</td>
                     <td className="py-1.5 px-2">{item.category || "-"}</td>
                     <td className="py-1.5 px-2">{getClassLabel(itemAny.class ?? itemAny.kelas)}</td>
-                    <td className="py-1.5 px-2">{item.kptl || "-"}</td>
+                    <td className="py-1.5 px-2">{itemAny.satuan || "-"}</td>
                     <td className="py-1.5 px-2 text-right font-mono font-bold">{formatRupiah(item.price)}</td>
                     <td className="py-1.5 px-2">{getStatusLabel(item.status)}</td>
                   </tr>

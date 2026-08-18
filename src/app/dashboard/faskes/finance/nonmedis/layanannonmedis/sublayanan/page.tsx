@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
   Loader2,
   CheckCircle2,
   DollarSign,
@@ -111,12 +112,28 @@ const CATEGORY_OPTIONS_BY_SERVICE_CODE: Record<string, string[]> = {
   "NM-BKS": [], // non category
 };
 
+// Saran umum satuan tarif. Field ini tetap bebas diketik (tidak wajib cocok
+// dengan daftar), daftar ini hanya membantu supaya penulisan lebih konsisten.
+const SATUAN_SUGGESTIONS: string[] = [
+  "Per Hari",
+  "Per Kunjungan",
+  "Per Jam",
+  "Per Bulan",
+  "Per Kali",
+  "Per Unit",
+  "Per Paket",
+  "Per Orang",
+  "Per Tindakan",
+  "Per Kilometer",
+];
+
 const ITEMS_PER_PAGE = 10;
 
 type FormState = {
   kptl: string;
   name: string;
   category: string;
+  satuan: string;
   class: "utama" | "klinik";
   price: string;
   status: "aktif" | "nonaktif";
@@ -126,6 +143,7 @@ const emptyForm: FormState = {
   kptl: "",
   name: "",
   category: "",
+  satuan: "",
   class: "utama",
   price: "",
   status: "aktif",
@@ -161,16 +179,20 @@ function buildActiveFilterLabels(params: {
   return labels;
 }
 
-// ===================== COMBOBOX KATEGORI (BISA DIKETIK / DIPILIH) =====================
-function CategoryCombobox({
+// ===================== COMBOBOX BEBAS KETIK (KATEGORI / SATUAN) =====================
+// Bisa diketik bebas ATAU dipilih dari daftar saran. Dipakai untuk field
+// yang nilainya tidak wajib persis sama dengan daftar (kategori & satuan).
+function FreeTextCombobox({
   value,
   onChange,
   options,
+  placeholder,
   hasError,
 }: {
   value: string;
   onChange: (val: string) => void;
   options: string[];
+  placeholder?: string;
   hasError?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -188,7 +210,7 @@ function CategoryCombobox({
 
   const handleInputChange = (val: string) => {
     setQuery(val);
-    onChange(val); // tetap terima input bebas, kategori tidak wajib cocok dengan daftar
+    onChange(val); // tetap terima input bebas, tidak wajib cocok dengan daftar
     setOpen(true);
   };
 
@@ -205,7 +227,7 @@ function CategoryCombobox({
         onChange={(e) => handleInputChange(e.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder={options.length ? "Ketik atau pilih kategori (opsional)..." : "Kategori (opsional)"}
+        placeholder={placeholder || (options.length ? "Ketik atau pilih (opsional)..." : "Opsional")}
         className={`w-full rounded-2xl border px-4 py-2.5 text-xs font-medium focus:outline-hidden transition ${
           hasError
             ? "border-red-300 bg-red-50/40 focus:border-red-500"
@@ -226,6 +248,99 @@ function CategoryCombobox({
             </button>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ===================== DROPDOWN PILIHAN DENGAN PENCARIAN =====================
+// Untuk memilih 1 nilai dari daftar tetap (bukan bebas ketik), dengan kotak
+// pencarian di dalamnya supaya nyaman dipakai walau daftarnya panjang.
+function SearchableSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "Pilih...",
+  hasError,
+  disabled,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  hasError?: boolean;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const selectedLabel = options.find((o) => o.value === value)?.label || "";
+
+  const filteredOptions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((opt) => opt.label.toLowerCase().includes(q));
+  }, [options, query]);
+
+  useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between gap-2 rounded-2xl border px-3.5 py-2.5 text-xs font-medium text-left transition focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed ${
+          hasError ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/50 hover:bg-white"
+        } ${open ? "border-teal-600 bg-white ring-2 ring-teal-100" : ""}`}
+      >
+        <span className={`truncate ${selectedLabel ? "text-slate-700" : "text-slate-400"}`}>
+          {selectedLabel || placeholder}
+        </span>
+        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute z-20 mt-1.5 w-full rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+            <div className="sticky top-0 border-b border-slate-100 bg-white p-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Cari..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-8 pr-3 text-xs focus:border-teal-600 focus:outline-hidden"
+                />
+              </div>
+            </div>
+            <div className="max-h-56 overflow-y-auto py-1">
+              {filteredOptions.length === 0 ? (
+                <p className="px-4 py-3 text-[11px] italic text-slate-400">Tidak ditemukan.</p>
+              ) : (
+                filteredOptions.map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-xs transition ${
+                      opt.value === value ? "bg-teal-50 font-bold text-teal-800" : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -316,6 +431,13 @@ function SubLayananNonMedisContent() {
     return Array.from(set).sort();
   }, [items]);
 
+  // Daftar satuan yang sudah pernah dipakai pada layanan ini, digabung dengan
+  // saran umum, supaya kombinasi input bebas ketik tetap punya saran relevan.
+  const satuanSuggestions = useMemo(() => {
+    const used = items.map((i) => String((i as any).satuan || "")).filter(Boolean);
+    return Array.from(new Set([...used, ...SATUAN_SUGGESTIONS]));
+  }, [items]);
+
   const filteredData = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
@@ -323,11 +445,12 @@ function SubLayananNonMedisContent() {
       const itemAny = item as any;
       const nama = String(itemAny.name ?? itemAny.nama ?? "").toLowerCase();
       const kptl = String(item.kptl || "").toLowerCase();
+      const satuan = String(itemAny.satuan || "").toLowerCase();
       const category = String(item.category || "").toLowerCase();
       const classLabel = getClassLabel(itemAny.class ?? itemAny.kelas);
       const statusLabel = getStatusLabel(item.status);
 
-      if (q && !`${nama} ${kptl} ${category}`.includes(q)) return false;
+      if (q && !`${nama} ${kptl} ${satuan} ${category}`.includes(q)) return false;
       if (categoryFilter !== "all" && (item.category || "") !== categoryFilter) return false;
       if (classFilter !== "all" && classLabel !== getClassLabel(classFilter)) return false;
       if (statusFilter === "active" && statusLabel !== "Aktif") return false;
@@ -361,6 +484,11 @@ function SubLayananNonMedisContent() {
     [searchTerm, categoryFilter, classFilter, statusFilter]
   );
 
+  const categoryFilterOptions = useMemo(() => {
+    const list = categoryMode === "select" ? categoryOptions : usedCategories;
+    return [{ value: "all", label: "Semua Kategori" }, ...list.map((c) => ({ value: c, label: c }))];
+  }, [categoryMode, categoryOptions, usedCategories]);
+
   const resetFilters = () => {
     setSearchTerm("");
     setCategoryFilter("all");
@@ -391,6 +519,7 @@ function SubLayananNonMedisContent() {
       kptl: String(item.kptl || ""),
       name: String(itemAny.name ?? itemAny.nama ?? ""),
       category: String(item.category || ""),
+      satuan: String(itemAny.satuan || ""),
       class: (String(itemAny.class ?? itemAny.kelas ?? "utama").toLowerCase() === "klinik" ? "klinik" : "utama") as FormState["class"],
       price: String(item.price ?? itemAny.harga ?? ""),
       status: (String(item.status || "aktif").toLowerCase() === "nonaktif" ? "nonaktif" : "aktif") as FormState["status"],
@@ -429,6 +558,7 @@ function SubLayananNonMedisContent() {
         kptl: form.kptl.trim() || null,
         name: form.name.trim(),
         category: categoryMode === "none" ? null : trimmedCategory || null, // kategori opsional -> null kalau kosong
+        satuan: form.satuan.trim() || null, // satuan opsional -> null kalau kosong
         class: form.class,
         price: Number(form.price),
         status: form.status,
@@ -579,7 +709,7 @@ function SubLayananNonMedisContent() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari nama sub layanan, KPTL, atau kategori..."
+                placeholder="Cari nama, KPTL, satuan, atau kategori..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
@@ -587,20 +717,12 @@ function SubLayananNonMedisContent() {
             </div>
 
             {categoryMode !== "none" && (
-              <div>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
-                >
-                  <option value="all">Semua Kategori</option>
-                  {(categoryMode === "select" ? categoryOptions : usedCategories).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SearchableSelect
+                value={categoryFilter}
+                onChange={setCategoryFilter}
+                options={categoryFilterOptions}
+                placeholder="Semua Kategori"
+              />
             )}
 
             <div>
@@ -673,6 +795,7 @@ function SubLayananNonMedisContent() {
                     <th className="py-3 px-4">KPTL</th>
                     <th className="py-3 px-4">Nama Sub Layanan</th>
                     {categoryMode !== "none" && <th className="py-3 px-4">Kategori</th>}
+                    <th className="py-3 px-4">Satuan</th>
                     <th className="py-3 px-4">Kelas</th>
                     <th className="py-3 px-4 text-right">Tarif (Rp)</th>
                     <th className="py-3 px-4">Status</th>
@@ -699,6 +822,7 @@ function SubLayananNonMedisContent() {
                             )}
                           </td>
                         )}
+                        <td className="py-4 px-4 text-slate-600">{itemAny.satuan || <span className="text-slate-400 italic">-</span>}</td>
                         <td className="py-4 px-4">
                           <span
                             className={`text-[10px] px-2.5 py-1 rounded-full font-bold border ${
@@ -827,7 +951,7 @@ function SubLayananNonMedisContent() {
                     <label className="text-xs font-extrabold text-teal-900 flex items-center gap-1.5">
                       Kategori Sub Layanan {categoryMode === "select" && <span className="text-[#DC2626]">*</span>}
                     </label>
-                    <CategoryCombobox
+                    <FreeTextCombobox
                       value={form.category}
                       onChange={(val) => {
                         setForm({ ...form, category: val });
@@ -840,7 +964,7 @@ function SubLayananNonMedisContent() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Kode KPTL</label>
                     <input
@@ -848,6 +972,15 @@ function SubLayananNonMedisContent() {
                       onChange={(e) => setForm({ ...form, kptl: e.target.value })}
                       placeholder="Contoh: ADM-001"
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-mono focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1.5 block">Satuan</label>
+                    <FreeTextCombobox
+                      value={form.satuan}
+                      onChange={(val) => setForm({ ...form, satuan: val })}
+                      options={satuanSuggestions}
+                      placeholder="Contoh: Per Hari"
                     />
                   </div>
                   <div>
@@ -1057,6 +1190,7 @@ function SubLayananNonMedisContent() {
                 <th className="py-1.5 pr-2">KPTL</th>
                 <th className="py-1.5 pr-2">Nama Sub Layanan</th>
                 {categoryMode !== "none" && <th className="py-1.5 pr-2">Kategori</th>}
+                <th className="py-1.5 pr-2">Satuan</th>
                 <th className="py-1.5 pr-2">Kelas</th>
                 <th className="py-1.5 pr-2 text-right">Tarif (Rp)</th>
                 <th className="py-1.5 pl-2">Status</th>
@@ -1070,6 +1204,7 @@ function SubLayananNonMedisContent() {
                     <td className="py-1.5 pr-2 font-mono">{item.kptl || "-"}</td>
                     <td className="py-1.5 pr-2 font-bold">{itemAny.name ?? itemAny.nama ?? "-"}</td>
                     {categoryMode !== "none" && <td className="py-1.5 pr-2">{item.category || "-"}</td>}
+                    <td className="py-1.5 pr-2">{itemAny.satuan || "-"}</td>
                     <td className="py-1.5 pr-2">{getClassLabel(itemAny.class ?? itemAny.kelas)}</td>
                     <td className="py-1.5 pr-2 text-right font-mono font-bold">{formatRupiah(item.price ?? itemAny.harga)}</td>
                     <td className="py-1.5 pl-2">{getStatusLabel(item.status)}</td>

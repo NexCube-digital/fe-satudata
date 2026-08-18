@@ -23,10 +23,6 @@ import {
   createNonMedisService,
   updateNonMedisService,
   deleteNonMedisService,
-  // CATATAN: fungsi di bawah ini diasumsikan BELUM ada di services/nonmedisService.
-  // Silakan tambahkan (mengikuti pola getServicePrices di servicePriceService) agar
-  // kartu "Rata-Rata Komponen" & "Total Komponen" dan kolom "Komponen Tarif" terisi
-  // data asli. Kalau endpoint-nya beda nama, tinggal ganti import ini saja.
   getNonMedisPrices,
   type NonMedisService,
 } from "@/services/nonmedisService";
@@ -314,11 +310,8 @@ export default function LayananNonMedisPage() {
     try {
       const [servicesRes, pricesRes] = await Promise.all([
         getNonMedisServices(),
-        // Kalau getNonMedisPrices belum tersedia di backend, biarkan gagal —
-        // ditangkap di catch di bawah supaya kartu komponen tetap tampil 0,
-        // bukan meruntuhkan seluruh halaman.
-        getNonMedisPrices ? getNonMedisPrices().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-      ]);
+        getNonMedisPrices({ limit: 9999 }).catch(() => ({ data: [] })),      
+    ]);
 
       setItems(normalizeList(servicesRes));
       setPrices(normalizeList(pricesRes) as NonMedisPrice[]);
