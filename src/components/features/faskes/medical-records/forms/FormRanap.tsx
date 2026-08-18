@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import DischargeSummary from "./DischargeSummary";
 import ModernSelect from "@/components/ui/ModernSelect";
 import {
 	User,
@@ -44,7 +45,11 @@ export default function FormRanap({
 	escortPhone,
 	visitId,
 	roomOptions = [],
-
+	onNavigateToRanap,
+	onNavigateToRujuk,
+	onNavigateToDeath,
+	includeObat,
+	onToggleIncludeObat,
 }: any) {
 	// Auto-synced Data Identitas Pasien
 	const patientName = selectedPatient?.name || selectedPatient?.patientName || selectedPatient?.patient_name || entryDetail.patient_name || "";
@@ -795,6 +800,21 @@ export default function FormRanap({
 							</div>
 						</div>
 					</div>
+
+					{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN RAWAT INAP */}
+					<DischargeSummary
+						processName="Rawat Inap"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+						}}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						hideRanapOption={true}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 				</div>
 
 				{/* SURAT PERNYATAAN & SIGNATURE BAR */}

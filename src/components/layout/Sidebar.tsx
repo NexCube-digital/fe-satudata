@@ -19,6 +19,7 @@ import {
   History,
   MapPin,
   Building2,
+  BedDouble,
   Clock,
   PanelLeftClose,
   PanelLeftOpen,
@@ -26,6 +27,7 @@ import {
   ChevronLeft,
   Pill,
   ShoppingCart,
+  Store,
   Package,
   Lock,
   DollarSign,
@@ -36,9 +38,13 @@ import {
   Home,
   FileText,
   Plus,
-  Users
+  Users,
+  HeartPlus,
+  HeartHandshakeIcon,
+  DollarSignIcon
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
+import { FaNotesMedical } from "react-icons/fa";
 
 interface ChildMenuItem {
   href: string;
@@ -65,23 +71,33 @@ interface SidebarProps {
 
 function isRouteActive(currentPath: string, targetHref?: string) {
   if (!currentPath || !targetHref) return false;
-  if (currentPath === targetHref) return true;
 
-  if (targetHref === "/dashboard/admin" || targetHref === "/dashboard/faskes" || targetHref === "/dashboard/pasien") {
-    return currentPath === targetHref;
+  const currentClean = currentPath.split("?")[0];
+  const targetClean = targetHref.split("?")[0];
+
+  if (currentClean === targetClean) return true;
+
+  if (targetClean === "/dashboard/admin" || targetClean === "/dashboard/faskes" || targetClean === "/dashboard/pasien") {
+    return currentClean === targetClean;
   }
 
-  if (targetHref === "/dashboard/faskes/requests" && currentPath.startsWith("/dashboard/faskes/requests/history")) {
+  if (targetClean === "/dashboard/faskes/requests" && currentClean.startsWith("/dashboard/faskes/requests/history")) {
     return false;
   }
-  if (targetHref === "/dashboard/faskes/medical-records" && 
-     (currentPath.startsWith("/dashboard/faskes/medical-records/upload") ||
-      currentPath.startsWith("/dashboard/faskes/medical-records/layanan") ||
-      currentPath.startsWith("/dashboard/faskes/medical-records/invoice"))) {
+  if (targetClean === "/dashboard/faskes/pharmacy/prescriptions" && currentClean.startsWith("/dashboard/faskes/pharmacy/prescriptions/history")) {
+    return false;
+  }
+  if (targetClean === "/dashboard/faskes/pharmacy/pos" && currentClean.startsWith("/dashboard/faskes/pharmacy/sales-history")) {
+    return false;
+  }
+  if (targetClean === "/dashboard/faskes/medical-records" && 
+     (currentClean.startsWith("/dashboard/faskes/medical-records/upload") ||
+      currentClean.startsWith("/dashboard/faskes/medical-records/layanan") ||
+      currentClean.startsWith("/dashboard/faskes/medical-records/invoice"))) {
     return false;
   }
 
-  return currentPath.startsWith(targetHref);
+  return currentClean.startsWith(targetClean);
 }
 
 export default function Sidebar({ role }: SidebarProps) {
@@ -108,6 +124,7 @@ export default function Sidebar({ role }: SidebarProps) {
     users: null,
     logs: null,
     patients: null,
+    doctors: null,
     hospitals: null,
     requests: null,
     records: null,
@@ -123,8 +140,11 @@ export default function Sidebar({ role }: SidebarProps) {
       doctors: p.startsWith("/dashboard/faskes/doctor"),
       geotagging: p.startsWith("/dashboard/admin/faskes"),
       consent: p.startsWith("/dashboard/pasien/consent"),
+      farmasi: p.startsWith("/dashboard/faskes/pharmacy/prescriptions"),
+      apotek: p.startsWith("/dashboard/faskes/pharmacy/pos") || p.startsWith("/dashboard/faskes/pharmacy/sales-history"),
       pharmacy: p.startsWith("/dashboard/faskes/pharmacy"),
-      masterData: p.startsWith("/dashboard/faskes/finance/tarif-layanan") || p.startsWith("/dashboard/faskes/finance/pelayanan-medis") || p.startsWith("/dashboard/faskes/finance/layanan") || p.startsWith("/dashboard/faskes/finance/ruangan"),
+      ruangan: p.startsWith("/dashboard/faskes/finance/ruangan"),
+      masterData: p.startsWith("/dashboard/faskes/finance/tarif-layanan") || p.startsWith("/dashboard/faskes/finance/pelayanan-medis") || p.startsWith("/dashboard/faskes/finance/layanan") || p.startsWith("/dashboard/faskes/finance/nonmedis"),
       finance: p.startsWith("/dashboard/faskes/finance/invoice") || p.startsWith("/dashboard/faskes/finance/history")
     };
 
@@ -203,9 +223,59 @@ export default function Sidebar({ role }: SidebarProps) {
           if (res.success && res.data) {
             setBadgeCounts((prev) => ({
               ...prev,
-              patients: res.data.izin_akses_disetujui !== undefined ? `${res.data.izin_akses_disetujui} EHR` : null,
+              patients: res.data.izin_akses_disetujui !== undefined ? `${res.data.izin_akses_disetujui}` : null,
               requests: res.data.request_pending !== undefined ? `${res.data.request_pending} Baru` : null,
               tokens: res.data.tokens !== undefined ? `${res.data.tokens} Token` : null
+            }));
+          }
+        } catch (e) {}
+
+        try {
+          const docRes = await apiGet("/api/doctor");
+          if (docRes?.success && Array.isArray(docRes?.data)) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              doctors: `${docRes.data.length}`
+            }));
+          }
+        } catch (e) {}
+
+        try {
+          const recRes = await apiGet("/api/hospital/medical-record");
+          if (recRes?.success && Array.isArray(recRes?.data)) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              records: `${recRes.data.length}`
+            }));
+          }
+        } catch (e) {}
+
+        try {
+          const rxRes = await apiGet("/api/hospital/pharmacy/prescriptions");
+          if (rxRes?.success && Array.isArray(rxRes?.data)) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              prescriptions: `${rxRes.data.length}`
+            }));
+          }
+        } catch (e) {}
+
+        try {
+          const invRes = await apiGet("/api/hospital/pharmacy/medicines");
+          if (invRes?.success && Array.isArray(invRes?.data)) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              medicines: `${invRes.data.length}`
+            }));
+          }
+        } catch (e) {}
+
+        try {
+          const salesRes = await apiGet("/api/hospital/pharmacy/sales");
+          if (salesRes?.success && Array.isArray(salesRes?.data)) {
+            setBadgeCounts((prev) => ({
+              ...prev,
+              sales: `${salesRes.data.length}`
             }));
           }
         } catch (e) {}
@@ -269,9 +339,10 @@ export default function Sidebar({ role }: SidebarProps) {
             label: "KELOLA PASIEN", 
             icon: Users,
             category: "PELAYANAN MEDIS",
+            badge: badgeCounts.patients,
             permissionRequired: ["patient:create", "access_request:create", "access_request:read"],
             children: [
-              { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients || "Aktif", icon: Database },
+              { href: "/dashboard/faskes/patients", label: "Semua Data Pasien", badge: badgeCounts.patients, icon: Database },
               { href: "/dashboard/faskes/requests", label: "Tambah Data Pasien", badge: null, icon: UserPlus, permission: "patient:create" },
               { href: "/dashboard/faskes/requests/history", label: "Histori Permintaan", badge: badgeCounts.requests || "Baru", icon: History },
             ]
@@ -281,9 +352,10 @@ export default function Sidebar({ role }: SidebarProps) {
             icon: Stethoscope,
             category: "PELAYANAN MEDIS",
             dropdownKey: "doctors",
+            badge: badgeCounts.doctors,
             permissionRequired: ["staff:manage", "role:manage"],
             children: [
-              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope },
+              { href: "/dashboard/faskes/doctor/list", label: "Semua Dokter", icon: Stethoscope, badge: badgeCounts.doctors },
               { href: "/dashboard/faskes/doctor/add", label: "Tambah Dokter", icon: UserPlus },
               { href: "/dashboard/faskes/doctor/specialties", label: "Kelola Spesialisasi", icon: Activity }
             ]
@@ -293,53 +365,88 @@ export default function Sidebar({ role }: SidebarProps) {
             icon: FileText,
             category: "PELAYANAN MEDIS",
             dropdownKey: "medicalRecords",
-            badge: badgeCounts.records || "EHR",
+            badge: badgeCounts.records,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records", label: "Semua Rekam Medis", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
               { href: "/dashboard/faskes/medical-records/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
             ]
           },
           { 
-            label: "KELOLA FARMASI", 
+            label: "FARMASI", 
             icon: Pill,
             category: "FARMASI & APOTEK",
-            dropdownKey: "pharmacy",
-            badge: "POS",
-            permissionRequired: ["pharmacy:manage", "pharmacy:pos"],
+            dropdownKey: "farmasi",
+            badge: badgeCounts.prescriptions,
+            permissionRequired: ["pharmacy:manage"],
             children: [
               { href: "/dashboard/faskes/pharmacy/prescriptions", label: "Antrean Resep", icon: FileText, permission: "pharmacy:manage" },
-              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir POS Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
-              { href: "/dashboard/faskes/pharmacy/inventory", label: "Katalog & Stok Obat", icon: Package, permission: "pharmacy:manage" },
-              { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi POS", icon: History, permission: "pharmacy:pos" }
+              { href: "/dashboard/faskes/pharmacy/prescriptions/history", label: "Riwayat Resep", icon: History, permission: "pharmacy:manage" }
             ]
           },
           { 
-            label: "KELOLA DATA UMUM", 
-            icon: Database,
-            category: "DATA & KEUANGAN",
-            dropdownKey: "masterData",
-            badge: "Master",
+            label: "APOTEK", 
+            icon: Store,
+            category: "FARMASI & APOTEK",
+            dropdownKey: "apotek",
+            badge: badgeCounts.sales,
+            permissionRequired: ["pharmacy:pos"],
+            children: [
+              { href: "/dashboard/faskes/pharmacy/pos", label: "Kasir Obat", icon: ShoppingCart, permission: "pharmacy:pos" },
+              { href: "/dashboard/faskes/pharmacy/sales-history", label: "Riwayat Transaksi", icon: History, permission: "pharmacy:pos" }
+            ]
+          },
+          { 
+            label: "KATALOG OBAT", 
+            icon: Package,
+            href: "/dashboard/faskes/pharmacy/inventory",
+            category: "FARMASI & APOTEK",
+            badge: badgeCounts.medicines,
+            permissionRequired: ["pharmacy:manage"]
+          },
+          { 
+            label: "KELOLA TARIF", 
+            icon: CreditCard,
+            category: "KEUANGAN",
+            dropdownKey: "tarif",
             permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
             children: [
-              { href: "/dashboard/faskes/finance/layanan", label: "Unit Layanan", icon: Building2, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Tarif Layanan Medis", icon: Stethoscope, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan Klinik", icon: DollarSign, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/ruangan", label: "Kelola Ruangan", icon: Building2, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/nonmedis/layanannonmedis", label: "Layanan Non Medis", icon: Activity, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/nonmedis/tariflayanan", label: "Tarif Layanan", icon: DollarSign, permission: "master_data:read" }
+              { href: "/dashboard/faskes/finance/tarif-layanan", label: "Tarif Layanan Klinik", icon: Stethoscope, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/pelayanan-medis", label: "Tarif Layanan Medis", icon: HeartPlus, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/nonmedis/tariflayanan", label: "Tarif Layanan Non Medis", icon: HeartHandshakeIcon, permission: "master_data:read" }
             ]
           },
           { 
             label: "KELOLA KEUANGAN", 
-            icon: DollarSign,
-            category: "DATA & KEUANGAN",
+            icon: DollarSignIcon,
+            category: "KEUANGAN",
             dropdownKey: "finance",
-            badge: "Finance",
             permissionRequired: ["finance:manage", "finance:read", "staff:manage", "role:manage"],
             children: [
               { href: "/dashboard/faskes/finance/invoice", label: "Invoice & Tagihan", icon: CreditCard, permission: "finance:manage" },
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
+            ]
+          },
+          { 
+            label: "KELOLA LAYANAN", 
+            icon: Building2,
+            category: "MANAJEMEN RS",
+            dropdownKey: "layanan",
+            permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
+            children: [
+              { href: "/dashboard/faskes/finance/layanan", label: "Layanan Medis", icon: Building2, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/nonmedis/layanannonmedis", label: "Layanan Non Medis", icon: Activity, permission: "master_data:read" },
+            ]
+          },
+          { 
+            label: "KELOLA RUANGAN", 
+            icon: BedDouble,
+            category: "MANAJEMEN RS",
+            dropdownKey: "ruangan",
+            permissionRequired: ["master_data:read"],
+            children: [
+              { href: "/dashboard/faskes/finance/ruangan", label: "Semua Ruangan", icon: Building2, permission: "master_data:read" },
+              { href: "/dashboard/faskes/finance/ruangan?action=add", label: "Tambah Ruangan", icon: Plus, permission: "master_data:read" }
             ]
           },
           { href: "/dashboard/faskes/staffs", label: "STAFF MEDIS", category: "MANAJEMEN RS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },

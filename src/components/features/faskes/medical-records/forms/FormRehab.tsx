@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import DischargeSummary from "./DischargeSummary";
 import {
 	Activity,
 	Stethoscope,
@@ -41,8 +42,11 @@ export default function FormRehab({
 	visitId,
 	roomOptions = [],
 	onNavigateToRanap,
+	onNavigateToRujuk,
+	onNavigateToDeath,
 	onEnsureRanapStep,
-
+	includeObat,
+	onToggleIncludeObat,
 }: any) {
 	// ICD-10 Search state
 	const [icdSearch, setIcdSearch] = useState("");
@@ -749,6 +753,21 @@ export default function FormRehab({
 							})}
 						</div>
 					</div>
+
+					{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN REHAB MEDIK */}
+					<DischargeSummary
+						processName="Rehab Medik"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+						}}
+						onNavigateToRanap={onNavigateToRanap}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 
 					{/* Verifikasi DPJP & Terapis */}
 					<div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 pt-3">

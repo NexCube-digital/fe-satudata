@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import DischargeSummary from "./DischargeSummary";
 import {
 	Send,
 	Building2,
@@ -43,8 +44,11 @@ export default function FormRujuk({
 	visitId,
 	roomOptions = [],
 	onNavigateToRanap,
+	onNavigateToRujuk,
+	onNavigateToDeath,
 	onEnsureRanapStep,
-
+	includeObat,
+	onToggleIncludeObat,
 }: any) {
 	// ICD-10 Search state
 	const [icdSearch, setIcdSearch] = useState("");
@@ -628,6 +632,21 @@ export default function FormRujuk({
 							</div>
 						)}
 					</div>
+
+					{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN RUJUKAN MEDIS */}
+					<DischargeSummary
+						processName="Rujukan Medis"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+						}}
+						onNavigateToDeath={onNavigateToDeath}
+						hideRanapOption={true}
+						hideRujukOption={true}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 
 					{/* Verifikasi Dokter Merujuk */}
 					<div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 pt-3">

@@ -27,6 +27,10 @@ import {
 	ChevronRight,
 	Info,
 	Download,
+	TestTube,
+	Bed,
+	ClipboardList,
+	Zap,
 } from "lucide-react";
 import {
 	getServicePriceKlinik,
@@ -47,10 +51,10 @@ const formatRupiah = (value) =>
 // & konteks unit di form. Ini BEDA dari kategori sub layanan (di bawah),
 // yang levelnya per-item tarif dan mengikuti nama unit yang dipilih.
 const CATEGORY_META = {
-	utama: { label: "Pelayanan Utama", icon: "🩺", badge: "bg-teal-50 text-teal-800 border-teal-200" },
-	penunjang: { label: "Penunjang", icon: "🧪", badge: "bg-cyan-50 text-cyan-800 border-cyan-200" },
-	ruangan: { label: "Ruangan", icon: "🛏", badge: "bg-amber-50 text-[#B45309] border-amber-200" },
-	admin: { label: "Administrasi", icon: "📋", badge: "bg-slate-100 text-slate-700 border-slate-200" },
+	utama: { label: "Pelayanan Utama", icon: Stethoscope, badge: "bg-teal-50 text-teal-800 border-teal-200" },
+	penunjang: { label: "Penunjang", icon: TestTube, badge: "bg-cyan-50 text-cyan-800 border-cyan-200" },
+	ruangan: { label: "Ruangan", icon: Bed, badge: "bg-amber-50 text-[#B45309] border-amber-200" },
+	admin: { label: "Administrasi", icon: ClipboardList, badge: "bg-slate-100 text-slate-700 border-slate-200" },
 };
 
 const CLASS_LABEL = { umum: "Umum", eksekutif: "Eksekutif" };
@@ -245,24 +249,26 @@ export default function TarifLayananKlinikPage() {
 	// Unit "Akomodasi" tidak ditampilkan karena sudah dikelola di modul ruangan.
 	const unitOptionsForModal = useMemo(() => {
 		return filterableUnits.map((u) => {
-			const meta = CATEGORY_META[u.category] || { label: u.category, icon: "⚡" };
+			const meta = CATEGORY_META[u.category] || { label: u.category, icon: Zap };
 			return {
 				value: String(u.id),
 				label: u.name,
 				sublabel: meta.label,
-				badge: `${meta.icon} ${meta.label}`,
+				badge: meta.label,
+				icon: meta.icon,
 			};
 		});
 	}, [filterableUnits]);
 
 	const unitOptionsForFilter = useMemo(() => {
 		const opts = filterableUnits.map((u) => {
-			const meta = CATEGORY_META[u.category] || { label: u.category, icon: "⚡" };
+			const meta = CATEGORY_META[u.category] || { label: u.category, icon: Zap };
 			return {
 				value: String(u.id),
 				label: u.name,
 				sublabel: meta.label,
-				badge: `${meta.icon} ${meta.label}`,
+				badge: meta.label,
+				icon: meta.icon,
 			};
 		});
 		return [
@@ -277,13 +283,13 @@ export default function TarifLayananKlinikPage() {
 		const meta = CATEGORY_META[selectedUnit?.category] || null;
 		if (!meta) {
 			return {
-				badgeIcon: "⚡",
+				Icon: Zap,
 				badgeText: "Pilih unit layanan terlebih dahulu",
 				badgeStyle: "bg-slate-100 text-slate-500 border-slate-200",
 			};
 		}
 		return {
-			badgeIcon: meta.icon,
+			Icon: meta.icon,
 			badgeText: `${selectedUnit.name} • ${meta.label}`,
 			badgeStyle: meta.badge,
 		};
@@ -736,9 +742,15 @@ export default function TarifLayananKlinikPage() {
 														<td className="py-4 px-4 font-extrabold text-slate-900">{(item as any).name}</td>
 														<td className="py-4 px-4">
 															{unit ? (
-																<span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">
-																	{meta?.icon} {unit.name}
-																</span>
+																(() => {
+																	const UnitIcon = meta?.icon || Zap;
+																	return (
+																		<span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">
+																			<UnitIcon className="h-3.5 w-3.5 text-indigo-700 shrink-0" />
+																			<span>{unit.name}</span>
+																		</span>
+																	);
+																})()
 															) : (
 																<span className="italic text-slate-400">Unit tidak ditemukan</span>
 															)}
@@ -898,7 +910,7 @@ export default function TarifLayananKlinikPage() {
 											)}
 											<div className="flex items-center gap-2 pt-1">
 												<span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-extrabold ${categoryContext.badgeStyle}`}>
-													<span>{categoryContext.badgeIcon}</span>
+													{categoryContext.Icon && <categoryContext.Icon className="h-3 w-3 shrink-0" />}
 													<span>{categoryContext.badgeText}</span>
 												</span>
 											</div>

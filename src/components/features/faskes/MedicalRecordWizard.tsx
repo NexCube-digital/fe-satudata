@@ -30,8 +30,6 @@ const DEFAULT_PELAYANAN_MEDIS = [
   { value: 'bedah_sentral', label: 'Instalasi Bedah Sentral' },
   { value: 'rehab_medik', label: 'Pelayanan Rehabilitas Medik' },
   { value: 'one_day_care', label: 'One Day Care' },
-  { value: 'rujukan_medis', label: 'Surat Rujukan Medis' },
-  { value: 'death_certificate', label: 'Surat Keterangan Kematian' },
 ];
 
 function getMedisOrderRank(val: string, label = '') {
@@ -472,6 +470,7 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
   const [existingAttachmentsInfo, setExistingAttachmentsInfo] = useState<any[]>([]);
 
   const [prescriptionItems, setPrescriptionItems] = useState<any[]>([]);
+  const [includeObat, setIncludeObat] = useState<boolean>(false);
 
   const [medicinesCatalog, setMedicinesCatalog] = useState<any[]>([]);
   const [loadingMedicines, setLoadingMedicines] = useState<boolean>(true);
@@ -669,10 +668,20 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
   }, [selectedTypes, recordTypes]);
 
   const steps = useMemo(
-    () => [STEP_KUNJUNGAN, ...sortedSelectedTypes.map(detailStepKey), STEP_LAMPIRAN],
-    [sortedSelectedTypes]
+    () => [
+      STEP_KUNJUNGAN,
+      ...sortedSelectedTypes.map(detailStepKey),
+      ...(includeObat ? [STEP_LAMPIRAN] : []),
+    ],
+    [sortedSelectedTypes, includeObat]
   );
   const currentStep = steps[currentStepIndex] || STEP_KUNJUNGAN;
+
+  useEffect(() => {
+    if (prescriptionItems.length > 0 || attachmentFiles.length > 0 || existingAttachmentsInfo.length > 0) {
+      setIncludeObat(true);
+    }
+  }, [prescriptionItems.length, attachmentFiles.length, existingAttachmentsInfo.length]);
 
   useEffect(() => {
     setCurrentStepIndex((idx) => Math.min(idx, steps.length - 1));
@@ -1568,7 +1577,7 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
     }
   };
 
-  const isLastContentStep = currentStep === STEP_LAMPIRAN;
+  const isLastContentStep = currentStepIndex === steps.length - 1 || currentStep === STEP_LAMPIRAN;
   const isFirstStep = currentStepIndex === 0;
 
   const pageTitle = isEditRoute ? 'Lengkapi / Edit Rekam Medis' : 'Upload Rekam Medis Baru';
@@ -1626,6 +1635,8 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
             subLayananItems={subLayananItems}
             selectedTypes={selectedTypes}
             onToggleRecordType={toggleRecordType}
+            includeObat={includeObat}
+            onToggleIncludeObat={(val: boolean) => setIncludeObat(val)}
             patientId={patientId}
             onPatientChange={setPatientId}
             patientOptions={patientOptions}

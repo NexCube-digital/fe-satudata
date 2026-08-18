@@ -678,6 +678,8 @@ export default function MedicalRecordMain(props) {
 		recordTypes,
 		selectedTypes,
 		onToggleRecordType,
+		includeObat,
+		onToggleIncludeObat,
 		penunjangMainCategories = [],
 		selectedPenunjangCategories = [],
 		onTogglePenunjangCategory,
@@ -876,41 +878,19 @@ export default function MedicalRecordMain(props) {
 							</button>
 						</div>
 
-						{/* PILIH PASIEN & TAMBAH PASIEN BARU */}
+						{/* JUDUL REKAM MEDIS */}
 						<div>
-							<div className="flex items-center justify-between mb-2">
-								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-									Pilih Pasien Terotorisasi
-								</label>
-								<button
-									type="button"
-									onClick={() => setIsNewPatientOpen(true)}
-									className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1 rounded-xl transition cursor-pointer"
-								>
-									<UserPlus className="h-3.5 w-3.5 text-teal-700" /> + Pasien Baru
-								</button>
-							</div>
-							<SearchableSelect
-								value={patientId}
-								onChange={onPatientChange}
-								options={patientOptions}
-								isLoading={loadingPatients}
-								loadingText="Memuat pasien terotorisasi..."
-								placeholder="Pilih pasien yang sudah menyetujui akses"
-								emptyText="Tidak ada pasien yang cocok dengan pencarian."
-								disabled={!!recordId}
+							<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+								Judul Rekam Medis
+							</label>
+							<input
+								value={title}
+								onChange={(e) => onTitleChange(e.target.value)}
+								type="text"
+								placeholder="Contoh: Pemeriksaan Gula Darah / Pasien IGD"
+								className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none font-medium"
 								required
 							/>
-							{!!recordId && (
-								<p className="mt-2 text-xs text-slate-400">
-									Pasien tidak bisa diganti setelah rekam medis draft dibuat. Mulai draft baru kalau salah pilih.
-								</p>
-							)}
-							{!loadingPatients && approvedPatients.length === 0 && (
-								<p className="mt-2 text-xs text-slate-500">
-									Belum ada pasien yang memberi akses. Silakan ajukan permintaan akses terlebih dahulu.
-								</p>
-							)}
 						</div>
 
 						{/* PRIMARY ENTRY POINT PICKER */}
@@ -919,7 +899,11 @@ export default function MedicalRecordMain(props) {
 								<Building2 className="h-3.5 w-3.5 text-teal-700" /> Pilih Unit Entri Utama (Primary Entry Point)
 							</label>
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-								{(recordTypes || []).map((opt) => {
+								{(recordTypes || []).filter((opt) => {
+									const val = (opt.value || "").toLowerCase();
+									const lbl = (opt.label || "").toLowerCase();
+									return !val.includes("rujuk") && !val.includes("death") && !val.includes("kematian") && !val.includes("meninggal") && !lbl.includes("rujukan") && !lbl.includes("kematian");
+								}).map((opt) => {
 									const isSelected = primaryEntryPoint === opt.value;
 									const desc =
 										opt.desc ||
@@ -986,16 +970,41 @@ export default function MedicalRecordMain(props) {
 						/>
 
 						<div className="grid gap-6 md:grid-cols-3">
+							{/* PILIH PASIEN & TAMBAH PASIEN BARU */}
 							<div>
-								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Judul Rekam Medis</label>
-								<input
-									value={title}
-									onChange={(e) => onTitleChange(e.target.value)}
-									type="text"
-									placeholder="Contoh: Pemeriksaan Gula Darah"
-									className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-teal-600 focus:outline-none font-medium"
+								<div className="flex items-center justify-between mb-2">
+									<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+										Pilih Pasien Terotorisasi
+									</label>
+									<button
+										type="button"
+										onClick={() => setIsNewPatientOpen(true)}
+										className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1 rounded-xl transition cursor-pointer"
+									>
+										<UserPlus className="h-3.5 w-3.5 text-teal-700" /> + Pasien Baru
+									</button>
+								</div>
+								<SearchableSelect
+									value={patientId}
+									onChange={onPatientChange}
+									options={patientOptions}
+									isLoading={loadingPatients}
+									loadingText="Memuat pasien terotorisasi..."
+									placeholder="Pilih pasien yang sudah menyetujui akses"
+									emptyText="Tidak ada pasien yang cocok dengan pencarian."
+									disabled={!!recordId}
 									required
 								/>
+								{!!recordId && (
+									<p className="mt-2 text-xs text-slate-400">
+										Pasien tidak bisa diganti setelah rekam medis draft dibuat. Mulai draft baru kalau salah pilih.
+									</p>
+								)}
+								{!loadingPatients && approvedPatients.length === 0 && (
+									<p className="mt-2 text-xs text-slate-500">
+										Belum ada pasien yang memberi akses. Silakan ajukan permintaan akses terlebih dahulu.
+									</p>
+								)}
 							</div>
 							<div>
 								<label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Tanggal Kunjungan</label>
@@ -1205,6 +1214,8 @@ export default function MedicalRecordMain(props) {
 							onToggleRecordType,
 							onGoToStep,
 							recordTypes,
+							includeObat,
+							onToggleIncludeObat,
 							onNavigateToRanap: (customType) => {
 								const ranapVal = customType || (recordTypes || []).find((r) => r.value.includes("inap") || r.value.includes("ranap") || (r.label || "").toLowerCase().includes("inap"))?.value || "rawat_inap";
 								if (onToggleRecordType && selectedTypes && !selectedTypes.includes(ranapVal)) {

@@ -132,11 +132,6 @@ export default function RuanganFinancePage() {
 		}
 	};
 
-	useEffect(() => {
-		loadData();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
 	const unitMap = useMemo(() => {
 		const map = {};
 		units.forEach((u) => (map[u.id] = u));
@@ -158,6 +153,22 @@ export default function RuanganFinancePage() {
 		return filtered;
 	}, [units]);
 	const roomUnitIds = useMemo(() => new Set(roomUnits.map((u) => u.id)), [roomUnits]);
+
+	useEffect(() => {
+		loadData();
+		if (typeof window !== "undefined" && window.location.search.includes("action=add")) {
+			setIsModalOpen(true);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	useEffect(() => {
+		if (typeof window !== "undefined" && window.location.search.includes("action=add")) {
+			if (roomUnits.length > 0 && !form.service_unit_id) {
+				setForm((prev) => ({ ...prev, service_unit_id: String(roomUnits[0].id) }));
+			}
+		}
+	}, [roomUnits, form.service_unit_id]);
 
 	// HANYA tarif yang terhubung ke unit berkategori "ruangan" yang ditampilkan
 	const roomPrices = useMemo(
@@ -245,6 +256,9 @@ export default function RuanganFinancePage() {
 		setForm({ ...emptyForm, service_unit_id: roomUnits[0]?.id ? String(roomUnits[0].id) : "" });
 		setFormErrors({});
 		setIsModalOpen(true);
+		if (typeof window !== "undefined" && !window.location.search.includes("action=add")) {
+			router.push("/dashboard/faskes/finance/ruangan?action=add", { scroll: false });
+		}
 	};
 
 	const openEdit = (item) => {
@@ -266,6 +280,9 @@ export default function RuanganFinancePage() {
 	const closeModal = () => {
 		if (submitting) return;
 		setIsModalOpen(false);
+		if (typeof window !== "undefined" && window.location.search.includes("action=add")) {
+			router.replace("/dashboard/faskes/finance/ruangan", { scroll: false });
+		}
 	};
 
 	const validate = () => {
@@ -305,6 +322,9 @@ export default function RuanganFinancePage() {
 			}
 
 			setIsModalOpen(false);
+			if (typeof window !== "undefined" && window.location.search.includes("action=add")) {
+				router.replace("/dashboard/faskes/finance/ruangan", { scroll: false });
+			}
 			loadData({ silent: true });
 		} catch (err) {
 			console.error(err);
