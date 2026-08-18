@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TxHashLink from "@/components/ui/TxHashLink";
 import ModernSelect from "@/components/ui/ModernSelect";
+import LoginRequiredModal from "@/components/ui/LoginRequiredModal";
 import {
   Activity,
   Building2,
@@ -100,16 +101,10 @@ export default function FaskesRequestsHistory() {
 
   if (!user) {
     return (
-      <div className="space-y-6">
-        <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
-          <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-teal-800 text-white font-bold text-sm shadow-md hover:bg-teal-700 transition">
-            Kembali ke Halaman Login
-          </Link>
-        </div>
-      </div>
+      <LoginRequiredModal
+        title="Akses Memerlukan Login"
+        description="Silakan masuk dengan akun Fasilitas Kesehatan Anda."
+      />
     );
   }
 

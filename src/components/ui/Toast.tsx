@@ -68,7 +68,7 @@ export default function Toast({
   const style = typeStyles[toastType as keyof typeof typeStyles] || typeStyles.success;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300 max-w-sm w-full">
+    <div className="fixed top-5 right-5 z-[100] animate-in fade-in slide-in-from-top-5 duration-300 max-w-sm w-full">
       <div className={`relative flex items-start gap-3 p-4 rounded-2xl border shadow-xl ${style.bg}`}>
         <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${style.accent}`} />
         <div className="pl-1">{style.icon}</div>

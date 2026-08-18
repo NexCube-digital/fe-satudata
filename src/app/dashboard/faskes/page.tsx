@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TxHashLink from "@/components/ui/TxHashLink";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import LoginRequiredModal from "@/components/ui/LoginRequiredModal";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/doctor/ModernDoctorSelect";
 import { apiGet, apiPost } from "@/lib/api";
@@ -160,16 +161,10 @@ export default function FaskesDashboard() {
 
   if (!user) {
     return (
-      <div className="space-y-6">
-        <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
-          <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 text-white font-bold text-sm shadow-md hover:from-teal-800 hover:to-cyan-900 transition">
-            Kembali ke Halaman Login
-          </Link>
-        </div>
-      </div>
+      <LoginRequiredModal
+        title="Akses Memerlukan Login"
+        description="Silakan masuk dengan akun Fasilitas Kesehatan Anda."
+      />
     );
   }
 
@@ -633,7 +628,7 @@ export default function FaskesDashboard() {
             </div>
           </div>
           {toast.show && (
-            <div className="fixed right-4 bottom-4 z-50 max-w-sm rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
+            <div className="fixed top-20 right-4 z-[100] max-w-sm rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-start gap-3">
                 <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-[#16A34A]" : "bg-red-100 text-[#DC2626]"}`}>
                   {toast.type === "success" ? (

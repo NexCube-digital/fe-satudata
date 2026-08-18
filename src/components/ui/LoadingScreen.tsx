@@ -32,13 +32,12 @@ export default function LoadingScreen({
     );
   }
 
-  const containerClasses = fullScreen
-    ? 'fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4'
-    : `py-10 sm:py-20 flex flex-col items-center justify-center p-4 w-full ${className}`;
+  // Topmost fixed modal layer positioning (z-[99999])
+  const containerClasses = "fixed inset-0 z-[99999] bg-slate-500/20 backdrop-blur-md flex items-center justify-center p-4 " + className;
 
   return (
     <div className={containerClasses}>
-      <div className="relative flex flex-col items-center text-center max-w-xs sm:max-w-sm w-full bg-white/95 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl shadow-teal-900/10">
+      <div className="relative flex flex-col items-center text-center max-w-xs sm:max-w-sm w-full bg-white/98 backdrop-blur-2xl border border-slate-200/90 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200">
         <div className="absolute -top-12 -left-12 w-32 h-32 bg-teal-400/20 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none" />
 
