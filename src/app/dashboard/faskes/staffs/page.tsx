@@ -27,6 +27,18 @@ import {
 } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 
+const DEPARTMENT_UNITS = [
+  { id: "ALL", label: "Semua Unit" },
+  { id: "Rehab Medik", label: "Rehab Medik", icon: "♿" },
+  { id: "ICU", label: "ICU", icon: "🫀" },
+  { id: "Radiologi", label: "Radiologi", icon: "🩻" },
+  { id: "Laboratorium", label: "Laboratorium", icon: "🔬" },
+  { id: "IGD", label: "IGD", icon: "🚑" },
+  { id: "Rawat Inap", label: "Rawat Inap", icon: "🛏️" },
+  { id: "Rawat Jalan", label: "Rawat Jalan", icon: "🏥" },
+  { id: "Bedah/OKA", label: "Bedah / OKA", icon: "🔪" }
+];
+
 export default function FaskesStaffManagementPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -41,6 +53,7 @@ export default function FaskesStaffManagementPage() {
   const [loading, setLoading] = useState(true);
   const [savingMatrix, setSavingMatrix] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState("ALL");
   const [notification, setNotification] = useState(null);
 
   // Selected Role for Matrix Edit
@@ -245,12 +258,20 @@ export default function FaskesStaffManagementPage() {
     }
   };
 
-  const filteredStaffs = staffs.filter(s => 
-    s.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.role?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStaffs = staffs.filter((s: any) => {
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = 
+      s.user?.name?.toLowerCase().includes(term) ||
+      s.user?.email?.toLowerCase().includes(term) ||
+      s.position?.toLowerCase().includes(term) ||
+      s.role?.name?.toLowerCase().includes(term);
+
+    const matchesUnit = selectedUnit === "ALL" || 
+      s.role?.name?.toLowerCase().includes(selectedUnit.toLowerCase()) ||
+      s.position?.toLowerCase().includes(selectedUnit.toLowerCase());
+
+    return matchesSearch && matchesUnit;
+  });
 
   return (
     <div className="space-y-6">
@@ -395,6 +416,28 @@ export default function FaskesStaffManagementPage() {
           {/* TAB 1: DAFTAR STAF */}
           {activeTab === "staffs" && (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+              {/* Filter Pills by Unit / Departemen */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                <span className="text-xs font-bold text-slate-400 shrink-0 mr-1">Filter Unit / Departemen:</span>
+                {DEPARTMENT_UNITS.map(unit => {
+                  const isActive = selectedUnit.toLowerCase() === unit.id.toLowerCase();
+                  return (
+                    <button
+                      key={unit.id}
+                      onClick={() => setSelectedUnit(unit.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 border ${
+                        isActive
+                          ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white border-teal-700 shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
+                      }`}
+                    >
+                      {unit.icon && <span>{unit.icon}</span>}
+                      <span>{unit.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -705,6 +748,33 @@ export default function FaskesStaffManagementPage() {
                   onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-600"
                 />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Pilih Unit / Departemen Medis (Preset Cepat)</label>
+                <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  {DEPARTMENT_UNITS.filter(u => u.id !== "ALL").map(unit => (
+                    <button
+                      key={unit.id}
+                      type="button"
+                      onClick={() => {
+                        const matchingRole = (roles as any[])?.find((r: any) => 
+                          r.name.toLowerCase() === unit.id.toLowerCase() || 
+                          r.name.toLowerCase().includes(unit.id.toLowerCase())
+                        );
+                        setStaffForm({
+                          ...staffForm,
+                          position: `Staf Unit ${unit.label}`,
+                          hospital_role_id: matchingRole ? matchingRole.id : staffForm.hospital_role_id
+                        });
+                      }}
+                      className="px-2 py-1 rounded-lg bg-white hover:bg-teal-50 hover:text-teal-900 border border-slate-200/90 text-[11px] font-bold text-slate-700 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                    >
+                      <span>{unit.icon}</span>
+                      <span>{unit.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
