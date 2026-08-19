@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import TxHashLink from "@/components/ui/TxHashLink";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import PrescriptionList from "@/components/features/faskes/pharmacy/PrescriptionList";
@@ -863,10 +863,6 @@ function TxHashPill({ txHash, compact = false, truncate = true }) {
 
 export default function FaskesMedicalRecordsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const unitParam = searchParams?.get("unit") || "";
-  const tabParam = searchParams?.get("tab") || "";
-
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
@@ -1009,65 +1005,20 @@ function deduplicateRecords(items) {
     setRefreshing(false);
   };
 
-  // Dynamic Unit Filter Rules based on URL parameter (unit & tab)
-  const normalizedUnitParam = unitParam.toLowerCase().trim();
-
-  const matchedUnitRecords = records.filter((rec) => {
-    if (!normalizedUnitParam) return true;
-
-    const typeTreatment = (rec.typeOfTreatment || "").toLowerCase();
-    const recType = (rec.recordType || "").toLowerCase();
-    const titleText = (rec.title || "").toLowerCase();
-    const detailStr = JSON.stringify(rec.detail || {}).toLowerCase();
-    const combinedStr = `${typeTreatment} ${recType} ${titleText} ${detailStr}`;
-
-    if (normalizedUnitParam.includes("igd")) {
-      return combinedStr.includes("igd") || combinedStr.includes("gawat_darurat") || combinedStr.includes("gadar") || combinedStr.includes("triase");
-    }
-    if (normalizedUnitParam.includes("rawat_jalan") || normalizedUnitParam.includes("rajal")) {
-      return combinedStr.includes("rawat_jalan") || combinedStr.includes("rajal") || combinedStr.includes("poli");
-    }
-    if (normalizedUnitParam.includes("rawat_inap") || normalizedUnitParam.includes("ranap")) {
-      return combinedStr.includes("rawat_inap") || combinedStr.includes("ranap") || combinedStr.includes("bangsal");
-    }
-    if (normalizedUnitParam.includes("bedah")) {
-      return combinedStr.includes("bedah") || combinedStr.includes("oka") || combinedStr.includes("operasi");
-    }
-    if (normalizedUnitParam.includes("icu")) {
-      return combinedStr.includes("icu") || combinedStr.includes("intensive");
-    }
-    if (normalizedUnitParam.includes("lab")) {
-      return combinedStr.includes("lab") || combinedStr.includes("laboratorium");
-    }
-    if (normalizedUnitParam.includes("radiologi")) {
-      return combinedStr.includes("radiologi") || combinedStr.includes("imaging") || combinedStr.includes("scan");
-    }
-    if (normalizedUnitParam.includes("rehab")) {
-      return combinedStr.includes("rehab") || combinedStr.includes("fisioterapi");
-    }
-    return combinedStr.includes(normalizedUnitParam);
-  });
-
   const keyword = searchTerm.trim().toLowerCase();
-  const filteredRecords = matchedUnitRecords.filter((rec) => {
-    if (tabParam === "antrean") {
-      const isDraftOrPending = rec.status === "draft" || rec.status === "pending" || !rec.txHash;
-      if (!isDraftOrPending && matchedUnitRecords.some(r => r.status === "draft" || !r.txHash)) {
-        return false;
-      }
-    }
+  const filteredRecords = keyword
+    ? records.filter((rec) =>
+        [rec.patientName, rec.title, rec.recordType, rec.doctorName, rec.txHash]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(keyword)
+      )
+    : records;
 
-    if (!keyword) return true;
-    return [rec.patientName, rec.title, rec.recordType, rec.doctorName, rec.txHash]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(keyword);
-  });
-
-  const draftCount = matchedUnitRecords.filter((r) => r.status === "draft").length;
-  const onChainCount = matchedUnitRecords.filter((r) => r.txHash).length;
-  const offChainCount = matchedUnitRecords.length - onChainCount;
+  const draftCount = records.filter((r) => r.status === "draft").length;
+  const onChainCount = records.filter((r) => r.txHash).length;
+  const offChainCount = records.length - onChainCount;
 
   const openRecordDetail = async (record, defaultTab = "detail") => {
     setSelectedRecord(record);
@@ -1137,19 +1088,6 @@ function deduplicateRecords(items) {
     return <LoadingScreen message="Memuat Berkas Rekam Medis Faskes..." fullScreen={false} />;
   }
 
-  const getUnitDisplayName = () => {
-    if (!normalizedUnitParam) return "";
-    if (normalizedUnitParam.includes("igd")) return "Instalasi Gawat Darurat (IGD)";
-    if (normalizedUnitParam.includes("rawat_jalan") || normalizedUnitParam.includes("rajal")) return "Rawat Jalan (Poliklinik)";
-    if (normalizedUnitParam.includes("rawat_inap") || normalizedUnitParam.includes("ranap")) return "Rawat Inap (Bangsal)";
-    if (normalizedUnitParam.includes("bedah")) return "Bedah / Kamar Operasi (OKA)";
-    if (normalizedUnitParam.includes("icu")) return "Intensive Care Unit (ICU)";
-    if (normalizedUnitParam.includes("lab")) return "Laboratorium Medis";
-    if (normalizedUnitParam.includes("radiologi")) return "Radiologi & Imaging";
-    if (normalizedUnitParam.includes("rehab")) return "Rehabilitasi Medik";
-    return unitParam.toUpperCase();
-  };
-
   return (
     <div className="space-y-6">
       
@@ -1158,21 +1096,10 @@ function deduplicateRecords(items) {
         <div className="space-y-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">
-                {normalizedUnitParam ? `Unit Pelayanan RS → ${getUnitDisplayName()}` : "Dashboard Faskes"}
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 flex items-center gap-3">
-                <span>{normalizedUnitParam ? `${tabParam === "antrean" ? "Antrean Pasien" : tabParam === "riwayat" ? "Riwayat Rekam Medis" : "Halaman Unit"} ${getUnitDisplayName()}` : "Direktori Rekam Medis"}</span>
-                {tabParam && (
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 uppercase tracking-wider">
-                    Tab: {tabParam}
-                  </span>
-                )}
-              </h1>
+              <p className="text-xs uppercase tracking-[0.3em] text-teal-800 font-bold">Dashboard Faskes</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Direktori Rekam Medis</h1>
               <p className="max-w-2xl text-sm text-slate-500 mt-1.5">
-                {normalizedUnitParam
-                  ? `Daftar rekam medis & antrean pasien yang terdaftar via Primary Entry Point ${getUnitDisplayName()}.`
-                  : "Daftar seluruh rekam medis yang telah diunggah dan terenkripsi."}
+                Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 shrink-0">
@@ -1187,11 +1114,12 @@ function deduplicateRecords(items) {
               </button>
               <button
                 type="button"
-                onClick={() => router.push(`/dashboard/faskes/medical-records/upload${unitParam ? `?unit=${unitParam}` : ""}`)}
+                onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:from-teal-800 hover:to-cyan-900 transition cursor-pointer"
               >
                 <Plus className="h-4 w-4 shrink-0" />
-                <span>+ Tambah {normalizedUnitParam ? getUnitDisplayName() : "Rekam Medis"}</span>
+                <span className="hidden sm:inline">Upload Rekam Medis Baru</span>
+                <span className="sm:hidden">Upload</span>
               </button>
             </div>
           </div>

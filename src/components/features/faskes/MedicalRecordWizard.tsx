@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import MedicalRecordMain from '@/components/features/faskes/medical-records/MedicalRecordMain';
@@ -397,10 +397,9 @@ function buildStateFromRecord(record: any, selectedTypesHint?: string[]) {
 
 export interface MedicalRecordWizardProps {
   recordId?: any;
-  initialUnit?: string;
 }
 
-export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ recordId: routeRecordId = null, initialUnit }) => {
+export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ recordId: routeRecordId = null }) => {
   const router = useRouter();
   const isEditRoute = !!routeRecordId;
 
@@ -431,39 +430,6 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
 
   const [visitId, setVisitId] = useState<string>(generateVisitId);
   const [primaryEntryPoint, setPrimaryEntryPoint] = useState<string>('');
-
-  const searchParams = useSearchParams();
-  const unitParam = searchParams?.get('unit');
-
-  useEffect(() => {
-    const targetUnit = initialUnit || unitParam;
-    if (targetUnit) {
-      const u = targetUnit.toLowerCase();
-      if (u.includes('igd')) {
-        setPrimaryEntryPoint('igd');
-        setTypeOfTreatment('igd');
-      } else if (u.includes('rawat_jalan') || u.includes('rawat-jalan') || u.includes('rajal')) {
-        setPrimaryEntryPoint('rawat_jalan');
-        setTypeOfTreatment('rawat_jalan');
-      } else if (u.includes('rawat_inap') || u.includes('rawat-inap') || u.includes('ranap')) {
-        setPrimaryEntryPoint('rawat_inap');
-        setTypeOfTreatment('rawat_inap');
-      } else if (u.includes('bedah')) {
-        setPrimaryEntryPoint('bedah_sentral');
-        setTypeOfTreatment('rawat_inap');
-      } else if (u.includes('rehab')) {
-        setPrimaryEntryPoint('rehab_medik');
-      } else if (u.includes('one_day_care') || u.includes('odc')) {
-        setPrimaryEntryPoint('one_day_care');
-      } else if (u.includes('lab') || u.includes('laboratorium')) {
-        setPrimaryEntryPoint('rawat_jalan');
-      } else if (u.includes('radiologi')) {
-        setPrimaryEntryPoint('rawat_jalan');
-      } else if (u.includes('icu')) {
-        setPrimaryEntryPoint('rawat_inap');
-      }
-    }
-  }, [initialUnit, unitParam]);
   const [igdDischargeDecision, setIgdDischargeDecision] = useState<string>('pulang');
   const [rujukanData, setRujukanData] = useState<any>({ targetFacility: '', reason: '', condition: '', transport: 'Ambulans' });
   const [deathData, setDeathData] = useState<any>({ deathTime: '', deathCause: '', certifierDoctor: '' });

@@ -31,17 +31,7 @@ import {
   Lock,
   DollarSign,
   CreditCard,
-  Search,
-  X,
-  LucideIcon,
-  Home,
-  FileText,
-  Plus,
-  Users,
-  HeartPlus,
-  HeartHandshakeIcon,
-  DollarSignIcon,
-  Eye
+  LucideIcon
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
@@ -298,103 +288,7 @@ export default function Sidebar({ role }: SidebarProps) {
             ]
           },
           { 
-            label: "INSTALASI GADAR (IGD)", 
-            icon: Activity,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_igd",
-            permissionRequired: ["unit_igd:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/igd/antrean", label: "Antrean IGD", icon: Clock, badge: "Live" },
-              { href: "/dashboard/faskes/medical-records/igd/upload", label: "Tambah IGD (Triase)", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/igd/history", label: "Riwayat IGD", icon: History }
-            ]
-          },
-          { 
-            label: "RAWAT JALAN (POLI)", 
-            icon: Users,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_rajal",
-            permissionRequired: ["unit_rajal:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/rawat-jalan/antrean", label: "Antrean Rawat Jalan", icon: Clock, badge: "Poli" },
-              { href: "/dashboard/faskes/medical-records/rawat-jalan/upload", label: "Tambah Rawat Jalan", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/rawat-jalan/history", label: "Riwayat Rawat Jalan", icon: History }
-            ]
-          },
-          { 
-            label: "RAWAT INAP (BANGSAL)", 
-            icon: BedDouble,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_ranap",
-            permissionRequired: ["unit_ranap:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/rawat-inap/antrean", label: "Daftar Pasien Ranap", icon: Users, badge: "Bangsal" },
-              { href: "/dashboard/faskes/medical-records/rawat-inap/upload", label: "Tambah Rawat Inap (RM-RI)", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/rawat-inap/history", label: "Riwayat Rawat Inap", icon: History }
-            ]
-          },
-          { 
-            label: "BEDAH & KAMAR OPERASI", 
-            icon: Stethoscope,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_bedah",
-            permissionRequired: ["unit_bedah:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/bedah/antrean", label: "Jadwal & Antrean Bedah", icon: Clock, badge: "OKA" },
-              { href: "/dashboard/faskes/medical-records/bedah/upload", label: "Tambah Laporan Bedah", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/bedah/history", label: "Riwayat Bedah / OKA", icon: History }
-            ]
-          },
-          { 
-            label: "INTENSIVE CARE (ICU)", 
-            icon: HeartPlus,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_icu",
-            permissionRequired: ["unit_icu:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/icu/antrean", label: "Pasien Kritis ICU", icon: Activity, badge: "ICU" },
-              { href: "/dashboard/faskes/medical-records/icu/upload", label: "Tambah Catatan ICU", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/icu/history", label: "Riwayat Perawatan ICU", icon: History }
-            ]
-          },
-          { 
-            label: "LABORATORIUM MEDIS", 
-            icon: Database,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_lab",
-            permissionRequired: ["unit_lab:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/laboratorium/antrean", label: "Permintaan Lab", icon: Clock, badge: "Lab" },
-              { href: "/dashboard/faskes/medical-records/laboratorium/upload", label: "Input Hasil Laboratorium", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/laboratorium/history", label: "Riwayat Hasil Lab", icon: History }
-            ]
-          },
-          { 
-            label: "RADIOLOGI & IMAGING", 
-            icon: Eye,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_radiologi",
-            permissionRequired: ["unit_radiologi:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/radiologi/antrean", label: "Permintaan Radiologi", icon: Clock, badge: "Scan" },
-              { href: "/dashboard/faskes/medical-records/radiologi/upload", label: "Upload Hasil Radiologi", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/radiologi/history", label: "Riwayat Radiologi", icon: History }
-            ]
-          },
-          { 
-            label: "REHABILITASI MEDIK", 
-            icon: Activity,
-            category: "INSTALASI & UNIT MEDIS",
-            dropdownKey: "unit_rehab",
-            permissionRequired: ["unit_rehab:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/rehab-medik/antrean", label: "Antrean Terapi Rehab", icon: Clock, badge: "Terapi" },
-              { href: "/dashboard/faskes/medical-records/rehab-medik/upload", label: "Tambah Sesi Rehab", icon: Plus },
-              { href: "/dashboard/faskes/medical-records/rehab-medik/history", label: "Riwayat Rehab Medik", icon: History }
-            ]
-          },
-          { 
-            label: "FARMASI", 
+            label: "KELOLA FARMASI", 
             icon: Pill,
             dropdownKey: "pharmacy",
             badge: "POS",
@@ -430,30 +324,8 @@ export default function Sidebar({ role }: SidebarProps) {
               { href: "/dashboard/faskes/finance/history", label: "Riwayat Invoice Pasien", icon: History, permission: "finance:read" }
             ]
           },
-          { 
-            label: "KELOLA LAYANAN", 
-            icon: Building2,
-            category: "MANAJEMEN RS",
-            dropdownKey: "layanan",
-            permissionRequired: ["master_data:read", "finance:read", "staff:manage", "role:manage"],
-            children: [
-              { href: "/dashboard/faskes/finance/layanan", label: "Layanan Medis", icon: Building2, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/nonmedis/layanannonmedis", label: "Layanan Non Medis", icon: Activity, permission: "master_data:read" },
-            ]
-          },
-          { 
-            label: "KELOLA RUANGAN", 
-            icon: BedDouble,
-            category: "MANAJEMEN RS",
-            dropdownKey: "ruangan",
-            permissionRequired: ["master_data:read"],
-            children: [
-              { href: "/dashboard/faskes/finance/ruangan", label: "Semua Ruangan", icon: Building2, permission: "master_data:read" },
-              { href: "/dashboard/faskes/finance/ruangan?action=add", label: "Tambah Ruangan", icon: Plus, permission: "master_data:read" }
-            ]
-          },
-          { href: "/dashboard/faskes/staffs", label: "MANAJEMEN STAF & RBAC", category: "MANAJEMEN RS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
-          { href: "/dashboard/faskes/audit", label: "AUDIT LOGS", category: "MANAJEMEN RS", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/staffs", label: "STAFF MEDIS", badge: "RBAC", icon: ShieldCheck, permissionRequired: ["staff:manage", "role:manage"] },
+          { href: "/dashboard/faskes/audit", label: "AUDIT", badge: "Live", icon: History, permissionRequired: ["staff:manage", "role:manage"] },
         ];
 
         if (Array.isArray(userPerms)) {

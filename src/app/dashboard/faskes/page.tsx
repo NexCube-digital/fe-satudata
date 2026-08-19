@@ -256,20 +256,22 @@ export default function FaskesDashboard() {
                 </div>
               )}
 
-              <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Karyawan</span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                    <Users className="h-4 w-4" />
-                  </span>
+              {(hasPermission("pharmacy:pos") || hasPermission("pharmacy:manage")) && (
+                <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Omzet POS Kasir</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                      <DollarSign className="h-4 w-4" />
+                    </span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">
+                    Rp {sessionOmzet.toLocaleString("id-ID")}
+                  </p>
+                  <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
+                    <Receipt className="h-3 w-3" /> Kasir Pendaftaran Harian
+                  </p>
                 </div>
-                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">
-                  {doctors?.length || statsAny.total_karyawan || 0} <span className="text-xs font-normal text-slate-500">Orang</span>
-                </p>
-                <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
-                  <Users className="h-3 w-3" /> Dokter & Staf Medis Terdaftar
-                </p>
-              </div>
+              )}
             </div>
           )}
 
