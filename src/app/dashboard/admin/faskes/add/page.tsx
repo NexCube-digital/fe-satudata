@@ -29,7 +29,7 @@ function AddGeotagForm() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  const showToast = (msg, type = "success", title = "", tipe) =>
+  const showToast = (msg: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message: msg, tipe });
 
   // Form State
@@ -274,7 +274,7 @@ function AddGeotagForm() {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
     };

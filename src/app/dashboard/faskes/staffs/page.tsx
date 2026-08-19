@@ -166,7 +166,7 @@ export default function FaskesStaffManagementPage() {
   const handleEditStaffSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
+      const payload: any = {
         name: editStaffForm.name,
         hospital_role_id: editStaffForm.hospital_role_id,
         position: editStaffForm.position,
@@ -234,7 +234,7 @@ export default function FaskesStaffManagementPage() {
     );
   };
 
-  const toggleCategoryCheck = (categoryPerms) => {
+  const toggleCategoryCheck = (categoryPerms: any[]) => {
     const permIds = categoryPerms.map(p => p.id);
     const allChecked = permIds.every(id => matrixChecklist.includes(id));
 
@@ -585,8 +585,9 @@ export default function FaskesStaffManagementPage() {
                     {/* Matrix Categories */}
                     <div className="space-y-6">
                       {Object.entries(permissions.grouped || {}).map(([categoryName, perms]) => {
-                        const categoryPermIds = perms.map(p => p.id);
-                        const allCategoryChecked = categoryPermIds.every(id => matrixChecklist.includes(id));
+                        const permList: any[] = Array.isArray(perms) ? perms : [];
+                        const categoryPermIds = permList.map((p: any) => p.id);
+                        const allCategoryChecked = categoryPermIds.every((id: any) => matrixChecklist.includes(id));
 
                         return (
                           <div key={categoryName} className="rounded-2xl border border-slate-200 p-4 space-y-3 bg-slate-50/30">
@@ -598,7 +599,7 @@ export default function FaskesStaffManagementPage() {
 
                               <button
                                 type="button"
-                                onClick={() => toggleCategoryCheck(perms)}
+                                onClick={() => toggleCategoryCheck(permList)}
                                 className="text-[11px] font-bold text-teal-800 hover:underline cursor-pointer"
                               >
                                 {allCategoryChecked ? "Uncheck Semua" : "Pilih Semua Kategori"}
@@ -606,7 +607,7 @@ export default function FaskesStaffManagementPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {perms.map((perm) => {
+                              {permList.map((perm: any) => {
                                 const isChecked = matrixChecklist.includes(perm.id);
 
                                 return (

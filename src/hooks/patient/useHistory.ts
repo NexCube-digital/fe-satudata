@@ -1,8 +1,7 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { maskSip } from "@/utils/masking";
+import { listMyInvoices } from "@/services/invoiceService";
 
 export function usePatientHistory() {
   const router = useRouter();
@@ -55,9 +54,7 @@ export function usePatientHistory() {
         fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/patient/history`, {
           headers: { Authorization: `Bearer ${token}` }
         }).then(r => r.json()).catch(() => null),
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/invoice/list`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(r => r.json()).catch(() => null)
+        listMyInvoices().catch(() => null)
       ]);
 
       const rawRecords = Array.isArray(historyRes?.data) ? historyRes.data : [];
@@ -72,7 +69,7 @@ export function usePatientHistory() {
 
       const finishedLunasRecords = rawRecords.filter(item => {
         if (item.status === "draft") return false;
-        return paidInvoiceRecIds.has(item.id) || item.already_invoiced || item.status === "final";
+        return true;
       });
 
       const beRecords = finishedLunasRecords.map((item) => ({
@@ -86,14 +83,14 @@ export function usePatientHistory() {
         date: new Date(item.visit_date || item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
         time: new Date(item.visit_date || item.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB",
         txHash: item.tx_hash || null,
-        encryptedData: "U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNmFk...",
+        encryptedData: item.encrypted_data || "U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNmFk...",
         diagnosis: item.title || "Konsultasi Medis & Rekam Kesehatan Terenkripsi",
-        prescriptions: [
+        prescriptions: Array.isArray(item.prescriptions) ? item.prescriptions : [
           { medicine: "Amoxicillin 500mg", dosage: "3x1 Tablet sesudah makan (5 Hari)" },
           { medicine: "Paracetamol 500mg", dosage: "3x1 Tablet jika demam (P.R.N)" }
         ],
-        vitals: { bp: "120/80 mmHg", pulse: "80 bpm", temp: "36.8 °C", weight: "65 kg" },
-        notes: "Dokumen rekam medis sah dan kwitansi pelunasan lunas."
+        vitals: item.vitals || { bp: "120/80 mmHg", pulse: "80 bpm", temp: "36.8 °C", weight: "65 kg" },
+        notes: item.notes || "Dokumen rekam medis sah dan kwitansi pelunasan lunas."
       }));
       setRecords(beRecords);
     } catch (err) {
@@ -175,25 +172,28 @@ export function usePatientHistory() {
   };
 
   const mapBackendDetailToFrontend = (rec, backendData) => {
-    const detail = backendData.detail || {};
+    const detail = backendData.detail || backendData.detailUmum || backendData.detailResep || backendData.detailLab || backendData.detailRadiologi || {};
     const summary = backendData.summary || backendData.title || rec?.diagnosis;
     
     let diagnosis = summary;
-    let prescriptions = [];
-    let vitals = null;
-    let notes = "Telah didekripsi secara aman.";
+    let prescriptions = Array.isArray(backendData.prescriptions) && backendData.prescriptions.length > 0 ? backendData.prescriptions : rec?.prescriptions || [];
+    let vitals = backendData.vitals || rec?.vitals || null;
+    let notes = detail.note_doctor || detail.note || detail.conclusion || rec?.notes || "Telah didekripsi secara aman dari jaringan SatuData Blockchain.";
 
-    if (rec?.category === "umum") {
+    const cat = (rec?.category || backendData.record_type || "").toLowerCase();
+
+    if (cat === "umum") {
       diagnosis = detail.diagnosis || summary;
-      notes = detail.note_doctor || "Tidak ada catatan tambahan.";
-      if (detail.complaint || detail.action) {
-        notes = `Keluhan: ${detail.complaint || '-'}\nTindakan: ${detail.action || '-'}\nCatatan: ${notes}`;
-      }
-    } else if (rec?.category === "resep") {
-      diagnosis = "Resep Obat";
-      notes = detail.note || "Aturan pakai terlampir.";
+      const complaintText = detail.complaint ? `Keluhan: ${detail.complaint}\n` : "";
+      const actionText = detail.action ? `Tindakan: ${detail.action}\n` : "";
+      const noteText = detail.note_doctor ? `Catatan Dokter: ${detail.note_doctor}` : (detail.notes || "");
+      const combined = (complaintText + actionText + noteText).trim();
+      notes = combined || notes;
+    } else if (cat === "resep") {
+      diagnosis = "Resep Obat Rawat Jalan";
+      notes = detail.note || "Aturan pakai obat terlampir.";
       if (detail.list_of_medicines) {
-        const meds = detail.list_of_medicines.split(";").map(item => {
+        const meds = detail.list_of_medicines.split(";").map((item) => {
           const parts = item.split(":");
           return {
             medicine: parts[0]?.trim() || "Obat",
@@ -202,11 +202,11 @@ export function usePatientHistory() {
         });
         prescriptions = meds;
       }
-    } else if (rec?.category === "lab") {
+    } else if (cat === "lab") {
       diagnosis = `Pemeriksaan Laboratorium: ${summary}`;
       notes = `Kesimpulan: ${detail.conclusion || "-"}\nNilai Rujukan: ${detail.reference_values || "-"}`;
       vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Lab: " + (detail.checkup_result || "-") };
-    } else if (rec?.category === "radiologi") {
+    } else if (cat === "radiologi") {
       diagnosis = `Pemeriksaan Radiologi: ${summary}`;
       notes = `Kesimpulan: ${detail.conclusion || "-"}`;
       vitals = { bp: "N/A", pulse: "N/A", temp: "N/A", weight: "Hasil Radiologi: " + (detail.checkup_result || "-") };

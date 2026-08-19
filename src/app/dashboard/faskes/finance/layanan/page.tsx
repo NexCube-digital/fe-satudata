@@ -28,6 +28,7 @@ import {
 	ChevronRight,
 	Tag,
 	DollarSign,
+	Printer,
 } from "lucide-react";
 
 const CATEGORY_LABEL = {
@@ -69,7 +70,10 @@ export default function ServiceUnitPage() {
 	const [servicePrices, setServicePrices] = useState([]);
 	const [units, setUnits] = useState([]);
 	const [searchTerm, setSearchTerm] = useState("");
+	// Status sekarang dikontrol lewat tombol kecil (bukan dropdown)
 	const [statusFilter, setStatusFilter] = useState("all");
+	// Filter kategori baru, menggantikan posisi dropdown status sebelumnya
+	const [categoryFilter, setCategoryFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage] = useState(10);
 	const [toast, setToast] = useState({ show: false });
@@ -78,7 +82,7 @@ export default function ServiceUnitPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editing, setEditing] = useState(null);
 	const [form, setForm] = useState(emptyForm);
-	const [formErrors, setFormErrors] = useState({});
+	const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
 	const [submitting, setSubmitting] = useState(false);
 	const [deletingId, setDeletingId] = useState(null);
 
@@ -128,6 +132,7 @@ export default function ServiceUnitPage() {
 			const haystack = `${u.name || ""} ${u.category || ""} ${u.code || ""}`.toLowerCase();
 			if (!haystack.includes(q)) return false;
 		}
+		if (categoryFilter !== "all" && u.category !== categoryFilter) return false;
 		if (statusFilter === "active") return u.status === "active";
 		if (statusFilter === "inactive") return u.status === "inactive";
 		return true;
@@ -196,7 +201,7 @@ export default function ServiceUnitPage() {
 	};
 
 	const validateForm = () => {
-		const errors = {};
+		const errors: Record<string, string> = {};
 		if (!form.name.trim()) errors.name = "Nama unit wajib diisi.";
 		else if (form.name.trim().length < 3) errors.name = "Nama unit minimal 3 karakter.";
 		if (form.price !== "" && (isNaN(Number(form.price)) || Number(form.price) < 0)) {
@@ -279,6 +284,11 @@ export default function ServiceUnitPage() {
 	}
 };
 
+	// Cetak/unduh PDF sederhana — memanggil dialog print bawaan browser (sama seperti Ctrl+P)
+	const handlePrint = () => {
+		window.print();
+	};
+
 	if (loading) {
 		return (
 			<div className="space-y-6">
@@ -294,7 +304,7 @@ export default function ServiceUnitPage() {
 				
 				<div className="space-y-6">
 					{/* Header Banner */}
-					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-8 w-full print:hidden">
 						<div className="flex-1 min-w-0">
 							<div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3.5 py-1 text-xs font-bold text-teal-800 mb-2">
 								<Building2 className="h-3.5 w-3.5" /> Modul Master Keuangan RS • Unit Layanan
@@ -309,6 +319,13 @@ export default function ServiceUnitPage() {
 
 						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 sm:ml-auto">
 							<button
+								onClick={handlePrint}
+								className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 text-xs font-extrabold shadow-xs transition cursor-pointer whitespace-nowrap"
+								title="Cetak / unduh sebagai PDF"
+							>
+								<Printer className="h-4 w-4" /> Unduh PDF
+							</button>
+							<button
 								onClick={openAdd}
 								className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white px-5 py-2.5 text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer whitespace-nowrap"
 							>
@@ -318,7 +335,7 @@ export default function ServiceUnitPage() {
 					</div>
 
 					{/* Quick Metrics */}
-					<div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+					<div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 print:hidden">
 						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 							<div>
 								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Unit Layanan</p>
@@ -361,7 +378,7 @@ export default function ServiceUnitPage() {
 					</div>
 
 					{/* Search & Filters */}
-					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6 space-y-4">
+					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6 space-y-4 print:hidden">
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 							<div className="relative col-span-2">
 								<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -376,33 +393,86 @@ export default function ServiceUnitPage() {
 									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
 								/>
 							</div>
-							<div>
+							{/* Filter kategori menggantikan dropdown status */}
+							<div className="relative">
+								<Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
 								<select
-									value={statusFilter}
+									value={categoryFilter}
 									onChange={(e) => {
-										setStatusFilter(e.target.value);
+										setCategoryFilter(e.target.value);
 										setCurrentPage(1);
 									}}
-									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium"
+									className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden font-medium appearance-none"
 								>
-									<option value="all">Semua Status</option>
-									<option value="active">Aktif</option>
-									<option value="inactive">Non-Aktif</option>
+									<option value="all">Semua Kategori</option>
+									<option value="utama">Utama</option>
+									<option value="penunjang">Penunjang</option>
+									<option value="ruangan">Ruangan</option>
+									<option value="admin">Admin</option>
 								</select>
 							</div>
 						</div>
+
+						{/* Toggle status sebagai tombol kecil, bukan dropdown */}
+						<div className="flex items-center gap-2 pt-1">
+							<span className="text-[11px] font-bold text-slate-500 mr-1">Status:</span>
+							<button
+								type="button"
+								onClick={() => {
+									setStatusFilter("all");
+									setCurrentPage(1);
+								}}
+								className={`rounded-full px-3 py-1 text-[11px] font-bold border transition ${
+									statusFilter === "all"
+										? "bg-slate-800 text-white border-slate-800"
+										: "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+								}`}
+							>
+								Semua
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setStatusFilter("active");
+									setCurrentPage(1);
+								}}
+								className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold border transition ${
+									statusFilter === "active"
+										? "bg-emerald-600 text-white border-emerald-600"
+										: "bg-white text-[#16A34A] border-emerald-200 hover:bg-emerald-50"
+								}`}
+							>
+								<span className={`h-1.5 w-1.5 rounded-full ${statusFilter === "active" ? "bg-white" : "bg-[#16A34A]"}`} />
+								Aktif
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setStatusFilter("inactive");
+									setCurrentPage(1);
+								}}
+								className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold border transition ${
+									statusFilter === "inactive"
+										? "bg-slate-500 text-white border-slate-500"
+										: "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+								}`}
+							>
+								<span className={`h-1.5 w-1.5 rounded-full ${statusFilter === "inactive" ? "bg-white" : "bg-slate-400"}`} />
+								Non-Aktif
+							</button>
+						</div>
 					</div>
 
-					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-						<div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+					<div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs print:border-0 print:shadow-none print:p-0">
+						<div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4 print:border-slate-300">
 							<h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-								<SlidersHorizontal className="h-5 w-5 text-teal-800" />
+								<SlidersHorizontal className="h-5 w-5 text-teal-800 print:hidden" />
 								Daftar Unit Layanan ({filteredUnits.length})
 							</h3>
 							<button
 								onClick={() => loadData({ silent: true })}
 								disabled={refreshing}
-								className="text-slate-400 hover:text-slate-600 transition cursor-pointer disabled:opacity-50"
+								className="text-slate-400 hover:text-slate-600 transition cursor-pointer disabled:opacity-50 print:hidden"
 								title="Muat ulang data"
 							>
 								<RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -423,7 +493,7 @@ export default function ServiceUnitPage() {
 											<th className="py-3 px-4 text-right">Harga</th>
 											<th className="py-3 px-4">Status</th>
 											<th className="py-3 px-4">Komponen Tarif</th>
-											<th className="py-3 px-4 text-right">Aksi</th>
+											<th className="py-3 px-4 text-right print:hidden">Aksi</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -471,7 +541,7 @@ export default function ServiceUnitPage() {
 															)}
 														</div>
 													</td>
-													<td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
+													<td className="py-4 px-4 text-right whitespace-nowrap space-x-2 print:hidden">
 														<button
 															onClick={() => router.push(`/dashboard/faskes/finance/layanan/sublayanan?unitId=${u.id}&unitName=${encodeURIComponent(u.name)}&category=${u.category}`)}
 															className="rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 font-bold inline-flex items-center gap-2 transition"
@@ -506,7 +576,7 @@ export default function ServiceUnitPage() {
 
 						{/* Pagination Controls */}
 						{totalItems > 0 && (
-							<div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+							<div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden">
 								<div className="text-[11px] text-slate-500 font-medium">
 									Menampilkan {Math.min((safeCurrentPage - 1) * perPage + 1, totalItems)}–{Math.min(safeCurrentPage * perPage, totalItems)} dari {totalItems} unit
 								</div>
@@ -553,7 +623,7 @@ export default function ServiceUnitPage() {
 					{/* Modal */}
 					{isModalOpen && (
 						<div
-							className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-[fadeIn_.15s_ease-out]"
+							className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-[fadeIn_.15s_ease-out] print:hidden"
 							onClick={closeModal}
 						>
 							<div
@@ -730,6 +800,10 @@ export default function ServiceUnitPage() {
 				@keyframes scaleIn {
 					from { opacity: 0; transform: scale(0.96) translateY(4px); }
 					to { opacity: 1; transform: scale(1) translateY(0); }
+				}
+				@media print {
+					body { background: #fff !important; }
+					.print\\:hidden { display: none !important; }
 				}
 			`}</style>
 		</div>

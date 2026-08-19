@@ -26,14 +26,25 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  ArrowLeft,
 } from 'lucide-react';
-import { apiPut, getAvatarUrl } from '@/lib/api-client';
+import { apiPut, apiPost, clearAuth, getAvatarUrl } from '@/lib/api-client';
+import RawMobileSettingHub from '@/components/features/settingmobile/index';
+import RawProfilMobile from '@/components/features/settingmobile/Profil';
+import RawDompetMobile from '@/components/features/settingmobile/Dompet';
+import RawKeamananMobile from '@/components/features/settingmobile/Keamanan';
+
+const MobileSettingHub = RawMobileSettingHub as React.ComponentType<any>;
+const ProfilMobile = RawProfilMobile as React.ComponentType<any>;
+const DompetMobile = RawDompetMobile as React.ComponentType<any>;
+const KeamananMobile = RawKeamananMobile as React.ComponentType<any>;
 
 export const Setting: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'wallet'>('profile');
+  const [mobileView, setMobileView] = useState<'hub' | 'profil' | 'dompet' | 'keamanan'>('hub');
 
   // State Profile
   const [name, setName] = useState<string>('');
@@ -88,7 +99,7 @@ export const Setting: React.FC = () => {
 
   const isFieldEditable = (field: string) => {
     if (field === 'nik' && isNikFilledOnLoad) return false;
-    return isEditMode;
+    return true;
   };
 
   const hasChanges =
@@ -462,11 +473,18 @@ export const Setting: React.FC = () => {
     } catch (err) {}
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+      if (refreshToken) {
+        await apiPost('/api/auth/logout', { refreshToken }).catch(() => {});
+      }
+    } catch (err) {}
+    clearAuth();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('userUpdated'));
+      window.location.href = '/auth/login';
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -685,725 +703,842 @@ export const Setting: React.FC = () => {
     );
   }
 
-  const roleLabelMap: Record<string, string> = {
-    admin: 'Administrator',
-    rumah_sakit: 'Fasilitas Kesehatan',
-    faskes: 'Fasilitas Kesehatan',
-    pasien: 'Pasien Terdaftar',
-  };
   const canUseWallet = ['admin', 'rumah_sakit', 'faskes'].includes(user?.role);
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Pengaturan Akun</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Kelola profil pribadi, kata sandi keamanan, dan koneksi dompet MetaMask Anda.
-        </p>
+    <div>
+      {/* MOBILE VIEW (iOS Style Settings Hub & Sub-pages) */}
+      <div className="block sm:hidden">
+        {mobileView === 'hub' && (
+          <MobileSettingHub
+            user={user}
+            name={name}
+            email={email}
+            nik={nik}
+            onSelectMenu={(m) => setMobileView(m)}
+            canUseWallet={canUseWallet}
+            onLogout={handleLogout}
+          />
+        )}
+
+        {mobileView === 'profil' && (
+          <ProfilMobile
+            user={user}
+            name={name}
+            setName={setName}
+            email={email}
+            nik={nik}
+            setNik={setNik}
+            phone={phone}
+            setPhone={setPhone}
+            address={address}
+            setAddress={setAddress}
+            dateOfBirth={dateOfBirth}
+            setDateOfBirth={setDateOfBirth}
+            sex={sex}
+            setSex={setSex}
+            latitude={latitude}
+            setLatitude={setLatitude}
+            longitude={longitude}
+            setLongitude={setLongitude}
+            statusAccount={statusAccount}
+            resendLoading={resendLoading}
+            handleResendVerification={handleResendVerification}
+            isEditMode={isEditMode}
+            setIsEditMode={setIsEditMode}
+            isFieldEditable={isFieldEditable}
+            hasChanges={hasChanges}
+            profileLoading={profileLoading}
+            profileMsg={profileMsg}
+            handleUpdateProfile={handleUpdateProfile}
+            handleCancelEdit={handleCancelEdit}
+            profilePicturePreview={profilePicturePreview}
+            setIsPhotoModalOpen={setIsPhotoModalOpen}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            viewDate={viewDate}
+            setViewDate={setViewDate}
+            onBack={() => setMobileView('hub')}
+          />
+        )}
+
+        {mobileView === 'dompet' && (
+          <DompetMobile
+            user={user}
+            walletAddress={walletAddress}
+            walletLoading={walletLoading}
+            walletMsg={walletMsg}
+            walletBalance={walletBalance}
+            systemWallet={systemWallet}
+            systemWalletBalance={systemWalletBalance}
+            systemWalletLoading={systemWalletLoading}
+            fetchSystemWallet={fetchSystemWallet}
+            handleConnectWallet={handleConnectWallet}
+            onBack={() => setMobileView('hub')}
+          />
+        )}
+
+        {mobileView === 'keamanan' && (
+          <KeamananMobile
+            hasPassword={hasPassword}
+            passwordMsg={passwordMsg}
+            oldPassword={oldPassword}
+            setOldPassword={setOldPassword}
+            newPassword={newPassword}
+            setNewPassword={setNewPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            showOldPassword={showOldPassword}
+            setShowOldPassword={setShowOldPassword}
+            showNewPassword={showNewPassword}
+            setShowNewPassword={setShowNewPassword}
+            showConfirmPassword={showConfirmPassword}
+            setShowConfirmPassword={setShowConfirmPassword}
+            passwordLoading={passwordLoading}
+            handleUpdatePassword={handleUpdatePassword}
+            router={router}
+            onBack={() => setMobileView('hub')}
+          />
+        )}
       </div>
 
-          <div className="flex gap-2 border-b border-slate-200 mb-8">
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === 'profile'
-                  ? 'border-teal-700 text-teal-800'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <UserIcon className="h-4 w-4" />
-              Profil Pengguna
-            </button>
+      {/* DESKTOP VIEW */}
+      <div className="hidden sm:block space-y-6">
+        <div>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-bold text-xs sm:text-sm cursor-pointer transition"
+          >
+            <ArrowLeft className="h-4 w-4 text-slate-600 shrink-0" />
+            <span>Kembali</span>
+          </button>
+        </div>
 
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === 'security'
-                  ? 'border-teal-700 text-teal-800'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Lock className="h-4 w-4" />
-              Keamanan & Sandi
-            </button>
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-800">Pengaturan Akun</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">
+            Kelola profil pribadi, kata sandi keamanan, dan koneksi dompet MetaMask Anda.
+          </p>
+        </div>
 
-            {canUseWallet && (
+      <div className="flex flex-wrap sm:flex-nowrap gap-1 sm:gap-2 border-b border-slate-200 mb-6 sm:mb-8">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 transition cursor-pointer flex-1 sm:flex-none text-center ${
+            activeTab === 'profile'
+              ? 'border-teal-700 text-teal-800'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <UserIcon className="h-4 w-4 shrink-0" />
+          <span>Profil Pengguna</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('security')}
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 transition cursor-pointer flex-1 sm:flex-none text-center ${
+            activeTab === 'security'
+              ? 'border-teal-700 text-teal-800'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Lock className="h-4 w-4 shrink-0" />
+          <span>Keamanan & Sandi</span>
+        </button>
+
+        {canUseWallet && (
+          <button
+            onClick={() => setActiveTab('wallet')}
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 transition cursor-pointer flex-1 sm:flex-none text-center ${
+              activeTab === 'wallet'
+                ? 'border-teal-700 text-teal-800'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Wallet className="h-4 w-4 shrink-0" />
+            <span>{user?.role === 'admin' ? 'Dompet Sistem' : 'Web3 & MetaMask'}</span>
+          </button>
+        )}
+      </div>
+
+      {activeTab === 'profile' && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+              <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-teal-800 shrink-0" />
+              Informasi Profil
+            </h2>
+
+            {hasChanges && (
               <button
-                onClick={() => setActiveTab('wallet')}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                  activeTab === 'wallet'
-                    ? 'border-teal-700 text-teal-800'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
+                type="submit"
+                form="desktop-profile-form"
+                disabled={profileLoading}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-extrabold text-xs inline-flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
               >
-                <Wallet className="h-4 w-4" />
-                {user?.role === 'admin' ? 'Dompet Sistem' : 'Web3 & MetaMask'}
+                {profileLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                <span>Simpan Perubahan</span>
               </button>
             )}
           </div>
 
-          {activeTab === 'profile' && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <UserIcon className="h-5 w-5 text-teal-800" />
-                  Informasi Profil
-                </h2>
+          {profileMsg.text && (
+            <div
+              className={`mb-6 flex items-center gap-3 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm ${
+                profileMsg.type === 'success'
+                  ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
+                  : 'bg-rose-50 text-[#DC2626] border border-rose-200'
+              }`}
+            >
+              {profileMsg.type === 'success' ? (
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#16A34A]" />
+              ) : (
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#DC2626]" />
+              )}
+              <span>{profileMsg.text}</span>
+            </div>
+          )}
+
+          <form id="desktop-profile-form" onSubmit={handleUpdateProfile} className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 mb-4 sm:mb-6 text-center sm:text-left">
+              <div
+                onClick={() => {
+                  if (isEditMode) {
+                    setIsPhotoModalOpen(true);
+                  }
+                }}
+                className={`group relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-gradient-to-br from-teal-700 to-cyan-800 ring-4 ring-teal-500/20 shrink-0 shadow-md ${
+                  isEditMode ? 'cursor-pointer hover:brightness-95 transition' : ''
+                }`}
+              >
+                {profilePicturePreview || getAvatarUrl(user) ? (
+                  <img
+                    src={profilePicturePreview || getAvatarUrl(user)}
+                    alt="Foto Profil"
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xl sm:text-2xl font-bold text-white">
+                    {name ? name.charAt(0).toUpperCase() : <UserIcon className="h-6 w-6 sm:h-8 sm:w-8" />}
+                  </div>
+                )}
+                {isEditMode && (
+                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                )}
               </div>
 
-              {profileMsg.text && (
+              <div>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800">Foto Profil Akun</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  {isEditMode
+                    ? 'Klik bulatan foto di sebelah kiri untuk mengganti foto lewat file atau kamera.'
+                    : "Klik 'Ubah Data' di bawah untuk mulai mengubah foto profil."}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                  {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Nama Instansi / Faskes' : 'Nama Lengkap'}
+                </label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={!isFieldEditable('name')}
+                    className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                      isFieldEditable('name')
+                        ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                    }`}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Alamat Email (Akun)
+                  </label>
+
+                  {statusAccount !== 'active' && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold text-[#D97706] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
+                        <AlertCircle className="h-3 w-3 text-[#D97706]" />
+                        Belum Terverifikasi
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendLoading}
+                        className="text-[9px] sm:text-[10px] font-bold text-teal-800 hover:underline cursor-pointer"
+                      >
+                        {resendLoading ? 'Mengirim...' : 'Kirim Ulang'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="w-full pl-3.5 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm text-slate-500 cursor-not-allowed"
+                  />
+                  {statusAccount === 'active' && (
+                    <CheckCircle className="absolute right-3.5 top-2.5 sm:top-3 h-4 w-4 text-[#16A34A] shrink-0" />
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                    {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Surat Izin Praktik / NOP' : 'NIK Pasien'}
+                  </label>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={nik}
+                    onChange={(e) => setNik(e.target.value)}
+                    disabled={!isFieldEditable('nik')}
+                    placeholder={user?.role === 'rumah_sakit' || user?.role === 'faskes' ? '3273123456789000' : '3273123456789000'}
+                    className={`w-full pl-3.5 pr-10 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                      isFieldEditable('nik')
+                        ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                    }`}
+                  />
+                  {nik && (
+                    <CheckCircle className="absolute right-3.5 top-2.5 sm:top-3 h-4 w-4 text-[#16A34A] shrink-0" />
+                  )}
+                </div>
+              </div>
+
+              {user?.role !== 'staf_rs' && (
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                    Nomor Telepon
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={!isFieldEditable('phone')}
+                      placeholder="+62 812 3456 7890"
+                      className={`w-full pl-9 sm:pl-10 pr-10 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                        isFieldEditable('phone')
+                          ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                      }`}
+                    />
+                    {phone && (
+                      <CheckCircle className="absolute right-3.5 top-2.5 sm:top-3 h-4 w-4 text-[#16A34A] shrink-0" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {user?.role === 'pasien' && (
+                <>
+                  <div className="relative">
+                    <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                      Tanggal Lahir
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        readOnly
+                        placeholder="Pilih Tanggal Lahir"
+                        value={
+                          dateOfBirth
+                            ? new Date(dateOfBirth).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                              })
+                            : ''
+                        }
+                        onClick={() => {
+                          if (isFieldEditable('dateOfBirth')) {
+                            setShowDatePicker(!showDatePicker);
+                          }
+                        }}
+                        className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                          isFieldEditable('dateOfBirth')
+                            ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden cursor-pointer'
+                            : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+
+                    {showDatePicker && isFieldEditable('dateOfBirth') && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
+                        <div className="absolute left-0 bottom-full mb-2 p-3 sm:p-4 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 animate-in fade-in duration-100">
+                          <div className="flex items-center justify-between gap-1 mb-3">
+                            <select
+                              value={viewDate.getMonth()}
+                              onChange={(e) => {
+                                const newD = new Date(viewDate);
+                                newD.setMonth(parseInt(e.target.value));
+                                setViewDate(newD);
+                              }}
+                              className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white"
+                            >
+                              {[
+                                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                              ].map((m, idx) => (
+                                <option key={idx} value={idx}>{m}</option>
+                              ))}
+                            </select>
+
+                            <select
+                              value={viewDate.getFullYear()}
+                              onChange={(e) => {
+                                const newD = new Date(viewDate);
+                                newD.setFullYear(parseInt(e.target.value));
+                                setViewDate(newD);
+                              }}
+                              className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white"
+                            >
+                              {Array.from(
+                                { length: new Date().getFullYear() - 1939 },
+                                (_, i) => new Date().getFullYear() - i
+                              ).map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-1">
+                            {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => (
+                              <div key={d}>{d}</div>
+                            ))}
+                          </div>
+
+                          <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                            {Array.from({
+                              length: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay(),
+                            }).map((_, idx) => (
+                              <div key={`empty-${idx}`} />
+                            ))}
+                            {Array.from({
+                              length: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate(),
+                            }).map((_, idx) => {
+                              const dayNum = idx + 1;
+                              const formattedMonth = String(viewDate.getMonth() + 1).padStart(2, '0');
+                              const formattedDay = String(dayNum).padStart(2, '0');
+                              const isSelected =
+                                dateOfBirth === `${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`;
+
+                              return (
+                                <button
+                                  key={`day-${dayNum}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setDateOfBirth(`${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`);
+                                    setShowDatePicker(false);
+                                  }}
+                                  className={`py-1.5 rounded-lg font-semibold hover:bg-teal-50 transition cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-gradient-to-r from-teal-700 to-cyan-800 text-white'
+                                      : 'text-slate-700'
+                                  }`}
+                                >
+                                  {dayNum}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                      Jenis Kelamin
+                    </label>
+                    <select
+                      value={sex}
+                      onChange={(e) => setSex(e.target.value)}
+                      disabled={!isFieldEditable('sex')}
+                      className={`w-full px-3.5 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                        isFieldEditable('sex')
+                          ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <option value="L">Laki-laki</option>
+                      <option value="P">Perempuan</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {user?.role !== 'staf_rs' && (
+              <div>
+                <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                  {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Alamat Instansi / Faskes' : 'Alamat Tempat Tinggal'}
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    disabled={!isFieldEditable('address')}
+                    placeholder={user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Jl. Bukit Jarian No. 40, Bandung' : 'Jl. Raya Kebon Jeruk No. 12'}
+                    className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm transition ${
+                      isFieldEditable('address')
+                        ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {(user?.role === 'rumah_sakit' || user?.role === 'faskes') && (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    value={latitude}
+                    onChange={(e) => setLatitude(e.target.value)}
+                    disabled={!isFieldEditable('latitude')}
+                    placeholder="-6.8837"
+                    className={`w-full px-3.5 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-mono transition ${
+                      isFieldEditable('latitude')
+                        ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    value={longitude}
+                    onChange={(e) => setLongitude(e.target.value)}
+                    disabled={!isFieldEditable('longitude')}
+                    placeholder="107.6049"
+                    className={`w-full px-3.5 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-mono transition ${
+                      isFieldEditable('longitude')
+                        ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-2.5 sm:gap-3">
+              {!isEditMode ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditMode(true)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition cursor-pointer"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Ubah Data
+                </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={profileLoading || !hasChanges}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                  >
+                    {profileLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Simpan Perubahan
+                  </button>
+                </div>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
+
+      {activeTab === 'security' && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-xs max-w-2xl">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-teal-800 shrink-0" />
+            {hasPassword ? 'Ganti Kata Sandi' : 'Atur Kata Sandi'}
+          </h2>
+
+          {!hasPassword && (
+            <div className="space-y-4">
+              <p className="text-xs sm:text-sm text-slate-500">
+                Akun Google Anda belum memiliki kata sandi. Atur kata sandi terlebih dahulu agar dapat masuk tanpa Google.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push('/auth/set-password')}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer"
+              >
+                <Key className="h-4 w-4" />
+                Atur Kata Sandi Sekarang
+              </button>
+            </div>
+          )}
+
+          {hasPassword && (
+            <>
+              {passwordMsg.text && (
                 <div
-                  className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
-                    profileMsg.type === 'success'
+                  className={`mb-6 flex items-center gap-3 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm ${
+                    passwordMsg.type === 'success'
                       ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
                       : 'bg-rose-50 text-[#DC2626] border border-rose-200'
                   }`}
                 >
-                  {profileMsg.type === 'success' ? (
-                    <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" />
+                  {passwordMsg.type === 'success' ? (
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#16A34A]" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#DC2626]" />
                   )}
-                  <span>{profileMsg.text}</span>
+                  <span>{passwordMsg.text}</span>
                 </div>
               )}
 
-              <form onSubmit={handleUpdateProfile} className="space-y-6">
-                <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6">
-                  <div
-                    onClick={() => {
-                      if (isEditMode) {
-                        setIsPhotoModalOpen(true);
-                      }
-                    }}
-                    className={`group relative h-20 w-20 rounded-full overflow-hidden bg-gradient-to-br from-teal-700 to-cyan-800 ring-4 ring-teal-500/20 shrink-0 shadow-md ${
-                      isEditMode ? 'cursor-pointer hover:brightness-95 transition' : ''
-                    }`}
-                  >
-                    {profilePicturePreview || getAvatarUrl(user) ? (
-                      <img
-                        src={profilePicturePreview || getAvatarUrl(user)}
-                        alt="Foto Profil"
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-white">
-                        {name ? name.charAt(0).toUpperCase() : <UserIcon className="h-8 w-8" />}
-                      </div>
-                    )}
-                    {isEditMode && (
-                      <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-200">
-                        <Camera className="h-5 w-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-center sm:text-left">
-                    <h3 className="text-sm font-bold text-slate-800">Foto Profil Akun</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {isEditMode
-                        ? 'Klik bulatan foto di sebelah kiri untuk mengganti foto lewat file atau kamera.'
-                        : "Klik 'Ubah Data' di bawah untuk mulai mengubah foto profil."}
-                    </p>
+              <form onSubmit={handleUpdatePassword} className="space-y-4 sm:space-y-5">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">Kata Sandi Saat Ini</label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                    <input
+                      type={showOldPassword ? 'text' : 'password'}
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 sm:pl-10 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600 focus:outline-hidden"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Nama Instansi / Faskes' : 'Nama Lengkap'}
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={!isFieldEditable('name')}
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                          isFieldEditable('name')
-                            ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                        }`}
-                        required
-                      />
-                    </div>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">Kata Sandi Baru</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Minimal 8 karakter"
+                      className="w-full pl-9 sm:pl-10 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600 focus:outline-hidden"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Alamat Email (Akun)
-                      </label>
-
-                      {statusAccount !== 'active' && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#D97706] bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs">
-                            <AlertCircle className="h-3 w-3 text-[#D97706]" />
-                            Belum Terverifikasi
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleResendVerification}
-                            disabled={resendLoading}
-                            className="text-[10px] font-bold text-teal-800 hover:text-teal-900 underline transition cursor-pointer disabled:opacity-50"
-                          >
-                            {resendLoading ? 'Mengirim...' : 'Kirim Ulang Link'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        value={email}
-                        disabled
-                        className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium cursor-not-allowed font-mono"
-                      />
-                      {statusAccount === 'active' && (
-                        <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-[#16A34A] animate-pulse" />
-                      )}
-                    </div>
-                  </div>
-
-                  {user?.role !== 'staf_rs' && (
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                        {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Nomor Izin Operasional (SIP)' : 'NIK'}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          maxLength={16}
-                          value={nik}
-                          onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
-                          disabled={isNikFilledOnLoad || !isFieldEditable('nik')}
-                          className={`w-full pl-4 pr-10 py-2.5 rounded-xl border text-sm font-mono transition ${
-                            !isNikFilledOnLoad && isFieldEditable('nik')
-                              ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                              : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                          }`}
-                          placeholder={user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Masukkan Nomor Izin Operasional' : '3171010509840002'}
-                        />
-                        {isNikFilledOnLoad && (
-                          <CheckCircle className="absolute right-3.5 top-3 h-4 w-4 text-[#16A34A] animate-pulse" />
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {user?.role !== 'staf_rs' && (
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                        Nomor Telepon
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          disabled={!isFieldEditable('phone')}
-                          placeholder="+62 812 3456 7890"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                            isFieldEditable('phone')
-                              ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                              : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {user?.role === 'pasien' && (
-                    <>
-                      <div className="relative">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                          Tanggal Lahir
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                          <input
-                            type="text"
-                            readOnly
-                            placeholder="Pilih Tanggal Lahir"
-                            value={
-                              dateOfBirth
-                                ? new Date(dateOfBirth).toLocaleDateString('id-ID', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                  })
-                                : ''
-                            }
-                            onClick={() => {
-                              if (isFieldEditable('dateOfBirth')) {
-                                setShowDatePicker(!showDatePicker);
-                              }
-                            }}
-                            className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                              isFieldEditable('dateOfBirth')
-                                ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden cursor-pointer'
-                                : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                            }`}
-                          />
-                        </div>
-
-                        {showDatePicker && isFieldEditable('dateOfBirth') && (
-                          <>
-                            <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
-                            <div className="absolute left-0 bottom-full mb-2 p-4 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 animate-in fade-in duration-100">
-                              <div className="flex items-center justify-between gap-1 mb-3">
-                                <select
-                                  value={viewDate.getMonth()}
-                                  onChange={(e) => {
-                                    const newD = new Date(viewDate);
-                                    newD.setMonth(parseInt(e.target.value));
-                                    setViewDate(newD);
-                                  }}
-                                  className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white"
-                                >
-                                  {[
-                                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                                  ].map((m, idx) => (
-                                    <option key={idx} value={idx}>{m}</option>
-                                  ))}
-                                </select>
-
-                                <select
-                                  value={viewDate.getFullYear()}
-                                  onChange={(e) => {
-                                    const newD = new Date(viewDate);
-                                    newD.setFullYear(parseInt(e.target.value));
-                                    setViewDate(newD);
-                                  }}
-                                  className="text-xs font-bold text-slate-700 border border-slate-200 rounded-lg p-1 bg-white"
-                                >
-                                  {Array.from(
-                                    { length: new Date().getFullYear() - 1939 },
-                                    (_, i) => new Date().getFullYear() - i
-                                  ).map((y) => (
-                                    <option key={y} value={y}>{y}</option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-1">
-                                {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => (
-                                  <div key={d}>{d}</div>
-                                ))}
-                              </div>
-
-                              <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                {Array.from({
-                                  length: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay(),
-                                }).map((_, idx) => (
-                                  <div key={`empty-${idx}`} />
-                                ))}
-                                {Array.from({
-                                  length: new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate(),
-                                }).map((_, idx) => {
-                                  const dayNum = idx + 1;
-                                  const formattedMonth = String(viewDate.getMonth() + 1).padStart(2, '0');
-                                  const formattedDay = String(dayNum).padStart(2, '0');
-                                  const isSelected =
-                                    dateOfBirth === `${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`;
-
-                                  return (
-                                    <button
-                                      key={`day-${dayNum}`}
-                                      type="button"
-                                      onClick={() => {
-                                        setDateOfBirth(`${viewDate.getFullYear()}-${formattedMonth}-${formattedDay}`);
-                                        setShowDatePicker(false);
-                                      }}
-                                      className={`py-1.5 rounded-lg font-semibold hover:bg-teal-50 transition cursor-pointer ${
-                                        isSelected
-                                          ? 'bg-gradient-to-r from-teal-700 to-cyan-800 text-white'
-                                          : 'text-slate-700'
-                                      }`}
-                                    >
-                                      {dayNum}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                          Jenis Kelamin
-                        </label>
-                        <select
-                          value={sex}
-                          onChange={(e) => setSex(e.target.value)}
-                          disabled={!isFieldEditable('sex')}
-                          className={`w-full px-4 py-2.5 rounded-xl border text-sm transition ${
-                            isFieldEditable('sex')
-                              ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                              : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                          }`}
-                        >
-                          <option value="L">Laki-laki</option>
-                          <option value="P">Perempuan</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
                 </div>
 
-                {user?.role !== 'staf_rs' && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      {user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Alamat Instansi / Faskes' : 'Alamat Tempat Tinggal'}
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        disabled={!isFieldEditable('address')}
-                        placeholder={user?.role === 'rumah_sakit' || user?.role === 'faskes' ? 'Jl. Bukit Jarian No. 40, Bandung' : 'Jl. Raya Kebon Jeruk No. 12'}
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition ${
-                          isFieldEditable('address')
-                            ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                        }`}
-                      />
-                    </div>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 sm:mb-2">Konfirmasi Kata Sandi Baru</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 sm:left-3.5 sm:top-3 h-4 w-4 text-slate-400" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Ulangi kata sandi baru"
+                      className="w-full pl-9 sm:pl-10 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:border-teal-600 focus:outline-hidden"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                )}
-
-                {(user?.role === 'rumah_sakit' || user?.role === 'faskes') && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                        Latitude
-                      </label>
-                      <input
-                        type="text"
-                        value={latitude}
-                        onChange={(e) => setLatitude(e.target.value)}
-                        disabled={!isFieldEditable('latitude')}
-                        placeholder="-6.8837"
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono transition ${
-                          isFieldEditable('latitude')
-                            ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                        Longitude
-                      </label>
-                      <input
-                        type="text"
-                        value={longitude}
-                        onChange={(e) => setLongitude(e.target.value)}
-                        disabled={!isFieldEditable('longitude')}
-                        placeholder="107.6049"
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono transition ${
-                          isFieldEditable('longitude')
-                            ? 'border-teal-600 bg-white text-slate-900 focus:ring-2 focus:ring-teal-500/20 outline-hidden'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div className="pt-4 border-t border-slate-100 flex justify-end">
-                  {!isEditMode ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditMode(true)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-md transition cursor-pointer"
-                    >
-                      <Edit3 className="h-4 w-4" />
-                      Ubah Data
-                    </button>
-                  ) : (
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={profileLoading || !hasChanges}
-                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                      >
-                        {profileLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                        Simpan Perubahan
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </form>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-teal-800" />
-                {hasPassword ? 'Ganti Kata Sandi' : 'Atur Kata Sandi'}
-              </h2>
-
-              {!hasPassword && (
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-500">
-                    Akun Google Anda belum memiliki kata sandi. Atur kata sandi terlebih dahulu agar dapat masuk tanpa Google.
-                  </p>
                   <button
-                    type="button"
-                    onClick={() => router.push('/auth/set-password')}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer"
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
                   >
-                    <Key className="h-4 w-4" />
-                    Atur Kata Sandi Sekarang
+                    {passwordLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Perbarui Kata Sandi
                   </button>
                 </div>
-              )}
-
-              {hasPassword && (
-                <>
-                  {passwordMsg.text && (
-                    <div
-                      className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
-                        passwordMsg.type === 'success'
-                          ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
-                          : 'bg-rose-50 text-[#DC2626] border border-rose-200'
-                      }`}
-                    >
-                      {passwordMsg.type === 'success' ? (
-                        <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />
-                      )}
-                      <span>{passwordMsg.text}</span>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleUpdatePassword} className="space-y-5">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Saat Ini</label>
-                      <div className="relative">
-                        <Key className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                        <input
-                          type={showOldPassword ? 'text' : 'password'}
-                          value={oldPassword}
-                          onChange={(e) => setOldPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
-                          required
-                        />
-                        <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                          {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Baru</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                        <input
-                          type={showNewPassword ? 'text' : 'password'}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Minimal 8 karakter"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
-                          required
-                        />
-                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Konfirmasi Kata Sandi Baru</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Ulangi kata sandi baru"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-teal-600 focus:outline-hidden"
-                          required
-                        />
-                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-slate-100 flex justify-end">
-                      <button
-                        type="submit"
-                        disabled={passwordLoading}
-                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                      >
-                        {passwordLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                        Perbarui Kata Sandi
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-            </div>
+              </form>
+            </>
           )}
+        </div>
+      )}
 
-          {activeTab === 'wallet' && canUseWallet && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
-              {user?.role === 'admin' ? (
-                <>
-                  <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <Server className="h-5 w-5 text-teal-800" />
-                    Dompet Sistem (Admin Wallet)
-                  </h2>
-                  <p className="text-sm text-slate-500 mb-6">
-                    Wallet di bawah adalah wallet sistem yang digunakan secara otomatis untuk menandatangani semua transaksi on-chain.
-                  </p>
+      {activeTab === 'wallet' && canUseWallet && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-8 shadow-xs max-w-2xl">
+          {user?.role === 'admin' ? (
+            <>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                <Server className="h-4 w-4 sm:h-5 sm:w-5 text-teal-800 shrink-0" />
+                Dompet Sistem (Admin Wallet)
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6">
+                Wallet di bawah adalah wallet sistem yang digunakan secara otomatis untuk menandatangani semua transaksi on-chain.
+              </p>
 
-                  <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6 mb-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Sistem</span>
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
-                          systemWallet?.onChainReady
-                            ? 'bg-emerald-100 text-[#16A34A] border-emerald-200'
-                            : 'bg-amber-100 text-[#D97706] border-amber-200'
-                        }`}
-                      >
-                        <Zap className="h-3.5 w-3.5" />
-                        {systemWallet?.onChainReady ? 'On-Chain Ready ✅' : 'Offline / Simulation Mode'}
-                      </span>
-                    </div>
+              <div className="rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 p-4 sm:p-6 mb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Status Sistem</span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold border ${
+                      systemWallet?.onChainReady
+                        ? 'bg-emerald-100 text-[#16A34A] border-emerald-200'
+                        : 'bg-amber-100 text-[#D97706] border-amber-200'
+                    }`}
+                  >
+                    <Zap className="h-3.5 w-3.5" />
+                    {systemWallet?.onChainReady ? 'On-Chain Ready ✅' : 'Offline / Simulation Mode'}
+                  </span>
+                </div>
 
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Alamat Wallet</p>
-                        <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700">
-                          {systemWalletLoading ? 'Memuat...' : systemWallet?.adminWallet || 'Tidak terkonfigurasi'}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Saldo Sepolia ETH</p>
-                          <p className="text-xl font-extrabold text-slate-800 font-mono mt-0.5">
-                            {systemWalletLoading ? 'Memuat...' : systemWalletBalance || '–'}
-                          </p>
-                        </div>
-                        <button
-                          onClick={fetchSystemWallet}
-                          disabled={systemWalletLoading}
-                          className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
-                        >
-                          <RefreshCw className={`h-4 w-4 text-slate-500 ${systemWalletLoading ? 'animate-spin' : ''}`} />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Network</p>
-                          <p className="text-sm font-bold text-slate-700 mt-0.5">
-                            {systemWallet?.network || 'sepolia'} (Chain ID: {systemWallet?.chainId || 11155111})
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-4 py-3">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Smart Contract</p>
-                          <p className="text-xs font-mono text-slate-600 mt-0.5 break-all">{systemWallet?.contractAddress || '–'}</p>
-                        </div>
-                      </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Alamat Wallet</p>
+                    <div className="text-xs sm:text-sm font-mono bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200 break-all text-slate-700">
+                      {systemWalletLoading ? 'Memuat...' : systemWallet?.adminWallet || 'Tidak terkonfigurasi'}
                     </div>
                   </div>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-teal-800" />
-                    Penautan Dompet MetaMask (Web3 Identity)
-                  </h2>
-                  <p className="text-sm text-slate-500 mb-6">
-                    Tautkan alamat wallet MetaMask Anda ke akun SatuData untuk mengotorisasi transaksi *grantAccess()* dan *revokeAccess()*.
-                  </p>
 
-                  {walletMsg.text && (
-                    <div
-                      className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
-                        walletMsg.type === 'success'
-                          ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
-                          : 'bg-rose-50 text-[#DC2626] border border-rose-200'
-                      }`}
-                    >
-                      {walletMsg.type === 'success' ? (
-                        <CheckCircle className="h-5 w-5 shrink-0 text-[#16A34A]" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 shrink-0 text-[#DC2626]" />
-                      )}
-                      <span>{walletMsg.text}</span>
+                  <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Saldo Sepolia ETH</p>
+                      <p className="text-base sm:text-xl font-extrabold text-slate-800 font-mono mt-0.5">
+                        {systemWalletLoading ? 'Memuat...' : systemWalletBalance || '–'}
+                      </p>
                     </div>
-                  )}
-
-                  <div className="rounded-2xl bg-slate-50 p-6 border border-slate-200/80 mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Status Kredensial Wallet</span>
-                      {walletAddress ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-[#16A34A] border border-emerald-200">
-                          <ShieldCheck className="h-4 w-4" /> Terverifikasi & Ditautkan
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-[#D97706] border border-amber-200">
-                          Belum Ditautkan
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-sm font-mono bg-white p-3 rounded-xl border border-slate-200 break-all text-slate-700 mb-3">
-                      {walletAddress || 'Alamat wallet belum dikonfigurasi'}
-                    </div>
-
-                    {walletAddress && (
-                      <div className="flex items-center justify-between border-t border-slate-200/60 pt-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Saldo Dompet (Sepolia)</span>
-                        <span className="text-sm font-extrabold text-slate-800 font-mono">{walletBalance || 'Memuat...'}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-3">
                     <button
-                      onClick={handleConnectWallet}
-                      disabled={walletLoading}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-6 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                      onClick={fetchSystemWallet}
+                      disabled={systemWalletLoading}
+                      className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
                     >
-                      {walletLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-                      {walletAddress ? 'Tautkan Ulang Wallet' : 'Tautkan MetaMask Wallet'}
+                      <RefreshCw className={`h-4 w-4 text-slate-500 ${systemWalletLoading ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
-                </>
+
+                  <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Network</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-700 mt-0.5">
+                        {systemWallet?.network || 'sepolia'} (Chain ID: {systemWallet?.chainId || 11155111})
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Smart Contract</p>
+                      <p className="text-[11px] sm:text-xs font-mono text-slate-600 mt-0.5 break-all">{systemWallet?.contractAddress || '–'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-teal-800 shrink-0" />
+                Penautan Dompet MetaMask (Web3 Identity)
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6">
+                Tautkan alamat wallet MetaMask Anda ke akun SatuData untuk mengotorisasi transaksi *grantAccess()* dan *revokeAccess()*.
+              </p>
+
+              {walletMsg.text && (
+                <div
+                  className={`mb-6 flex items-center gap-3 rounded-xl p-3.5 sm:p-4 text-xs sm:text-sm ${
+                    walletMsg.type === 'success'
+                      ? 'bg-emerald-50 text-[#16A34A] border border-emerald-200'
+                      : 'bg-rose-50 text-[#DC2626] border border-rose-200'
+                  }`}
+                >
+                  {walletMsg.type === 'success' ? (
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#16A34A]" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-[#DC2626]" />
+                  )}
+                  <span>{walletMsg.text}</span>
+                </div>
               )}
-            </div>
+
+              <div className="rounded-xl sm:rounded-2xl bg-slate-50 p-4 sm:p-6 border border-slate-200/80 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Status Kredensial Wallet</span>
+                  {walletAddress ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-[#16A34A] border border-emerald-200">
+                      <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Terverifikasi & Ditautkan
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-[#D97706] border border-amber-200">
+                      Belum Ditautkan
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-xs sm:text-sm font-mono bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200 break-all text-slate-700 mb-3">
+                  {walletAddress || 'Alamat wallet belum dikonfigurasi'}
+                </div>
+
+                {walletAddress && (
+                  <div className="flex items-center justify-between border-t border-slate-200/60 pt-3 text-xs sm:text-sm">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Saldo Dompet (Sepolia)</span>
+                    <span className="font-extrabold text-slate-800 font-mono">{walletBalance || 'Memuat...'}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleConnectWallet}
+                  disabled={walletLoading}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                >
+                  {walletLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+                  {walletAddress ? 'Tautkan Ulang Wallet' : 'Tautkan MetaMask Wallet'}
+                </button>
+              </div>
+            </>
           )}
+        </div>
+      )}
+      </div>
 
       {isPhotoModalOpen && (
         <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">

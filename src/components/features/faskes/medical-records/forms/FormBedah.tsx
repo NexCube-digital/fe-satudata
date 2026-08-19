@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import DischargeSummary from "./DischargeSummary";
 import {
 	Scissors,
 	ShieldAlert,
@@ -43,8 +44,11 @@ export default function FormBedah({
 	visitId,
 	roomOptions = [],
 	onNavigateToRanap,
+	onNavigateToRujuk,
+	onNavigateToDeath,
 	onEnsureRanapStep,
-
+	includeObat,
+	onToggleIncludeObat,
 }: any) {
 	// Search states
 	const [icd10PreSearch, setIcd10PreSearch] = useState("");
@@ -805,6 +809,21 @@ export default function FormBedah({
 							})}
 						</div>
 					</div>
+
+					{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN BEDAH SENTRAL */}
+					<DischargeSummary
+						processName="Bedah Sentral"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+						}}
+						onNavigateToRanap={onNavigateToRanap}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 
 					{/* Verifikasi DPJP Operator */}
 					<div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 pt-3">

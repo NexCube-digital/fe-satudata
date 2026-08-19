@@ -23,6 +23,7 @@ import { apiGet, getAvatarUrl } from '@/lib/api-client';
 const links = [
   { href: '#fitur', label: 'Fitur Sistem' },
   { href: '#alur', label: 'Alur Akses' },
+  { href: '/doctor', label: 'Dokter' },
   { href: '/faskes', label: 'Peta Faskes' },
   { href: '/faq', label: 'FAQ' },
 ];
@@ -207,11 +208,11 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ walletConnected, s
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <span className="block text-sm font-extrabold uppercase tracking-[0.2em] text-teal-800 transition-colors duration-300">
+                <span className="block text-xs sm:text-sm font-extrabold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-teal-800 transition-colors duration-300">
                   Satu Data
                 </span>
               </div>
-              <span className="block text-[10px] font-medium text-slate-500">
+              <span className="hidden sm:block text-[10px] font-medium text-slate-500">
                 Hub Rekam Medis Berbasis Sovereign Blockchain
               </span>
             </div>
@@ -321,7 +322,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ walletConnected, s
             ) : (
               <div className="flex items-center gap-2 sm:gap-2.5">
                 <Link
-                  href="/auth/register"
+                  href="/register"
                   className="group hidden sm:inline-flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-teal-900 hover:bg-teal-50/80 transition-all duration-200"
                 >
                   <RiUserAddLine className="h-4 w-4 text-slate-400 group-hover:text-teal-800 group-hover:scale-110 transition-all duration-200" />
@@ -420,7 +421,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ walletConnected, s
                     <span>Masuk</span>
                   </Link>
                   <Link
-                    href="/auth/register"
+                    href="/register"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2.5 text-xs font-bold text-slate-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
                   >

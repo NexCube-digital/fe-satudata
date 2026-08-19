@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import DischargeSummary from "./DischargeSummary";
 import {
 	Stethoscope,
 	CheckCircle2,
@@ -66,7 +67,8 @@ export default function FormRajal({
 	onEnsureRujukStep,
 	onNavigateToDeath,
 	onEnsureDeathStep,
-
+	includeObat,
+	onToggleIncludeObat,
 }: any) {
 	// Parse Vital Signs (T, N, R, S, BB)
 	const vs = parseVitalSigns ? parseVitalSigns(entryDetail.vital_signs) : {};
@@ -567,90 +569,19 @@ export default function FormRajal({
 					</div>
 
 					{/* 5. KONDISI AKHIR PASIEN / STATUS PEMULANGAN */}
-					<div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-2xs">
-						<span className="block text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2">
-							5. KONDISI AKHIR PASIEN / STATUS PEMULANGAN :
-						</span>
-						<div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-							{[
-								{ value: "Membaik", label: "Membaik / Pulang" },
-								{ value: "Rawat Inap", label: "Rawat Inap" },
-								{ value: "Rujuk ke Faskes Lain", label: "Rujuk Faskes Lain" },
-								{ value: "Meninggal", label: "Meninggal Dunia" },
-							].map((opt) => {
-								const isSelected = (entryDetail.discharge_status || entryDetail.status || "Membaik") === opt.value;
-								return (
-									<button
-										key={opt.value}
-										type="button"
-										onClick={() => {
-											onUpdateDetailField(type, "discharge_status", opt.value);
-											onUpdateDetailField(type, "status", opt.value);
-											if (opt.value === "Rawat Inap") {
-												onEnsureRanapStep?.();
-											} else if (opt.value === "Rujuk ke Faskes Lain") {
-												onEnsureRujukStep?.();
-											} else if (opt.value === "Meninggal") {
-												onEnsureDeathStep?.();
-											}
-										}}
-										className={`py-2.5 px-3.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
-											isSelected
-												? "bg-teal-800 text-white border-teal-800 shadow-md ring-2 ring-teal-600/30 font-black"
-												: "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-teal-300"
-										}`}
-									>
-										{opt.label}
-									</button>
-								);
-							})}
-						</div>
-
-						{((entryDetail.discharge_status || entryDetail.status) === "Rawat Inap") && (
-							<div className="mt-3 p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs font-semibold text-teal-900 flex items-center justify-between">
-								<span>Formulir Rawat Inap telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-								{onNavigateToRanap && (
-									<button
-										type="button"
-										onClick={() => onNavigateToRanap?.()}
-										className="px-3 py-1 bg-teal-700 text-white rounded-lg font-bold text-[11px] hover:bg-teal-800 transition cursor-pointer"
-									>
-										Buka Form Ranap &rarr;
-									</button>
-								)}
-							</div>
-						)}
-
-						{((entryDetail.discharge_status || entryDetail.status) === "Rujuk ke Faskes Lain") && (
-							<div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-900 flex items-center justify-between">
-								<span>Formulir Rujukan Medis (FormRujuk) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-								{onNavigateToRujuk && (
-									<button
-										type="button"
-										onClick={() => onNavigateToRujuk?.()}
-										className="px-3 py-1 bg-indigo-700 text-white rounded-lg font-bold text-[11px] hover:bg-indigo-800 transition cursor-pointer"
-									>
-										Buka Form Rujuk &rarr;
-									</button>
-								)}
-							</div>
-						)}
-
-						{((entryDetail.discharge_status || entryDetail.status) === "Meninggal") && (
-							<div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-900 flex items-center justify-between">
-								<span>Formulir Surat Keterangan Kematian (DeathCertificate) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-								{onNavigateToDeath && (
-									<button
-										type="button"
-										onClick={() => onNavigateToDeath?.()}
-										className="px-3 py-1 bg-rose-700 text-white rounded-lg font-bold text-[11px] hover:bg-rose-800 transition cursor-pointer"
-									>
-										Buka Surat Kematian &rarr;
-									</button>
-								)}
-							</div>
-						)}
-					</div>
+					<DischargeSummary
+						processName="Rawat Jalan"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							onUpdateDetailField(type, "discharge_status", val);
+							onUpdateDetailField(type, "status", val);
+						}}
+						onNavigateToRanap={onNavigateToRanap}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 				</div>
 			</div>
 		</div>

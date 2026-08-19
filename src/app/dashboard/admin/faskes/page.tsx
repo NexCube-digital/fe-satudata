@@ -35,7 +35,7 @@ function AdminGeotaggingContent() {
   const searchParams = useSearchParams();
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  const showToast = (msg, type = "success", title = "", tipe) =>
+  const showToast = (msg: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message: msg, tipe });
 
   useEffect(() => {
@@ -196,7 +196,7 @@ function AdminGeotaggingContent() {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
     };

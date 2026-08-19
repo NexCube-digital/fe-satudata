@@ -76,15 +76,19 @@ export default function RegisterPage() {
   return (
     <div className="w-full h-full flex flex-col justify-between">
       <div className="space-y-4">
-        <div className="flex justify-end">
-          <Link href="/" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800 shadow-xs hover:bg-slate-50 transition">
+        <div className="hidden lg:flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Pendaftaran Akun Baru</h2>
+            <p className="text-xs text-slate-500 mt-1">Buat akun untuk mengakses layanan SatuData</p>
+          </div>
+
+          <Link
+            href="/"
+            title="Kembali ke Beranda"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-300 text-teal-800 transition shrink-0 cursor-pointer shadow-2xs"
+          >
             <Home className="h-4 w-4" />
           </Link>
-        </div>
-
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-bold text-slate-900">Pendaftaran Akun Baru</h2>
-          <p className="text-xs text-slate-500 mt-1">Buat akun untuk mengakses layanan SatuData</p>
         </div>
 
       {error && (
@@ -110,8 +114,10 @@ export default function RegisterPage() {
                 setName('');
                 setNik('');
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg border ${
-                role === 'pasien' ? 'bg-teal-800 text-white border-teal-800' : 'bg-slate-50 text-slate-700 border-slate-200'
+              className={`flex-1 py-2 text-xs font-extrabold rounded-xl border transition cursor-pointer ${
+                role === 'pasien'
+                  ? 'bg-gradient-to-r from-teal-700 to-cyan-800 text-white border-teal-700 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               Pasien
@@ -123,8 +129,10 @@ export default function RegisterPage() {
                 setName('');
                 setNik('');
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg border ${
-                role === 'faskes' ? 'bg-teal-800 text-white border-teal-800' : 'bg-slate-50 text-slate-700 border-slate-200'
+              className={`flex-1 py-2 text-xs font-extrabold rounded-xl border transition cursor-pointer ${
+                role === 'faskes'
+                  ? 'bg-gradient-to-r from-teal-700 to-cyan-800 text-white border-teal-700 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
             >
               Fasilitas Kesehatan
@@ -141,15 +149,13 @@ export default function RegisterPage() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (role === 'pasien') {
-                  // Pasien: Allow only letters, spaces, dots, commas, apostrophes/quotes, and hyphens (NO NUMBERS & NO SYMBOLS)
                   setName(val.replace(/[^a-zA-Z\s.,'`-]/g, ''));
                 } else {
-                  // Faskes: Allow letters, numbers, spaces, dots, commas, hyphens, and slashes
                   setName(val.replace(/[^a-zA-Z0-9\s.,'/\-]/g, ''));
                 }
               }}
               placeholder={role === 'pasien' ? 'Masukkan nama lengkap' : 'Masukkan nama fasilitas kesehatan'}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
               maxLength={100}
               required
             />
@@ -162,7 +168,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value.replace(/\s+/g, '').toLowerCase())}
               placeholder="Masukkan alamat email"
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
               maxLength={100}
               required
             />
@@ -178,15 +184,13 @@ export default function RegisterPage() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (role === 'pasien') {
-                  // Pasien: Only allow digits for NIK
                   setNik(val.replace(/\D/g, ''));
                 } else {
-                  // Faskes: Uppercase alphanumeric, hyphens, slashes
                   setNik(val.replace(/[^a-zA-Z0-9\-/]/g, '').toUpperCase());
                 }
               }}
               placeholder={role === 'pasien' ? 'Masukkan 16 digit NIK' : 'Masukkan kode izin faskes'}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 font-mono"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 font-mono transition"
               maxLength={role === 'pasien' ? 16 : 30}
             />
           </div>
@@ -199,14 +203,14 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 pr-10"
+                className="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 pr-10 transition"
                 maxLength={128}
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -221,14 +225,14 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ulangi password Anda"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 pr-10"
+                className="w-full px-3.5 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 pr-10 transition"
                 maxLength={128}
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -238,7 +242,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white font-bold py-2.5 rounded-lg transition disabled:opacity-50 text-sm shadow-xs mt-2"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold py-2.5 sm:py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs sm:text-sm shadow-sm mt-2"
           >
             {loading ? <Loader className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
             <span>Daftar Sekarang</span>
@@ -249,7 +253,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Fixed Bottom Footer Link */}
-      <div className="pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
+      <div className="pt-4 sm:pt-6 border-t border-slate-100 text-center text-xs text-slate-600 font-medium mt-auto">
         Sudah memiliki akun?{' '}
         <Link href="/login" className="text-teal-800 font-bold hover:underline">
           Masuk di sini

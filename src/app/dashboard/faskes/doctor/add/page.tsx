@@ -8,6 +8,7 @@ import notify from "@/lib/notify";
 import { createDoctor } from "@/services/doctorService";
 import { getSpecialties } from "@/services/specialtyService";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import LoginRequiredModal from "@/components/ui/LoginRequiredModal";
 import {
   Users,
   Building2,
@@ -43,7 +44,7 @@ export default function FaskesAddDoctor() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "", tipe) =>
+  const showToast = (message: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message, tipe });
 
   // Form State
@@ -339,16 +340,10 @@ export default function FaskesAddDoctor() {
 
   if (!user) {
     return (
-      <div className="space-y-6">
-        <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-teal-800 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
-          <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-800 hover:from-teal-800 hover:to-cyan-900 text-white font-bold text-sm shadow-md transition">
-            Kembali ke Halaman Login
-          </button>
-        </div>
-      </div>
+      <LoginRequiredModal
+        title="Akses Memerlukan Login"
+        description="Silakan masuk dengan akun Fasilitas Kesehatan Anda."
+      />
     );
   }
 
@@ -735,7 +730,7 @@ export default function FaskesAddDoctor() {
           </div>
         </div>
       )}
-      <Toast toast={toast} onClose={() => setToast({ show: false })} />
+      <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
     </div>
   );
 }

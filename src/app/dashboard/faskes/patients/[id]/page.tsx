@@ -49,7 +49,7 @@ export default function PatientEhrDetailPage() {
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, type: "success", title: "", message: "" });
 
-  const showToast = (message, type = "success", title = "", tipe) =>
+  const showToast = (message: string, type = "success", title = "", tipe?: string) =>
     notify(setToast, { type, title, message, tipe });
 
   // Add EHR Record Modal State
@@ -176,7 +176,7 @@ export default function PatientEhrDetailPage() {
     if (recordType === "resep") detailPayload = prescriptionDetail;
 
     const payload = {
-      patientId: parseInt(patientId, 10),
+      patientId: parseInt(Array.isArray(patientId) ? patientId[0] : String(patientId || "0"), 10),
       recordType,
       title: recordTitle,
       visitDate,
@@ -659,7 +659,7 @@ export default function PatientEhrDetailPage() {
           </div>
         </div>
       )}
-      <Toast toast={toast} onClose={() => setToast({ show: false })} />
+      <Toast toast={toast} onClose={() => setToast((prev) => ({ ...prev, show: false }))} />
     </div>
   );
 }

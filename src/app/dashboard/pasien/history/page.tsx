@@ -24,7 +24,8 @@ import {
   ChevronRight,
   History,
   Database,
-  XCircle
+  XCircle,
+  X
 } from "lucide-react";
 
 function PatientUnifiedHistoryContent() {
@@ -105,97 +106,144 @@ function PatientUnifiedHistoryContent() {
           </div>
 
           {/* UNIFIED TAB NAVIGATION BAR */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-1.5 shadow-xs mb-8 flex flex-wrap gap-1">
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-1 sm:p-1.5 shadow-xs mb-4 sm:mb-8 grid grid-cols-3 gap-1">
             <button
               onClick={() => changeTab("records")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+              className={`py-2 px-1 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
                 activeMainTab === "records"
                   ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <FileText className="h-4 w-4 shrink-0" />
-              <span>Riwayat Rekam Medis ({records.length})</span>
+              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="hidden sm:inline">Riwayat Rekam Medis</span>
+              <span className="sm:hidden">Rekam Medis</span>
+              <span className="text-[9px] sm:text-xs">({records.length})</span>
             </button>
 
             <button
               onClick={() => changeTab("consent")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+              className={`py-2 px-1 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
                 activeMainTab === "consent"
                   ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <ShieldCheck className="h-4 w-4 shrink-0" />
-              <span>Riwayat Otorisasi ({historyRequestsList.length})</span>
+              <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="hidden sm:inline">Riwayat Otorisasi</span>
+              <span className="sm:hidden">Otorisasi</span>
+              <span className="text-[9px] sm:text-xs">({historyRequestsList.length})</span>
             </button>
 
             <button
               onClick={() => changeTab("audit")}
-              className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+              className={`py-2 px-1 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
                 activeMainTab === "audit"
                   ? "bg-gradient-to-r from-teal-700 to-cyan-800 text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <Database className="h-4 w-4 shrink-0" />
-              <span>Audit Trail Blockchain ({auditLogs.length})</span>
+              <Database className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="hidden sm:inline">Audit Trail Blockchain</span>
+              <span className="sm:hidden">Audit Trail</span>
+              <span className="text-[9px] sm:text-xs">({auditLogs.length})</span>
             </button>
           </div>
 
           {/* TAB 1: RIWAYAT REKAM MEDIS */}
           {activeMainTab === "records" && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-4 sm:space-y-6 animate-fade-in">
               {/* Search & Filter Bar */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="relative sm:col-span-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari RS, Dokter, atau Diagnosa..."
-                      value={searchTermRecords}
-                      onChange={(e) => setSearchTermRecords(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
-                    />
-                  </div>
+              <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-3 sm:p-4 shadow-xs space-y-2.5 sm:space-y-3">
+                {/* Search Bar */}
+                <div className="relative w-full">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-700 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cari RS, Dokter, atau Diagnosa..."
+                    value={searchTermRecords}
+                    onChange={(e) => setSearchTermRecords(e.target.value)}
+                    className="w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-10 pr-9 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:bg-white focus:outline-hidden transition shadow-2xs font-medium"
+                  />
+                  {searchTermRecords && (
+                    <button
+                      onClick={() => setSearchTermRecords("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                  <div>
+                {/* Filter Dropdowns Grid: 2 columns side-by-side on mobile */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  {/* Hospital Filter */}
+                  <div className="relative">
                     <select
                       value={hospitalFilter}
                       onChange={(e) => setHospitalFilter(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+                      className="w-full appearance-none rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-3 pr-7 py-2 text-[11px] sm:text-xs font-bold text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition truncate cursor-pointer"
                     >
-                      <option value="all">Semua Rumah Sakit ({records.length})</option>
+                      <option value="all">Semua RS ({uniqueHospitals.length || records.length})</option>
                       {uniqueHospitals.map((h, i) => (
                         <option key={i} value={h}>{h}</option>
                       ))}
                     </select>
+                    <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                      <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                      </svg>
+                    </div>
                   </div>
 
-                  <div>
+                  {/* Category Filter */}
+                  <div className="relative">
                     <select
                       value={categoryFilter}
                       onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition"
+                      className="w-full appearance-none rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50/60 pl-3 pr-7 py-2 text-[11px] sm:text-xs font-bold text-slate-700 focus:border-teal-600 focus:bg-white focus:outline-hidden transition truncate cursor-pointer"
                     >
-                      <option value="all">Semua Kategori Pemeriksaan</option>
-                      <option value="Rawat Jalan">Rawat Jalan</option>
-                      <option value="Pemeriksaan Lab">Pemeriksaan Lab</option>
-                      <option value="Radiologi / Rontgen">Radiologi / Rontgen</option>
-                      <option value="UGD / Emergency">UGD / Emergency</option>
+                      <option value="all">Semua Kategori</option>
+                      <option value="umum">Pemeriksaan Umum</option>
+                      <option value="resep">Resep & Obat</option>
+                      <option value="lab">Laboratorium</option>
+                      <option value="radiologi">Radiologi</option>
                     </select>
+                    <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                      <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+
+                {/* Reset Active Filter Bar */}
+                {(searchTermRecords || hospitalFilter !== "all" || categoryFilter !== "all") && (
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] text-slate-500">
+                    <span className="font-medium text-teal-800">
+                      Menampilkan <strong className="font-extrabold">{filteredRecords.length}</strong> hasil pencarian
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSearchTermRecords("");
+                        setHospitalFilter("all");
+                        setCategoryFilter("all");
+                      }}
+                      className="font-bold text-[#DC2626] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <X className="h-3 w-3" /> Reset Filter
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Records List Container */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredRecords.length === 0 ? (
-                  <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center shadow-xs">
-                    <FileText className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm font-extrabold text-slate-700">Tidak Ada Rekam Medis Ditemukan</p>
-                    <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter rumah sakit Anda.</p>
+                  <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-8 sm:p-12 text-center shadow-xs">
+                    <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-slate-300 mx-auto mb-2.5" />
+                    <p className="text-xs sm:text-sm font-extrabold text-slate-700">Tidak Ada Rekam Medis Ditemukan</p>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter rumah sakit Anda.</p>
                   </div>
                 ) : (
                   filteredRecords.map((rec) => {
@@ -206,99 +254,99 @@ function PatientUnifiedHistoryContent() {
                     return (
                       <div
                         key={rec.id}
-                        className="rounded-3xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs hover:border-teal-300 hover:shadow-md transition-all duration-200"
+                        className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-3.5 sm:p-6 shadow-xs hover:border-teal-300 hover:shadow-md transition-all duration-200"
                       >
                         {/* Header Info */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-                          <div className="flex items-start gap-3.5 min-w-0">
-                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200 font-bold text-teal-800 text-sm shadow-2xs">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4 mb-3 sm:mb-4">
+                          <div className="flex items-start gap-2.5 sm:gap-3.5 min-w-0">
+                            <span className="flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-50 border border-teal-200 font-bold text-teal-800 text-xs sm:text-sm shadow-2xs">
                               {rec.hospitalName.substring(0, 2).toUpperCase()}
                             </span>
                             <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-base font-extrabold text-slate-900 truncate">{rec.hospitalName}</h3>
-                                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">
+                              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                <h3 className="text-xs sm:text-base font-extrabold text-slate-900 truncate">{rec.hospitalName}</h3>
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold text-slate-600 border border-slate-200 shrink-0">
                                   {rec.hospitalCode}
                                 </span>
-                                <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-[10px] font-bold text-teal-800 border border-teal-200 uppercase shrink-0">
+                                <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-teal-800 border border-teal-200 uppercase shrink-0">
                                   {rec.category}
                                 </span>
-                                <span className="rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3 text-[#16A34A]" /> SELESAI & LUNAS
+                                <span className="rounded-full bg-emerald-50 text-[#16A34A] border border-emerald-200 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold shrink-0 inline-flex items-center gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#16A34A]" /> SELESAI & LUNAS
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 truncate">
-                                <Stethoscope className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 flex items-center gap-1 sm:gap-1.5 truncate">
+                                <Stethoscope className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-slate-400 shrink-0" />
                                 {rec.doctorName} <span className="text-slate-300">•</span> {rec.specialty}
                               </p>
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:items-end text-xs text-slate-500 font-mono shrink-0">
+                          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between text-[10px] sm:text-xs text-slate-500 font-mono shrink-0">
                             <span className="flex items-center gap-1 text-slate-600 font-bold">
-                              <Calendar className="h-3.5 w-3.5 text-slate-400" /> {rec.date}
+                              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-slate-400" /> {rec.date}
                             </span>
-                            <span className="text-[10px] text-slate-400 mt-0.5">{rec.time}</span>
+                            <span className="text-[9px] sm:text-[10px] text-slate-400 sm:mt-0.5">{rec.time}</span>
                           </div>
                         </div>
 
                         {/* Content Preview Box */}
-                        <div className="mb-4">
+                        <div className="mb-3 sm:mb-4">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                               {isDecrypted ? "Data Rekam Medis (Terdekripsi AES-256)" : "Ciphertext Terenkripsi"}
                             </span>
 
                             <button
                               onClick={() => toggleDecryptRecord(rec.id)}
                               disabled={isDecrypting}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
+                              className="inline-flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 text-[10px] sm:text-xs font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
                             >
                               {isDecrypting ? (
                                 <>
-                                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-teal-700" /> Mendekripsi...
+                                  <RefreshCw className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin text-teal-700" /> Mendekripsi...
                                 </>
                               ) : isDecrypted ? (
                                 <>
-                                  <EyeOff className="h-3.5 w-3.5 text-teal-800" /> Sembunyikan Data
+                                  <EyeOff className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-teal-800" /> Sembunyikan Data
                                 </>
                               ) : (
                                 <>
-                                  <Eye className="h-3.5 w-3.5 text-[#16A34A]" /> Dekripsi Rekam Medis
+                                  <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#16A34A]" /> Dekripsi Rekam Medis
                                 </>
                               )}
                             </button>
                           </div>
 
                           {isDecrypting ? (
-                            <div className="rounded-2xl bg-slate-50 p-6 flex flex-col items-center justify-center border border-slate-200">
-                              <RefreshCw className="h-6 w-6 animate-spin text-teal-800 mb-2" />
-                              <p className="text-xs font-bold text-slate-500">Mendekripsi data rekam medis dengan Kunci Privat Anda...</p>
+                            <div className="rounded-xl sm:rounded-2xl bg-slate-50 p-4 sm:p-6 flex flex-col items-center justify-center border border-slate-200">
+                              <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-teal-800 mb-1.5" />
+                              <p className="text-[11px] sm:text-xs font-bold text-slate-500">Mendekripsi data rekam medis dengan Kunci Privat Anda...</p>
                             </div>
                           ) : isDecrypted ? (() => {
                             return (
-                              <div className="rounded-2xl bg-teal-50/40 border border-teal-100 p-5 text-slate-800 shadow-xs animate-fade-in space-y-4 text-xs">
-                                <div className="border-b border-teal-100 pb-3">
-                                  <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-1">Diagnosa Utama:</p>
-                                  <p className="text-sm font-extrabold text-slate-900">{displayRec.diagnosis}</p>
+                              <div className="rounded-xl sm:rounded-2xl bg-teal-50/40 border border-teal-100 p-3.5 sm:p-5 text-slate-800 shadow-xs animate-fade-in space-y-3 sm:space-y-4 text-xs">
+                                <div className="border-b border-teal-100 pb-2.5 sm:pb-3">
+                                  <p className="text-teal-800 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mb-0.5 sm:mb-1">Diagnosa Utama:</p>
+                                  <p className="text-xs sm:text-sm font-extrabold text-slate-900">{displayRec.diagnosis}</p>
                                 </div>
 
                                 {displayRec.vitals && (
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-3 rounded-xl border border-teal-100/50 text-[11px] font-mono">
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-white/90 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-teal-100/50 text-[10px] sm:text-[11px] font-mono">
                                     <div>
-                                      <span className="text-teal-800 block text-[9px] font-bold">Tekanan Darah</span>
+                                      <span className="text-teal-800 block text-[8.5px] sm:text-[9px] font-bold">Tekanan Darah</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.bp}</span>
                                     </div>
                                     <div>
-                                      <span className="text-teal-800 block text-[9px] font-bold">Nadi</span>
+                                      <span className="text-teal-800 block text-[8.5px] sm:text-[9px] font-bold">Nadi</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.pulse}</span>
                                     </div>
                                     <div>
-                                      <span className="text-teal-800 block text-[9px] font-bold">Suhu Tubuh</span>
+                                      <span className="text-teal-800 block text-[8.5px] sm:text-[9px] font-bold">Suhu Tubuh</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.temp}</span>
                                     </div>
                                     <div>
-                                      <span className="text-teal-800 block text-[9px] font-bold">Berat Badan</span>
+                                      <span className="text-teal-800 block text-[8.5px] sm:text-[9px] font-bold">Berat Badan</span>
                                       <span className="font-bold text-slate-800">{displayRec.vitals.weight}</span>
                                     </div>
                                   </div>
@@ -306,12 +354,12 @@ function PatientUnifiedHistoryContent() {
 
                                 {displayRec.prescriptions && displayRec.prescriptions.length > 0 && (
                                   <div>
-                                    <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-2">Resep Obat & Aturan Pakai:</p>
-                                    <div className="space-y-1.5">
+                                    <p className="text-teal-800 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mb-1.5 sm:mb-2">Resep Obat & Aturan Pakai:</p>
+                                    <div className="space-y-1 sm:space-y-1.5">
                                       {displayRec.prescriptions.map((rx, idx) => (
-                                        <div key={idx} className="flex items-center justify-between rounded-lg bg-white/90 px-3 py-1.5 border border-teal-100/40">
+                                        <div key={idx} className="flex items-center justify-between rounded-md sm:rounded-lg bg-white/90 px-2.5 py-1 sm:px-3 sm:py-1.5 border border-teal-100/40 text-[11px]">
                                           <span className="font-bold text-slate-800">{rx.medicine}</span>
-                                          <span className="text-[10px] text-slate-500 font-medium">{rx.dosage}</span>
+                                          <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-medium">{rx.dosage}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -319,8 +367,8 @@ function PatientUnifiedHistoryContent() {
                                 )}
 
                                 <div>
-                                  <p className="text-teal-800 font-bold uppercase text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
-                                  <p className="text-slate-700 leading-relaxed text-[11px] bg-white/90 p-2.5 rounded-lg border border-teal-100/40 whitespace-pre-line">{displayRec.notes}</p>
+                                  <p className="text-teal-800 font-bold uppercase text-[9px] sm:text-[10px] tracking-wider mb-1">Catatan Dokter:</p>
+                                  <p className="text-slate-700 leading-relaxed text-[10px] sm:text-[11px] bg-white/90 p-2 sm:p-2.5 rounded-md sm:rounded-lg border border-teal-100/40 whitespace-pre-line">{displayRec.notes}</p>
                                 </div>
                               </div>
                             );
@@ -328,12 +376,12 @@ function PatientUnifiedHistoryContent() {
                         </div>
 
                         {/* Record Footer */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-3 border-t border-slate-100 min-w-0">
-                          <div className="font-mono text-[10px] text-slate-500 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs pt-2.5 sm:pt-3 border-t border-slate-100 min-w-0">
+                          <div className="font-mono text-[9px] sm:text-[10px] text-slate-500 min-w-0">
                             Blockchain Tx Hash:{" "}
                             {rec.txHash ? (
                               <TxHashLink txHash={rec.txHash} className="text-teal-800 font-bold font-mono inline-flex items-center gap-1 max-w-full" title={rec.txHash}>
-                                <span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{rec.txHash}</span>
+                                <span className="truncate max-w-[130px] xs:max-w-[200px] sm:max-w-[280px]">{rec.txHash}</span>
                               </TxHashLink>
                             ) : (
                               <span className="text-slate-400 font-sans italic">Belum ada (Pending Blockchain)</span>
@@ -342,9 +390,9 @@ function PatientUnifiedHistoryContent() {
 
                           <button
                             onClick={() => handleOpenDetailModal(rec)}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-800 hover:text-teal-900 cursor-pointer shrink-0"
+                            className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-teal-800 hover:text-teal-900 cursor-pointer shrink-0 self-start sm:self-auto"
                           >
-                            Detail Lengkap & Audit Trail <ChevronRight className="h-4 w-4" />
+                            Detail Lengkap & Audit Trail <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       </div>
@@ -357,20 +405,20 @@ function PatientUnifiedHistoryContent() {
 
           {/* TAB 2: RIWAYAT OTORISASI AKSES */}
           {activeMainTab === "consent" && (
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-6 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-6 animate-fade-in">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4">
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <ShieldCheck className="h-4.5 w-4.5 text-teal-800" />
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+                    <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-teal-800 shrink-0" />
                     Riwayat & Status Persetujuan ({historyRequestsList.length})
                   </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Daftar izin akses yang telah Anda putuskan sebelumnya.</p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Daftar izin akses yang telah Anda putuskan sebelumnya.</p>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0 self-start xs:self-auto">
                   <button
                     onClick={() => setConsentTab("all")}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-bold transition cursor-pointer ${
                       consentTab === "all" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >
@@ -378,7 +426,7 @@ function PatientUnifiedHistoryContent() {
                   </button>
                   <button
                     onClick={() => setConsentTab("approved")}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-bold transition cursor-pointer ${
                       consentTab === "approved" ? "bg-[#16A34A] text-white" : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >
@@ -386,7 +434,7 @@ function PatientUnifiedHistoryContent() {
                   </button>
                   <button
                     onClick={() => setConsentTab("revoked")}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-bold transition cursor-pointer ${
                       consentTab === "revoked" ? "bg-[#DC2626] text-white" : "text-slate-600 hover:bg-slate-100"
                     }`}
                   >
@@ -407,10 +455,10 @@ function PatientUnifiedHistoryContent() {
                 />
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredConsentHistory.length === 0 ? (
-                  <div className="rounded-2xl bg-slate-50/50 border border-slate-100 p-8 text-center">
-                    <Building2 className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                  <div className="rounded-xl sm:rounded-2xl bg-slate-50/50 border border-slate-100 p-6 sm:p-8 text-center">
+                    <Building2 className="h-7 w-7 sm:h-8 sm:w-8 text-slate-300 mx-auto mb-2" />
                     <p className="text-xs font-bold text-slate-500">Histori Otorisasi Kosong</p>
                     <p className="text-[10px] text-slate-400 mt-0.5">Tidak ada riwayat izin akses yang sesuai filter.</p>
                   </div>
@@ -418,32 +466,32 @@ function PatientUnifiedHistoryContent() {
                   filteredConsentHistory.map((req) => (
                     <div
                       key={req.id}
-                      className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-white"
+                      className="rounded-xl sm:rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-white"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800 text-xs shadow-2xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                          <span className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800 text-xs shadow-2xs">
                             {req.hospitalName.charAt(0)}{req.hospitalName.charAt(3)}
                           </span>
                           <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="text-sm font-bold text-slate-900 truncate">{req.hospitalName}</h4>
-                              <span className="text-[10px] font-mono text-slate-400">({req.hospitalCode})</span>
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{req.hospitalName}</h4>
+                              <span className="text-[9px] sm:text-[10px] font-mono text-slate-400">({req.hospitalCode})</span>
                             </div>
-                            <p className="text-xs text-slate-500 truncate">{req.department}</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 truncate">{req.department}</p>
                           </div>
                         </div>
 
-                        <div className="shrink-0">
+                        <div className="shrink-0 self-start sm:self-auto">
                           {req.status === "approved" && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-[#16A34A]">
-                              <CheckCircle className="h-3.5 w-3.5 text-[#16A34A]" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-[#16A34A]">
+                              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#16A34A]" />
                               Akses Disetujui
                             </span>
                           )}
                           {(req.status === "revoked" || req.status === "rejected") && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-bold text-[#DC2626]">
-                              <Lock className="h-3.5 w-3.5 text-[#DC2626]" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-[#DC2626]">
+                              <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#DC2626]" />
                               Izin Akses Dicabut
                             </span>
                           )}
@@ -451,15 +499,15 @@ function PatientUnifiedHistoryContent() {
                       </div>
 
                       {/* Request description */}
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 mb-3 text-[10px] text-slate-500">
+                      <div className="rounded-lg sm:rounded-xl border border-slate-100 bg-slate-50 p-2 sm:p-2.5 mb-2.5 sm:mb-3 text-[9.5px] sm:text-[10px] text-slate-500">
                         <span className="text-slate-400 block">Keterangan Pengajuan Data:</span>
                         <span className="font-bold text-slate-700 whitespace-pre-line">{req.requestDescription}</span>
                       </div>
 
                       {/* Actions */}
-                      <div className="border-t border-slate-100 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs min-w-0">
+                      <div className="border-t border-slate-100 pt-2.5 sm:pt-3 mt-2.5 sm:mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs min-w-0">
                         <div className="font-mono text-[9px] text-slate-400 min-w-0">
-                          Tx Hash: <TxHashLink txHash={req.txHash} className="text-teal-800 font-bold inline-flex items-center gap-1 max-w-full" title={req.txHash}><span className="truncate max-w-[150px] xs:max-w-[220px] sm:max-w-[280px]">{req.txHash}</span></TxHashLink>
+                          Tx Hash: <TxHashLink txHash={req.txHash} className="text-teal-800 font-bold inline-flex items-center gap-1 max-w-full" title={req.txHash}><span className="truncate max-w-[130px] xs:max-w-[200px] sm:max-w-[280px]">{req.txHash}</span></TxHashLink>
                         </div>
 
                         <div className="shrink-0 w-full sm:w-auto">
@@ -467,7 +515,7 @@ function PatientUnifiedHistoryContent() {
                             <button
                               onClick={() => handleConsentAction(req.id, "revoked")}
                               disabled={submittingId === req.id}
-                              className="rounded-xl bg-red-50 border border-red-200 text-[#DC2626] hover:bg-red-100 px-4 py-2 font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                              className="rounded-lg sm:rounded-xl bg-red-50 border border-red-200 text-[#DC2626] hover:bg-red-100 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
                             >
                               {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
                               Cabut Akses
@@ -475,7 +523,7 @@ function PatientUnifiedHistoryContent() {
                           )}
 
                           {req.status === "revoked" && (
-                            <div className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-[11px] font-bold text-slate-500 flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                            <div className="rounded-lg sm:rounded-xl border border-slate-200 bg-slate-100 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-[11px] font-bold text-slate-500 flex items-center justify-center gap-1.5 w-full sm:w-auto">
                               <Lock className="h-3.5 w-3.5" />
                               Izin Telah Nonaktif
                             </div>
@@ -491,45 +539,45 @@ function PatientUnifiedHistoryContent() {
 
           {/* TAB 3: AUDIT TRAIL BLOCKCHAIN STREAM */}
           {activeMainTab === "audit" && (
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-6 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-6 animate-fade-in">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-100 pb-3 sm:pb-4">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <Database className="h-5 w-5 text-teal-800" />
+                  <h3 className="text-xs sm:text-base font-extrabold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+                    <Database className="h-4 w-4 sm:h-5 sm:w-5 text-teal-800 shrink-0" />
                     Console Audit Trail Blockchain Real-time ({auditLogs.length})
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
                     Seluruh mutasi hak akses, dekripsi rekam medis, dan aksi transaksi terikat secara tak-terubahkan (immutable) pada ledger blockchain.
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-[#16A34A] self-start sm:self-auto shrink-0">
-                  <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-ping" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-[11px] font-bold text-[#16A34A] self-start xs:self-auto shrink-0">
+                  <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#16A34A] animate-ping" />
                   Ledger Sync Active
                 </span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 {auditLogs.length === 0 ? (
-                  <div className="rounded-2xl bg-slate-50/50 border border-slate-100 p-8 text-center">
-                    <Database className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                  <div className="rounded-xl sm:rounded-2xl bg-slate-50/50 border border-slate-100 p-6 sm:p-8 text-center">
+                    <Database className="h-7 w-7 sm:h-8 sm:w-8 text-slate-300 mx-auto mb-2" />
                     <p className="text-xs font-bold text-slate-500">Belum Ada Aktivitas Audit Trail</p>
                     <p className="text-[10px] text-slate-400 mt-0.5">Setiap mutasi akses dan pelunasan transaksi akan tercatat otomatis pada ledger.</p>
                   </div>
                 ) : (
                   auditLogs.map((log) => (
-                    <div key={log.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 text-xs hover:border-teal-200 hover:bg-white transition shadow-2xs space-y-2">
+                    <div key={log.id} className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3 sm:p-4 text-xs hover:border-teal-200 hover:bg-white transition shadow-2xs space-y-1.5 sm:space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className={`font-extrabold text-xs flex items-center gap-1.5 ${log.status === "success" ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
+                        <span className={`font-extrabold text-[11px] sm:text-xs flex items-center gap-1.5 ${log.status === "success" ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
                           {log.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5 text-[#16A34A]" /> : <XCircle className="h-3.5 w-3.5 text-[#DC2626]" />}
                           {log.action}
                         </span>
                         <span className="text-[9px] font-mono text-slate-400">{log.timestamp}</span>
                       </div>
-                      <p className="text-slate-700 font-semibold text-xs leading-relaxed">{log.hospital}</p>
-                      <div className="pt-1.5 border-t border-slate-200/50 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-500">
+                      <p className="text-slate-700 font-semibold text-[11px] sm:text-xs leading-relaxed">{log.hospital}</p>
+                      <div className="pt-1.5 border-t border-slate-200/50 flex flex-wrap items-center justify-between gap-2 text-[9px] sm:text-[10px] font-mono text-slate-500">
                         <span>Blockchain Tx Hash:</span>
                         <TxHashLink txHash={log.txHash} className="text-teal-800 font-bold font-mono inline-flex items-center gap-1" title={log.txHash}>
-                          <span className="truncate max-w-[220px] sm:max-w-[340px]">{log.txHash}</span>
+                          <span className="truncate max-w-[140px] xs:max-w-[220px] sm:max-w-[340px]">{log.txHash}</span>
                         </TxHashLink>
                       </div>
                     </div>

@@ -301,7 +301,7 @@ export default function FaskesCreateInvoicePage() {
 
   const handleModalAddAdditionalItem = () => {
     if (!modalNewChargeName.trim()) return;
-    const priceNum = parseInt(modalNewChargePrice || 0, 10) || 0;
+    const priceNum = parseInt(String(modalNewChargePrice || "0"), 10) || 0;
     setModalAdditionalItems((prev) => [
       ...prev,
       {
@@ -573,7 +573,7 @@ export default function FaskesCreateInvoicePage() {
 
   const handleAddAdditionalItem = () => {
     if (!newChargeName.trim()) return;
-    const priceNum = parseInt(newChargePrice || 0, 10) || 0;
+    const priceNum = parseInt(String(newChargePrice || "0"), 10) || 0;
     setAdditionalItems((prev) => [
       ...prev,
       {
