@@ -35,14 +35,12 @@ const CATEGORY_LABEL = {
 	admin: "Admin",
 	utama: "Utama",
 	penunjang: "Penunjang",
-	ruangan: "Ruangan",
 };
 
 const CATEGORY_BADGE = {
 	admin: "bg-slate-100 text-slate-600 border-slate-200",
 	utama: "bg-teal-50 text-teal-800 border-teal-200",
 	penunjang: "bg-cyan-50 text-cyan-800 border-cyan-200",
-	ruangan: "bg-amber-50 text-[#B45309] border-amber-200",
 };
 
 const formatRupiah = (value) =>
@@ -127,6 +125,10 @@ export default function ServiceUnitPage() {
 
 	// Derived filtered & paginated data
 	const filteredUnits = units.filter((u) => {
+		// Kategori "ruangan" (mis. Akomodasi) tidak lagi dipakai — sembunyikan
+		// dari tabel meskipun masih ada data lama dengan kategori ini.
+		if (u.category === "ruangan") return false;
+
 		const q = searchTerm.trim().toLowerCase();
 		if (q) {
 			const haystack = `${u.name || ""} ${u.category || ""} ${u.code || ""}`.toLowerCase();
@@ -172,8 +174,9 @@ export default function ServiceUnitPage() {
 		return withDots;
 	}, [totalPages, safeCurrentPage]);
 
-	const activeCount = units.filter((i) => i.status === "active").length;
-	const avgComponents = units.length === 0 ? 0 : Math.round(servicePrices.length / units.length);
+	const visibleUnits = units.filter((u) => u.category !== "ruangan");
+	const activeCount = visibleUnits.filter((i) => i.status === "active").length;
+	const avgComponents = visibleUnits.length === 0 ? 0 : Math.round(servicePrices.length / visibleUnits.length);
 
 	const openAdd = () => {
 		setEditing(null);
@@ -339,7 +342,7 @@ export default function ServiceUnitPage() {
 						<div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex items-center justify-between">
 							<div>
 								<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Unit Layanan</p>
-								<p className="text-2xl font-extrabold text-slate-900 mt-1">{units.length} Unit</p>
+								<p className="text-2xl font-extrabold text-slate-900 mt-1">{visibleUnits.length} Unit</p>
 							</div>
 							<span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 font-bold">
 								<Building2 className="h-5 w-5" />
@@ -407,7 +410,6 @@ export default function ServiceUnitPage() {
 									<option value="all">Semua Kategori</option>
 									<option value="utama">Utama</option>
 									<option value="penunjang">Penunjang</option>
-									<option value="ruangan">Ruangan</option>
 									<option value="admin">Admin</option>
 								</select>
 							</div>
@@ -480,7 +482,7 @@ export default function ServiceUnitPage() {
 						</div>
 						{totalItems === 0 ? (
 							<div className="py-12 text-center text-slate-400 italic text-xs">
-								{units.length === 0 ? "Belum ada unit layanan. Klik \"Tambah Unit Layanan\" untuk membuat yang pertama." : "Tidak ada unit yang cocok dengan pencarian/filter."}
+								{visibleUnits.length === 0 ? "Belum ada unit layanan. Klik \"Tambah Unit Layanan\" untuk membuat yang pertama." : "Tidak ada unit yang cocok dengan pencarian/filter."}
 							</div>
 						) : (
 							<div className="overflow-x-auto">
@@ -676,7 +678,6 @@ export default function ServiceUnitPage() {
 											>
 												<option value="utama">Utama</option>
 												<option value="penunjang">Penunjang</option>
-												<option value="ruangan">Ruangan</option>
 												<option value="admin">Admin</option>
 											</select>
 										</div>

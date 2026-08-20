@@ -36,6 +36,14 @@ export function usePatientRecords() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // [BARU] Deteksi kalau snap.js sudah ke-load duluan (misal dari navigasi sebelumnya
+  // atau race condition dengan Next.js Script yang tidak refire onLoad)
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.snap && typeof window.snap.pay === "function") {
+      setMidtransReady(true);
+    }
+  }, []);
+
   async function fetchInvoicesFromBE() {
     setInvoiceLoading(true);
     setInvoiceError("");
@@ -282,9 +290,24 @@ export function usePatientRecords() {
     fetchInvoicesFromBE();
   };
 
+  // [BARU] Tunggu window.snap benar-benar siap (max 8 detik), bukan langsung gagal
+  // berdasarkan state React yang bisa saja telat ke-update dibanding kondisi window nyata.
+  async function waitForSnapReady(timeoutMs = 8000, intervalMs = 250) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (typeof window !== "undefined" && window.snap && typeof window.snap.pay === "function") {
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+    return false;
+  }
+
+  // [UBAH] handleProcessOnlinePayment — tunggu snap ready, error lebih jelas & ke-log
   const handleProcessOnlinePayment = async () => {
     if (!selectedInvoice || isProcessingPayment) return;
     setIsProcessingPayment(true);
+    setInvoiceError("");
 
     try {
       if (paymentMethod === "cash") {
@@ -297,20 +320,32 @@ export function usePatientRecords() {
         return;
       }
 
-      if (!midtransReady || typeof window === "undefined" || !window.snap) {
-        throw new Error("Payment Gateway belum siap. Coba refresh halaman.");
+      const ready = await waitForSnapReady();
+      if (!ready) {
+        throw new Error(
+          "Payment Gateway Midtrans belum siap dimuat. Cek koneksi internet Anda atau refresh halaman ini."
+        );
       }
 
       const result = await payMyInvoiceMidtrans(selectedInvoice.id);
       const snapToken = result?.data?.snap_token || result?.data?.snapToken || result?.snap_token || result?.snapToken;
-      if (!snapToken) throw new Error("Token pembayaran tidak tersedia dari backend.");
+      if (!snapToken) {
+        console.error("Respons backend tidak memuat snap_token:", result);
+        throw new Error("Token pembayaran tidak tersedia dari backend.");
+      }
 
       setShowPaymentModal(false);
       window.snap.pay(snapToken, {
         onSuccess: () => startPaymentFlow(selectedInvoice.id),
         onPending: () => startPaymentFlow(selectedInvoice.id),
-        onError: () => setInvoiceError("Pembayaran Midtrans gagal diproses."),
-        onClose: () => {},
+        onError: (err) => {
+          console.error("Midtrans onError:", err);
+          setInvoiceError("Pembayaran Midtrans gagal diproses.");
+        },
+        onClose: () => {
+          // Popup ditutup manual oleh user sebelum menyelesaikan pembayaran — bukan error
+          console.log("Popup Midtrans ditutup sebelum pembayaran selesai.");
+        },
       });
     } catch (err) {
       console.error("Error processing patient payment", err);

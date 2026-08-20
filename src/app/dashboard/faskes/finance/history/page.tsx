@@ -185,11 +185,11 @@ export default function FaskesPatientInvoiceHistoryPage() {
         if (window.snap) {
           window.snap.pay(res.data.snap_token, {
             onSuccess: function () {
-              setFeedback({ type: "success", message: "Pembayaran via Midtrans QRIS Berhasil!" });
+              setFeedback({ type: "success", message: "Pembayaran via Transfer Berhasil!" });
               fetchAllInvoices(selectedPatientId);
             },
             onPending: function () {
-              setFeedback({ type: "warning", message: "Menunggu pembayaran QRIS diselesaikan..." });
+              setFeedback({ type: "warning", message: "Menunggu pembayaran Transfer diselesaikan..." });
             },
             onError: function () {
               setFeedback({ type: "error", message: "Pembayaran Midtrans gagal." });
@@ -303,7 +303,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
                   Riwayat Invoice Pasien
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-                  Daftar rekapitulasi seluruh faktur tagihan medis pasien, status pembayaran kasir/QRIS, serta pencetakan bukti kuitansi resmi RS.
+                  Daftar rekapitulasi seluruh faktur tagihan medis pasien, status pembayaran kasir/Transfer, serta pencetakan bukti kuitansi resmi RS.
                 </p>
               </div>
 
@@ -706,7 +706,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
                       }`}
                     >
                       <Landmark className="h-5 w-5 text-teal-700 mb-1.5" />
-                      Transfer / QRIS (Midtrans)
+                      Transfer
                     </button>
                   </div>
                 </div>
@@ -724,7 +724,7 @@ export default function FaskesPatientInvoiceHistoryPage() {
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
                     <p className="text-xs font-bold text-slate-700">Pembayaran via Midtrans</p>
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Popup Midtrans Snap akan terbuka untuk pasien menyelesaikan pembayaran (Transfer VA / QRIS). Status invoice diperbarui otomatis setelah pembayaran terverifikasi.
+                      Popup Midtrans Snap akan terbuka untuk pasien menyelesaikan pembayaran (Transfer). Status invoice diperbarui otomatis setelah pembayaran terverifikasi.
                     </p>
                   </div>
                 )}

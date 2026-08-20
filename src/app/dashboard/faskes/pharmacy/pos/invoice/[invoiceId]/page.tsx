@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Script from "next/script";
 import { apiGet } from "@/lib/api";
@@ -17,10 +17,14 @@ const formatRupiah = (value) => {
 
 const badgeForStatus = {
   unpaid: "Belum Lunas",
+  pending_cash: "Menunggu Konfirmasi Cash",
   paid: "Lunas",
   cancelled: "Dibatalkan",
   failed: "Gagal",
 };
+
+const MAX_POLL_ATTEMPTS = 20; // ~60 detik total (20 x 3s)
+const POLL_INTERVAL_MS = 3000;
 
 export default function PharmacyPOSInvoicePage() {
   const params = useParams();
@@ -29,47 +33,61 @@ export default function PharmacyPOSInvoicePage() {
   const invoiceId = rawInvoiceId || "";
 
   const [invoice, setInvoice] = useState(null);
-  const [user, setUser] = useState(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch (err) {
-      console.error("Gagal parse user dari localStorage", err);
-      return null;
-    }
-  });
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [checkingManual, setCheckingManual] = useState(false);
   const [midtransReady, setMidtransReady] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
 
-  const removeStoredInvoice = () => {
+  // pakai ref supaya polling lama tidak nyangkut kalau invoiceId berubah / komponen unmount
+  const pollTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    };
+  }, []);
+
+  const removeStoredInvoice = useCallback(() => {
     if (typeof window === "undefined" || !invoiceId) return;
     sessionStorage.removeItem(`pharmacy-pos-invoice-${invoiceId}`);
-  };
+  }, [invoiceId]);
+
+  const fetchInvoice = useCallback(async () => {
+    const response = await apiGet(`/api/invoice/${invoiceId}`);
+    if (response?.success && response.data) {
+      return response.data;
+    }
+    return null;
+  }, [invoiceId]);
 
   useEffect(() => {
     if (!invoiceId) return;
 
     const getStoredInvoice = () => {
-      if (typeof window === "undefined" || !invoiceId) return null;
+      if (typeof window === "undefined") return null;
       const stored = sessionStorage.getItem(`pharmacy-pos-invoice-${invoiceId}`);
       return stored ? JSON.parse(stored) : null;
     };
 
     const loadInvoice = async () => {
       setLoading(true);
-
       try {
-        const response = await apiGet(`/api/invoice/${invoiceId}`);
-        if (response?.success && response.data) {
-          setInvoice(response.data);
+        const data = await fetchInvoice();
+        if (data) {
+          setInvoice(data);
           setFeedback({ type: "", message: "" });
         } else {
           const storedInvoice = getStoredInvoice();
           if (storedInvoice) {
             setInvoice(storedInvoice);
-            setFeedback({ type: "warning", message: "Data invoice lokal ditampilkan sementara. Periksa kembali status setelah pembayaran." });
+            setFeedback({
+              type: "warning",
+              message: "Data invoice lokal ditampilkan sementara. Periksa kembali status setelah pembayaran.",
+            });
           } else {
             setFeedback({ type: "error", message: "Invoice tidak ditemukan." });
           }
@@ -79,7 +97,10 @@ export default function PharmacyPOSInvoicePage() {
         const storedInvoice = getStoredInvoice();
         if (storedInvoice) {
           setInvoice(storedInvoice);
-          setFeedback({ type: "warning", message: "Tidak dapat memuat data server, menampilkan invoice lokal sementara." });
+          setFeedback({
+            type: "warning",
+            message: "Tidak dapat memuat data server, menampilkan invoice lokal sementara.",
+          });
         } else {
           setFeedback({ type: "error", message: err?.message || "Gagal memuat invoice." });
         }
@@ -89,27 +110,76 @@ export default function PharmacyPOSInvoicePage() {
     };
 
     void loadInvoice();
-  }, [invoiceId]);
+  }, [invoiceId, fetchInvoice]);
 
-  const pollInvoiceStatus = async (attempt = 0) => {
-    if (!invoiceId || attempt >= 6) return;
+  const pollInvoiceStatus = useCallback(
+    async (attempt = 0) => {
+      if (!invoiceId || !isMountedRef.current) return;
+
+      if (attempt >= MAX_POLL_ATTEMPTS) {
+        setFeedback({
+          type: "warning",
+          message:
+            "Status belum berubah otomatis. Ini normal untuk beberapa metode pembayaran. Silakan cek status manual di bawah, atau refresh halaman.",
+        });
+        return;
+      }
+
+      try {
+        const data = await fetchInvoice();
+        if (data && isMountedRef.current) {
+          setInvoice(data);
+          if (data.status === "paid") {
+            removeStoredInvoice();
+            setFeedback({ type: "success", message: "Pembayaran terkonfirmasi. Mengalihkan ke POS..." });
+            setTimeout(() => router.push("/dashboard/faskes/pharmacy/pos"), 1200);
+            return;
+          }
+          if (data.status === "cancelled" || data.status === "failed") {
+            setFeedback({
+              type: "error",
+              message: `Pembayaran ${data.status === "cancelled" ? "dibatalkan" : "gagal"}. Silakan buat ulang pembayaran.`,
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Gagal polling status invoice:", err);
+      }
+
+      pollTimeoutRef.current = setTimeout(() => pollInvoiceStatus(attempt + 1), POLL_INTERVAL_MS);
+    },
+    [invoiceId, fetchInvoice, removeStoredInvoice, router]
+  );
+
+  const handleCheckManual = async () => {
+    if (!invoiceId || checkingManual) return;
+    setCheckingManual(true);
+    setFeedback({ type: "info", message: "Mengecek status terbaru..." });
 
     try {
-      const response = await apiGet(`/api/invoice/${invoiceId}`);
-      if (response?.success && response.data) {
-        setInvoice(response.data);
-        if (response.data.status === "paid") {
+      const data = await fetchInvoice();
+      if (data) {
+        setInvoice(data);
+        if (data.status === "paid") {
           removeStoredInvoice();
-          setFeedback({ type: "success", message: "Pembayaran terkonfirmasi. Mengalihkan ke POS..." });
+          setFeedback({ type: "success", message: "Invoice sudah lunas. Mengalihkan ke POS..." });
           setTimeout(() => router.push("/dashboard/faskes/pharmacy/pos"), 1200);
-          return;
+        } else {
+          setFeedback({
+            type: "info",
+            message: `Status saat ini: ${badgeForStatus[data.status] || data.status}. Coba lagi beberapa saat jika sudah membayar.`,
+          });
         }
+      } else {
+        setFeedback({ type: "error", message: "Gagal mengambil status invoice." });
       }
     } catch (err) {
-      console.error("Gagal polling status invoice:", err);
+      console.error("Gagal cek status manual:", err);
+      setFeedback({ type: "error", message: err?.message || "Gagal mengecek status." });
+    } finally {
+      setCheckingManual(false);
     }
-
-    setTimeout(() => pollInvoiceStatus(attempt + 1), 3000);
   };
 
   const handlePayWithMidtrans = async () => {
@@ -119,7 +189,7 @@ export default function PharmacyPOSInvoicePage() {
 
     try {
       const response = await payInvoiceMidtrans(invoiceId);
-      const snapToken = response?.data?.snapToken || response?.snapToken;
+      const snapToken = response?.data?.snap_token || response?.data?.snapToken || response?.snapToken;
 
       if (!snapToken) {
         setFeedback({ type: "error", message: "Gagal mendapatkan token Midtrans." });
@@ -137,14 +207,19 @@ export default function PharmacyPOSInvoicePage() {
           pollInvoiceStatus();
         },
         onPending: () => {
-          setFeedback({ type: "info", message: "Pembayaran pending. Menunggu konfirmasi." });
+          setFeedback({ type: "info", message: "Pembayaran pending. Menunggu konfirmasi..." });
           pollInvoiceStatus();
         },
         onError: () => {
           setFeedback({ type: "error", message: "Pembayaran gagal atau dibatalkan." });
         },
         onClose: () => {
-          setFeedback({ type: "warning", message: "Popup pembayaran ditutup." });
+          setFeedback({
+            type: "warning",
+            message: "Popup pembayaran ditutup. Jika kamu sudah membayar, tunggu beberapa saat lalu cek status manual.",
+          });
+          // tetap mulai polling jaga-jaga user sudah bayar sebelum menutup popup
+          pollInvoiceStatus();
         },
       });
     } catch (err) {
@@ -157,7 +232,7 @@ export default function PharmacyPOSInvoicePage() {
 
   if (!invoiceId) {
     return (
-    <div className="space-y-6">
+      <div className="space-y-6">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <AlertTriangle className="mx-auto h-12 w-12 text-[#DC2626]" />
           <h1 className="mt-4 text-xl font-bold text-slate-900">Invoice tidak ditemukan</h1>
@@ -176,16 +251,14 @@ export default function PharmacyPOSInvoicePage() {
 
   return (
     <div className="space-y-6">
-        <Script
+      <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
         strategy="afterInteractive"
         onLoad={() => setMidtransReady(true)}
       />
-      
-      <div className="flex flex-1 flex-col transition-all duration-300">
-        
 
+      <div className="flex flex-1 flex-col transition-all duration-300">
         <main className="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -240,15 +313,17 @@ export default function PharmacyPOSInvoicePage() {
                   <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3">
                     <div className="rounded-3xl bg-slate-50 p-4 border border-slate-200">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Pasien</p>
-                      <p className="mt-2 font-semibold text-slate-900">{invoice.patient_name || invoice.patient_name || "Pasien Umum / Walk-in"}</p>
+                      <p className="mt-2 font-semibold text-slate-900">{invoice.patient_name || "Pasien Umum / Walk-in"}</p>
                     </div>
                     <div className="rounded-3xl bg-slate-50 p-4 border border-slate-200">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Jumlah</p>
-                      <p className="mt-2 font-semibold text-slate-900">{formatRupiah(Number(invoice.total_amount || invoice.totalAmount || 0))}</p>
+                      <p className="mt-2 font-semibold text-slate-900">
+                        {formatRupiah(Number(invoice.total_amount || invoice.totalAmount || 0))}
+                      </p>
                     </div>
                     <div className="rounded-3xl bg-slate-50 p-4 border border-slate-200">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Metode Bayar</p>
-                      <p className="mt-2 font-semibold text-slate-900">{invoice.payment_method || invoice.paymentMethod || "transfer"}</p>
+                      <p className="mt-2 font-semibold text-slate-900">{invoice.payment_method || "transfer"}</p>
                     </div>
                   </div>
                 </div>
@@ -256,19 +331,26 @@ export default function PharmacyPOSInvoicePage() {
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-900">Rincian Item</h3>
-                    <span className="text-xs uppercase tracking-[0.3em] text-slate-500">{Array.isArray(invoice.items) ? invoice.items.length : 0} item</span>
+                    <span className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                      {Array.isArray(invoice.items) ? invoice.items.length : 0} item
+                    </span>
                   </div>
 
                   <div className="space-y-3">
                     {Array.isArray(invoice.items) && invoice.items.length > 0 ? (
                       invoice.items.map((item, index) => (
-                        <div key={`${item.medicine_id || item.code || index}-${index}`} className="rounded-3xl bg-slate-50 p-4 border border-slate-200">
+                        <div
+                          key={`${item.medicine_id || item.code || index}-${index}`}
+                          className="rounded-3xl bg-slate-50 p-4 border border-slate-200"
+                        >
                           <div className="flex justify-between items-start gap-4">
                             <div>
                               <p className="font-semibold text-slate-900">{item.name || item.description || item.code}</p>
                               <p className="mt-2 text-xs text-slate-500">Qty: {item.qty ?? 1}</p>
                             </div>
-                            <p className="font-bold text-slate-900">{formatRupiah(Number(item.subtotal || item.price * item.qty || 0))}</p>
+                            <p className="font-bold text-slate-900">
+                              {formatRupiah(Number(item.subtotal || item.price * item.qty || 0))}
+                            </p>
                           </div>
                         </div>
                       ))
@@ -285,7 +367,9 @@ export default function PharmacyPOSInvoicePage() {
                   <div className="space-y-3 text-sm text-slate-600">
                     <div className="flex justify-between">
                       <span>Total Tagihan</span>
-                      <span className="font-semibold text-slate-900">{formatRupiah(Number(invoice.total_amount || invoice.totalAmount || 0))}</span>
+                      <span className="font-semibold text-slate-900">
+                        {formatRupiah(Number(invoice.total_amount || invoice.totalAmount || 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Status</span>
@@ -307,6 +391,18 @@ export default function PharmacyPOSInvoicePage() {
                     {invoice.status === "paid" ? "Sudah Terbayar" : "Bayar dengan Midtrans"}
                   </button>
 
+                  {invoice.status !== "paid" ? (
+                    <button
+                      type="button"
+                      disabled={checkingManual}
+                      onClick={handleCheckManual}
+                      className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-3xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
+                    >
+                      {checkingManual ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                      Cek Status Manual
+                    </button>
+                  ) : null}
+
                   {!midtransReady ? (
                     <p className="mt-3 text-xs text-slate-500">Menunggu Midtrans siap. Reload halaman jika popup tidak muncul.</p>
                   ) : null}
@@ -317,7 +413,7 @@ export default function PharmacyPOSInvoicePage() {
                   <ul className="mt-3 space-y-2 list-disc pl-5">
                     <li>Pastikan total invoice sudah sesuai sebelum membayar.</li>
                     <li>Setelah pembayaran sukses, halaman akan otomatis kembali ke POS.</li>
-                    <li>Jika status belum berubah, refresh halaman invoice atau cek riwayat POS.</li>
+                    <li>Jika status belum berubah otomatis, gunakan tombol "Cek Status Manual" di atas.</li>
                   </ul>
                 </div>
               </aside>

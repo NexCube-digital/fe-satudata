@@ -66,8 +66,28 @@ export const payMyInvoiceCash = async (invoiceId) => {
   return await apiPost(`/api/patient/${invoiceId}/pay/cash`);
 };
 
+// [UBAH] samakan perilakunya dengan payInvoiceMidtrans (hospital) — normalisasi snap_token/snapToken
+// supaya konsisten dan gampang dipakai di hook tanpa fallback chain panjang
 export const payMyInvoiceMidtrans = async (invoiceId) => {
-  return await apiPost(`/api/patient/${invoiceId}/pay/midtrans`);
+  const response = await apiPost(`/api/patient/${invoiceId}/pay/midtrans`);
+  const snapToken =
+    response?.data?.snap_token ||
+    response?.data?.snapToken ||
+    response?.data?.token ||
+    response?.snap_token ||
+    response?.snapToken ||
+    response?.token;
+
+  if (!snapToken) return response;
+
+  return {
+    ...response,
+    data: {
+      ...(response.data || {}),
+      snap_token: snapToken,
+      snapToken,
+    },
+  };
 };
 
 export default {
