@@ -43,7 +43,16 @@ import {
   HeartPulse,
   HeartHandshakeIcon,
   DollarSignIcon,
-  Ambulance
+  Ambulance,
+  Hospital,
+  Footprints,
+  BedSingle,
+  Slice,
+  Microscope,
+  Radiation,
+  BoneFracture,
+  Quote,
+  ScrollText
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 import { FaNotesMedical } from "react-icons/fa";
@@ -264,13 +273,72 @@ export default function Sidebar({ role }: SidebarProps) {
         } catch (e) {}
 
         try {
+          // Read pending support test requests from localStorage
+          let pendingCounts: Record<string, number> = {};
+          try {
+            const rawReqs = typeof window !== "undefined" ? localStorage.getItem("satudata_support_test_requests") : null;
+            if (rawReqs) {
+              const reqs = JSON.parse(rawReqs);
+              if (Array.isArray(reqs)) {
+                reqs.forEach((rq: any) => {
+                  if (rq.status === "MENUNGGU_PROSES") {
+                    const c = String(rq.category || "").toLowerCase();
+                    if (c) pendingCounts[c] = (pendingCounts[c] || 0) + 1;
+                  }
+                });
+              }
+            }
+          } catch (err) {}
+
           const recRes = await apiGet("/api/hospital/medical-record");
+          const countsByType: Record<string, number> = {};
+          let totalRecords = 0;
+
           if (recRes?.success && Array.isArray(recRes?.data)) {
-            setBadgeCounts((prev) => ({
-              ...prev,
-              records: `${recRes.data.length}`
-            }));
+            totalRecords = recRes.data.length;
+            recRes.data.forEach((r: any) => {
+              const type = String(r.record_type || r.type || r.service_type || r.category || "").toLowerCase();
+              if (type) countsByType[type] = (countsByType[type] || 0) + 1;
+            });
           }
+
+          const getCountStr = (key: string, altKeys: string[] = []) => {
+            const keys = [key, ...altKeys];
+            let pending = 0;
+            let recordCount = 0;
+            keys.forEach((k) => {
+              pending += pendingCounts[k] || 0;
+              recordCount += countsByType[k] || 0;
+            });
+            const sum = pending + recordCount;
+            return sum > 0 ? `${sum}` : null;
+          };
+
+          setBadgeCounts((prev) => ({
+            ...prev,
+            records: totalRecords > 0 ? `${totalRecords}` : null,
+            igd: getCountStr("igd"),
+            odc: getCountStr("odc"),
+            rajal: getCountStr("rajal", ["rawat_jalan"]),
+            lab: getCountStr("lab", ["laboratorium"]),
+            radiologi: getCountStr("radiologi"),
+            bedah: getCountStr("bedah", ["ok"]),
+            rehab: getCountStr("rehab", ["rehab_medis"]),
+            icu: getCountStr("icu"),
+            discharge_summary: getCountStr("discharge_summary", ["ringkasan_pulang"]),
+            ranap: getCountStr("ranap", ["rawat_inap"]),
+            rujuk: getCountStr("rujuk"),
+            death: getCountStr("death", ["meninggal"]),
+
+            labRequest: pendingCounts["lab"] ? `${pendingCounts["lab"]}` : null,
+            radiologiRequest: pendingCounts["radiologi"] ? `${pendingCounts["radiologi"]}` : null,
+            bedahRequest: pendingCounts["bedah"] ? `${pendingCounts["bedah"]}` : null,
+            rehabRequest: pendingCounts["rehab"] ? `${pendingCounts["rehab"]}` : null,
+            icuRequest: pendingCounts["icu"] ? `${pendingCounts["icu"]}` : null,
+            ranapRequest: pendingCounts["ranap"] ? `${pendingCounts["ranap"]}` : null,
+            rujukRequest: pendingCounts["rujuk"] ? `${pendingCounts["rujuk"]}` : null,
+            deathRequest: pendingCounts["death"] ? `${pendingCounts["death"]}` : null,
+          }));
         } catch (e) {}
 
         try {
@@ -318,6 +386,8 @@ export default function Sidebar({ role }: SidebarProps) {
     };
 
     fetchBadgeData();
+    const badgeInterval = setInterval(fetchBadgeData, 3000);
+    return () => clearInterval(badgeInterval);
   }, [role]);
 
   const getMenuItems = (): MenuItem[] => {
@@ -412,151 +482,151 @@ export default function Sidebar({ role }: SidebarProps) {
             icon: Ambulance,
             category: "PELAYANAN MEDIS",
             dropdownKey: "igd",
-            badge: badgeCounts.records,
+            badge: badgeCounts.igd,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
               { href: "/dashboard/faskes/medical-records/igd/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/igd/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/igd/history", label: "History Dokumen", icon: History, badge: badgeCounts.igd, permission: "medical_record:read" },
             ]
           },
           {
             label: "KELOLA ODC",
-            icon: FileText,
+            icon: Hospital,
             category: "PELAYANAN MEDIS",
             dropdownKey: "odc",
-            badge: badgeCounts.records,
+            badge: badgeCounts.odc,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
               { href: "/dashboard/faskes/medical-records/odc/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/odc/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/odc/history", label: "History Dokumen", icon: History, badge: badgeCounts.odc, permission: "medical_record:read" },
             ]
           },
           {
             label: "KELOLA RAJAL",
-            icon: FileText,
+            icon: Footprints,
             category: "PELAYANAN MEDIS",
             dropdownKey: "rajal",
-            badge: badgeCounts.records,
+            badge: badgeCounts.rajal,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
               { href: "/dashboard/faskes/medical-records/rajal/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/rajal/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
-            ]
-          },
-          {
-            label: "KELOLA RANAP",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
-            dropdownKey: "ranap",
-            badge: badgeCounts.records,
-            permissionRequired: ["medical_record:upload", "medical_record:read"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/ranap/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/ranap/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/ranap/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
-            ]
-          },
-          {
-            label: "KELOLA BEDAH",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
-            dropdownKey: "bedah",
-            badge: badgeCounts.records,
-            permissionRequired: ["medical_record:upload", "medical_record:read"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/bedah/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/bedah/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/bedah/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
-            ]
-          },
-          {
-            label: "KELOLA ICU",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
-            dropdownKey: "icu",
-            badge: badgeCounts.records,
-            permissionRequired: ["medical_record:upload", "medical_record:read"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/icu/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/icu/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/icu/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/rajal/history", label: "History Dokumen", icon: History, badge: badgeCounts.rajal, permission: "medical_record:read" },
             ]
           },
           {
             label: "KELOLA LABORATORIUM",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
+            icon: Microscope,
+            category: "PELAYANAN PENUNJANG",
             dropdownKey: "lab",
-            badge: badgeCounts.records,
+            badge: badgeCounts.lab,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records/lab/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/lab/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.labRequest, permission: "medical_record:upload" },
               { href: "/dashboard/faskes/medical-records/lab/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/lab/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/lab/history", label: "History Dokumen", icon: History, badge: badgeCounts.lab, permission: "medical_record:read" },
             ]
           },
           {
             label: "KELOLA RADIOLOGI",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
+            icon: Radiation,
+            category: "PELAYANAN PENUNJANG",
             dropdownKey: "radiologi",
-            badge: badgeCounts.records,
+            badge: badgeCounts.radiologi,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records/radiologi/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/radiologi/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.radiologiRequest, permission: "medical_record:upload" },
               { href: "/dashboard/faskes/medical-records/radiologi/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/radiologi/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/radiologi/history", label: "History Dokumen", icon: History, badge: badgeCounts.radiologi, permission: "medical_record:read" },
+            ]
+          },
+          {
+            label: "KELOLA BEDAH",
+            icon: Slice,
+            category: "PELAYANAN KHUSUS",
+            dropdownKey: "bedah",
+            badge: badgeCounts.bedah,
+            permissionRequired: ["medical_record:upload", "medical_record:read"],
+            children: [
+              { href: "/dashboard/faskes/medical-records/bedah/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.bedahRequest, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/bedah/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/bedah/history", label: "History Dokumen", icon: History, badge: badgeCounts.bedah, permission: "medical_record:read" },
             ]
           },
           {
             label: "KELOLA REHAB",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
+            icon: BoneFracture,
+            category: "PELAYANAN KHUSUS",
             dropdownKey: "rehab",
-            badge: badgeCounts.records,
+            badge: badgeCounts.rehab,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records/rehab/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/rehab/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.rehabRequest, permission: "medical_record:upload" },
               { href: "/dashboard/faskes/medical-records/rehab/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/rehab/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/rehab/history", label: "History Dokumen", icon: History, badge: badgeCounts.rehab, permission: "medical_record:read" },
             ]
           },
           {
-            label: "KELOLA RUJUK",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
-            dropdownKey: "rujuk",
-            badge: badgeCounts.records,
+            label: "KELOLA ICU",
+            icon: HeartPulse,
+            category: "PERAWATAN INTENSIF",
+            dropdownKey: "icu",
+            badge: badgeCounts.icu,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
-              { href: "/dashboard/faskes/medical-records/rujuk/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/rujuk/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/rujuk/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/icu/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.icuRequest, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/icu/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/icu/history", label: "History Dokumen", icon: History, badge: badgeCounts.icu, permission: "medical_record:read" },
             ]
           },
           {
-            label: "KELOLA DEATH",
+            label: "RINGKASAN PULANG",
             icon: FileText,
-            category: "PELAYANAN MEDIS",
-            dropdownKey: "death",
-            badge: badgeCounts.records,
-            permissionRequired: ["medical_record:upload", "medical_record:read"],
-            children: [
-              { href: "/dashboard/faskes/medical-records/death/request", label: "Permintaan Data", icon: History, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/death/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/death/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
-            ]
-          },
-          {
-            label: "KELOLA RINGKASAN PULANG",
-            icon: FileText,
-            category: "PELAYANAN MEDIS",
+            category: "DISPOSISI",
             dropdownKey: "discharge_summary",
-            badge: badgeCounts.records,
+            badge: badgeCounts.discharge_summary,
             permissionRequired: ["medical_record:upload", "medical_record:read"],
             children: [
               { href: "/dashboard/faskes/medical-records/discharge-summary/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
-              { href: "/dashboard/faskes/medical-records/discharge-summary/history", label: "History Dokumen", icon: FileText, badge: badgeCounts.records, permission: "medical_record:read" },
+              { href: "/dashboard/faskes/medical-records/discharge-summary/history", label: "History Dokumen", icon: History, badge: badgeCounts.discharge_summary, permission: "medical_record:read" },
+            ]
+          }, 
+          {
+            label: "KELOLA RANAP",
+            icon: BedSingle,
+            category: "DISPOSISI",
+            dropdownKey: "ranap",
+            badge: badgeCounts.ranap,
+            permissionRequired: ["medical_record:upload", "medical_record:read"],
+            children: [
+              { href: "/dashboard/faskes/medical-records/ranap/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.ranapRequest, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/ranap/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/ranap/history", label: "History Dokumen", icon: History, badge: badgeCounts.ranap, permission: "medical_record:read" },
+            ]
+          },
+          {
+            label: "DOKUMEN RUJUK",
+            icon: Quote,
+            category: "DISPOSISI",
+            dropdownKey: "rujuk",
+            badge: badgeCounts.rujuk,
+            permissionRequired: ["medical_record:upload", "medical_record:read"],
+            children: [
+              { href: "/dashboard/faskes/medical-records/rujuk/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.rujukRequest, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/rujuk/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/rujuk/history", label: "History Dokumen", icon: History, badge: badgeCounts.rujuk, permission: "medical_record:read" },
+            ]
+          },
+          {
+            label: "DOKUMEN KEMATIAN",
+            icon: ScrollText,
+            category: "DISPOSISI",
+            dropdownKey: "death",
+            badge: badgeCounts.death,
+            permissionRequired: ["medical_record:upload", "medical_record:read"],
+            children: [
+              { href: "/dashboard/faskes/medical-records/death/request", label: "Permintaan Data", icon: FileText, badge: badgeCounts.deathRequest, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/death/upload", label: "Upload Baru", icon: Plus, permission: "medical_record:upload" },
+              { href: "/dashboard/faskes/medical-records/death/history", label: "History Dokumen", icon: History, badge: badgeCounts.death, permission: "medical_record:read" },
             ]
           },
           { 
@@ -783,6 +853,16 @@ export default function Sidebar({ role }: SidebarProps) {
   const menuItems = getMenuItems();
   const roleHeader = getRoleHeader();
   const accountStatus = getAccountStatus();
+
+  const categoryCountMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    menuItems.forEach((item) => {
+      if (item.category) {
+        map[item.category] = (map[item.category] || 0) + 1;
+      }
+    });
+    return map;
+  }, [menuItems]);
 
   const searchableMenuOptions: SearchableOption[] = useMemo(() => {
     const opts: SearchableOption[] = [];

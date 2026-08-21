@@ -761,20 +761,7 @@ export default function FormODC({
 				</div>
 			</div>
 
-			{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN ONE DAY CARE */}
-			<DischargeSummary
-				processName="One Day Care"
-				currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
-				onUpdateStatus={(val) => {
-					handleFieldChange("discharge_status", val);
-					handleFieldChange("status", val);
-				}}
-				onNavigateToRanap={onNavigateToRanap}
-				onNavigateToRujuk={onNavigateToRujuk}
-				onNavigateToDeath={onNavigateToDeath}
-				includeObat={includeObat}
-				onToggleIncludeObat={onToggleIncludeObat}
-			/>
+
 
 			{/* 6. EDUKASI & RESUME PULANG (DISCHARGE INSTRUCTIONS) */}
 			<div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-2xs">

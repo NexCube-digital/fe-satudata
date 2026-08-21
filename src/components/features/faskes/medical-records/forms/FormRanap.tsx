@@ -3,7 +3,11 @@
 import React, { useState, useMemo } from "react";
 import DischargeSummary from "./DischargeSummary";
 import ModernSelect from "@/components/ui/ModernSelect";
-import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
+import {
+	createOrUpdateSupportTestRequest,
+	getSupportTestRequestByVisit,
+	SupportTestRequest,
+} from "@/services/supportTestStorage";
 import {
 	User,
 	Users,
@@ -19,6 +23,9 @@ import {
 	Check,
 	Building2,
 	Activity,
+	HeartPulse,
+	Send,
+	CheckCircle,
 } from "lucide-react";
 
 const FALLBACK_ROOM_CATALOG = [
@@ -88,6 +95,36 @@ export default function FormRanap({
 	const rmDigits = noRM && noRM !== "-------"
 		? (String(noRM).replace(/\D/g, "")).padStart(6, "0").slice(-6).split("")
 		: ["-", "-", "-", "-", "-", "-"];
+
+	const [icuReq, setIcuReq] = useState<SupportTestRequest | null>(null);
+	const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+
+	React.useEffect(() => {
+		const checkIcu = () => {
+			const found = getSupportTestRequestByVisit(activeVisitId, "icu");
+			setIcuReq(found || null);
+		};
+		checkIcu();
+		const interval = setInterval(checkIcu, 2000);
+		return () => clearInterval(interval);
+	}, [activeVisitId]);
+
+	const handleSendIcuRequest = () => {
+		const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Rawat Inap";
+		const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+		const docName = doctorName || "Dokter DPJP";
+
+		const newReq = createOrUpdateSupportTestRequest({
+			category: "icu",
+			visitId: activeVisitId,
+			patientName: pName,
+			noRm: nRm,
+			requestOrigin: "Instalasi Rawat Inap (Ranap)",
+			testDetails: entryDetail.icu_notes || "Permintaan Transfer & Perawatan Intensif Pasien di Ruang ICU/HCU",
+			doctorName: docName,
+		});
+		setIcuReq(newReq);
+	};
 
 	const handleFieldChange = (field, value) => {
 		onUpdateDetailField(type, field, value);
@@ -802,20 +839,89 @@ export default function FormRanap({
 						</div>
 					</div>
 
-					{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN RAWAT INAP */}
-					<DischargeSummary
-						processName="Rawat Inap"
-						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
-						onUpdateStatus={(val) => {
-							handleFieldChange("discharge_status", val);
-							handleFieldChange("status", val);
-						}}
-						onNavigateToRujuk={onNavigateToRujuk}
-						onNavigateToDeath={onNavigateToDeath}
-						hideRanapOption={true}
-						includeObat={includeObat}
-						onToggleIncludeObat={onToggleIncludeObat}
-					/>
+				</div>
+
+				{/* CARD PERAWATAN INTENSIF (ICU / HCU) */}
+				<div className="p-4 rounded-2xl border-2 border-rose-100 bg-rose-50/40 space-y-3 shadow-2xs">
+					<div className="flex items-center justify-between">
+						<label className="text-xs font-black uppercase text-rose-950 flex items-center gap-2">
+							<HeartPulse className="h-4 w-4 text-rose-600" /> PERAWATAN INTENSIF (ICU / HCU)
+						</label>
+						<div className="flex items-center gap-3 text-xs font-extrabold">
+							<label className="flex items-center gap-1 cursor-pointer">
+								<input
+									type="radio"
+									name="need_icu_care"
+									value="Ya"
+									checked={entryDetail.need_icu_care === "Ya"}
+									onChange={(e) => handleFieldChange("need_icu_care", e.target.value)}
+									className="h-4 w-4 text-rose-600 focus:ring-rose-500 cursor-pointer"
+								/>
+								<span>Ya</span>
+							</label>
+							<label className="flex items-center gap-1 cursor-pointer">
+								<input
+									type="radio"
+									name="need_icu_care"
+									value="Tidak"
+									checked={entryDetail.need_icu_care === "Tidak"}
+									onChange={(e) => handleFieldChange("need_icu_care", e.target.value)}
+									className="h-4 w-4 text-rose-600 focus:ring-rose-500 cursor-pointer"
+								/>
+								<span>Tidak</span>
+							</label>
+						</div>
+					</div>
+
+					{entryDetail.need_icu_care === "Ya" && (
+						<div className="space-y-2 pt-1 border-t border-rose-100">
+							<label className="block text-[11px] font-bold text-slate-700">
+								Rincian / Indikasi Perawatan Intensif (ICU / HCU) yang Diminta:
+							</label>
+							<textarea
+								rows={2}
+								value={entryDetail.icu_notes || ""}
+								onChange={(e) => handleFieldChange("icu_notes", e.target.value)}
+								placeholder="Contoh: Pasien membutuhkan monitoring hemodinamik ketat, ventilator support, post-op cito..."
+								className="w-full rounded-xl border border-rose-200 bg-white p-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-rose-600"
+							/>
+
+							{(!icuReq || icuReq.status !== "SELESAI") && (
+								<button
+									type="button"
+									onClick={handleSendIcuRequest}
+									className="w-full py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-rose-600/20 cursor-pointer"
+								>
+									<Send className="h-3.5 w-3.5" />
+									<span>Kirim Permintaan ke /dashboard/faskes/medical-records/icu/request</span>
+								</button>
+							)}
+
+							{icuReq?.status === "MENUNGGU_PROSES" && (
+								<div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2">
+									<Clock className="h-4 w-4 text-amber-600 shrink-0 animate-spin" />
+									<div>
+										<div className="font-extrabold">Permintaan Perawatan ICU Telah Dikirim</div>
+										<div className="text-[10px] text-amber-700">Menunggu diproses di halaman ICU Request.</div>
+									</div>
+								</div>
+							)}
+
+							{icuReq?.status === "SELESAI" && icuReq.resultData && (
+								<div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs space-y-1.5">
+									<div className="flex items-center gap-1.5 font-extrabold text-emerald-800">
+										<CheckCircle className="h-4 w-4 text-emerald-600" />
+										<span>Hasil Observasi / Laporan ICU Terlampir (Dikirim Kembali dari Ruang ICU)</span>
+									</div>
+									<div className="bg-white p-2.5 rounded-lg border border-emerald-100 font-sans text-[11px] space-y-1 text-slate-800">
+										{icuReq.resultData.roomType && <div>• Ruangan/Bed ICU: <span className="font-bold">{icuReq.resultData.roomType}</span></div>}
+										{icuReq.resultData.doctorExpertise && <div>• DPJP Intensivis: <span className="font-bold">{icuReq.resultData.doctorExpertise}</span></div>}
+										{icuReq.resultData.transferNotes && <div className="text-slate-600 pt-1 border-t border-slate-100">Catatan/Ringkasan ICU: {icuReq.resultData.transferNotes}</div>}
+									</div>
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 
 				{/* SURAT PERNYATAAN & SIGNATURE BAR */}
@@ -859,53 +965,54 @@ export default function FormRanap({
 						</div>
 					</div>
 
-					<DischargeSummary
-						processName="Rawat Inap"
-						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
-						hideRanapOption={true}
-						onUpdateStatus={(val) => {
-							handleFieldChange("discharge_status", val);
-							handleFieldChange("status", val);
-
-							const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
-							const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Rawat Inap";
-							const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
-							const docName = doctorName || "Dokter DPJP";
-
-							if (val.includes("Rujuk") || val.includes("Faskes")) {
-								createOrUpdateSupportTestRequest({
-									category: "rujuk",
-									visitId: activeVisitId,
-									patientName: pName,
-									noRm: nRm,
-									requestOrigin: "Instalasi Rawat Inap (Ranap)",
-									testDetails: "Permintaan Rujukan Medis & Transfer Pasien Ranap ke Faskes Lain",
-									doctorName: docName,
-								});
-							} else if (val.includes("Meninggal") || val === "Meninggal") {
-								createOrUpdateSupportTestRequest({
-									category: "death",
-									visitId: activeVisitId,
-									patientName: pName,
-									noRm: nRm,
-									requestOrigin: "Instalasi Rawat Inap (Ranap)",
-									testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien Ranap",
-									doctorName: docName,
-								});
-							}
-						}}
-						onNavigateToRanap={onNavigateToRanap}
-						onNavigateToRujuk={onNavigateToRujuk}
-						onNavigateToDeath={onNavigateToDeath}
-						includeObat={includeObat}
-						onToggleIncludeObat={onToggleIncludeObat}
-					/>
-
 					<div className="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-2 border-t border-slate-300">
 						<span>Distribusi Dokumen: Putih - Keuangan | Merah - Rekam Medis</span>
 						<span>Halaman 1 dari 1</span>
 					</div>
 				</div>
+
+				{/* RINGKASAN KONDISI SEBELUM MENINGGALKAN RAWAT INAP (DISCHARGE SUMMARY) */}
+				<DischargeSummary
+					processName="Rawat Inap"
+					currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+					hideRanapOption={true}
+					onUpdateStatus={(val) => {
+						handleFieldChange("discharge_status", val);
+						handleFieldChange("status", val);
+
+						const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+						const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Rawat Inap";
+						const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+						const docName = doctorName || "Dokter DPJP";
+
+						if (val.includes("Rujuk") || val.includes("Faskes")) {
+							createOrUpdateSupportTestRequest({
+								category: "rujuk",
+								visitId: activeVisitId,
+								patientName: pName,
+								noRm: nRm,
+								requestOrigin: "Instalasi Rawat Inap (Ranap)",
+								testDetails: "Permintaan Rujukan Medis & Transfer Pasien Ranap ke Faskes Lain",
+								doctorName: docName,
+							});
+						} else if (val.includes("Meninggal") || val === "Meninggal") {
+							createOrUpdateSupportTestRequest({
+								category: "death",
+								visitId: activeVisitId,
+								patientName: pName,
+								noRm: nRm,
+								requestOrigin: "Instalasi Rawat Inap (Ranap)",
+								testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien Ranap",
+								doctorName: docName,
+							});
+						}
+					}}
+					onNavigateToRanap={onNavigateToRanap}
+					onNavigateToRujuk={onNavigateToRujuk}
+					onNavigateToDeath={onNavigateToDeath}
+					includeObat={includeObat}
+					onToggleIncludeObat={onToggleIncludeObat}
+				/>
 
 			</div>
 		</div>

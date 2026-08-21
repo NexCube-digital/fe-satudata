@@ -18,6 +18,10 @@ import {
 	AlertCircle,
 	Scissors,
 	Activity,
+	Microscope,
+	Radiation,
+	Slice,
+	BoneFracture,
 } from "lucide-react";
 import {
 	createOrUpdateSupportTestRequest,
@@ -625,7 +629,7 @@ export function IgdTriaseForm(props: any) {
 					{/* CARD PEMERIKSAAN PENUNJANG (LABORATORIUM & RADIOLOGI) */}
 					<div className="space-y-4 pt-4 border-t-2 border-slate-200">
 						<div className="flex items-center gap-2">
-							<TestTube className="h-5 w-5 text-indigo-600" />
+							<Microscope className="h-5 w-5 text-indigo-600" />
 							<span className="block font-black text-slate-900 uppercase text-xs tracking-wider">
 								Pemeriksaan Penunjang (Laboratorium &amp; Radiologi)
 							</span>
@@ -636,7 +640,7 @@ export function IgdTriaseForm(props: any) {
 							<div className="p-4 rounded-2xl border-2 border-indigo-100 bg-indigo-50/40 space-y-3">
 								<div className="flex items-center justify-between">
 									<label className="text-xs font-black uppercase text-indigo-950 flex items-center gap-1.5">
-										<TestTube className="h-4 w-4 text-indigo-600" /> 1. Pemeriksaan Laboratorium
+										<Microscope className="h-4 w-4 text-indigo-600" /> 1. Pemeriksaan Laboratorium
 									</label>
 									<div className="flex items-center gap-3 text-xs font-extrabold">
 										<label className="flex items-center gap-1 cursor-pointer">
@@ -723,7 +727,7 @@ export function IgdTriaseForm(props: any) {
 							<div className="p-4 rounded-2xl border-2 border-cyan-100 bg-cyan-50/40 space-y-3">
 								<div className="flex items-center justify-between">
 									<label className="text-xs font-black uppercase text-cyan-950 flex items-center gap-1.5">
-										<FileText className="h-4 w-4 text-cyan-600" /> 2. Pemeriksaan Radiologi
+										<Radiation className="h-4 w-4 text-cyan-600" /> 2. Pemeriksaan Radiologi
 									</label>
 									<div className="flex items-center gap-3 text-xs font-extrabold">
 										<label className="flex items-center gap-1 cursor-pointer">
@@ -821,7 +825,7 @@ export function IgdTriaseForm(props: any) {
 					{/* PROSEDUR KHUSUS (BEDAH OK & REHAB MEDIS) */}
 					<div className="space-y-4 pt-4 border-t-2 border-slate-200">
 						<div className="flex items-center gap-2">
-							<Scissors className="h-5 w-5 text-rose-600" />
+							<Slice className="h-5 w-5 text-rose-600" />
 							<span className="block font-black text-slate-900 uppercase text-xs tracking-wider">
 								PROSEDUR KHUSUS (BEDAH OK &amp; REHAB MEDIS)
 							</span>
@@ -832,7 +836,7 @@ export function IgdTriaseForm(props: any) {
 							<div className="p-4 rounded-2xl border-2 border-rose-100 bg-rose-50/40 space-y-3">
 								<div className="flex items-center justify-between">
 									<label className="text-xs font-black uppercase text-rose-950 flex items-center gap-1.5">
-										<Scissors className="h-4 w-4 text-rose-600" /> 1. KELOLA BEDAH (OK)
+										<Slice className="h-4 w-4 text-rose-600" /> 1. KELOLA BEDAH (OK)
 									</label>
 									<div className="flex items-center gap-3 text-xs font-extrabold">
 										<label className="flex items-center gap-1 cursor-pointer">
@@ -916,7 +920,7 @@ export function IgdTriaseForm(props: any) {
 							<div className="p-4 rounded-2xl border-2 border-emerald-100 bg-emerald-50/40 space-y-3">
 								<div className="flex items-center justify-between">
 									<label className="text-xs font-black uppercase text-emerald-950 flex items-center gap-1.5">
-										<Activity className="h-4 w-4 text-emerald-600" /> 2. KELOLA REHAB MEDIS
+										<BoneFracture className="h-4 w-4 text-emerald-600" /> 2. KELOLA REHAB MEDIS
 									</label>
 									<div className="flex items-center gap-3 text-xs font-extrabold">
 										<label className="flex items-center gap-1 cursor-pointer">
