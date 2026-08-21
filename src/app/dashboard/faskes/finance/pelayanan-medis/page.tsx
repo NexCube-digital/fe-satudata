@@ -189,10 +189,6 @@ export default function TarifLayananMedisPage() {
 	const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
 	const [submitting, setSubmitting] = useState(false);
 
-	// NOTE: apiFetch (lib/api.js) melempar error kalau request gagal, dan
-	// selalu mengembalikan { message, data } (tanpa field `success`) kalau
-	// sukses. Jadi kalau sampai baris setelah await tanpa exception, artinya
-	// request PASTI berhasil — ambil isinya langsung dari res.data.
 	const loadData = async ({ silent = false } = {}) => {
 		silent ? setRefreshing(true) : setLoading(true);
 		try {
