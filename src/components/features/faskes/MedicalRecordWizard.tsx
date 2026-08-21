@@ -165,6 +165,57 @@ function getDetailFieldsConfig(type: string) {
   }
 
   if (
+    normType === 'bedah' ||
+    normType.includes('bedah') ||
+    normType.includes('operasi')
+  ) {
+    return [
+      { name: 'bedah_form_data', label: 'FORMULIR OPERASI BEDAH & ANESTESI (RM BEDAH 01)', section: 'S', inputType: 'bedah_form' },
+    ];
+  }
+
+  if (
+    normType === 'one_day_care' ||
+    normType === 'odc' ||
+    normType.includes('odc') ||
+    normType.includes('one_day')
+  ) {
+    return [
+      { name: 'odc_form_data', label: 'FORMULIR ONE DAY CARE (RM ODC 01)', section: 'S', inputType: 'odc_form' },
+    ];
+  }
+
+  if (
+    normType === 'rehab' ||
+    normType.includes('rehab') ||
+    normType.includes('fisio')
+  ) {
+    return [
+      { name: 'rehab_form_data', label: 'FORMULIR REHABILITASI MEDIS (RM REHAB 01)', section: 'S', inputType: 'rehab_form' },
+    ];
+  }
+
+  if (
+    normType === 'icu' ||
+    normType.includes('icu') ||
+    normType.includes('intensive')
+  ) {
+    return [
+      { name: 'complaint', label: 'Alasan Masuk ICU / Indikasi Kritis', section: 'S', inputType: 'textarea', placeholder: 'Kondisi kritis saat pasien masuk ICU...' },
+      { name: 'anamnesis', label: 'Riwayat Penyakit & Indikasi Rawat ICU', section: 'S', inputType: 'textarea', placeholder: 'Riwayat penyakit, trauma, syok, koma...' },
+      { name: 'vital_signs', label: 'Tanda-Tanda Vital & Hemodinamik Kritis', section: 'O', inputType: 'vital_signs' },
+      { name: 'physical_exam', label: 'Pemeriksaan Fisik & Kesadaran (GCS)', section: 'O', inputType: 'textarea', placeholder: 'Pemeriksaan fisik organ vital, GCS...' },
+      { name: 'ventilator_setting', label: 'Mode & Setting Ventilator / Oksigenasi', section: 'O', inputType: 'textarea', placeholder: 'Mode ventilator, FiO2, PEEP, RR, TV...' },
+      { name: 'clinical_observation', label: 'Catatan Observasi Hemodinamik & CPPT ICU', section: 'O', inputType: 'textarea', placeholder: 'Evaluasi harian, balans cairan (intake/output), obat inotropik...' },
+      { name: 'icd10_primary', label: 'Diagnosis Utama ICU (ICD-10)', section: 'A', inputType: 'icd10_autocomplete' },
+      { name: 'icd10_secondary', label: 'Diagnosis Sekunder ICU (ICD-10)', section: 'A', inputType: 'icd10_multiselect' },
+      { name: 'diagnosis', label: 'Diagnosis Dokter & Komplikasi Kritis', section: 'A', inputType: 'textarea', placeholder: 'Diagnosis sepsis, ARDS, syok kardiogenik...' },
+      { name: 'action', label: 'Terapi Medis, Inotropik & Tindakan ICU', section: 'P', inputType: 'textarea', placeholder: 'Tindakan resusitasi, nutrisi parenteral, tindakan invasif...' },
+      { name: 'discharge_summary', label: 'Ringkasan Keluar ICU (Transfer / Pulang)', section: 'P', inputType: 'textarea', placeholder: 'Ringkasan kondisi saat pindah ke ruangan biasa...' },
+    ];
+  }
+
+  if (
     normType === 'death_certificate' ||
     normType.includes('death') ||
     normType.includes('kematian') ||
@@ -395,9 +446,10 @@ function buildStateFromRecord(record: any, selectedTypesHint?: string[]) {
 
 export interface MedicalRecordWizardProps {
   recordId?: any;
+  defaultServiceType?: string;
 }
 
-export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ recordId: routeRecordId = null }) => {
+export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ recordId: routeRecordId = null, defaultServiceType = '' }) => {
   const router = useRouter();
   const isEditRoute = !!routeRecordId;
 
@@ -427,7 +479,7 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
   };
 
   const [visitId, setVisitId] = useState<string>(generateVisitId);
-  const [primaryEntryPoint, setPrimaryEntryPoint] = useState<string>('');
+  const [primaryEntryPoint, setPrimaryEntryPoint] = useState<string>(defaultServiceType || '');
   const [igdDischargeDecision, setIgdDischargeDecision] = useState<string>('pulang');
   const [rujukanData, setRujukanData] = useState<any>({ targetFacility: '', reason: '', condition: '', transport: 'Ambulans' });
   const [deathData, setDeathData] = useState<any>({ deathTime: '', deathCause: '', certifierDoctor: '' });
@@ -451,9 +503,11 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
   const [nursingCareNotes, setNursingCareNotes] = useState<string>('');
   const [penunjangResultText, setPenunjangResultText] = useState<string>('');
 
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(defaultServiceType ? [defaultServiceType] : []);
   const [selectedPenunjang, setSelectedPenunjang] = useState<any[]>([]);
-  const [detailsByType, setDetailsByType] = useState<Record<string, any>>({});
+  const [detailsByType, setDetailsByType] = useState<Record<string, any>>(
+    defaultServiceType ? { [defaultServiceType]: buildEmptyDetail(defaultServiceType) } : {}
+  );
 
   const handlePrimaryEntryPointChange = (entryPoint: string) => {
     setPrimaryEntryPoint(entryPoint);
@@ -669,13 +723,13 @@ export const MedicalRecordWizard: React.FC<MedicalRecordWizardProps> = ({ record
 
   const steps = useMemo(
     () => [
-      STEP_KUNJUNGAN,
+      ...(defaultServiceType ? [] : [STEP_KUNJUNGAN]),
       ...sortedSelectedTypes.map(detailStepKey),
       ...(includeObat ? [STEP_LAMPIRAN] : []),
     ],
-    [sortedSelectedTypes, includeObat]
+    [defaultServiceType, sortedSelectedTypes, includeObat]
   );
-  const currentStep = steps[currentStepIndex] || STEP_KUNJUNGAN;
+  const currentStep = steps[currentStepIndex] || (defaultServiceType ? detailStepKey(defaultServiceType) : STEP_KUNJUNGAN);
 
   useEffect(() => {
     if (prescriptionItems.length > 0 || attachmentFiles.length > 0 || existingAttachmentsInfo.length > 0) {

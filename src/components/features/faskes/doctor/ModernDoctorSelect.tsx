@@ -8,9 +8,10 @@ export interface ModernDoctorSelectProps {
   value?: string;
   onChange: (val: string) => void;
   required?: boolean;
+  placeholder?: string;
 }
 
-export default function ModernDoctorSelect({ doctors = [], value, onChange, required }: ModernDoctorSelectProps) {
+export default function ModernDoctorSelect({ doctors = [], value, onChange, required, placeholder }: ModernDoctorSelectProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +103,7 @@ export default function ModernDoctorSelect({ doctors = [], value, onChange, requ
               <span className="text-slate-400 text-sm">
                 {doctors.length === 0
                   ? 'Belum ada dokter terhubung'
-                  : 'Pilih Dokter / Poli Faskes...'}
+                  : (placeholder || 'Pilih Dokter / Poli Faskes...')}
               </span>
             )}
           </span>

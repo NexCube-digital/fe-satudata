@@ -32,7 +32,7 @@ import {
 	ArrowRightLeft,
 	Building2,
 } from "lucide-react";
-import { FormIGD, FormRanap, FormRajal, FormBedah, FormODC, FormRehab, FormRujuk, DeathCertificate } from "./forms";
+import { FormIGD, FormRanap, FormRajal, FormBedah, FormODC, FormRehab, FormICU, FormRujuk, DeathCertificate } from "./forms";
 import MedicalRecordUpdateActions from "@/components/features/faskes/MedicalRecordUpdate";
 import { ICD10_DATABASE, ICD9_DATABASE, searchICD10, searchICD9 } from "@/data/icdData";
 import DigitalSignatureCanvas from "@/components/ui/DigitalSignatureCanvas";
@@ -1265,6 +1265,212 @@ export default function MedicalRecordMain(props) {
 
 						return (
 							<div className="space-y-6 font-sans">
+								{/* MODAL BUAT PASIEN BARU */}
+								<NewPatientModal
+									isOpen={isNewPatientOpen}
+									onClose={() => setIsNewPatientOpen(false)}
+									onSuccess={(newP) => {
+										if (onPatientCreated) onPatientCreated(newP);
+									}}
+								/>
+
+								{/* INFORMASI KUNJUNGAN & PASIEN CARD */}
+								<div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
+									<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+										<div className="flex items-center gap-2.5">
+											<div className="h-8 w-8 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold">
+												<User className="h-4 w-4" />
+											</div>
+											<div>
+												<h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+													Informasi Utama Pasien &amp; Kunjungan
+												</h3>
+												<p className="text-[11px] text-slate-500 font-medium">
+													Visit ID: <span className="font-mono font-bold text-teal-800">{visitId}</span>
+												</p>
+											</div>
+										</div>
+										<span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+											Form Entri Pasien
+										</span>
+									</div>
+
+									<div className="grid gap-4 md:grid-cols-2">
+										{/* JUDUL REKAM MEDIS */}
+										<div>
+											<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5">
+												Judul Rekam Medis
+											</label>
+											<input
+												value={title}
+												onChange={(e) => onTitleChange(e.target.value)}
+												type="text"
+												placeholder="Contoh: Pemeriksaan Gula Darah / Pasien IGD"
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-900 focus:border-teal-600 focus:bg-white focus:outline-none font-semibold transition"
+												required
+											/>
+										</div>
+
+										{/* PILIH PASIEN & TAMBAH PASIEN BARU */}
+										<div>
+											<div className="flex items-center justify-between mb-1.5">
+												<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600">
+													Pilih Pasien Terotorisasi
+												</label>
+												<button
+													type="button"
+													onClick={() => setIsNewPatientOpen(true)}
+													className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-0.5 rounded-xl transition cursor-pointer"
+												>
+													<UserPlus className="h-3 w-3 text-teal-700" /> + Pasien Baru
+												</button>
+											</div>
+											<SearchableSelect
+												value={patientId}
+												onChange={onPatientChange}
+												options={patientOptions}
+												isLoading={loadingPatients}
+												loadingText="Memuat pasien terotorisasi..."
+												placeholder="Pilih pasien yang sudah menyetujui akses"
+												emptyText="Tidak ada pasien yang cocok dengan pencarian."
+												disabled={!!recordId}
+												required
+											/>
+										</div>
+									</div>
+
+									<div className="grid gap-4 md:grid-cols-2">
+										{/* TANGGAL KUNJUNGAN */}
+										<div>
+											<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5">
+												Tanggal Kunjungan
+											</label>
+											<input
+												value={visitDate}
+												onChange={(e) => onVisitDateChange(e.target.value)}
+												type="date"
+												min={isEditRoute ? undefined : todayStr}
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-900 focus:border-teal-600 focus:bg-white focus:outline-none font-semibold transition"
+												required
+											/>
+										</div>
+
+										{/* WAKTU KUNJUNGAN */}
+										<div>
+											<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5 flex items-center gap-1.5">
+												<Clock className="h-3.5 w-3.5 text-teal-700" /> Waktu Kunjungan
+											</label>
+											<input
+												value={visitTime || ""}
+												onChange={(e) => onVisitTimeChange && onVisitTimeChange(e.target.value)}
+												type="time"
+												className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-900 focus:border-teal-600 focus:bg-white focus:outline-none font-bold text-center transition"
+												required
+											/>
+										</div>
+									</div>
+
+									{/* DOKTER SPESIALISASI FILTER & DPJP */}
+									<div className="grid gap-4 md:grid-cols-2">
+										<div>
+											<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5">
+												Spesialisasi Dokter <span className="text-slate-400 font-medium normal-case ml-1">(filter)</span>
+											</label>
+											<SearchableSelect
+												value={doctorSpecialtyFilter}
+												onChange={onDoctorSpecialtyFilterChange}
+												options={[
+													{ value: "all", label: "Semua Spesialisasi" },
+													...(specialtiesList || []).map((s) => ({ value: s.name, label: s.name })),
+												]}
+												placeholder="Semua Spesialisasi"
+											/>
+										</div>
+										<div>
+											<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5">
+												Dokter Penanggung Jawab (DPJP) <span className="text-slate-400 font-medium normal-case ml-1">(opsional)</span>
+											</label>
+											<SearchableSelect
+												value={doctorId}
+												onChange={onDoctorChange}
+												options={doctorOptions}
+												isLoading={loadingDoctors}
+												loadingText="Memuat daftar dokter..."
+												placeholder="-- Pilih DPJP --"
+												emptyText={
+													doctorSpecialtyFilter && doctorSpecialtyFilter !== "all"
+														? `Tidak ada dokter dengan spesialisasi ${doctorSpecialtyFilter}.`
+														: typeOfTreatment
+														? "Tidak ada dokter yang sesuai dengan jenis layanan ini."
+														: "Tidak ada dokter yang cocok dengan pencarian."
+												}
+											/>
+											{selectedDoctorInfo?.practice_schedule?.trim() && (
+												<p className="mt-1.5 flex items-start gap-1.5 text-xs text-slate-500">
+													<Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" />
+													Jam praktik: <span className="font-semibold text-slate-700">{selectedDoctorInfo.practice_schedule}</span>
+												</p>
+											)}
+										</div>
+									</div>
+
+									{/* IDENTITAS PENGANTAR */}
+									<div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3.5 space-y-2.5">
+										<div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+											<User className="h-3.5 w-3.5 text-teal-700" />
+											<span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
+												Identitas Pengantar <span className="text-slate-400 font-normal normal-case">(Khusus jika ada / kondisi darurat)</span>
+											</span>
+										</div>
+										<div className="grid gap-3 md:grid-cols-3">
+											<div>
+												<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nama Pengantar</label>
+												<input
+													type="text"
+													value={escortName || ""}
+													onChange={(e) => onEscortNameChange && onEscortNameChange(e.target.value)}
+													placeholder="Nama pengantar pasien..."
+													className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-teal-600 focus:outline-none"
+												/>
+											</div>
+											<div>
+												<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hubungan Dengan Pasien</label>
+												<input
+													type="text"
+													value={escortRelation || ""}
+													onChange={(e) => onEscortRelationChange && onEscortRelationChange(e.target.value)}
+													placeholder="Hubungan dengan pasien (misal: Ayah, Suami, Istri, Kerabat)..."
+													className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-teal-600 focus:outline-none"
+												/>
+											</div>
+											<div>
+												<label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">No. Telepon Pengantar</label>
+												<input
+													type="tel"
+													value={escortPhone || ""}
+													onChange={(e) => onEscortPhoneChange && onEscortPhoneChange(e.target.value)}
+													placeholder="0812xxxxxxx"
+													className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-teal-600 focus:outline-none"
+												/>
+											</div>
+										</div>
+									</div>
+
+									{/* RINGKASAN MEDIS */}
+									<div>
+										<label className="block text-[11px] font-bold uppercase tracking-[0.15em] text-slate-600 mb-1.5">
+											Ringkasan Medis
+										</label>
+										<textarea
+											value={summary}
+											onChange={(e) => onSummaryChange(e.target.value)}
+											rows={2}
+											placeholder="Ringkasan singkat kondisi pasien"
+											className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-900 focus:border-teal-600 focus:bg-white focus:outline-none transition"
+										/>
+									</div>
+								</div>
+
 								{/* Header Bar Unit Entri */}
 								<div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
 									<div className="flex items-center gap-2.5">
@@ -1333,6 +1539,15 @@ export default function MedicalRecordMain(props) {
 										normLabel.includes("fisioterapi")
 									) {
 										return <FormRehab {...formProps} />;
+									}
+
+									if (
+										normType.includes("icu") ||
+										normType.includes("intensive") ||
+										normLabel.includes("icu") ||
+										normLabel.includes("intensive")
+									) {
+										return <FormICU {...formProps} />;
 									}
 
 									if (

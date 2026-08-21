@@ -4,5 +4,6 @@ export { default as FormRajal } from './FormRajal';
 export { default as FormBedah } from './FormBedah';
 export { default as FormODC } from './FormODC';
 export { default as FormRehab } from './FormRehab';
+export { default as FormICU } from './FormICU';
 export { default as FormRujuk } from './FormRujuk';
 export { default as DeathCertificate } from './DeathCertificate';
