@@ -160,6 +160,11 @@ const UNIT_CATEGORY_RULES: CategoryRule[] = [
 	},
 	{ key: "radiologi", match: ["radiologi", "rontgen"], options: ["Sederhana", "Sedang", "Sulit", "Khusus"] },
 	{ key: "rehab_medik", match: ["rehab medik", "rehabilitasi", "fisioterapi"], options: ["Kecil", "Sedang", "Besar"] },
+	{
+		key: "farmasi",
+		match: ["farmasi", "pharmacy", "fmi"],
+		options: ["Tuslah", "Tindakan Medik Non Operatif", "Visite", "Konseling", "Lainnya"],
+	},
 ];
 
 function resolveCategoryRule(unitName: string | null | undefined): CategoryRule | null {

@@ -141,6 +141,11 @@ const UNIT_CATEGORY_RULES = [
 		match: ["rehab medik", "rehabilitasi", "fisioterapi"],
 		options: ["Kecil", "Sedang", "Besar"],
 	},
+	{
+		key: "farmasi",
+		match: ["farmasi", "pharmacy", "fmi"],
+		options: ["Tuslah", "Tindakan Medik Non Operatif", "Visite", "Konseling", "Lainnya"],
+	},
 ];
 
 function resolveCategoryRule(unitName) {
