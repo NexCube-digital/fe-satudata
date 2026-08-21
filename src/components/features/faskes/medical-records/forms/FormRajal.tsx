@@ -20,6 +20,7 @@ import {
 	ArrowRight,
 } from "lucide-react";
 import { searchICD10 } from "@/data/icdData";
+import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
 
 const FALLBACK_LAB_ITEMS = [
 	"Darah Lengkap / Rutin (Hematologi)",
@@ -575,6 +576,43 @@ export default function FormRajal({
 						onUpdateStatus={(val) => {
 							onUpdateDetailField(type, "discharge_status", val);
 							onUpdateDetailField(type, "status", val);
+
+							const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+							const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Rawat Jalan";
+							const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+							const docName = selectedDoctor?.name || entryDetail.dpjp_doctor || "Dokter Rajal";
+
+							if (val.includes("Rawat Inap") || val === "Rawat Inap") {
+								createOrUpdateSupportTestRequest({
+									category: "ranap",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Rawat Jalan (Rajal)",
+									testDetails: "Permintaan Transfer & Pendaftaran Rawat Inap Pasien Poliklinik",
+									doctorName: docName,
+								});
+							} else if (val.includes("Rujuk") || val.includes("Faskes")) {
+								createOrUpdateSupportTestRequest({
+									category: "rujuk",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Rawat Jalan (Rajal)",
+									testDetails: "Permintaan Rujukan Medis & Transfer Pasien Rajal ke Faskes Lain",
+									doctorName: docName,
+								});
+							} else if (val.includes("Meninggal") || val === "Meninggal") {
+								createOrUpdateSupportTestRequest({
+									category: "death",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Rawat Jalan (Rajal)",
+									testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien Rajal",
+									doctorName: docName,
+								});
+							}
 						}}
 						onNavigateToRanap={onNavigateToRanap}
 						onNavigateToRujuk={onNavigateToRujuk}

@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Pill } from 'lucide-react';
+import Link from 'next/link';
+import { Pill, Send, ArrowRight, ExternalLink } from 'lucide-react';
 
 export interface DischargeSummaryProps {
   processName: string; // e.g., "UGD", "Rawat Jalan", "Rawat Inap", "Bedah Sentral", "One Day Care", "Rehab Medik", "Rujukan Medis"
@@ -84,16 +85,24 @@ export default function DischargeSummary({
       {/* Banner & Trigger Rawat Inap */}
       {isMatch(currentStatus, "Rawat Inap") && !hideRanapOption && (
         <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs font-semibold text-purple-900 flex flex-wrap items-center justify-between gap-2">
-          <span>Formulir Rawat Inap telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-          {onNavigateToRanap && (
-            <button
-              type="button"
-              onClick={() => onNavigateToRanap()}
-              className="px-3 py-1.5 bg-purple-800 text-white rounded-lg font-bold text-[11px] hover:bg-purple-900 transition cursor-pointer shadow-xs"
+          <span>✓ Permintaan Transfer Rawat Inap telah dibuat &amp; dikirimkan ke <strong>/dashboard/faskes/medical-records/ranap/request</strong></span>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/faskes/medical-records/ranap/request"
+              className="px-3 py-1.5 bg-purple-700 text-white rounded-lg font-bold text-[11px] hover:bg-purple-800 transition cursor-pointer shadow-xs inline-flex items-center gap-1"
             >
-              Buka Form Ranap &rarr;
-            </button>
-          )}
+              <ExternalLink className="h-3 w-3" /> Buka Request Ranap &rarr;
+            </Link>
+            {onNavigateToRanap && (
+              <button
+                type="button"
+                onClick={() => onNavigateToRanap()}
+                className="px-3 py-1.5 bg-purple-900 text-white rounded-lg font-bold text-[11px] hover:bg-black transition cursor-pointer shadow-xs"
+              >
+                Form Ranap &rarr;
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -101,16 +110,24 @@ export default function DischargeSummary({
       {isMatch(currentStatus, "Rujuk ke Faskes Lain") && !hideRujukOption && (
         <div className="space-y-3 pt-3 border-t border-purple-100">
           <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-900 flex flex-wrap items-center justify-between gap-2">
-            <span>Formulir Rujukan Medis (FormRujuk) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-            {onNavigateToRujuk && (
-              <button
-                type="button"
-                onClick={() => onNavigateToRujuk()}
-                className="px-3 py-1.5 bg-indigo-800 text-white rounded-lg font-bold text-[11px] hover:bg-indigo-900 transition cursor-pointer shadow-xs"
+            <span>✓ Permintaan Rujukan Medis telah dibuat &amp; dikirimkan ke <strong>/dashboard/faskes/medical-records/rujuk/request</strong></span>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/dashboard/faskes/medical-records/rujuk/request"
+                className="px-3 py-1.5 bg-indigo-700 text-white rounded-lg font-bold text-[11px] hover:bg-indigo-800 transition cursor-pointer shadow-xs inline-flex items-center gap-1"
               >
-                Buka Form Rujuk &rarr;
-              </button>
-            )}
+                <ExternalLink className="h-3 w-3" /> Buka Request Rujuk &rarr;
+              </Link>
+              {onNavigateToRujuk && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToRujuk()}
+                  className="px-3 py-1.5 bg-indigo-900 text-white rounded-lg font-bold text-[11px] hover:bg-black transition cursor-pointer shadow-xs"
+                >
+                  Form Rujuk &rarr;
+                </button>
+              )}
+            </div>
           </div>
           {(onTransportChange || onTargetFacilityChange) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -152,16 +169,24 @@ export default function DischargeSummary({
       {/* Banner & Trigger Surat Keterangan Kematian */}
       {isMatch(currentStatus, "Meninggal") && (
         <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-900 flex flex-wrap items-center justify-between gap-2">
-          <span>Formulir Surat Keterangan Kematian (DeathCertificate) telah diaktifkan pada tahapan pelayanan rekam medis.</span>
-          {onNavigateToDeath && (
-            <button
-              type="button"
-              onClick={() => onNavigateToDeath()}
-              className="px-3 py-1.5 bg-rose-800 text-white rounded-lg font-bold text-[11px] hover:bg-rose-900 transition cursor-pointer shadow-xs"
+          <span>✓ Permintaan Keterangan Kematian telah dibuat &amp; dikirimkan ke <strong>/dashboard/faskes/medical-records/death/request</strong></span>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/faskes/medical-records/death/request"
+              className="px-3 py-1.5 bg-rose-700 text-white rounded-lg font-bold text-[11px] hover:bg-rose-800 transition cursor-pointer shadow-xs inline-flex items-center gap-1"
             >
-              Buka Surat Kematian &rarr;
-            </button>
-          )}
+              <ExternalLink className="h-3 w-3" /> Buka Request Death &rarr;
+            </Link>
+            {onNavigateToDeath && (
+              <button
+                type="button"
+                onClick={() => onNavigateToDeath()}
+                className="px-3 py-1.5 bg-rose-900 text-white rounded-lg font-bold text-[11px] hover:bg-black transition cursor-pointer shadow-xs"
+              >
+                Surat Kematian &rarr;
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -170,7 +195,7 @@ export default function DischargeSummary({
         <div className="pt-3 border-t border-purple-100 flex flex-wrap items-center justify-between gap-3 bg-purple-50/60 p-3 rounded-xl">
           <div className="flex items-center gap-2 text-xs font-extrabold text-purple-950">
             <Pill className="h-4 w-4 text-purple-700 shrink-0" />
-            <span>Sisipkan Resep Obat & Lampiran Rekam Medis?</span>
+            <span>Sisipkan Resep Obat &amp; Lampiran Rekam Medis?</span>
           </div>
           <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-purple-200 shadow-2xs">
             <button

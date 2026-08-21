@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import DischargeSummary from "./DischargeSummary";
 import ModernSelect from "@/components/ui/ModernSelect";
+import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
 import {
 	User,
 	Users,
@@ -857,6 +858,48 @@ export default function FormRanap({
 							</p>
 						</div>
 					</div>
+
+					<DischargeSummary
+						processName="Rawat Inap"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						hideRanapOption={true}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+
+							const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+							const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Rawat Inap";
+							const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+							const docName = doctorName || "Dokter DPJP";
+
+							if (val.includes("Rujuk") || val.includes("Faskes")) {
+								createOrUpdateSupportTestRequest({
+									category: "rujuk",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Rawat Inap (Ranap)",
+									testDetails: "Permintaan Rujukan Medis & Transfer Pasien Ranap ke Faskes Lain",
+									doctorName: docName,
+								});
+							} else if (val.includes("Meninggal") || val === "Meninggal") {
+								createOrUpdateSupportTestRequest({
+									category: "death",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Rawat Inap (Ranap)",
+									testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien Ranap",
+									doctorName: docName,
+								});
+							}
+						}}
+						onNavigateToRanap={onNavigateToRanap}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 
 					<div className="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-2 border-t border-slate-300">
 						<span>Distribusi Dokumen: Putih - Keuangan | Merah - Rekam Medis</span>

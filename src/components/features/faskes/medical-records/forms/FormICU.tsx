@@ -21,6 +21,8 @@ import {
   FileCheck2,
 } from "lucide-react";
 import DigitalSignatureCanvas from "@/components/ui/DigitalSignatureCanvas";
+import DischargeSummary from "./DischargeSummary";
+import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
 
 export default function FormICU({
   entryDetail = {} as any,
@@ -725,6 +727,58 @@ export default function FormICU({
           </div>
         </div>
       </div>
+
+      {/* DISCHARGE SUMMARY ICU */}
+      <DischargeSummary
+        processName="ICU"
+        currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+        onUpdateStatus={(val) => {
+          handleFieldChange("discharge_status", val);
+          handleFieldChange("status", val);
+
+          const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+          const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien ICU";
+          const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+          const docName = doctorName || "DPJP Intensivis ICU";
+
+          if (val.includes("Rawat Inap") || val === "Rawat Inap") {
+            createOrUpdateSupportTestRequest({
+              category: "ranap",
+              visitId: activeVisitId,
+              patientName: pName,
+              noRm: nRm,
+              requestOrigin: "Intensive Care Unit (ICU)",
+              testDetails: "Permintaan Transfer Pasien Keluar ICU ke Bangsal Rawat Inap",
+              doctorName: docName,
+            });
+          } else if (val.includes("Rujuk") || val.includes("Faskes")) {
+            createOrUpdateSupportTestRequest({
+              category: "rujuk",
+              visitId: activeVisitId,
+              patientName: pName,
+              noRm: nRm,
+              requestOrigin: "Intensive Care Unit (ICU)",
+              testDetails: "Permintaan Rujukan Medis & Transfer Pasien ICU ke RS Lain",
+              doctorName: docName,
+            });
+          } else if (val.includes("Meninggal") || val === "Meninggal") {
+            createOrUpdateSupportTestRequest({
+              category: "death",
+              visitId: activeVisitId,
+              patientName: pName,
+              noRm: nRm,
+              requestOrigin: "Intensive Care Unit (ICU)",
+              testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien ICU",
+              doctorName: docName,
+            });
+          }
+        }}
+        onNavigateToRanap={onNavigateToRanap}
+        onNavigateToRujuk={onNavigateToRujuk}
+        onNavigateToDeath={onNavigateToDeath}
+        includeObat={includeObat}
+        onToggleIncludeObat={onToggleIncludeObat}
+      />
 
       {/* BAGIAN 5: TANDA TANGAN DPJP RUANG ICU & DOKTER DPJP */}
       <div className="border border-slate-300 rounded-2xl p-5 bg-white space-y-4">

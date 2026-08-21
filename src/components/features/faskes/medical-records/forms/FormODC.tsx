@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import DischargeSummary from "./DischargeSummary";
+import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
 import {
 	Clock,
 	Calendar,
@@ -840,6 +841,57 @@ export default function FormODC({
 							</div>
 						</div>
 					</div>
+
+					<DischargeSummary
+						processName="One Day Care"
+						currentStatus={entryDetail.discharge_status || entryDetail.status || "Membaik"}
+						onUpdateStatus={(val) => {
+							handleFieldChange("discharge_status", val);
+							handleFieldChange("status", val);
+
+							const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+							const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien ODC";
+							const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+							const docName = doctorName || "Dokter ODC";
+
+							if (val.includes("Rawat Inap") || val === "Rawat Inap") {
+								createOrUpdateSupportTestRequest({
+									category: "ranap",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "One Day Care (ODC)",
+									testDetails: "Permintaan Transfer & Pendaftaran Rawat Inap Pasien ODC",
+									doctorName: docName,
+								});
+							} else if (val.includes("Rujuk") || val.includes("Faskes")) {
+								createOrUpdateSupportTestRequest({
+									category: "rujuk",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "One Day Care (ODC)",
+									testDetails: "Permintaan Rujukan Medis & Transfer Pasien ODC ke Faskes Lain",
+									doctorName: docName,
+								});
+							} else if (val.includes("Meninggal") || val === "Meninggal") {
+								createOrUpdateSupportTestRequest({
+									category: "death",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "One Day Care (ODC)",
+									testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien ODC",
+									doctorName: docName,
+								});
+							}
+						}}
+						onNavigateToRanap={onNavigateToRanap}
+						onNavigateToRujuk={onNavigateToRujuk}
+						onNavigateToDeath={onNavigateToDeath}
+						includeObat={includeObat}
+						onToggleIncludeObat={onToggleIncludeObat}
+					/>
 				</div>
 			</div>
 		</div>

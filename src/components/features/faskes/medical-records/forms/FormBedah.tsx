@@ -26,6 +26,7 @@ import {
 	Thermometer,
 } from "lucide-react";
 import { searchICD10, searchICD9 } from "@/data/icdData";
+import { createOrUpdateSupportTestRequest } from "@/services/supportTestStorage";
 
 export default function FormBedah({
 
@@ -817,6 +818,43 @@ export default function FormBedah({
 						onUpdateStatus={(val) => {
 							handleFieldChange("discharge_status", val);
 							handleFieldChange("status", val);
+
+							const activeVisitId = visitId || entryDetail.visit_id || "VISIT-20260821-SEDC";
+							const pName = selectedPatient?.name || entryDetail.patient_name || "Pasien Bedah";
+							const nRm = selectedPatient?.mr_number || entryDetail.no_rm || "RM-00129";
+							const docName = primaryOperatorDoctor || "Dokter Bedah";
+
+							if (val.includes("Rawat Inap") || val === "Rawat Inap") {
+								createOrUpdateSupportTestRequest({
+									category: "ranap",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Bedah Sentral (IBS)",
+									testDetails: "Permintaan Transfer & Pendaftaran Rawat Inap Pasien Pasca Operasi",
+									doctorName: docName,
+								});
+							} else if (val.includes("Rujuk") || val.includes("Faskes")) {
+								createOrUpdateSupportTestRequest({
+									category: "rujuk",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Bedah Sentral (IBS)",
+									testDetails: "Permintaan Rujukan Medis & Transfer Pasien Bedah ke Faskes Lain",
+									doctorName: docName,
+								});
+							} else if (val.includes("Meninggal") || val === "Meninggal") {
+								createOrUpdateSupportTestRequest({
+									category: "death",
+									visitId: activeVisitId,
+									patientName: pName,
+									noRm: nRm,
+									requestOrigin: "Instalasi Bedah Sentral (IBS)",
+									testDetails: "Permintaan Verifikasi & Penerbitan Surat Keterangan Kematian Pasien Bedah",
+									doctorName: docName,
+								});
+							}
 						}}
 						onNavigateToRanap={onNavigateToRanap}
 						onNavigateToRujuk={onNavigateToRujuk}

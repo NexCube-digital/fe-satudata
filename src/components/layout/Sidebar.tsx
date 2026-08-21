@@ -42,7 +42,8 @@ import {
   HeartPlus,
   HeartPulse,
   HeartHandshakeIcon,
-  DollarSignIcon
+  DollarSignIcon,
+  Ambulance
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 import { FaNotesMedical } from "react-icons/fa";
@@ -408,7 +409,7 @@ export default function Sidebar({ role }: SidebarProps) {
           },
           {
             label: "KELOLA IGD",
-            icon: FileText,
+            icon: Ambulance,
             category: "PELAYANAN MEDIS",
             dropdownKey: "igd",
             badge: badgeCounts.records,
