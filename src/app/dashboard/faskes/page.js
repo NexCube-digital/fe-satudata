@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Plus,
   Trash2,
+  XCircle,
   DollarSign,
   Search,
   Lock,
@@ -522,7 +523,7 @@ export default function FaskesDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {requestsList.slice(0, 3).map((req) => (
+                    {requestsList.slice(0, 4).map((req) => (
                       <tr key={req.id} className="hover:bg-slate-50/50 transition">
                         <td className="py-2.5 px-3 text-center">
                           <p className="font-bold text-slate-900 text-xs">{req.patientName}</p>
@@ -538,9 +539,17 @@ export default function FaskesDashboard() {
                             <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
                               <CheckCircle className="h-2.5 w-2.5" /> Disetujui
                             </span>
-                          ) : (
+                          ) : req.status === "Pending Pasien" || req.status === "Pending" ? (
                             <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 animate-pulse">
                               <Clock className="h-2.5 w-2.5" /> Pending
+                            </span>
+                          ) : req.status === "Rejected" || req.status === "Revoked" ? (
+                            <span className="inline-flex items-center justify-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[9px] font-bold text-rose-700">
+                              <XCircle className="h-2.5 w-2.5" /> {req.status}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center gap-1 rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[9px] font-bold text-slate-700">
+                              <AlertCircle className="h-2.5 w-2.5" /> {req.status}
                             </span>
                           )}
                         </td>

@@ -18,6 +18,7 @@ import {
   Filter,
   ChevronDown,
   Check,
+  XCircle,
   X
 } from "lucide-react";
 
@@ -297,13 +298,17 @@ export default function FaskesRequestsHistory() {
                             <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[10px] font-bold text-emerald-700">
                               <CheckCircle className="h-3 w-3 text-emerald-600" /> Approved
                             </span>
-                          ) : req.status === "Pending Pasien" ? (
+                          ) : req.status === "Pending Pasien" || req.status === "Pending" ? (
                             <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 border border-amber-250 px-3 py-1 text-[10px] font-bold text-amber-700 animate-pulse">
                               <Clock className="h-3 w-3 text-amber-600" /> Pending
                             </span>
+                          ) : req.status === "Rejected" || req.status === "Revoked" ? (
+                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[10px] font-bold text-rose-700">
+                              <XCircle className="h-3 w-3 text-rose-600" /> {req.status}
+                            </span>
                           ) : (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-secondary-tint border border-teal-200 px-3 py-1 text-[10px] font-bold text-primary">
-                              <AlertCircle className="h-3 w-3" /> {req.status}
+                            <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[10px] font-bold text-slate-700">
+                              <AlertCircle className="h-3 w-3 text-slate-500" /> {req.status}
                             </span>
                           )}
                         </td>

@@ -143,9 +143,9 @@ export default function Sidebar({ role }) {
           {
             title: "Master Data",
             items: [
-              { href: "/dashboard/faskes/patients", label: "DATA PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
-              { href: "/dashboard/faskes/medical-records", label: "RECORD MEDIS", icon: FileText, badge: badgeCounts.records || "EHR" },
-              { href: "/dashboard/faskes/doctor/list", label: "DATA DOCTOR", icon: Stethoscope },
+              { href: "/dashboard/faskes/patients", label: "PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
+              { href: "/dashboard/faskes/medical-records", label: "MEDICAL RECORDS", icon: FileText, badge: badgeCounts.records || "EHR" },
+              { href: "/dashboard/faskes/doctor/list", label: "DOCTOR", icon: Stethoscope },
             ]
           },
         ];
