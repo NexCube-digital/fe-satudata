@@ -95,7 +95,7 @@ export default function AudienceSwitcher() {
   const current = useMemo(() => audienceData[activeAudience], [activeAudience]);
 
   return (
-    <section id="panel" className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start py-8">
+    <section id="panel" className="w-full my-2 mb-10 sm:mb-16 lg:mb-20 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
       {/* Left Column: Switcher Controls */}
       <div className="glass-panel rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8 reveal-left">
         <p className="text-xs font-extrabold uppercase tracking-[0.35em] text-[#0D9488]">Pilih Konteks Pengguna</p>

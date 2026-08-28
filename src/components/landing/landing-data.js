@@ -53,7 +53,7 @@ export const workflowSteps = [
 export const audienceData = {
   patient: {
     label: "Portal Pasien",
-    accent: "from-[#7F1D1D] via-[#A61B2D] to-[#4C0B14]",
+    accent: "from-[#0D9488] via-[#0F766E] to-[#115E59]",
     checklist: [
       "Kelola izin akses per rumah sakit secara granular",
       "Pantau riwayat akses rekam medis secara real-time",
@@ -62,7 +62,7 @@ export const audienceData = {
   },
   hospital: {
     label: "Portal RS / Faskes",
-    accent: "from-[#7F1D1D] via-[#A61B2D] to-[#6D0D24]",
+    accent: "from-[#0D9488] via-[#0F766E] to-[#115E59]",
     checklist: [
       "Ajukan permintaan akses data pasien dengan NIK",
       "Pantau status persetujuan pasien secara langsung",

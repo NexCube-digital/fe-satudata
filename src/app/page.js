@@ -46,7 +46,7 @@ export default function Home() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
         <Navbar walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
 
-        <div className="flex flex-1 flex-col gap-5 py-2 lg:gap-6 lg:py-3">
+        <div className="flex flex-1 flex-col gap-12 py-4 lg:gap-16 lg:py-6">
           <Hero walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
           <FeatureGrid />
           <AudienceSwitcher walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
