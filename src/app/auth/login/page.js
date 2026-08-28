@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Script from "next/script";
-import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
+import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2, KeyRound, IdCard } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
 import { useToast } from "@/components/shared/Toast";
 
@@ -14,14 +14,24 @@ export default function LoginPage() {
   const toast = useToast();
   const [role, setRole] = useState("pasien"); // "pasien", "rumah_sakit"
   const [loginStep, setLoginStep] = useState("select"); // "select", "form"
+
+  // Khusus role pasien: metode login dipilih eksplisit oleh user, TIDAK auto-detect
+  const [pasienLoginMethod, setPasienLoginMethod] = useState("email"); // "email" | "nik"
+
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isInactive, setIsInactive] = useState(false);
+  const [isPinNotSet, setIsPinNotSet] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg, setResendMsg] = useState("");
+
+  // Login pakai NIK+PIN hanya berlaku jika role pasien DAN user memilih metode "nik"
+  const isNikMode = role === "pasien" && pasienLoginMethod === "nik";
 
   const handleGoogleLoginSuccess = async (response) => {
     setError("");
@@ -34,7 +44,6 @@ export default function LoginPage() {
         setUser(result.data.user);
         toast.success("Login Google berhasil!");
 
-        // Redirect berdasarkan role
         const userRole = result.data.user.role;
         if (userRole === "admin") {
           router.push("/dashboard/admin");
@@ -60,7 +69,7 @@ export default function LoginPage() {
         client_id: clientId,
         callback: handleGoogleLoginSuccess,
       });
-      
+
       const containerForm = document.getElementById("google-signin-btn-form");
       if (containerForm) {
         window.google.accounts.id.renderButton(
@@ -86,22 +95,64 @@ export default function LoginPage() {
     return () => clearTimeout(timer);
   }, [loginStep, role]);
 
+  // Reset field kredensial & identifier setiap kali metode login pasien berpindah (email <-> NIK)
+  useEffect(() => {
+    setIdentifier("");
+    setPassword("");
+    setPin("");
+    setError("");
+    setIsInactive(false);
+    setIsPinNotSet(false);
+    setResendMsg("");
+  }, [pasienLoginMethod, role]);
+
+  const handleIdentifierChange = (e) => {
+    if (isNikMode) {
+      // Hanya angka, dibatasi tegas maksimal 16 digit
+      const val = e.target.value.replace(/\D/g, "").slice(0, 16);
+      setIdentifier(val);
+    } else {
+      const val = e.target.value.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
+      setIdentifier(val);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setResendMsg("");
     setIsInactive(false);
+    setIsPinNotSet(false);
+
+    // Validasi ketat NIK: harus TEPAT 16 digit, tidak boleh kurang/lebih
+    if (isNikMode && !/^\d{16}$/.test(identifier)) {
+      const msg = "NIK harus terdiri dari tepat 16 digit angka.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (isNikMode && !/^\d{6}$/.test(pin)) {
+      const msg = "PIN harus terdiri dari 6 digit angka.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const result = await apiPost("/api/auth/login", { identifier, password });
+      const payload = isNikMode
+        ? { identifier, pin }
+        : { identifier, password };
+
+      const result = await apiPost("/api/auth/login", payload);
 
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
         toast.success("Berhasil masuk!");
 
-        // Redirect berdasarkan role user
         const userRole = result.data.user.role;
         if (userRole === "admin") {
           router.push("/dashboard/admin");
@@ -113,9 +164,30 @@ export default function LoginPage() {
       }
     } catch (err) {
       const msg = err.message || "Login gagal, silakan periksa kredensial Anda.";
+      const lowerMsg = msg.toLowerCase();
+
+      const isGooglePasswordNotSet =
+        lowerMsg.includes("belum set password") ||
+        lowerMsg.includes("belum memiliki password") ||
+        lowerMsg.includes("password belum diset");
+
+      const isPinBelumDiatur = lowerMsg.includes("belum mengatur pin");
+
+      if (isGooglePasswordNotSet) {
+        const googleLoginMsg = "Password belum diset pada akun ini. Silakan masuk langsung dengan Google yang terdaftar.";
+        setError(googleLoginMsg);
+        toast.error(googleLoginMsg);
+        return;
+      }
+
+      if (isPinBelumDiatur) {
+        setIsPinNotSet(true);
+      }
+
       setError(msg);
       toast.error(msg);
-      if (err.status === 403 || msg.toLowerCase().includes("aktif")) {
+
+      if (err.status === 403 && lowerMsg.includes("aktif")) {
         setIsInactive(true);
       }
     } finally {
@@ -124,7 +196,7 @@ export default function LoginPage() {
   };
 
   const handleResendActivation = async () => {
-    if (!identifier) {
+    if (!identifier || isNikMode) {
       const msg = "Masukkan alamat email Anda terlebih dahulu.";
       setError(msg);
       toast.error(msg);
@@ -150,7 +222,6 @@ export default function LoginPage() {
     <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col lg:flex-row bg-slate-50">
       {/* Left Side - Description Panel with Background Image & Maroon Highlight */}
       <div className="hidden lg:flex lg:w-1/2 h-full relative p-12 flex-col justify-between overflow-hidden text-white shrink-0">
-        {/* Background Image */}
         <Image
           src="/images/login.jpg"
           alt="Login Background"
@@ -160,10 +231,8 @@ export default function LoginPage() {
           className="object-cover object-center"
         />
 
-        {/* Gradient Overlay & Highlight */}
         <div className="absolute inset-0 bg-gradient-to-br from-teal-950/70 via-primary-hover/60 to-teal-900/80" />
 
-        {/* Decorative elements */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary blur-3xl" />
           <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-teal-600 blur-3xl" />
@@ -174,13 +243,13 @@ export default function LoginPage() {
             <Link href="/" className="group flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
                 <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-                    <Image
-                        src="/images/logo.png"
-                        alt="Satu Data logo"
-                        width={40}
-                        height={40}
-                        className="h-full w-full object-contain"
-                    />
+                  <Image
+                    src="/images/logo.png"
+                    alt="Satu Data logo"
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-contain"
+                  />
                 </span>
               </span>
               <div>
@@ -188,7 +257,6 @@ export default function LoginPage() {
                 <div className="text-xs text-white/80">Healthcare Hub</div>
               </div>
             </Link>
-
           </div>
         </div>
 
@@ -214,7 +282,7 @@ export default function LoginPage() {
                 <p className="text-white/80 text-sm">Enkripsi end-to-end untuk semua data akun Anda</p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-4">
               <div className="shrink-0">
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/20 backdrop-blur-md">
@@ -246,7 +314,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Login Form (No Scrollbar on Mobile) */}
+      {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 h-screen flex flex-col justify-center p-3 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
         <div className="w-full max-w-md mx-auto my-auto space-y-2.5 sm:space-y-4 py-1 lg:py-0">
           <div className="mb-2 sm:mb-4 flex justify-end">
@@ -272,6 +340,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => {
                     setRole("pasien");
+                    setPasienLoginMethod("email");
                     setLoginStep("form");
                     setError("");
                   }}
@@ -321,7 +390,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Google Sign-in Button Inline */}
                 <div className="w-full flex flex-col items-center justify-center pt-0.5">
                   <div id="google-signin-btn-select" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
                 </div>
@@ -344,6 +412,9 @@ export default function LoginPage() {
                   onClick={() => {
                     setLoginStep("select");
                     setError("");
+                    setIdentifier("");
+                    setPassword("");
+                    setPin("");
                   }}
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition cursor-pointer mb-1 sm:mb-2"
                 >
@@ -351,12 +422,43 @@ export default function LoginPage() {
                   <span>Kembali ke pilihan metode</span>
                 </button>
 
+                {/* Pilihan eksplisit metode login khusus role pasien */}
+                {role === "pasien" && (
+                  <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-200/70">
+                    <button
+                      type="button"
+                      onClick={() => setPasienLoginMethod("email")}
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer ${
+                        pasienLoginMethod === "email"
+                          ? "bg-white text-primary shadow-sm"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      Email &amp; Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPasienLoginMethod("nik")}
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer ${
+                        pasienLoginMethod === "nik"
+                          ? "bg-white text-primary shadow-sm"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      <IdCard className="h-3.5 w-3.5" />
+                      NIK &amp; PIN
+                    </button>
+                  </div>
+                )}
+
                 {error && (
                   <div className="rounded-lg bg-red-50 border border-red-200 p-3 sm:p-4 text-xs sm:text-sm text-red-700 space-y-2">
                     <div className="flex items-center gap-2 font-semibold">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <span>{error}</span>
                     </div>
+
                     {isInactive && (
                       <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
                         <span>Akun belum diaktivasi via email?</span>
@@ -371,6 +473,12 @@ export default function LoginPage() {
                         </button>
                       </div>
                     )}
+
+                    {isPinNotSet && (
+                      <div className="pt-2 border-t border-red-200/60 text-xs">
+                        Silakan masuk menggunakan email &amp; password terlebih dahulu, lalu atur PIN Anda di halaman profil.
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -381,75 +489,141 @@ export default function LoginPage() {
                   </div>
                 )}
 
+                {/* Identifier: Email atau NIK, tergantung metode yang dipilih */}
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-                    {role === "pasien" ? "Email Pasien / NIK *" : "Email Fasilitas Kesehatan (Faskes) *"}
+                    {role === "pasien"
+                      ? (isNikMode ? "NIK (16 digit) *" : "Email Pasien *")
+                      : "Email Fasilitas Kesehatan (Faskes) *"}
                   </label>
                   <div className="relative">
                     {role === "pasien" ? (
-                      <User className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
+                      isNikMode ? (
+                        <IdCard className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
+                      ) : (
+                        <User className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
+                      )
                     ) : (
                       <Building2 className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
                     )}
                     <input
                       type="text"
+                      inputMode={isNikMode ? "numeric" : "text"}
                       value={identifier}
-                      onChange={(e) => {
-                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
-                        setIdentifier(val);
-                      }}
+                      onChange={handleIdentifierChange}
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck="false"
-                      placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
-                      className="w-full pl-9 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm lowercase"
+                      maxLength={isNikMode ? 16 : undefined}
+                      placeholder={
+                        role === "pasien"
+                          ? (isNikMode ? "16 digit NIK, contoh: 3171010509840002" : "contoh: pasien@email.com")
+                          : "contoh: admin@rumahsakit.com"
+                      }
+                      className={`w-full pl-9 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm ${
+                        isNikMode ? "font-mono tracking-wider" : "lowercase"
+                      }`}
                       required
                       disabled={loading}
                     />
                   </div>
+                  {isNikMode && (
+                    <p className="mt-1.5 text-[10px] sm:text-[11px] text-slate-500">
+                      {identifier.length}/16 digit
+                      {identifier.length > 0 && identifier.length !== 16 && (
+                        <span className="text-red-500 font-semibold"> — NIK harus tepat 16 digit</span>
+                      )}
+                    </p>
+                  )}
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700">
-                      Password
-                    </label>
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-xs text-primary hover:text-primary-hover font-medium transition"
-                    >
-                      Lupa password?
-                    </Link>
+                {/* Kredensial: PIN (mode NIK) atau Password (mode email / rumah_sakit) */}
+                {isNikMode ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <label className="block text-xs sm:text-sm font-semibold text-slate-700">
+                        PIN (6 digit) *
+                      </label>
+                      <Link
+                        href="/auth/forgot-pin"
+                        className="text-xs text-primary hover:text-primary-hover font-medium transition"
+                      >
+                        Lupa PIN?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3 top-2.5 sm:top-3.5 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
+                      <input
+                        type={showPin ? "text" : "password"}
+                        inputMode="numeric"
+                        value={pin}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                          setPin(val);
+                        }}
+                        maxLength={6}
+                        placeholder="••••••"
+                        className="w-full pl-9 pr-11 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm tracking-[0.3em]"
+                        required
+                        disabled={loading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPin(!showPin)}
+                        className="absolute right-3 top-2.5 sm:top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                        aria-label={showPin ? "Sembunyikan PIN" : "Tampilkan PIN"}
+                      >
+                        {showPin ? (
+                          <EyeOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        ) : (
+                          <Eye className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 sm:top-3.5 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full pl-9 pr-11 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm"
-                      required
-                      disabled={loading}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 sm:top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
-                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
-                      ) : (
-                        <Eye className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
-                      )}
-                    </button>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <label className="block text-xs sm:text-sm font-semibold text-slate-700">
+                        Password
+                      </label>
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs text-primary hover:text-primary-hover font-medium transition"
+                      >
+                        Lupa password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-2.5 sm:top-3.5 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-9 pr-11 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm"
+                        required
+                        disabled={loading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-2.5 sm:top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                        aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        ) : (
+                          <Eye className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (isNikMode && (identifier.length !== 16 || pin.length !== 6))}
                   className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold py-2.5 sm:py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                 >
                   {loading ? (
@@ -474,7 +648,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Google Sign-in Button Inline */}
                 <div className="w-full flex flex-col items-center justify-center pt-0.5">
                   <div id="google-signin-btn-form" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
                 </div>
@@ -497,7 +670,6 @@ export default function LoginPage() {
         strategy="afterInteractive"
         onLoad={handleScriptLoad}
       />
-
     </div>
   );
 }

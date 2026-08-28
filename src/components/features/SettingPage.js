@@ -26,7 +26,11 @@ import {
   Move,
   Server,
   Zap,
-  RefreshCw
+  RefreshCw,
+  ShieldPlus,
+  KeyRound
+  ,Eye
+  ,EyeOff
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -142,12 +146,31 @@ export default function SettingPage() {
     setProfilePicturePreview(null);
   };
 
-  // State Security (Update Password)
+  // State Security (Update / Set Password)
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState({ type: "", text: "" });
+
+  // true jika user login via Google dan belum pernah set password sendiri
+  const needsPasswordSetup = user?.hasPassword === false;
+
+  // State Security (Set / Update PIN) - khusus role pasien
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [showOldPin, setShowOldPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinMsg, setPinMsg] = useState({ type: "", text: "" });
+
+  // true jika pasien belum pernah mengatur PIN sama sekali
+  const needsPinSetup = user?.hasPin === false;
 
   // State Wallet (personal - non-admin)
   const [walletAddress, setWalletAddress] = useState("");
@@ -465,6 +488,9 @@ export default function SettingPage() {
         const updatedUser = {
           ...(currentUser || {}),
           ...u,
+          // Pastikan flag hasPassword & hasPin dari BE tidak hilang tertimpa data lama
+          hasPassword: typeof u.hasPassword === "boolean" ? u.hasPassword : currentUser?.hasPassword,
+          hasPin: typeof u.hasPin === "boolean" ? u.hasPin : currentUser?.hasPin,
           avatarUrl: computedAvatar || getAvatarUrl(currentUser),
         };
         setUser(updatedUser);
@@ -595,7 +621,7 @@ export default function SettingPage() {
     }
   };
 
-  // Submit Update Password
+  // Submit Update / Set Password
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     setPasswordMsg({ type: "", text: "" });
@@ -605,8 +631,9 @@ export default function SettingPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordMsg({ type: "error", text: "Kata sandi baru minimal 6 karakter" });
+    // Samakan dengan validasi isStrongPassword di backend (minimal 8 karakter)
+    if (newPassword.length < 8) {
+      setPasswordMsg({ type: "error", text: "Kata sandi baru minimal 8 karakter" });
       return;
     }
 
@@ -614,13 +641,25 @@ export default function SettingPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/update-password`, {
-        method: "POST",
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+
+      // Belum pernah punya password (mis. daftar/login via Google) -> set-password (tanpa oldPassword)
+      // Sudah punya password -> update-password (wajib oldPassword)
+      const endpoint = needsPasswordSetup
+        ? `${base}/api/auth/set-password`
+        : `${base}/api/auth/update-password`;
+
+      const body = needsPasswordSetup
+        ? { newPassword, confirmPassword }
+        : { oldPassword, newPassword, confirmPassword };
+
+      const res = await fetch(endpoint, {
+        method: needsPasswordSetup ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ oldPassword, newPassword })
+        body: JSON.stringify(body)
       });
 
       const result = await res.json();
@@ -629,14 +668,98 @@ export default function SettingPage() {
         throw new Error(result.message || "Gagal memperbarui kata sandi");
       }
 
-      setPasswordMsg({ type: "success", text: result.message || "Kata sandi berhasil diperbarui!" });
+      setPasswordMsg({
+        type: "success",
+        text: result.message || (needsPasswordSetup ? "Kata sandi berhasil diatur!" : "Kata sandi berhasil diperbarui!")
+      });
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
+
+      // Setelah set password pertama kali, tandai user sudah punya password
+      // supaya form otomatis berubah jadi mode "Ganti Kata Sandi"
+      if (needsPasswordSetup) {
+        const updatedUser = { ...user, hasPassword: true };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
     } catch (err) {
       setPasswordMsg({ type: "error", text: err.message });
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  // Submit Set / Update PIN (khusus pasien)
+  const handleUpdatePin = async (e) => {
+    e.preventDefault();
+    setPinMsg({ type: "", text: "" });
+
+    if (!/^\d{6}$/.test(newPin)) {
+      setPinMsg({ type: "error", text: "PIN baru harus terdiri dari 6 digit angka" });
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      setPinMsg({ type: "error", text: "Konfirmasi PIN baru tidak cocok" });
+      return;
+    }
+
+    if (!needsPinSetup && newPin === oldPin) {
+      setPinMsg({ type: "error", text: "PIN baru tidak boleh sama dengan PIN lama" });
+      return;
+    }
+
+    setPinLoading(true);
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+
+      // Belum pernah punya PIN -> set-pin (tanpa oldPin)
+      // Sudah punya PIN -> update-pin (wajib oldPin)
+      const endpoint = needsPinSetup
+        ? `${base}/api/auth/set-pin`
+        : `${base}/api/auth/update-pin`;
+
+      const body = needsPinSetup
+        ? { newPin, confirmPin }
+        : { oldPin, newPin, confirmPin };
+
+      const res = await fetch(endpoint, {
+        method: needsPinSetup ? "POST" : "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || "Gagal memperbarui PIN");
+      }
+
+      setPinMsg({
+        type: "success",
+        text: result.message || (needsPinSetup ? "PIN berhasil diatur!" : "PIN berhasil diperbarui!")
+      });
+      setOldPin("");
+      setNewPin("");
+      setConfirmPin("");
+
+      // Setelah set PIN pertama kali, tandai user sudah punya PIN
+      // supaya form otomatis berubah jadi mode "Ubah PIN"
+      if (needsPinSetup) {
+        const updatedUser = { ...user, hasPin: true };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+    } catch (err) {
+      setPinMsg({ type: "error", text: err.message });
+    } finally {
+      setPinLoading(false);
     }
   };
 
@@ -1214,84 +1337,243 @@ export default function SettingPage() {
 
           {/* TAB 2: KEAMANAN & SANDI */}
           {activeTab === "security" && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-2xl">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-pink-600" />
-                Ganti Kata Sandi
-              </h2>
+            <div className="space-y-6 max-w-2xl">
+              {/* CARD: Ganti / Atur Kata Sandi */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+                <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                  {needsPasswordSetup ? <ShieldPlus className="h-5 w-5 text-pink-600" /> : <Lock className="h-5 w-5 text-pink-600" />}
+                  {needsPasswordSetup ? "Atur Kata Sandi" : "Ganti Kata Sandi"}
+                </h2>
 
-              {passwordMsg.text && (
-                <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
-                  passwordMsg.type === "success" 
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}>
-                  {passwordMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
-                  <span>{passwordMsg.text}</span>
+                {needsPasswordSetup && (
+                  <p className="text-sm text-slate-500 mb-4">
+                    Akun Anda dibuat melalui Google dan belum memiliki kata sandi. Atur kata sandi
+                    di bawah agar Anda juga bisa login menggunakan email &amp; kata sandi.
+                  </p>
+                )}
+
+                {passwordMsg.text && (
+                  <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
+                    passwordMsg.type === "success" 
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                      : "bg-red-50 text-red-700 border border-red-200"
+                  }`}>
+                    {passwordMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                    <span>{passwordMsg.text}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleUpdatePassword} className="space-y-5">
+                  {/* Field kata sandi lama hanya muncul jika user SUDAH punya password */}
+                  {!needsPasswordSetup && (
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Saat Ini</label>
+                      <div className="relative">
+                        <Key className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <input
+                          type={showOldPassword ? "text" : "password"}
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowOldPassword(!showOldPassword)}
+                          aria-label={showOldPassword ? "Sembunyikan kata sandi saat ini" : "Tampilkan kata sandi saat ini"}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                        >
+                          {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Baru</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Minimal 8 karakter"
+                        className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        aria-label={showNewPassword ? "Sembunyikan kata sandi baru" : "Tampilkan kata sandi baru"}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Konfirmasi Kata Sandi Baru</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Ulangi kata sandi baru"
+                        className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? "Sembunyikan konfirmasi kata sandi" : "Tampilkan konfirmasi kata sandi"}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={passwordLoading}
+                      className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {passwordLoading ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4" />
+                      )}
+                      {needsPasswordSetup ? "Simpan Kata Sandi" : "Perbarui Kata Sandi"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* CARD: Atur / Ubah PIN - khusus role pasien (untuk login NIK+PIN) */}
+              {user?.role === "pasien" && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+                  <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                    {needsPinSetup ? <ShieldPlus className="h-5 w-5 text-pink-600" /> : <KeyRound className="h-5 w-5 text-pink-600" />}
+                    {needsPinSetup ? "Atur PIN" : "Ubah PIN"}
+                  </h2>
+
+                  <p className="text-sm text-slate-500 mb-4">
+                    {needsPinSetup
+                      ? "Atur PIN 6 digit agar Anda bisa masuk lebih cepat menggunakan NIK dan PIN, tanpa perlu memasukkan email dan kata sandi."
+                      : "Ubah PIN 6 digit yang digunakan untuk login cepat dengan NIK. Masukkan PIN lama untuk verifikasi."}
+                  </p>
+
+                  {pinMsg.text && (
+                    <div className={`mb-6 flex items-center gap-3 rounded-xl p-4 text-sm ${
+                      pinMsg.type === "success" 
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}>
+                      {pinMsg.type === "success" ? <CheckCircle className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+                      <span>{pinMsg.text}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleUpdatePin} className="space-y-5">
+                    {/* Field PIN lama hanya muncul jika user SUDAH punya PIN */}
+                    {!needsPinSetup && (
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">PIN Saat Ini</label>
+                        <div className="relative">
+                          <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                          <input
+                            type={showOldPin ? "text" : "password"}
+                            inputMode="numeric"
+                            value={oldPin}
+                            onChange={(e) => setOldPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            maxLength={6}
+                            placeholder="••••••"
+                            className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm tracking-[0.3em] focus:border-pink-600 focus:outline-hidden"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowOldPin(!showOldPin)}
+                            aria-label={showOldPin ? "Sembunyikan PIN saat ini" : "Tampilkan PIN saat ini"}
+                            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                          >
+                            {showOldPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">PIN Baru</label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <input
+                          type={showNewPin ? "text" : "password"}
+                          inputMode="numeric"
+                          value={newPin}
+                          onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          maxLength={6}
+                          placeholder="6 digit angka"
+                          className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm tracking-[0.3em] focus:border-pink-600 focus:outline-hidden"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPin(!showNewPin)}
+                          aria-label={showNewPin ? "Sembunyikan PIN baru" : "Tampilkan PIN baru"}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                        >
+                          {showNewPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Konfirmasi PIN Baru</label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <input
+                          type={showConfirmPin ? "text" : "password"}
+                          inputMode="numeric"
+                          value={confirmPin}
+                          onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          maxLength={6}
+                          placeholder="Ulangi PIN baru"
+                          className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-sm tracking-[0.3em] focus:border-pink-600 focus:outline-hidden"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPin(!showConfirmPin)}
+                          aria-label={showConfirmPin ? "Sembunyikan konfirmasi PIN" : "Tampilkan konfirmasi PIN"}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                        >
+                          {showConfirmPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={pinLoading}
+                        className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50"
+                      >
+                        {pinLoading ? (
+                          <Loader className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        {needsPinSetup ? "Simpan PIN" : "Perbarui PIN"}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
-
-              <form onSubmit={handleUpdatePassword} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Saat Ini</label>
-                  <div className="relative">
-                    <Key className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      value={oldPassword}
-                      onChange={(e) => setOldPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kata Sandi Baru</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Konfirmasi Kata Sandi Baru</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Ulangi kata sandi baru"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-pink-600 focus:outline-hidden"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={passwordLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-pink-500 transition cursor-pointer disabled:opacity-50"
-                  >
-                    {passwordLoading ? (
-                      <Loader className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    Perbarui Kata Sandi
-                  </button>
-                </div>
-              </form>
             </div>
           )}
 
