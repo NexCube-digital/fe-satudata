@@ -147,13 +147,13 @@ export default function LoginPage() {
           className="object-cover object-center"
         />
 
-        {/* Gradient Maroon Overlay & Highlight - Thinner Transparency */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7F1D1D]/60 via-[#A61B2D]/45 to-[#4C0B14]/70" />
+        {/* Gradient Overlay & Highlight */}
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-950/70 via-primary-hover/60 to-teal-900/80" />
 
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-rose-500 blur-3xl" />
-          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-red-600 blur-3xl" />
+          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary blur-3xl" />
+          <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-teal-600 blur-3xl" />
         </div>
 
         <div className="relative z-10">
@@ -237,16 +237,16 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
         <div className="w-full max-w-md mx-auto my-auto space-y-4 py-4 lg:py-0">
           <div className="mb-4 flex justify-end">
-            <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-[#7F1D1D] shadow-sm transition hover:bg-slate-50">
+            <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-sm transition hover:bg-secondary-tint">
               <Home className="h-5 w-5" />
             </Link>
           </div>
 
-          <div className="bg-[#7F1D1D] rounded-t-3xl px-8 py-8 text-white">
+          <div className="bg-primary rounded-t-3xl px-8 py-8 text-white">
             <h2 className="text-2xl font-bold">
               {loginStep === "select" ? "Pilih Metode Masuk" : `Masuk sebagai ${role === "pasien" ? "Pasien" : "Fasilitas Kesehatan"}`}
             </h2>
-            <p className="text-rose-100 mt-2 text-sm">
+            <p className="text-teal-100 mt-2 text-sm">
               {loginStep === "select" ? "Tentukan peran Anda untuk mengakses sistem" : "Silakan isi kredensial akun Anda"}
             </p>
           </div>
@@ -262,10 +262,10 @@ export default function LoginPage() {
                     setLoginStep("form");
                     setError("");
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                       <User className="h-6 w-6" />
                     </span>
                     <div>
@@ -273,7 +273,7 @@ export default function LoginPage() {
                       <p className="text-[11px] text-slate-500 mt-0.5">Akses berkas EHR, kelola audit log & persetujuan medis</p>
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </button>
 
                 {/* Option 2: Faskes */}
@@ -284,10 +284,10 @@ export default function LoginPage() {
                     setLoginStep("form");
                     setError("");
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#7F1D1D] hover:bg-[#7F1D1D]/5 bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-[#7F1D1D] group-hover:bg-[#7F1D1D] group-hover:text-white transition-all duration-300">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                       <Building2 className="h-6 w-6" />
                     </span>
                     <div>
@@ -295,13 +295,13 @@ export default function LoginPage() {
                       <p className="text-[11px] text-slate-500 mt-0.5">Kelola data medis pasien, ajukan izin akses blockchain</p>
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#7F1D1D] group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </button>
 
                 <div className="pt-4 border-t border-slate-200 mt-6 text-center">
                   <p className="text-sm text-slate-600">
                     Belum punya akun?{" "}
-                    <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                    <Link href="/auth/register" className="text-primary hover:text-primary-hover font-semibold transition">
                       Daftar di sini
                       <ArrowRight className="inline-block ml-1 h-3 w-3" />
                     </Link>
@@ -317,7 +317,7 @@ export default function LoginPage() {
                     setLoginStep("select");
                     setError("");
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#7F1D1D] transition cursor-pointer mb-2"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition cursor-pointer mb-2"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>Kembali ke pilihan metode</span>
@@ -336,7 +336,7 @@ export default function LoginPage() {
                           type="button"
                           onClick={handleResendActivation}
                           disabled={resendLoading}
-                          className="inline-flex items-center gap-1 font-bold text-rose-900 underline hover:text-red-950 cursor-pointer disabled:opacity-50"
+                          className="inline-flex items-center gap-1 font-bold text-primary underline hover:text-primary-hover cursor-pointer disabled:opacity-50"
                         >
                           {resendLoading ? <Loader className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
                           Kirim Ulang Email Aktivasi
@@ -374,7 +374,7 @@ export default function LoginPage() {
                       autoCorrect="off"
                       spellCheck="false"
                       placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm lowercase"
+                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-sm lowercase"
                       required
                       disabled={loading}
                     />
@@ -388,7 +388,7 @@ export default function LoginPage() {
                     </label>
                     <Link
                       href="/auth/forgot-password"
-                      className="text-xs text-[#7F1D1D] hover:text-[#A61B2D] font-medium transition"
+                      className="text-xs text-primary hover:text-primary-hover font-medium transition"
                     >
                       Lupa password?
                     </Link>
@@ -400,7 +400,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-11 py-3 rounded-lg border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-sm"
+                      className="w-full pl-10 pr-11 py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-sm"
                       required
                       disabled={loading}
                     />
@@ -422,7 +422,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -453,7 +453,7 @@ export default function LoginPage() {
 
                 <p className="text-center text-sm text-slate-600 pt-4">
                   Belum punya akun?{" "}
-                  <Link href="/auth/register" className="text-[#7F1D1D] hover:text-[#A61B2D] font-semibold transition">
+                  <Link href="/auth/register" className="text-primary hover:text-primary-hover font-semibold transition">
                     Daftar di sini
                     <ArrowRight className="inline-block ml-1 h-3 w-3" />
                   </Link>

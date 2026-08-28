@@ -279,7 +279,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <Link href="/" className="group flex items-center gap-3 transition-all duration-200">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-800 to-rose-900 shadow-md shadow-rose-900/20 ring-1 ring-rose-700/30 overflow-hidden">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0D9488] to-[#0F766E] shadow-md shadow-teal-900/20 ring-1 ring-teal-700/30 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
               <Image
                 src="/images/logo.png"
@@ -290,8 +290,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
               />
             </div>
             <div>
-              <div className="text-base font-extrabold tracking-tight text-slate-900 group-hover:text-rose-900 transition-colors">Satu Data</div>
-              <div className="text-[10px] font-semibold text-rose-700/80 tracking-wide uppercase">{roleLabel || "Dashboard"}</div>
+              <div className="text-base font-extrabold tracking-tight text-[#334155] group-hover:text-[#0D9488] transition-colors">Satu Data</div>
+              <div className="text-[10px] font-semibold text-[#0D9488] tracking-wide uppercase">{roleLabel || "Dashboard"}</div>
             </div>
           </Link>
         </div>
@@ -313,14 +313,14 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
               onClick={() => setIsNotifOpen(!isNotifOpen)}
               className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl transition-all duration-200 ${
                 isNotifOpen
-                  ? "bg-rose-100 text-rose-800 shadow-inner"
-                  : "border border-slate-200 bg-slate-50/60 text-slate-500 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 hover:shadow-sm"
+                  ? "bg-[#E6F4F1] text-[#0F766E] shadow-inner"
+                  : "border border-[#E2E8F0] bg-slate-50/60 text-[#64748B] hover:bg-[#E6F4F1] hover:text-[#0D9488] hover:border-teal-200 hover:shadow-sm"
               }`}
               aria-label="Notifikasi"
             >
               <Bell className="h-4.5 w-4.5" />
               {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-rose-700 text-[9px] font-extrabold text-white ring-2 ring-white shadow-sm">
+                <span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-[#0D9488] to-[#0F766E] text-[9px] font-extrabold text-white ring-2 ring-white shadow-sm">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -328,9 +328,9 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
 
             {/* POPUP NOTIFIKASI */}
             {isNotifOpen && (
-              <div className="absolute right-0 top-full mt-2.5 w-80 sm:w-96 rounded-3xl border border-slate-200/80 bg-white/95 backdrop-blur-xl p-0 shadow-2xl ring-1 ring-black/5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 top-full mt-2.5 w-80 sm:w-96 rounded-3xl border border-[#E2E8F0] bg-white/95 backdrop-blur-xl p-0 shadow-2xl ring-1 ring-black/5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-rose-800 to-rose-900 px-5 py-4">
+                <div className="bg-gradient-to-r from-[#0D9488] to-[#0F766E] px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15">
@@ -338,7 +338,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                       </div>
                       <div>
                         <h3 className="text-sm font-extrabold text-white">Notifikasi</h3>
-                        <p className="text-[10px] text-rose-200/80">Aktivitas terkini sistem</p>
+                        <p className="text-[10px] text-teal-100/80">Aktivitas terkini sistem</p>
                       </div>
                     </div>
                     {unreadCount > 0 && (
@@ -364,7 +364,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                       onClick={() => setNotifFilter(tab.key)}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                         notifFilter === tab.key
-                          ? "bg-rose-800 text-white shadow-sm"
+                          ? "bg-[#0D9488] text-white shadow-sm"
                           : "text-slate-500 hover:bg-slate-200/60"
                       }`}
                     >
@@ -391,36 +391,28 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                         className={`group flex items-start gap-3 rounded-2xl p-3 transition-all duration-150 border ${
                           n.read
                             ? "bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200"
-                            : "bg-rose-50/60 border-rose-200/60 hover:bg-rose-50 hover:border-rose-300/50"
+                            : "bg-[#E6F4F1]/60 border-teal-200/60 hover:bg-[#E6F4F1] hover:border-teal-300/50"
                         }`}
                       >
                         <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
                           n.read
                             ? "bg-slate-100 border-slate-200 text-slate-500"
-                            : "bg-gradient-to-br from-rose-700 to-rose-900 border-rose-600 text-white shadow-sm"
+                            : "bg-gradient-to-br from-[#0D9488] to-[#0F766E] border-teal-600 text-white shadow-sm"
                         }`}>
-                          <IconComponent className="h-3.5 w-3.5" />
+                          <IconComponent className="h-4 w-4" />
                         </span>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1 mb-0.5">
-                            <span className="text-xs font-bold text-slate-800 truncate">{n.title}</span>
-                            {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />}
-                          </div>
-                          <p className="text-[10px] text-slate-500 leading-relaxed pr-6">
-                            <strong className="font-semibold text-rose-800">{n.actor}</strong> — {n.description}
+                          <p className={`text-xs leading-snug ${n.read ? "text-slate-600 font-medium" : "text-slate-900 font-bold"}`}>
+                            {n.message}
                           </p>
-                          <div className="flex items-center justify-between mt-0.5">
-                            <span className="text-[9px] font-mono text-slate-400 block">{n.timestamp}</span>
-                            <button
-                              type="button"
-                              onClick={(e) => handleDeleteNotif(e, n.id)}
-                              className="text-slate-300 hover:text-rose-600 p-1 transition-colors rounded-md hover:bg-rose-100/50"
-                              title="Hapus Notifikasi"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
+                          <span className="text-[10px] text-slate-400 mt-1 block font-mono">{n.time}</span>
                         </div>
+                        <button
+                          onClick={(e) => handleDeleteNotif(e, n.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 transition"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </Link>
                     );
                   })}
@@ -437,7 +429,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                           : "/dashboard/pasien/records"
                     }
                     onClick={() => setIsNotifOpen(false)}
-                    className="text-[11px] font-bold text-rose-800 hover:text-rose-700 inline-flex items-center gap-1.5 transition-colors"
+                    className="text-[11px] font-bold text-[#0D9488] hover:text-[#0F766E] inline-flex items-center gap-1.5 transition-colors"
                   >
                     Lihat Semua Log & Audit Trail <ExternalLink className="h-3 w-3" />
                   </Link>
@@ -452,13 +444,13 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`flex cursor-pointer items-center gap-2.5 rounded-2xl border px-2.5 py-1.5 transition-all duration-200 ${
                 isDropdownOpen
-                  ? "border-rose-200 bg-rose-50"
-                  : "border-slate-200/80 bg-slate-50/60 hover:border-rose-200 hover:bg-rose-50/60"
+                  ? "border-teal-200 bg-[#E6F4F1]"
+                  : "border-[#E2E8F0] bg-slate-50/60 hover:border-teal-200 hover:bg-[#E6F4F1]/60"
               }`}
               aria-expanded={isDropdownOpen}
             >
               {/* Avatar */}
-              <div className="relative h-7 w-7 overflow-hidden rounded-full bg-gradient-to-br from-rose-600 to-rose-900 ring-2 ring-rose-500/20 shrink-0">
+              <div className="relative h-7 w-7 overflow-hidden rounded-full bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/20 shrink-0">
                 {getAvatarUrl(currentUser) ? (
                   <img
                     src={getAvatarUrl(currentUser)}
@@ -475,30 +467,30 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
 
               {/* Name & Role */}
               <div className="hidden text-left sm:block">
-                <div className="text-[11px] font-extrabold text-slate-900 leading-tight">
+                <div className="text-[11px] font-extrabold text-[#334155] leading-tight">
                   {currentUser?.name || "Pengguna"}
                 </div>
-                <div className="text-[9px] font-bold text-rose-700/80 uppercase tracking-wide">{displayRoleLabel}</div>
+                <div className="text-[9px] font-bold text-[#0D9488] uppercase tracking-wide">{displayRoleLabel}</div>
               </div>
 
               <ChevronDown
-                className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3.5 w-3.5 text-[#64748B] transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
               />
             </button>
 
             {/* Dropdown Popup */}
             {isDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2.5 w-52 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-xl p-1.5 shadow-2xl ring-1 ring-black/5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 top-full mt-2.5 w-52 rounded-2xl border border-[#E2E8F0] bg-white/95 backdrop-blur-xl p-1.5 shadow-2xl ring-1 ring-black/5 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                 {/* Profile Header */}
-                <div className="px-3 py-3 mb-1 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-xl border border-slate-100">
-                  <p className="text-xs font-extrabold text-slate-900 truncate">{currentUser?.name || "Pengguna"}</p>
-                  <p className="text-[9px] text-slate-400 font-mono truncate mt-0.5">{currentUser?.email || displayRoleLabel}</p>
+                <div className="px-3 py-3 mb-1 bg-gradient-to-r from-slate-50 to-[#E6F4F1]/50 rounded-xl border border-slate-100">
+                  <p className="text-xs font-extrabold text-[#334155] truncate">{currentUser?.name || "Pengguna"}</p>
+                  <p className="text-[9px] text-[#64748B] font-mono truncate mt-0.5">{currentUser?.email || displayRoleLabel}</p>
                 </div>
 
                 <Link
                   href={getSettingsHref()}
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition-all hover:bg-rose-50 hover:text-rose-900"
+                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-[#334155] transition-all hover:bg-[#E6F4F1] hover:text-[#0F766E]"
                 >
                   <div className="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center">
                     <Settings className="h-3.5 w-3.5 text-slate-500" />
@@ -506,7 +498,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                   Setting Akun & Wallet
                 </Link>
 
-                <div className="my-1.5 border-t border-slate-100" />
+                <div className="my-1.5 border-t border-[#E2E8F0]" />
 
                 <button
                   onClick={() => { setIsDropdownOpen(false); onLogout?.(); }}

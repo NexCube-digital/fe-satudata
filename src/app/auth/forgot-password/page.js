@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
         {/* Header Logo */}
         <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#7F1D1D] p-2 text-white shadow-xs">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary p-2 text-white shadow-xs">
               <Image src="/images/logo.png" alt="Satu Data logo" width={28} height={28} className="h-full w-full object-contain" />
             </span>
             <div>
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
                 placeholder="nama@domain.com"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs"
                 required
                 disabled={loading}
               />
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-xs"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-xs"
           >
             {loading ? (
               <>
@@ -127,11 +127,11 @@ export default function ForgotPasswordPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="relative w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 text-center animate-in zoom-in-95 duration-200">
             {/* Ambient Glow */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
             
             {/* Warning Circle */}
-            <div className="relative mx-auto h-16 w-16 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4 border border-rose-100 animate-bounce">
-              <AlertCircle className="h-8 w-8 text-rose-500" />
+            <div className="relative mx-auto h-16 w-16 rounded-full bg-teal-50 text-primary flex items-center justify-center mb-4 border border-teal-100 animate-bounce">
+              <AlertCircle className="h-8 w-8 text-primary" />
             </div>
 
             <h3 className="text-lg font-extrabold text-slate-900 mb-2">Akun Belum Terdaftar</h3>
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage() {
                 setShowUnregisteredModal(false);
                 router.push("/auth/register");
               }}
-              className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs"
+              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs"
             >
               <span>Daftar Sekarang</span>
               <ArrowRight className="h-4 w-4" />

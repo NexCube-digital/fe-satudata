@@ -90,9 +90,14 @@ export default function FaskesDoctorsList() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  // Refs
-  const fileInputRef = useRef(null);
-  const videoRef = useRef(null);
+  // Helper to format full doctor photo URL
+  const getDoctorImageUrl = (img) => {
+    if (!img) return null;
+    if (img.startsWith("http://") || img.startsWith("https://")) return img;
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+    if (img.startsWith("/")) return `${baseUrl}${img}`;
+    return `${baseUrl}/public/upload/doctors/${img}`;
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -406,9 +411,7 @@ export default function FaskesDoctorsList() {
       status: doctor.status || "Aktif"
     });
 
-    const imgUrl = doctor.image
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/public/upload/doctors/${doctor.image}`
-      : null;
+    const imgUrl = getDoctorImageUrl(doctor.image);
     setImagePreview(imgUrl);
     setImageFile(null);
 
@@ -494,7 +497,7 @@ export default function FaskesDoctorsList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-soft-canvas flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -502,22 +505,22 @@ export default function FaskesDoctorsList() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-rose-700/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-r from-primary-hover via-primary to-teal-900 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-400/10 blur-3xl" />
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                  <Users className="h-8 w-8 text-rose-400" />
+                  <Users className="h-8 w-8 text-teal-200" />
                   Daftar Tenaga Medis (Dokter)
                 </h1>
-                <p className="text-xs sm:text-sm text-rose-200 mt-2 max-w-2xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-teal-100 mt-2 max-w-2xl leading-relaxed">
                   Daftar staf dokter penanggung jawab poliklinik di instansi Anda. Tautkan dokter untuk keperluan otorisasi rekam medis (EHR) terenkripsi.
                 </p>
               </div>
 
               <button
                 onClick={() => router.push("/dashboard/faskes/doctor/add")}
-                className="inline-flex items-center gap-2 rounded-2xl bg-rose-700 hover:bg-rose-400 text-white font-bold px-5 py-3 text-xs sm:text-sm shadow-md transition shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-2xl bg-white text-primary-hover hover:bg-teal-50 font-bold px-5 py-3 text-xs sm:text-sm shadow-md transition shrink-0 cursor-pointer"
               >
                 <Plus className="h-4.5 w-4.5" /> Tambah Dokter Baru
               </button>
@@ -526,13 +529,13 @@ export default function FaskesDoctorsList() {
 
           {/* Doctor Cards Grid */}
           {doctors.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="text-center py-20 bg-white rounded-3xl border border-soft-border shadow-xs">
               <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-slate-700">Belum Ada Dokter Terdaftar</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto mb-6">Tambahkan dokter baru untuk menghubungkannya dengan unit medis.</p>
               <button
                 onClick={() => router.push("/dashboard/faskes/doctor/add")}
-                className="inline-flex items-center gap-2 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold px-4 py-2.5 text-xs transition cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold px-4 py-2.5 text-xs transition cursor-pointer"
               >
                 <Plus className="h-4.5 w-4.5" /> Mulai Tambah Dokter
               </button>
@@ -540,80 +543,82 @@ export default function FaskesDoctorsList() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {doctors.map((doctor) => (
-                <div key={doctor.id} className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-2xs hover:shadow-md transition duration-200 flex flex-col justify-between">
+                <div key={doctor.id} className="rounded-3xl bg-white border border-soft-border p-5 shadow-sm hover:shadow-xl transition duration-300 flex flex-col justify-between overflow-hidden group">
                   <div>
-                    {/* Top Identity Row */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-800 flex items-center justify-center text-white font-extrabold text-sm shadow-sm overflow-hidden shrink-0">
-                          {doctor.image ? (
-                            <img
-                              src={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/public/upload/doctors/${doctor.image}`}
-                              alt={doctor.name}
-                              className="h-full w-full object-cover"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            />
-                          ) : (
-                            doctor.name ? doctor.name.replace("Dr.", "").trim().charAt(0).toUpperCase() : "D"
-                          )}
+                    {/* 1. Foto Dokter Besar */}
+                    <div className="relative h-64 w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-4 flex items-center justify-center">
+                      {getDoctorImageUrl(doctor.image) ? (
+                        <img
+                          src={getDoctorImageUrl(doctor.image)}
+                          alt={doctor.name}
+                          className="h-full w-full object-contain p-1 transition duration-300"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-primary-hover text-white text-5xl font-black opacity-80">
+                          {doctor.name ? doctor.name.replace(/^dr\.\s*/i, "").trim().charAt(0).toUpperCase() : "D"}
                         </div>
-                        <div>
-                          <h4 className="text-sm font-extrabold text-slate-900 leading-tight">{doctor.name}</h4>
-                          <span className="inline-flex items-center gap-1 text-[10px] text-rose-800 font-bold bg-rose-50 px-2 py-0.5 rounded-md mt-1 border border-rose-100/50">
-                            <Briefcase className="h-3 w-3" /> {doctor.specialist}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold border ${
+                      )}
+
+                      {/* Status Badge overlay */}
+                      <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-extrabold shadow-md border backdrop-blur-md ${
                         doctor.status === "Aktif"
-                          ? "bg-rose-50 border-emerald-250 text-rose-900"
-                          : "bg-slate-50 border-slate-250 text-slate-650"
+                          ? "bg-primary text-white border-teal-400/30"
+                          : "bg-slate-700/90 text-slate-200 border-slate-600/30"
                       }`}>
                         {doctor.status || "Aktif"}
                       </span>
                     </div>
 
-                    {/* Metadata Specs */}
-                    <div className="space-y-2 py-3 border-t border-slate-100/80 text-[11px] text-slate-650 font-medium">
-                      <p className="flex items-center gap-2">
-                        <FileText className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-slate-400">Lisensi SIP:</span> <span className="font-mono text-slate-700">{doctor.medical_license}</span>
-                      </p>
-                      <div className="flex items-start gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
-                        <div className="flex flex-col">
-                          <span className="text-slate-400">Jadwal:</span>
-                          <span className="text-slate-700 text-[10px] leading-relaxed break-words max-w-[190px]">
-                            {doctor.practice_schedule || "Senin-Jumat"}
-                          </span>
-                        </div>
+                    {/* 2. Nama Dokter & Spesialis */}
+                    <div className="mb-4">
+                      <h4 className="text-base sm:text-lg font-extrabold text-text-primary leading-tight mb-1.5">{doctor.name}</h4>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-secondary-tint px-2.5 py-1 rounded-lg border border-teal-100">
+                        <Briefcase className="h-3.5 w-3.5" /> {doctor.specialist}
+                      </span>
+                    </div>
+
+                    {/* 3. List Details (SIP, Jadwal, Telepon, Gender) */}
+                    <div className="space-y-3 py-3.5 border-t border-slate-100 text-xs font-medium">
+                      <div>
+                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Lisensi SIP:</span>
+                        <span className="font-mono font-bold text-slate-800 text-xs">{doctor.medical_license || "-"}</span>
                       </div>
-                      {doctor.phone && (
-                        <p className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="text-slate-400">Telepon:</span> <span className="text-slate-700">{doctor.phone}</span>
-                        </p>
-                      )}
-                      <p className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-slate-400">Gender:</span> <span className="capitalize text-slate-700">{doctor.sex || "Laki-laki"}</span>
-                      </p>
+
+                      <div>
+                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Jadwal:</span>
+                        <span className="text-slate-800 text-xs leading-snug block">{doctor.practice_schedule || "Senin-Jumat 09:00-16:00"}</span>
+                      </div>
+
+                      <div>
+                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Telepon:</span>
+                        <span className="text-slate-800 text-xs">{doctor.phone || "-"}</span>
+                      </div>
+
+                      <div>
+                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Gender:</span>
+                        <span className="capitalize text-slate-800 text-xs">{doctor.sex || "Laki-laki"}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-2.5 pt-4 border-t border-slate-100/80 mt-4">
+                  {/* 4. Action Buttons */}
+                  <div className="flex items-center gap-2.5 pt-4 border-t border-slate-100 mt-2">
                     <button
                       onClick={() => openEditModal(doctor)}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 py-2.5 text-xs font-bold transition cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 text-xs font-bold transition cursor-pointer"
                     >
-                      <Edit2 className="h-3.5 w-3.5" /> Edit
+                      <Edit2 className="h-3.5 w-3.5 text-slate-500" /> Edit Profil
                     </button>
                     <button
                       onClick={() => handleDeleteDoctor(doctor.id, doctor.name)}
                       className="inline-flex items-center justify-center rounded-xl border border-rose-100 hover:bg-rose-50 text-rose-600 p-2.5 transition cursor-pointer"
+                      title="Hapus Dokter"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>

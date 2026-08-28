@@ -71,7 +71,7 @@ function ResetPasswordContent() {
         {/* Header Logo */}
         <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#7F1D1D] p-2 text-white shadow-xs">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary p-2 text-white shadow-xs">
               <Image src="/images/logo.png" alt="Satu Data logo" width={28} height={28} className="h-full w-full object-contain" />
             </span>
             <div>
@@ -112,7 +112,7 @@ function ResetPasswordContent() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Min 8 karakter (huruf & angka)"
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs"
                 required
                 disabled={loading}
               />
@@ -136,7 +136,7 @@ function ResetPasswordContent() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ketik ulang password baru"
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-[#7F1D1D] focus:ring-2 focus:ring-[#7F1D1D]/20 outline-none transition text-xs"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs"
                 required
                 disabled={loading}
               />
@@ -154,7 +154,7 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-[#7F1D1D] hover:bg-[#A61B2D] text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-xs"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-extrabold py-3 rounded-xl transition cursor-pointer disabled:opacity-50 text-xs shadow-xs"
           >
             {loading ? (
               <>
@@ -178,7 +178,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader className="h-8 w-8 animate-spin text-[#7F1D1D]" />
+        <Loader className="h-8 w-8 animate-spin text-primary" />
       </div>
     }>
       <ResetPasswordContent />

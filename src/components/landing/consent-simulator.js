@@ -145,28 +145,28 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
     <section id="simulator" className="scroll-mt-24 py-8">
       {/* Header section */}
       <div className="max-w-3xl mb-8">
-        <p className="text-xs font-bold uppercase tracking-[0.35em] text-pink-600">Demo Interaktif</p>
-        <h2 className="mt-3 text-3xl font-extrabold text-slate-900 sm:text-4xl leading-tight">
+        <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#0D9488]">Demo Interaktif</p>
+        <h2 className="mt-3 text-3xl font-extrabold text-[#334155] sm:text-4xl leading-tight">
           Consent Simulator Live
         </h2>
-        <p className="mt-3.5 text-sm leading-relaxed text-slate-500">
+        <p className="mt-3.5 text-sm leading-relaxed text-[#64748B]">
           Uji coba secara real-time bagaimana interaksi antara **Smart Contract Blockchain** dan **Database MySQL Terenkripsi** mengamankan data medis Anda dari akses tak berizin.
         </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
         {/* Left Side: Doctor's Dashboard Panel */}
-        <div className="glass-panel rounded-3xl p-5 shadow-[0_12px_40px_rgba(225,29,72,0.03)] border border-slate-200/80 flex flex-col justify-between">
+        <div className="glass-panel rounded-3xl p-5 shadow-[0_12px_40px_rgba(13,148,136,0.03)] border border-[#E2E8F0] flex flex-col justify-between">
           <div>
             {/* Header Portal Dokter */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-50 text-pink-600 border border-pink-100 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6F4F1] text-[#0D9488] border border-teal-100 shadow-sm">
                   <Stethoscope className="h-5 w-5" />
                 </span>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900 leading-tight">Rumah Sakit Cipto Mangunkusumo</h4>
-                  <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Portal Dokter (dr. Amanda, Sp.PD)</p>
+                  <h4 className="text-sm font-bold text-[#334155] leading-tight">Rumah Sakit Cipto Mangunkusumo</h4>
+                  <p className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">Portal Dokter (dr. Amanda, Sp.PD)</p>
                 </div>
               </div>
               
@@ -197,7 +197,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   type="text"
                   value={nikInput}
                   onChange={(e) => setNikInput(e.target.value)}
-                  className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:outline-hidden focus:border-rose-500 font-mono shadow-inner-sm"
+                  className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:outline-hidden focus:border-teal-500 font-mono shadow-inner-sm"
                   placeholder="Masukkan NIK Pasien"
                   disabled={simulatorState !== "idle"}
                 />
@@ -207,7 +207,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
                   className={`rounded-xl px-5 py-2.5 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-sm ${
                     simulatorState !== "idle" || !walletConnected
                       ? "bg-slate-300 cursor-not-allowed text-slate-500"
-                      : "bg-linear-to-r from-pink-500 to-fuchsia-500 hover:from-pink-400 hover:to-fuchsia-400 hover:scale-[1.02]"
+                      : "bg-gradient-to-r from-[#0D9488] to-[#0F766E] hover:from-teal-600 hover:to-teal-800 hover:scale-[1.02]"
                   }`}
                 >
                   <Send className="h-3.5 w-3.5" />
@@ -226,7 +226,7 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Database className="h-4 w-4 text-rose-500" />
+                  <Database className="h-4 w-4 text-[#0D9488]" />
                   Data EHR Terenkripsi (MySQL Cold Storage)
                 </p>
                 {simulatorState === "approved" ? (
@@ -441,8 +441,8 @@ export default function ConsentSimulator({ walletConnected, setWalletConnected }
 
       {/* Ledger Audit Trail Section */}
       <div className="mt-8">
-        <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-          <Database className="h-4.5 w-4.5 text-pink-600" />
+        <p className="text-xs font-extrabold uppercase tracking-wider text-[#64748B] mb-3 flex items-center gap-1.5">
+          <Database className="h-4.5 w-4.5 text-[#0D9488]" />
           Audit Trail Ledger Blockchain (Real-time Logs)
         </p>
         <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-4 shadow-inner-sm max-h-40 overflow-y-auto space-y-2">
