@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import { getDoctors } from "@/services/doctorService";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { isRealTxHash } from "@/lib/blockchain";
 import {
   Stethoscope,
   Building2,
@@ -96,6 +97,7 @@ export default function FaskesPatients() {
           patientName: item.patient_name || item.Patient?.name || item.patient?.name || "Pasien Terdaftar",
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
+          txHash: item.tx_hash || item.txHash || null,
           poli: item.requested_data || "Klinik Umum",
           approvedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
           expiryTime: item.expiry_time ? new Date(item.expiry_time).toLocaleDateString("id-ID") : "Selamanya"
@@ -248,10 +250,11 @@ export default function FaskesPatients() {
   };
 
   const formatTxHash = (hash) => {
-    if (!hash) return "0x7f8a3b21c49e0d15...";
-    const str = String(hash);
-    if (str.length <= 18) return str;
-    return str.slice(0, 18) + "...";
+    if (!hash || typeof hash !== "string") return null;
+    const cleaned = hash.trim();
+    if (!isRealTxHash(cleaned)) return null;
+    if (cleaned.length <= 18) return cleaned;
+    return cleaned.slice(0, 10) + "..." + cleaned.slice(-8);
   };
 
   const filteredPatients = activePatients.filter(
@@ -357,9 +360,7 @@ export default function FaskesPatients() {
                             <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
                           </td>
                           <td className="py-4 px-4 font-mono text-[11px] text-primary font-bold">
-                            <TxHashLink txHash={patient.txHash || "0x7f8a3b21c49e0d15a82f"} className="inline-flex items-center gap-1" title={patient.txHash}>
-                              <span>{formatTxHash(patient.txHash || "0x7f8a3b21c49e0d15a82f")}</span>
-                            </TxHashLink>
+                            <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1" title={patient.txHash} />
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-1.5 text-slate-500 font-medium">
@@ -369,10 +370,10 @@ export default function FaskesPatients() {
                           </td>
                           <td className="py-4 px-4 text-right">
                             <button
-                              onClick={() => openAddEhrModal(patient)}
+                              onClick={() => router.push(`/dashboard/faskes/medical-records`)}
                               className="inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white px-3.5 py-2 font-bold transition shadow-xs cursor-pointer"
                             >
-                              <Plus className="h-3.5 w-3.5" /> Tambah Rekam Medis
+                              <Eye className="h-3.5 w-3.5" /> Lihat Riwayat
                             </button>
                           </td>
                         </tr>

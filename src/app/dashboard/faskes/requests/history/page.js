@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { isRealTxHash } from "@/lib/blockchain";
 import {
   Activity,
   Building2,
@@ -125,7 +126,7 @@ export default function FaskesRequestsHistory() {
           walletAddress: item.Patient?.wallet_address || item.patient?.wallet_address || "0x0000...0000",
           poli: item.requested_data || item.poli_dokter || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: item.tx_hash || item.txHash || "0x7f8a3b21c49e0d15a82f",
+          txHash: item.tx_hash || item.txHash || null,
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -143,10 +144,11 @@ export default function FaskesRequestsHistory() {
   };
 
   const formatTxHash = (hash) => {
-    if (!hash) return "0x7f8a3b21c49e0d15...";
-    const str = String(hash);
-    if (str.length <= 18) return str;
-    return str.slice(0, 18) + "...";
+    if (!hash || typeof hash !== "string") return null;
+    const cleaned = hash.trim();
+    if (!isRealTxHash(cleaned)) return null;
+    if (cleaned.length <= 18) return cleaned;
+    return cleaned.slice(0, 10) + "..." + cleaned.slice(-8);
   };
 
   const handleLogout = () => {
@@ -289,9 +291,7 @@ export default function FaskesRequestsHistory() {
                           <p className="font-mono text-[9px] text-slate-400 mt-0.5">NIK: {maskNik(req.nik)}</p>
                         </td>
                         <td className="py-3.5 px-4 text-center font-mono text-[10px] text-primary font-bold">
-                          <TxHashLink txHash={req.txHash || "0x7f8a3b21c49e0d15a82f"} className="inline-flex items-center gap-1 justify-center" title={req.txHash}>
-                            <span>{formatTxHash(req.txHash || "0x7f8a3b21c49e0d15a82f")}</span>
-                          </TxHashLink>
+                          <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 justify-center" title={req.txHash} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           {req.status === "Approved" ? (

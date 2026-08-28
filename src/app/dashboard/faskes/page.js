@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { isRealTxHash } from "@/lib/blockchain";
 import { getDoctors } from "@/services/doctorService";
 import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
 import {
@@ -138,7 +139,7 @@ export default function FaskesDashboard() {
           nik: item.patient_nik || item.Patient?.profil?.nik || item.patient?.profil?.nik || "-",
           poli: item.requested_data || "Instalasi Medis",
           status: item.status === "approved" ? "Approved" : item.status === "pending" ? "Pending Pasien" : item.status === "rejected" ? "Rejected" : "Revoked",
-          txHash: null,
+          txHash: item.tx_hash || item.txHash || null,
           requestedAt: new Date(item.created_at).toLocaleDateString("id-ID")
         }));
         setRequestsList(mapped);
@@ -168,7 +169,6 @@ export default function FaskesDashboard() {
     setSubmittingRequest(true);
 
     const token = localStorage.getItem("accessToken");
-    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
@@ -279,10 +279,11 @@ export default function FaskesDashboard() {
   };
 
   const formatTxHash = (hash) => {
-    if (!hash) return "0x7f8a3b21c49e0d15...";
-    const str = String(hash);
-    if (str.length <= 18) return str;
-    return str.slice(0, 18) + "...";
+    if (!hash || typeof hash !== "string") return null;
+    const cleaned = hash.trim();
+    if (!isRealTxHash(cleaned)) return null;
+    if (cleaned.length <= 18) return cleaned;
+    return cleaned.slice(0, 10) + "..." + cleaned.slice(-8);
   };
 
   if (loading) {
@@ -530,9 +531,7 @@ export default function FaskesDashboard() {
                           <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
                         </td>
                         <td className="py-2.5 px-3 text-center font-mono text-[10px] text-primary font-bold">
-                          <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 justify-center" title={req.txHash}>
-                            <span>{formatTxHash(req.txHash)}</span>
-                          </TxHashLink>
+                          <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 justify-center" title={req.txHash} />
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           {req.status === "Approved" ? (

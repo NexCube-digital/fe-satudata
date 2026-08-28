@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import TxHashLink from "@/components/ui/TxHashLink";
+import { isRealTxHash } from "@/lib/blockchain";
 import { 
   FileText, 
   Search, 
@@ -58,7 +59,7 @@ export default function FaskesMedicalRecordsPage() {
           doctorName: item.doctor?.name || "dr. Penanggung Jawab",
           status: item.status || "Disetujui",
           dataHash: item.data_hash || "0x9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f",
-          txHash: item.tx_hash || "0x7f8a3b21c49e0d15a82f",
+          txHash: item.tx_hash || item.txHash || null,
         }));
         setRecords(mapped);
       }
@@ -68,10 +69,11 @@ export default function FaskesMedicalRecordsPage() {
   };
 
   const formatTxHash = (hash) => {
-    if (!hash) return "0x7f8a3b21c49e0d15...";
-    const str = String(hash);
-    if (str.length <= 18) return str;
-    return str.slice(0, 18) + "...";
+    if (!hash || typeof hash !== "string") return "uploading";
+    const cleaned = hash.trim();
+    if (!isRealTxHash(cleaned)) return "uploading";
+    if (cleaned.length <= 18) return cleaned;
+    return cleaned.slice(0, 10) + "..." + cleaned.slice(-8);
   };
 
   const maskNik = (nik) => {
@@ -105,7 +107,7 @@ export default function FaskesMedicalRecordsPage() {
     patient.latestVisit = patient.history[0]?.visitDate;
     patient.latestTitle = patient.history[0]?.title || "Pemeriksaan Medis";
     patient.latestDoctor = patient.history[0]?.doctorName || "-";
-    patient.latestTxHash = patient.history[0]?.txHash || "0x7f8a3b21c49e0d15a82f";
+    patient.latestTxHash = patient.history[0]?.txHash || null;
     return patient;
   });
 
@@ -335,11 +337,11 @@ export default function FaskesMedicalRecordsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Tx Hash:</span>
                         <TxHashLink
-                          txHash={item.txHash || "0x7f8a3b21c49e0d15a82f"}
+                          txHash={item.txHash}
                           className="font-mono text-[9px] font-bold text-primary bg-white border border-teal-200 px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1 shadow-2xs"
                           title={item.txHash}
                         >
-                          <span>{formatTxHash(item.txHash || "0x7f8a3b21c49e0d15a82f")}</span>
+                          <span>{formatTxHash(item.txHash)}</span>
                         </TxHashLink>
                       </div>
 
