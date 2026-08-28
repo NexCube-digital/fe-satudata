@@ -75,31 +75,40 @@ export default function FaskesMedicalRecordsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={() => router.push("/auth/login")} />
       <div className="flex flex-1">
         <Sidebar role="faskes" />
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-rose-700 font-bold">Dashboard Faskes</p>
-              <h1 className="text-3xl font-extrabold text-slate-900 mt-3">Direktori Rekam Medis</h1>
-              <p className="max-w-2xl text-sm text-slate-500 mt-2">Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.</p>
+          {/* Header Banner */}
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-5 py-4 text-white shadow-md mb-6">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-2xl" />
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                  <FileText className="h-6 w-6 text-teal-200" />
+                  Direktori Rekam Medis
+                </h1>
+                <p className="text-xs text-teal-100/90 mt-1 max-w-2xl leading-relaxed">
+                  Daftar seluruh rekam medis yang telah diunggah dan terenkripsi.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard/faskes/patients")}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white text-primary-hover hover:bg-teal-50 font-bold px-4 py-2.5 text-xs shadow-xs transition shrink-0 cursor-pointer"
+              >
+                <Users className="h-4 w-4" /> Data Pasien Aktif
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-rose-700 transition cursor-pointer"
-            >
-              <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
-            </button>
           </div>
 
           <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
@@ -119,11 +128,11 @@ export default function FaskesMedicalRecordsPage() {
                         value={searchTerm}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Cari pasien, judul, tx hash..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-10 py-3 text-sm text-slate-800 focus:border-rose-700 focus:outline-none"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-10 py-3 text-sm text-slate-800 focus:border-primary focus:outline-none"
                       />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 border border-rose-100">{records.filter((r) => r.txHash).length} On-chain</span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-secondary-tint px-3 py-2 text-xs font-semibold text-primary border border-teal-200">{records.filter((r) => r.txHash).length} On-chain</span>
                       <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200">{records.filter((r) => !r.txHash).length} Off-chain</span>
                     </div>
                   </div>
@@ -162,7 +171,7 @@ export default function FaskesMedicalRecordsPage() {
                                 {item.txHash ? (
                                   <TxHashLink
                                     txHash={item.txHash}
-                                    className="font-mono text-[10px] font-bold text-rose-900 bg-linear-to-r from-rose-50 via-rose-100 to-rose-50 border border-rose-300 shadow-sm px-2 py-1 rounded-xl inline-flex items-center gap-1 whitespace-normal break-all"
+                                    className="font-mono text-[10px] font-bold text-primary bg-secondary-tint border border-teal-200 shadow-xs px-2 py-1 rounded-xl inline-flex items-center gap-1 whitespace-normal break-all"
                                     title={item.txHash}
                                   >
                                     <span className="tracking-[0.03em] leading-tight" title={item.txHash}>{item.txHash}</span>
@@ -199,7 +208,7 @@ export default function FaskesMedicalRecordsPage() {
             className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-linear-to-r from-rose-800 via-rose-700 to-red-800 px-6 py-5 text-white">
+            <div className="relative bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-6 py-5 text-white">
               <button
                 type="button"
                 onClick={closeRecordDetail}
@@ -209,9 +218,9 @@ export default function FaskesMedicalRecordsPage() {
               >
                 <X className="h-4 w-4" />
               </button>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-rose-200 font-bold">Detail Rekam Medis</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-teal-200 font-bold">Detail Rekam Medis</p>
               <h3 className="mt-2 text-2xl font-extrabold tracking-tight">{selectedRecord.patientName}</h3>
-              <p className="mt-1 text-xs text-rose-100">Klik area luar atau tombol close untuk menutup detail.</p>
+              <p className="mt-1 text-xs text-teal-100">Klik area luar atau tombol close untuk menutup detail.</p>
             </div>
 
             <div className="p-6 space-y-4 text-sm">
@@ -249,7 +258,7 @@ export default function FaskesMedicalRecordsPage() {
                   {selectedRecord.txHash ? (
                     <TxHashLink
                       txHash={selectedRecord.txHash}
-                      className="font-mono text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
+                      className="font-mono text-xs font-bold text-primary bg-secondary-tint border border-teal-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
                       title={selectedRecord.txHash}
                     >
                       <span>{selectedRecord.txHash}</span>
@@ -269,7 +278,7 @@ export default function FaskesMedicalRecordsPage() {
                 <button
                   type="button"
                   onClick={closeRecordDetail}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 transition cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-hover transition cursor-pointer"
                 >
                   <X className="h-4 w-4" /> Tutup
                 </button>

@@ -175,14 +175,14 @@ export default function PatientConsentHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Pasien Terdaftar" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -190,13 +190,13 @@ export default function PatientConsentHistoryPage() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-950 via-teal-900 to-emerald-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <ShieldCheck className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
+                  <ShieldCheck className="h-3.5 w-3.5 text-teal-300" />
                   Pusat Kendali Hak Akses Terdesentralisasi (Sovereign Consent)
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -214,7 +214,7 @@ export default function PatientConsentHistoryPage() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Faskes</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary-tint text-primary">
                   <Building2 className="h-4 w-4" />
                 </span>
               </div>
@@ -242,14 +242,14 @@ export default function PatientConsentHistoryPage() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Akses Dicabut</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary-tint text-primary">
                   <ShieldX className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {historyRequestsList.filter((r) => r.status === "revoked" || r.status === "rejected").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-primary mt-1 flex items-center gap-1">
                 <Lock className="h-3 w-3" /> Dekripsi Dikunci Pasien
               </p>
             </div>
@@ -257,14 +257,14 @@ export default function PatientConsentHistoryPage() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Otorisasi Relay</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
                   <Zap className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 EIP-2771 <span className="text-xs font-normal text-slate-500">Relayer</span>
               </p>
-              <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-teal-700 mt-1 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Transaksi Tanpa Potongan Gas
               </p>
             </div>
@@ -280,7 +280,7 @@ export default function PatientConsentHistoryPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                      <ShieldCheck className="h-4.5 w-4.5 text-rose-600" />
+                      <ShieldCheck className="h-4.5 w-4.5 text-primary" />
                       Riwayat & Status Persetujuan ({historyRequestsList.length})
                     </h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">Daftar izin akses yang telah Anda putuskan sebelumnya.</p>
@@ -306,7 +306,7 @@ export default function PatientConsentHistoryPage() {
                     <button
                       onClick={() => setActiveTab("revoked")}
                       className={`px-3 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                        activeTab === "revoked" ? "bg-rose-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                        activeTab === "revoked" ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       Dicabut
@@ -322,7 +322,7 @@ export default function PatientConsentHistoryPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Cari dalam histori..."
-                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-rose-600 focus:outline-hidden bg-slate-50/50"
+                    className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-primary focus:outline-hidden bg-slate-50/50"
                   />
                 </div>
 
@@ -337,7 +337,7 @@ export default function PatientConsentHistoryPage() {
                     filteredHistory.map((req) => (
                       <div
                         key={req.id}
-                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-white"
+                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-white"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                           <div className="flex items-start gap-3">
@@ -361,8 +361,8 @@ export default function PatientConsentHistoryPage() {
                               </span>
                             )}
                             {(req.status === "revoked" || req.status === "rejected") && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-xs font-bold text-rose-700">
-                                <Lock className="h-3.5 w-3.5 text-rose-600" />
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary-tint border border-teal-200 px-3 py-1 text-xs font-bold text-primary">
+                                <Lock className="h-3.5 w-3.5 text-primary" />
                                 Izin Akses Dicabut
                               </span>
                             )}
@@ -388,7 +388,7 @@ export default function PatientConsentHistoryPage() {
                         {/* Actions */}
                         <div className="border-t border-slate-100 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="font-mono text-[9px] text-slate-400">
-                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
+                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-primary font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
                           </div>
 
                           <div>
@@ -396,7 +396,7 @@ export default function PatientConsentHistoryPage() {
                               <button
                                 onClick={() => handleAction(req.id, "revoked")}
                                 disabled={submittingId === req.id}
-                                className="rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 px-4 py-2 font-bold transition cursor-pointer flex items-center gap-1.5"
+                                className="rounded-xl bg-secondary-tint border border-teal-200 text-primary-hover hover:bg-teal-100 px-4 py-2 font-bold transition cursor-pointer flex items-center gap-1.5"
                               >
                                 {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
                                 Cabut Akses
@@ -427,7 +427,7 @@ export default function PatientConsentHistoryPage() {
               {/* Audit Logs Console */}
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="h-4 w-4 text-rose-600" />
+                  <Database className="h-4 w-4 text-primary" />
                   Live Consent Audit Stream
                 </h3>
 
@@ -435,13 +435,13 @@ export default function PatientConsentHistoryPage() {
                   {auditLogs.map((log) => (
                     <div key={log.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`font-bold ${log.status === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+                        <span className={`font-bold ${log.status === "success" ? "text-emerald-700" : "text-primary"}`}>
                           {log.action}
                         </span>
                         <span className="text-[9px] font-mono text-slate-400">{log.timestamp}</span>
                       </div>
                       <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                      <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: <TxHashLink txHash={log.txHash} className="inline-flex items-center gap-1" title={log.txHash}><span>{log.txHash}</span></TxHashLink></p>
+                      <p className="text-[9px] font-mono text-primary mt-1">Tx: <TxHashLink txHash={log.txHash} className="inline-flex items-center gap-1" title={log.txHash}><span>{log.txHash}</span></TxHashLink></p>
                     </div>
                   ))}
                 </div>

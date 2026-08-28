@@ -181,14 +181,14 @@ export default function PatientConsentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Pasien Terdaftar" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -196,13 +196,13 @@ export default function PatientConsentPage() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-600/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-950 via-teal-900 to-emerald-950 p-6 sm:p-8 text-white shadow-xl mb-8">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <ShieldCheck className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
+                  <ShieldCheck className="h-3.5 w-3.5 text-teal-300" />
                   Pusat Kendali Hak Akses Terdesentralisasi (Sovereign Consent)
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -220,7 +220,7 @@ export default function PatientConsentPage() {
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
                   <p className="text-[10px] text-slate-400 uppercase font-bold">Smart Contract</p>
-                  <p className="font-bold text-rose-300 mt-0.5">SatuDataAccessControl.sol</p>
+                  <p className="font-bold text-teal-200 mt-0.5">SatuDataAccessControl.sol</p>
                 </div>
               </div>
             </div>
@@ -261,14 +261,14 @@ export default function PatientConsentPage() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Akses Dicabut</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary-tint text-primary">
                   <ShieldX className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 {requests.filter((r) => r.status === "revoked" || r.status === "rejected").length} <span className="text-xs font-normal text-slate-500">Faskes</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-primary mt-1 flex items-center gap-1">
                 <Lock className="h-3 w-3" /> Dekripsi Dikunci Pasien
               </p>
             </div>
@@ -276,14 +276,14 @@ export default function PatientConsentPage() {
             <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Otorisasi Relay</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
                   <Zap className="h-4 w-4" />
                 </span>
               </div>
               <p className="text-2xl font-extrabold text-slate-900 mt-3">
                 EIP-2771 <span className="text-xs font-normal text-slate-500">Relayer</span>
               </p>
-              <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
+              <p className="text-[10px] font-medium text-teal-700 mt-1 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Transaksi Tanpa Potongan Gas
               </p>
             </div>
@@ -315,7 +315,7 @@ export default function PatientConsentPage() {
                     pendingRequestsList.map((req) => (
                       <div
                         key={req.id}
-                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-rose-300 hover:shadow-xs bg-slate-50/40"
+                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-slate-50/40"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                           <div className="flex items-start gap-3">
@@ -359,7 +359,7 @@ export default function PatientConsentPage() {
                         {/* Actions */}
                         <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div className="font-mono text-[9px] text-slate-400">
-                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-rose-600 font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
+                            Tx Hash: <TxHashLink txHash={req.txHash} className="text-primary font-bold inline-flex items-center gap-1" title={req.txHash}><span>{req.txHash}</span></TxHashLink>
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -392,7 +392,7 @@ export default function PatientConsentPage() {
               {/* Audit Logs Console */}
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
                 <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="h-4 w-4 text-rose-600" />
+                  <Database className="h-4 w-4 text-primary" />
                   Live Consent Audit Stream
                 </h3>
 
@@ -400,13 +400,13 @@ export default function PatientConsentPage() {
                   {auditLogs.map((log) => (
                     <div key={log.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`font-bold ${log.status === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+                        <span className={`font-bold ${log.status === "success" ? "text-emerald-700" : "text-primary"}`}>
                           {log.action}
                         </span>
                         <span className="text-[9px] font-mono text-slate-400">{log.timestamp}</span>
                       </div>
                       <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                      <p className="text-[9px] font-mono text-rose-600 mt-1">Tx: <TxHashLink txHash={log.txHash} className="inline-flex items-center gap-1" title={log.txHash}><span>{log.txHash}</span></TxHashLink></p>
+                      <p className="text-[9px] font-mono text-primary mt-1">Tx: <TxHashLink txHash={log.txHash} className="inline-flex items-center gap-1" title={log.txHash}><span>{log.txHash}</span></TxHashLink></p>
                     </div>
                   ))}
                 </div>

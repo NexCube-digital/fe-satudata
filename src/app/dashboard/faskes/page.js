@@ -28,7 +28,9 @@ import {
   Eye,
   RefreshCw,
   Receipt,
-  Coins
+  Coins,
+  UserCheck,
+  ArrowRight
 } from "lucide-react";
 
 export default function FaskesDashboard() {
@@ -176,7 +178,7 @@ export default function FaskesDashboard() {
         },
         body: JSON.stringify({
           patientNik: nikInput,
-          jenisDataDiminta: poliInput,
+          jenisDataDiminta: poliInput || "Permintaan Akses Rekam Medis",
           txHash
         })
       });
@@ -275,22 +277,29 @@ export default function FaskesDashboard() {
     return str.slice(0, 6) + "******" + str.slice(12);
   };
 
+  const formatTxHash = (hash) => {
+    if (!hash) return "0x7f8a3b21c49e0d15...";
+    const str = String(hash);
+    if (str.length <= 18) return str;
+    return str.slice(0, 18) + "...";
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-primary mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-800 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <Link href="/auth/login" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary-hover transition">
             Kembali ke Halaman Login
           </Link>
         </div>
@@ -299,413 +308,299 @@ export default function FaskesDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf7f2] via-[#fdfbf7] to-[#f5efe6] flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
         <Sidebar role="faskes" />
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          {/* Faskes Banner Header */}
-          <div className="relative overflow-hidden rounded-3xl border border-rose-800/40 bg-gradient-to-r from-rose-900 via-rose-800 to-red-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-rose-800/15 blur-3xl" />
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
+          {/* 1. Compact Banner Header */}
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-5 py-4 text-white shadow-md mb-4">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-2xl" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-rose-700/30 bg-rose-700/10 px-3.5 py-1 text-xs font-semibold text-rose-300 mb-3">
-                  <Stethoscope className="h-3.5 w-3.5 text-rose-400" />
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3 py-0.5 text-[10px] font-semibold text-teal-100 mb-1">
+                  <Stethoscope className="h-3 w-3 text-teal-200" />
                   Sistem HIS & Integrated Medis POS Active
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
                   {hospitalProfile?.name || user?.name || "RS Cipto Mangunkusumo"}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-                  Portal Fasilitas Kesehatan & Dokter Penanggung Jawab. Ajukan permohonan rekam medis eksternal secara terlisensi dan cetak billing kasir.
+                <p className="text-xs text-teal-100/90 mt-0.5 max-w-xl">
+                  Portal Fasilitas Kesehatan & Dokter Penanggung Jawab. Ajukan permohonan rekam medis eksternal.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1"><Coins className="h-3 w-3" /> Token Akun</p>
-                  <p className="font-bold text-amber-400 mt-0.5 text-lg">{hospitalProfile?.tokens ?? 0} <span className="text-[10px] text-slate-400 font-normal">token</span></p>
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-md text-xs font-mono">
+                  <p className="text-[9px] text-teal-200 uppercase font-bold flex items-center gap-1"><Coins className="h-3 w-3 text-amber-300" /> Token Akun</p>
+                  <p className="font-bold text-amber-300 text-base leading-none mt-0.5">{hospitalProfile?.tokens ?? 0} <span className="text-[9px] text-teal-100 font-normal">token</span></p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+          {/* 2. Compact Key Metrics Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+            <div className="rounded-2xl bg-white p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kunjungan Hari Ini</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-800">
-                  <Users className="h-4 w-4" />
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary-tint text-primary">
+                  <Users className="h-3.5 w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
+              <p className="text-xl font-extrabold text-slate-900 mt-1.5">
                 {stats.kunjungan_hari_ini} <span className="text-xs font-normal text-slate-500">Pasien</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Antrean Rawat Jalan Operasional
+              <p className="text-[9px] font-medium text-primary mt-0.5 flex items-center gap-1">
+                <CheckCircle className="h-2.5 w-2.5" /> Antrean Rawat Jalan Operasional
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+            <div className="rounded-2xl bg-white p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Izin Akses Disetujui</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-50 text-rose-800">
-                  <ShieldCheck className="h-4 w-4" />
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="h-3.5 w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {stats.izin_akses_disetujui} <span className="text-xs font-normal text-slate-500">Berkas Medis</span>
+              <p className="text-xl font-extrabold text-slate-900 mt-1.5">
+                {stats.izin_akses_disetujui} <span className="text-xs font-normal text-slate-500">Berkas</span>
               </p>
-              <p className="text-[10px] font-medium text-rose-800 mt-1 flex items-center gap-1">
-                <Unlock className="h-3 w-3" /> Dekripsi Diotorisasi Pasien
+              <p className="text-[9px] font-medium text-emerald-600 mt-0.5 flex items-center gap-1">
+                <Unlock className="h-2.5 w-2.5" /> Dekripsi Diotorisasi Pasien
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+            <div className="rounded-2xl bg-white p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Request Pending</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                  <Clock className="h-4 w-4" />
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                  <Clock className="h-3.5 w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
+              <p className="text-xl font-extrabold text-slate-900 mt-1.5">
                 {stats.request_pending} <span className="text-xs font-normal text-slate-500">Menunggu</span>
               </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
-                <Activity className="h-3 w-3" /> Notifikasi Dikirim ke Patient Wallet
+              <p className="text-[9px] font-medium text-amber-600 mt-0.5 flex items-center gap-1">
+                <Activity className="h-2.5 w-2.5" /> Sent to Patient Wallet
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+            <div className="rounded-2xl bg-white p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Omzet POS Kasir</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                  <DollarSign className="h-4 w-4" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Dokter & Nakes</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <UserCheck className="h-3.5 w-3.5" />
                 </span>
               </div>
-              <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-3">
-                Rp {sessionOmzet.toLocaleString("id-ID")}
+              <p className="text-xl font-extrabold text-slate-900 mt-1.5">
+                {doctors.length} <span className="text-xs font-normal text-slate-500">Nakes</span>
               </p>
-              <p className="text-[10px] font-medium text-purple-600 mt-1 flex items-center gap-1">
-                <Receipt className="h-3 w-3" /> Kasir Pendaftaran Harian
+              <p className="text-[9px] font-medium text-indigo-600 mt-0.5 flex items-center gap-1">
+                <UserCheck className="h-2.5 w-2.5" /> Dokter Penanggung Jawab
               </p>
             </div>
           </div>
 
-          {/* Main Layout Grid */}
-          <div className="grid gap-8 lg:grid-cols-3 items-start">
-            {/* Left Column (2 Cols): Form Request Access & Patients Table */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* WIDGET 1: FORM MINTA AKSES REKAM MEDIS (requestAccess) */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <Send className="h-5 w-5 text-rose-800" />
-                      Pengajuan Izin Akses Rekam Medis (requestAccess)
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Kirim permintaan otorisasi ke wallet pasien untuk membuka dekripsi rekam medis eksternal.
-                    </p>
-                  </div>
+          {/* 3. Main Single Frame Split Grid (Left 5 Cols: Quick Access | Right 7 Cols: Requests Table) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* LEFT PANEL: Quick Access & NIK Request */}
+            <div className="lg:col-span-5 space-y-4">
+              {/* Form Input NIK */}
+              <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-2xs">
+                <div className="border-b border-slate-100 pb-2 mb-3">
+                  <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Send className="h-3.5 w-3.5 text-primary" />
+                    Pengajuan Izin Akses Rekam Medis
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Kirim permintaan otorisasi ke wallet pasien via NIK.
+                  </p>
                 </div>
 
-                <form onSubmit={handleSendRequest} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        NIK Pasien Sasaran
-                      </label>
+                <form onSubmit={handleSendRequest} className="space-y-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      NIK Pasien Sasaran
+                    </label>
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         maxLength={16}
                         value={nikInput}
-                        onChange={(e) => setNikInput(e.target.value)}
-                        placeholder="Masukkan NIK Pasien"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-rose-800 focus:outline-hidden"
+                        onChange={(e) => setNikInput(e.target.value.replace(/\D/g, ""))}
+                        placeholder="16 Digit NIK Pasien"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-mono focus:border-primary focus:outline-hidden bg-slate-50/50 text-slate-800"
                         required
                       />
+                      <button
+                        type="submit"
+                        disabled={submittingRequest}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover px-4 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50 shrink-0"
+                      >
+                        {submittingRequest ? (
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Send className="h-3.5 w-3.5" />
+                        )}
+                        Kirim
+                      </button>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Pilih Dokter / Poli
-                      </label>
-                      <ModernDoctorSelect
-                        doctors={doctors}
-                        value={poliInput}
-                        onChange={(val) => setPoliInput(val)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                      Tujuan Pemeriksaan
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={purposeInput}
-                      onChange={(e) => setPurposeInput(e.target.value)}
-                      placeholder="Masukkan Tujuan Pemeriksaan (Contoh: Pemeriksaan Rutin & Resep Obat)"
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-rose-800 focus:outline-hidden"
-                    />
-                  </div>
-
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={submittingRequest}
-                      className="inline-flex items-center gap-2 rounded-xl bg-rose-800 hover:bg-rose-700 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition cursor-pointer disabled:opacity-50"
-                    >
-                      {submittingRequest ? (
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                      Kirim Permintaan Ke Pasien (requestAccess)
-                    </button>
                   </div>
                 </form>
               </div>
 
-              {/* WIDGET 2: TABEL STATUS AKSES & DEKRIPSI DATA PASIEN */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs mb-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-rose-800" />
-                      Rekam Medis & Upload Baru
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Akses daftar rekam medis yang Anda unggah sendiri, atau buat berkas baru untuk pasien terotorisasi.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2 mb-4">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <h4 className="text-sm font-bold text-slate-900 mb-2">Semua Rekam Medis</h4>
-                    <p className="text-xs text-slate-500 mb-4">Lihat berkas EHR, transaksi Blockchain, dan status upload pasien Anda.</p>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard/faskes/medical-records")}
-                      className="inline-flex items-center gap-2 rounded-xl bg-rose-800 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 transition"
-                    >
-                      <FileText className="h-4 w-4" /> Buka Semua Rekam Medis
-                    </button>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <h4 className="text-sm font-bold text-slate-900 mb-2">Upload Baru</h4>
-                    <p className="text-xs text-slate-500 mb-4">Unggah catatan medis baru untuk pasien dengan akses aktif.</p>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard/faskes/medical-records/upload")}
-                      className="inline-flex items-center gap-2 rounded-xl border border-rose-800 bg-white px-4 py-2 text-xs font-bold text-rose-800 hover:bg-rose-50 transition"
-                    >
-                      <Plus className="h-4 w-4" /> Upload Rekam Medis Baru
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-rose-800" />
-                      Tabel Permintaan & Dekripsi Rekam Medis
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Daftar permohonan rekam medis eksternal yang diajukan oleh dokter rumah sakit.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                        <th className="py-3 px-4 rounded-l-xl">Pasien / NIK</th>
-                        <th className="py-3 px-4">Poli Dokter</th>
-                        <th className="py-3 px-4">Status Consent</th>
-                        <th className="py-3 px-4">Tx Hash</th>
-                        <th className="py-3 px-4 text-right rounded-r-xl">Aksi Dekripsi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {requestsList.map((req) => (
-                        <tr key={req.id} className="hover:bg-slate-50/50 transition">
-                          <td className="py-3.5 px-4">
-                            <p className="font-bold text-slate-900">{req.patientName}</p>
-                            <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
-                          </td>
-                          <td className="py-3.5 px-4 font-medium text-slate-700">{req.poli}</td>
-                          <td className="py-3.5 px-4">
-                            {req.status === "Approved" ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-900">
-                                <CheckCircle className="h-3 w-3" /> Disetujui
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 animate-pulse">
-                                <Clock className="h-3 w-3" /> Pending Pasien
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-[10px] text-rose-900">
-                            <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1" title={req.txHash}>
-                              <span>{req.txHash}</span>
-                            </TxHashLink>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            {req.status === "Approved" ? (
-                              <button
-                                onClick={() => handleViewPatientRecords(req)}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 hover:bg-rose-100 px-3 py-1.5 font-bold transition cursor-pointer"
-                              >
-                                <Eye className="h-3.5 w-3.5" /> Lihat EHR
-                              </button>
-                            ) : (
-                              <span className="text-slate-400 italic font-mono text-[10px]">Terkunci</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Modal View Decrypted Record */}
-                {selectedRecord && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-sky-950/40 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-3xl rounded-[32px] border border-sky-200/80 bg-gradient-to-br from-slate-50 via-sky-50 to-white p-6 shadow-2xl shadow-sky-400/20 text-slate-900">
-                      <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
-                        <div>
-                          <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sm font-semibold text-sky-800">
-                            <Unlock className="h-4 w-4" />
-                            Rekam Medis Terdekripsi
-                          </div>
-                          <h4 className="mt-3 text-lg font-extrabold text-slate-900">{selectedRecord.patientName}</h4>
-                          <p className="text-sm text-slate-500">NIK: <span className="font-mono text-slate-700">{maskNik(selectedRecord.nik)}</span></p>
-                        </div>
-                        <button
-                          onClick={() => setSelectedRecord(null)}
-                          className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
-                        >
-                          Tutup
-                        </button>
-                      </div>
-
-                      <div className="space-y-4 text-sm">
-                        <div className="rounded-3xl bg-sky-50 border border-sky-200 p-4">
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
-                          <TxHashLink txHash={selectedRecord.txHash} className="mt-2 font-mono text-slate-900 break-all inline-flex" title={selectedRecord.txHash}>
-                            <span>{selectedRecord.txHash}</span>
-                          </TxHashLink>
-                        </div>
-                        <div className="rounded-[28px] border border-slate-200 bg-white p-4 text-slate-700 shadow-sm">
-                          <p className="text-sm font-semibold text-slate-900 mb-3">Ringkasan Rekam Medis</p>
-                          <div className="leading-relaxed text-slate-700 whitespace-pre-line">
-                            {selectedRecord.decryptedData}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column (1 Col): POS Billing Kasir Simulator */}
-            <div className="space-y-8">
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                  <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <Receipt className="h-4.5 w-4.5 text-rose-800" />
-                    Kasir & POS Billing Medis
+              {/* Pintasan Rekam Medis & Upload */}
+              <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-2xs">
+                <div className="border-b border-slate-100 pb-2 mb-3">
+                  <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-primary" />
+                    Pintasan Rekam Medis
                   </h3>
-                  <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-600">POS v2.5</span>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Akses cepat berkas EHR & unggah catatan medis baru.
+                  </p>
                 </div>
 
-                {/* Bill items list */}
-                <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-                  {billItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-xs border border-slate-100">
-                      <span className="font-semibold text-slate-800">{item.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-rose-800 font-bold">Rp {item.price.toLocaleString("id-ID")}</span>
-                        <button
-                          onClick={() => handleRemoveBillItem(item.id)}
-                          className="text-slate-400 hover:text-red-500 transition"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add Custom Item Form */}
-                <form onSubmit={handleAddBillItem} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    placeholder="Nama Layanan Medis"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-rose-800 focus:outline-hidden"
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={newItemPrice}
-                      onChange={(e) => setNewItemPrice(e.target.value)}
-                      placeholder="Harga (Rp)"
-                      className="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-rose-800 focus:outline-hidden"
-                    />
-                    <button
-                      type="submit"
-                      className="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Tambah
-                    </button>
-                  </div>
-                </form>
-
-                {/* Total & Checkout */}
-                <div className="border-t border-slate-100 pt-4">
-                  <div className="flex items-center justify-between text-sm font-bold mb-3">
-                    <span className="text-slate-700">Total Tagihan:</span>
-                    <span className="text-rose-800 font-mono text-base">Rp {totalBill.toLocaleString("id-ID")}</span>
-                  </div>
-
-                  {receiptSuccess && (
-                    <div className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-900 font-medium flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 shrink-0" />
-                      <span>Transaksi kasir sukses! Struk billing tercatat ke rekam medis.</span>
-                    </div>
-                  )}
-
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* Option 1: Semua Rekam Medis */}
                   <button
                     type="button"
-                    onClick={handleProcessTransaction}
-                    className="w-full rounded-xl bg-rose-800 hover:bg-rose-700 py-3 text-center text-xs font-bold text-white transition shadow-md shadow-rose-950/10 cursor-pointer"
+                    onClick={() => router.push("/dashboard/faskes/medical-records")}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-secondary-tint/50 border border-slate-200/80 transition cursor-pointer text-center group"
                   >
-                    Proses Transaksi Kasir
+                    <FileText className="h-5 w-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold text-slate-800">Semua Rekam Medis</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Lihat Berkas EHR</span>
+                  </button>
+
+                  {/* Option 2: Data Pasien */}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard/faskes/patients")}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-secondary-tint/50 border border-slate-200/80 transition cursor-pointer text-center group"
+                  >
+                    <UserCheck className="h-5 w-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold text-slate-800">Data Pasien</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Lihat Pasien Aktif</span>
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* RIGHT PANEL: Tabel Status Akses & Dekripsi Data Pasien */}
+            <div className="lg:col-span-7 rounded-2xl bg-white border border-slate-200/80 p-4 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity className="h-3.5 w-3.5 text-primary" />
+                    Permintaan & Dekripsi Rekam Medis
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Daftar permohonan rekam medis eksternal dokter.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/faskes/requests/history")}
+                  className="inline-flex items-center gap-1 rounded-xl bg-secondary-tint hover:bg-teal-100 text-primary border border-teal-200 px-3 py-1.5 text-xs font-bold transition cursor-pointer shrink-0"
+                >
+                  Semua Request <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-center text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                      <th className="py-2.5 px-3 text-center rounded-l-lg">Pasien / NIK</th>
+                      <th className="py-2.5 px-3 text-center">Tx Hash</th>
+                      <th className="py-2.5 px-3 text-center rounded-r-lg">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {requestsList.slice(0, 3).map((req) => (
+                      <tr key={req.id} className="hover:bg-slate-50/50 transition">
+                        <td className="py-2.5 px-3 text-center">
+                          <p className="font-bold text-slate-900 text-xs">{req.patientName}</p>
+                          <p className="font-mono text-[10px] text-slate-400">NIK: {maskNik(req.nik)}</p>
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono text-[10px] text-primary font-bold">
+                          <TxHashLink txHash={req.txHash} className="inline-flex items-center gap-1 justify-center" title={req.txHash}>
+                            <span>{formatTxHash(req.txHash)}</span>
+                          </TxHashLink>
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          {req.status === "Approved" ? (
+                            <span className="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                              <CheckCircle className="h-2.5 w-2.5" /> Disetujui
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 animate-pulse">
+                              <Clock className="h-2.5 w-2.5" /> Pending
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {requestsList.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="py-6 text-center text-slate-400 italic text-xs">
+                          Belum ada permohonan rekam medis.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Modal View Decrypted Record */}
+              {selectedRecord && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+                  <div className="w-full max-w-3xl rounded-[32px] border border-teal-200/80 bg-gradient-to-br from-slate-50 via-teal-50/30 to-white p-6 shadow-2xl shadow-teal-900/10 text-slate-900">
+                    <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
+                      <div>
+                        <div className="inline-flex items-center gap-2 rounded-full bg-secondary-tint border border-teal-200 px-3 py-1 text-sm font-semibold text-primary">
+                          <Unlock className="h-4 w-4" />
+                          Rekam Medis Terdekripsi
+                        </div>
+                        <h4 className="mt-3 text-lg font-extrabold text-slate-900">{selectedRecord.patientName}</h4>
+                        <p className="text-sm text-slate-500">NIK: <span className="font-mono text-slate-700">{maskNik(selectedRecord.nik)}</span></p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedRecord(null)}
+                        className="rounded-full bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
+                      >
+                        Tutup
+                      </button>
+                    </div>
+
+                    <div className="space-y-4 text-sm">
+                      <div className="rounded-3xl bg-secondary-tint border border-teal-200 p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Tx Hash Validasi</p>
+                        <TxHashLink txHash={selectedRecord.txHash} className="mt-2 font-mono text-slate-900 break-all inline-flex" title={selectedRecord.txHash}>
+                          <span>{selectedRecord.txHash}</span>
+                        </TxHashLink>
+                      </div>
+                      <div className="rounded-[28px] border border-slate-200 bg-white p-4 text-slate-700 shadow-sm">
+                        <p className="text-sm font-semibold text-slate-900 mb-3">Ringkasan Rekam Medis</p>
+                        <div className="leading-relaxed text-slate-700 whitespace-pre-line">
+                          {selectedRecord.decryptedData}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           {toast.show && (
             <div className="fixed right-4 bottom-4 z-50 max-w-sm rounded-3xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
               <div className="flex items-start gap-3">
-                <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                <div className={`mt-1 rounded-2xl p-2 ${toast.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-teal-100 text-primary"}`}>
                   {toast.type === "success" ? (
                     <CheckCircle className="h-5 w-5" />
                   ) : (

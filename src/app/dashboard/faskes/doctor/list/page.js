@@ -29,7 +29,12 @@ import {
   Camera,
   Upload,
   X,
-  Move
+  Move,
+  Eye,
+  Search,
+  Filter,
+  ChevronDown,
+  Check
 } from "lucide-react";
 
 const DAYS_OF_WEEK = [
@@ -52,6 +57,28 @@ export default function FaskesDoctorsList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Search & Filter States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpecialistFilter, setSelectedSpecialistFilter] = useState("ALL");
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
+
+  // Doctor Detail Modal State
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedDoctorForDetail, setSelectedDoctorForDetail] = useState(null);
+
+  const openDetailModal = (doctor) => {
+    setSelectedDoctorForDetail(doctor);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEditFromDetail = () => {
+    const docToEdit = selectedDoctorForDetail;
+    setIsDetailModalOpen(false);
+    if (docToEdit) {
+      openEditModal(docToEdit);
+    }
+  };
 
   // Form State (Only for Edit in this list page)
   const [formData, setFormData] = useState({
@@ -99,6 +126,72 @@ export default function FaskesDoctorsList() {
     return `${baseUrl}/public/upload/doctors/${img}`;
   };
 
+  // Modern Dropdown Component
+  function ModernFilterSelect({ options, value, onChange, icon: Icon, placeholder = "Pilih..." }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+      function handleClickOutside(e) {
+        if (ref.current && !ref.current.contains(e.target)) {
+          setOpen(false);
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const selectedOption = options.find((opt) => opt.value === value) || options[0];
+
+    return (
+      <div ref={ref} className="relative min-w-[160px] flex-1 sm:flex-none">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className={`w-full flex items-center justify-between gap-2.5 rounded-2xl border px-3.5 py-2.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
+            open
+              ? "border-primary bg-secondary-tint/40 ring-2 ring-teal-200/50 shadow-xs"
+              : value !== "ALL"
+              ? "border-teal-300 bg-secondary-tint/30 text-primary"
+              : "border-slate-200 bg-slate-50/60 text-slate-700 hover:border-slate-300 hover:bg-white"
+          }`}
+        >
+          <span className="flex items-center gap-2 min-w-0 truncate">
+            {Icon && <Icon className={`h-3.5 w-3.5 shrink-0 ${value !== "ALL" ? "text-primary" : "text-slate-400"}`} />}
+            <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+          </span>
+          <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180 text-primary" : ""}`} />
+        </button>
+
+        {open && (
+          <div className="absolute top-full right-0 mt-2 z-50 min-w-[200px] sm:min-w-[240px] w-max max-w-[calc(100vw-32px)] rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl animate-fade-in max-h-64 overflow-y-auto">
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-left ${
+                    isSelected
+                      ? "bg-secondary-tint text-primary"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                >
+                  <span className="leading-snug">{opt.label}</span>
+                  {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0 ml-1" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -110,6 +203,18 @@ export default function FaskesDoctorsList() {
     }
     fetchDoctorsList();
   }, []);
+
+  // Lock background scroll when any modal is open
+  useEffect(() => {
+    if (isDetailModalOpen || isModalOpen || isPhotoModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isDetailModalOpen, isModalOpen, isPhotoModalOpen]);
 
   const fetchDoctorsList = async () => {
     setLoading(true);
@@ -224,6 +329,29 @@ export default function FaskesDoctorsList() {
       return defaultSchedules;
     }
   };
+
+  // Extract unique specialists for dropdown filter
+  const availableSpecialists = Array.from(
+    new Set(doctors.map((d) => d.specialist).filter(Boolean))
+  );
+
+  // Filtered doctors list
+  const filteredDoctors = doctors.filter((doctor) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !query ||
+      (doctor.name && doctor.name.toLowerCase().includes(query)) ||
+      (doctor.specialist && doctor.specialist.toLowerCase().includes(query)) ||
+      (doctor.medical_license && doctor.medical_license.toLowerCase().includes(query));
+
+    const matchesSpecialist =
+      selectedSpecialistFilter === "ALL" || doctor.specialist === selectedSpecialistFilter;
+
+    const matchesStatus =
+      selectedStatusFilter === "ALL" || (doctor.status || "Aktif") === selectedStatusFilter;
+
+    return matchesSearch && matchesSpecialist && matchesStatus;
+  });
 
   // Camera stream controllers
   const startCamera = async () => {
@@ -475,20 +603,20 @@ export default function FaskesDoctorsList() {
 
   if (loading && doctors.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
-        <RefreshCw className="h-8 w-8 animate-spin text-rose-800" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl max-w-md">
-          <Building2 className="h-12 w-12 text-rose-800 mx-auto mb-4" />
+          <Building2 className="h-12 w-12 text-primary mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Memerlukan Login</h1>
           <p className="text-sm text-slate-500 mb-6">Silakan masuk dengan akun Fasilitas Kesehatan Anda.</p>
-          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-rose-850 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition">
+          <button onClick={() => router.push("/auth/login")} className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary-hover transition">
             Kembali ke Halaman Login
           </button>
         </div>
@@ -497,7 +625,7 @@ export default function FaskesDoctorsList() {
   }
 
   return (
-    <div className="min-h-screen bg-soft-canvas flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
@@ -505,31 +633,94 @@ export default function FaskesDoctorsList() {
 
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-r from-primary-hover via-primary to-teal-900 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-85 w-85 rounded-full bg-teal-400/10 blur-3xl" />
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-5 py-4 text-white shadow-md mb-6">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-2xl" />
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                  <Users className="h-8 w-8 text-teal-200" />
+                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                  <Users className="h-6 w-6 text-teal-200" />
                   Daftar Tenaga Medis (Dokter)
                 </h1>
-                <p className="text-xs sm:text-sm text-teal-100 mt-2 max-w-2xl leading-relaxed">
-                  Daftar staf dokter penanggung jawab poliklinik di instansi Anda. Tautkan dokter untuk keperluan otorisasi rekam medis (EHR) terenkripsi.
+                <p className="text-xs text-teal-100/90 mt-1 max-w-2xl leading-relaxed">
+                  Daftar staf dokter penanggung jawab poliklinik di instansi Anda. Tautkan dokter untuk otorisasi rekam medis (EHR).
                 </p>
               </div>
 
               <button
                 onClick={() => router.push("/dashboard/faskes/doctor/add")}
-                className="inline-flex items-center gap-2 rounded-2xl bg-white text-primary-hover hover:bg-teal-50 font-bold px-5 py-3 text-xs sm:text-sm shadow-md transition shrink-0 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white text-primary-hover hover:bg-teal-50 font-bold px-4 py-2.5 text-xs shadow-xs transition shrink-0 cursor-pointer"
               >
-                <Plus className="h-4.5 w-4.5" /> Tambah Dokter Baru
+                <Plus className="h-4 w-4" /> Tambah Dokter Baru
               </button>
+            </div>
+          </div>
+
+          {/* Search & Dropdown Filter Bar */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-sm mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari nama dokter, spesialis, atau SIP..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-9 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/60 text-slate-800 text-xs placeholder:text-slate-400 focus:bg-white focus:border-primary focus:outline-hidden transition"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Dropdown Filters */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Filter Specialist */}
+              <ModernFilterSelect
+                icon={Briefcase}
+                value={selectedSpecialistFilter}
+                onChange={setSelectedSpecialistFilter}
+                options={[
+                  { value: "ALL", label: "Semua Spesialis" },
+                  ...availableSpecialists.map((spec) => ({ value: spec, label: spec }))
+                ]}
+              />
+
+              {/* Filter Status */}
+              <ModernFilterSelect
+                icon={Filter}
+                value={selectedStatusFilter}
+                onChange={setSelectedStatusFilter}
+                options={[
+                  { value: "ALL", label: "Semua Status" },
+                  { value: "Aktif", label: "Aktif" },
+                  { value: "Tidak Aktif", label: "Tidak Aktif" }
+                ]}
+              />
+
+              {/* Reset Filter Button */}
+              {(searchQuery || selectedSpecialistFilter !== "ALL" || selectedStatusFilter !== "ALL") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedSpecialistFilter("ALL");
+                    setSelectedStatusFilter("ALL");
+                  }}
+                  className="px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-500 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 transition cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              )}
             </div>
           </div>
 
           {/* Doctor Cards Grid */}
           {doctors.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-soft-border shadow-xs">
+            <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-xs">
               <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-slate-700">Belum Ada Dokter Terdaftar</h3>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto mb-6">Tambahkan dokter baru untuk menghubungkannya dengan unit medis.</p>
@@ -540,13 +731,29 @@ export default function FaskesDoctorsList() {
                 <Plus className="h-4.5 w-4.5" /> Mulai Tambah Dokter
               </button>
             </div>
+          ) : filteredDoctors.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-xs">
+              <Search className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-slate-700">Dokter Tidak Ditemukan</h3>
+              <p className="text-xs text-slate-400 mt-1 mb-4">Tidak ada dokter yang cocok dengan kriteria kata kunci atau filter Anda.</p>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedSpecialistFilter("ALL");
+                  setSelectedStatusFilter("ALL");
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-secondary-tint text-primary hover:bg-teal-100 font-bold px-4 py-2 text-xs transition cursor-pointer border border-teal-200"
+              >
+                Bersihkan Pencarian
+              </button>
+            </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {doctors.map((doctor) => (
-                <div key={doctor.id} className="rounded-3xl bg-white border border-soft-border p-5 shadow-sm hover:shadow-xl transition duration-300 flex flex-col justify-between overflow-hidden group">
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {filteredDoctors.map((doctor) => (
+                <div key={doctor.id} className="rounded-3xl bg-white border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-xl transition duration-300 flex flex-col justify-between overflow-hidden group">
                   <div>
                     {/* 1. Foto Dokter Besar */}
-                    <div className="relative h-64 w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-4 flex items-center justify-center">
+                    <div className="relative h-56 sm:h-60 lg:h-64 w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 mb-4 flex items-center justify-center">
                       {getDoctorImageUrl(doctor.image) ? (
                         <img
                           src={getDoctorImageUrl(doctor.image)}
@@ -558,64 +765,47 @@ export default function FaskesDoctorsList() {
                           }}
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-primary-hover text-white text-5xl font-black opacity-80">
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-800 to-emerald-950 text-white text-5xl font-black opacity-80">
                           {doctor.name ? doctor.name.replace(/^dr\.\s*/i, "").trim().charAt(0).toUpperCase() : "D"}
                         </div>
                       )}
 
                       {/* Status Badge overlay */}
-                      <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-extrabold shadow-md border backdrop-blur-md ${
+                      <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-extrabold shadow-2xs border backdrop-blur-md ${
                         doctor.status === "Aktif"
-                          ? "bg-primary text-white border-teal-400/30"
+                          ? "bg-primary text-white border-teal-600"
                           : "bg-slate-700/90 text-slate-200 border-slate-600/30"
                       }`}>
                         {doctor.status || "Aktif"}
                       </span>
                     </div>
 
-                    {/* 2. Nama Dokter & Spesialis */}
-                    <div className="mb-4">
-                      <h4 className="text-base sm:text-lg font-extrabold text-text-primary leading-tight mb-1.5">{doctor.name}</h4>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-secondary-tint px-2.5 py-1 rounded-lg border border-teal-100">
-                        <Briefcase className="h-3.5 w-3.5" /> {doctor.specialist}
-                      </span>
+                    {/* 2. Nama Dokter (Fixed height container for 100% consistent alignment) */}
+                    <div className="mb-2 h-12 flex items-start">
+                      <h4 className="text-sm sm:text-base font-extrabold text-slate-800 leading-snug line-clamp-2" title={doctor.name}>
+                        {doctor.name}
+                      </h4>
                     </div>
 
-                    {/* 3. List Details (SIP, Jadwal, Telepon, Gender) */}
-                    <div className="space-y-3 py-3.5 border-t border-slate-100 text-xs font-medium">
-                      <div>
-                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Lisensi SIP:</span>
-                        <span className="font-mono font-bold text-slate-800 text-xs">{doctor.medical_license || "-"}</span>
-                      </div>
-
-                      <div>
-                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Jadwal:</span>
-                        <span className="text-slate-800 text-xs leading-snug block">{doctor.practice_schedule || "Senin-Jumat 09:00-16:00"}</span>
-                      </div>
-
-                      <div>
-                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Telepon:</span>
-                        <span className="text-slate-800 text-xs">{doctor.phone || "-"}</span>
-                      </div>
-
-                      <div>
-                        <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-0.5">Gender:</span>
-                        <span className="capitalize text-slate-800 text-xs">{doctor.sex || "Laki-laki"}</span>
-                      </div>
+                    {/* 3. Badge Spesialis (Fixed height container for 100% consistent alignment) */}
+                    <div className="h-7 flex items-center mb-3">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-secondary-tint px-2.5 py-1 rounded-lg border border-teal-200 max-w-full truncate">
+                        <Briefcase className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{doctor.specialist}</span>
+                      </span>
                     </div>
                   </div>
 
                   {/* 4. Action Buttons */}
-                  <div className="flex items-center gap-2.5 pt-4 border-t border-slate-100 mt-2">
+                  <div className="flex items-center gap-2.5 pt-3.5 border-t border-slate-100 mt-2">
                     <button
-                      onClick={() => openEditModal(doctor)}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 text-xs font-bold transition cursor-pointer"
+                      onClick={() => openDetailModal(doctor)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-secondary-tint hover:bg-teal-100 text-primary border border-teal-200 py-2.5 text-xs font-bold transition cursor-pointer"
                     >
-                      <Edit2 className="h-3.5 w-3.5 text-slate-500" /> Edit Profil
+                      <Eye className="h-4 w-4" /> Lihat Detail
                     </button>
                     <button
                       onClick={() => handleDeleteDoctor(doctor.id, doctor.name)}
-                      className="inline-flex items-center justify-center rounded-xl border border-rose-100 hover:bg-rose-50 text-rose-600 p-2.5 transition cursor-pointer"
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 hover:bg-rose-50 hover:text-rose-600 text-slate-400 p-2.5 transition cursor-pointer"
                       title="Hapus Dokter"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -628,16 +818,129 @@ export default function FaskesDoctorsList() {
         </main>
       </div>
 
+      {/* Detail Dokter Modal */}
+      {isDetailModalOpen && selectedDoctorForDetail && (
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setIsDetailModalOpen(false)}
+        >
+          <div 
+            className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl p-6 sm:p-8 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-bold text-slate-900">Detail Profil Dokter</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDetailModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold transition text-sm cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Side-by-Side Content: Large Photo on Left, Details on Right */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start mb-6">
+              
+              {/* LEFT: Large Doctor Photo Container (Span 5) */}
+              <div className="sm:col-span-5 relative h-64 sm:h-72 w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0 flex items-center justify-center shadow-2xs">
+                {getDoctorImageUrl(selectedDoctorForDetail.image) ? (
+                  <img
+                    src={getDoctorImageUrl(selectedDoctorForDetail.image)}
+                    alt={selectedDoctorForDetail.name}
+                    className="h-full w-full object-contain p-1"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-800 to-emerald-950 text-white text-4xl font-black">
+                    {selectedDoctorForDetail.name ? selectedDoctorForDetail.name.replace(/^dr\.\s*/i, "").trim().charAt(0).toUpperCase() : "D"}
+                  </div>
+                )}
+                
+                {/* Status Badge overlay */}
+                <span className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold shadow-2xs border backdrop-blur-md ${
+                  selectedDoctorForDetail.status === "Aktif"
+                    ? "bg-primary text-white border-teal-600"
+                    : "bg-slate-700/90 text-slate-200 border-slate-600/30"
+                }`}>
+                  {selectedDoctorForDetail.status || "Aktif"}
+                </span>
+              </div>
+
+              {/* RIGHT: Name, Specialist & Details List (Span 7) */}
+              <div className="sm:col-span-7 space-y-4">
+                <div>
+                  <h4 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight mb-2">
+                    {selectedDoctorForDetail.name}
+                  </h4>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-secondary-tint px-3 py-1 rounded-lg border border-teal-200">
+                    <Briefcase className="h-3.5 w-3.5" /> {selectedDoctorForDetail.specialist}
+                  </span>
+                </div>
+
+                <div className="space-y-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/60 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Lisensi SIP:</span>
+                    <span className="font-mono font-bold text-slate-800">{selectedDoctorForDetail.medical_license || "-"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-start py-1 border-b border-slate-200/60">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Jadwal Praktik:</span>
+                    <span className="text-slate-800 font-semibold text-right leading-snug max-w-[180px]">
+                      {selectedDoctorForDetail.practice_schedule || "Senin-Jumat 09:00-16:00"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Telepon:</span>
+                    <span className="text-slate-800 font-semibold">{selectedDoctorForDetail.phone || "-"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Gender:</span>
+                    <span className="capitalize text-slate-800 font-semibold">{selectedDoctorForDetail.sex || "Laki-laki"}</span>
+                  </div>
+                </div>
+
+                {/* Edit Profil Button directly under Gender */}
+                <button
+                  type="button"
+                  onClick={handleEditFromDetail}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white py-2.5 text-xs font-bold transition cursor-pointer shadow-xs"
+                >
+                  <Edit2 className="h-3.5 w-3.5" /> Edit Profil
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* CRUD Doctor Modal (Only for Edit Mode) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-4xl p-6 sm:p-8 flex flex-col">
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-4xl p-6 sm:p-8 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="h-5.5 w-5.5 text-rose-800" />
+                  <Sparkles className="h-5.5 w-5.5 text-primary" />
                   Edit Profil Dokter
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Perbarui informasi dokter di bawah ini.</p>
@@ -657,16 +960,16 @@ export default function FaskesDoctorsList() {
                 <div className="lg:col-span-7 space-y-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Foto Dokter (Klik bingkai untuk mengubah)</label>
-                    <div className="flex items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-200/60 w-fit">
+                    <div className="flex items-center gap-4 bg-secondary-tint/50 p-4 rounded-2xl border border-teal-200/60 w-fit">
                       <div 
                         onClick={() => setIsPhotoModalOpen(true)}
-                        className="group relative h-24 w-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs shrink-0 cursor-pointer hover:border-rose-800 transition duration-200"
+                        className="group relative h-24 w-24 rounded-2xl overflow-hidden bg-primary border border-teal-600 shadow-2xs shrink-0 cursor-pointer hover:border-teal-400 transition duration-200"
                         title="Klik untuk mengubah foto"
                       >
                         {imagePreview ? (
-                          <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                          <img src={imagePreview} alt="Preview" className="h-full w-full object-cover object-top" />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-rose-50/50 text-rose-800 text-[10px] font-bold">
+                          <div className="flex h-full w-full items-center justify-center bg-primary text-white text-[10px] font-bold">
                             No Photo
                           </div>
                         )}
@@ -689,7 +992,7 @@ export default function FaskesDoctorsList() {
                       placeholder="Contoh: Dr. Sarah Wijaya"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                     />
                   </div>
 
@@ -702,7 +1005,7 @@ export default function FaskesDoctorsList() {
                         placeholder="Contoh: Kardiologi"
                         value={formData.specialist}
                         onChange={(e) => setFormData({ ...formData, specialist: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                       />
                     </div>
 
@@ -714,7 +1017,7 @@ export default function FaskesDoctorsList() {
                         placeholder="Contoh: SIP-2026-987"
                         value={formData.medical_license}
                         onChange={(e) => setFormData({ ...formData, medical_license: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                       />
                     </div>
                   </div>
@@ -727,7 +1030,7 @@ export default function FaskesDoctorsList() {
                         placeholder="0812XXXXXXXX"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                       />
                     </div>
 
@@ -736,7 +1039,7 @@ export default function FaskesDoctorsList() {
                       <select
                         value={formData.sex}
                         onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                       >
                         <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
@@ -749,7 +1052,7 @@ export default function FaskesDoctorsList() {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-rose-800 focus:outline-hidden bg-white text-slate-850"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-white text-slate-800"
                     >
                       <option value="Aktif">Aktif</option>
                       <option value="Tidak Aktif">Tidak Aktif</option>
@@ -774,7 +1077,7 @@ export default function FaskesDoctorsList() {
                               onClick={() => handleDayToggle(day.key)}
                               className={`h-8 px-4 rounded-full text-xs font-bold transition border cursor-pointer select-none ${
                                 sched.active
-                                  ? "bg-rose-800 text-white border-rose-900 shadow-xs"
+                                  ? "bg-primary text-white border-teal-700 shadow-xs"
                                   : "bg-white text-slate-400 border-slate-200 hover:bg-slate-50"
                               }`}
                             >
@@ -787,14 +1090,14 @@ export default function FaskesDoctorsList() {
                                   type="time"
                                   value={sched.start}
                                   onChange={(e) => handleTimeChange(day.key, "start", e.target.value)}
-                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-rose-800 focus:outline-hidden bg-white font-semibold text-slate-700"
+                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-primary focus:outline-hidden bg-white font-semibold text-slate-700"
                                 />
                                 <span className="text-slate-400 text-xs">-</span>
                                 <input
                                   type="time"
                                   value={sched.end}
                                   onChange={(e) => handleTimeChange(day.key, "end", e.target.value)}
-                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-rose-800 focus:outline-hidden bg-white font-semibold text-slate-700"
+                                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs focus:border-primary focus:outline-hidden bg-white font-semibold text-slate-700"
                                 />
                               </div>
                             ) : (
@@ -807,7 +1110,7 @@ export default function FaskesDoctorsList() {
 
                     <div className="text-[11px] text-slate-500 font-medium pt-3.5 border-t border-slate-200/60 flex items-center flex-wrap gap-1.5">
                       <span className="font-bold text-slate-700">Hasil Format Jadwal:</span>
-                      <span className="font-mono text-rose-900 font-bold bg-rose-50/50 px-2.5 py-0.5 rounded-lg border border-rose-100/50 text-[10px] break-all leading-normal">
+                      <span className="font-mono text-primary font-bold bg-secondary-tint px-2.5 py-0.5 rounded-lg border border-teal-200 text-[10px] break-all leading-normal">
                         {formatSchedule(dailySchedules)}
                       </span>
                     </div>
@@ -827,7 +1130,7 @@ export default function FaskesDoctorsList() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
@@ -844,12 +1147,22 @@ export default function FaskesDoctorsList() {
 
       {/* Photo Crop & Upload Modal */}
       {isPhotoModalOpen && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 flex flex-col items-center">
+        <div 
+          className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => {
+            stopCamera();
+            setIsPhotoModalOpen(false);
+            setSourceImage(null);
+          }}
+        >
+          <div 
+            className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="flex justify-between items-center w-full border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-rose-800" />
+                <Camera className="h-4 w-4 text-primary" />
                 Atur Foto Dokter
               </h3>
               <button
@@ -857,7 +1170,7 @@ export default function FaskesDoctorsList() {
                   setIsPhotoModalOpen(false);
                   stopCamera();
                 }}
-                className="text-slate-400 hover:text-slate-655 transition cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
               >
                 <X className="h-4.5 w-4.5" />
               </button>
@@ -869,9 +1182,9 @@ export default function FaskesDoctorsList() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/30 text-rose-900 font-bold hover:bg-rose-50 transition text-xs cursor-pointer"
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border-2 border-dashed border-teal-200 bg-secondary-tint text-primary font-bold hover:bg-teal-100 transition text-xs cursor-pointer"
                 >
-                  <Upload className="h-5 w-5 text-rose-800" />
+                  <Upload className="h-5 w-5 text-primary" />
                   Pilih File Foto
                 </button>
                 <input
@@ -887,7 +1200,7 @@ export default function FaskesDoctorsList() {
                   onClick={startCamera}
                   className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 transition text-xs cursor-pointer shadow-2xs"
                 >
-                  <Camera className="h-5 w-5 text-slate-550" />
+                  <Camera className="h-5 w-5 text-slate-500" />
                   Ambil dengan Kamera
                 </button>
               </div>
@@ -908,7 +1221,7 @@ export default function FaskesDoctorsList() {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-850 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition cursor-pointer"
                   >
                     Ambil Foto
                   </button>
@@ -973,7 +1286,7 @@ export default function FaskesDoctorsList() {
                     step="0.05"
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-800"
+                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                 </div>
 
@@ -981,7 +1294,7 @@ export default function FaskesDoctorsList() {
                   <button
                     type="button"
                     onClick={handleCropSave}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle className="h-4 w-4" /> Simpan Foto
                   </button>

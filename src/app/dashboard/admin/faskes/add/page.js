@@ -174,7 +174,7 @@ function AddGeotagForm() {
 
         const hospitalIcon = window.L.divIcon({
           html: `
-            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-rose-800 text-white shadow-md border-2 border-white hover:scale-110 transition-transform">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-[#0D9488] text-white shadow-md border-2 border-white hover:scale-110 transition-transform">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 22V11A2 2 0 0 0 17 9H7a2 2 0 0 0-2 2v11"/>
                 <path d="M4 22h16"/>
@@ -349,15 +349,15 @@ function AddGeotagForm() {
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 space-y-6">
           {message.text && (
-            <div className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs font-semibold bg-rose-50 border-rose-250 text-rose-800`}>
-              <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs font-semibold bg-secondary-tint border-teal-200 text-primary`}>
+              <AlertCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span>{message.text}</span>
             </div>
           )}
 
           {loading ? (
             <div className="flex h-64 items-center justify-center text-xs text-slate-500 font-bold gap-2">
-              <RefreshCw className="h-4 w-4 animate-spin text-rose-600" />
+              <RefreshCw className="h-4 w-4 animate-spin text-primary" />
               Memuat data...
             </div>
           ) : (
@@ -382,7 +382,7 @@ function AddGeotagForm() {
                       onClick={() => setEntryType("registered")}
                       className={`py-2.5 px-3 rounded-xl border text-center font-bold transition cursor-pointer text-[11px] ${
                         entryType === "registered"
-                          ? "border-rose-500 bg-rose-50/50 text-rose-700"
+                          ? "border-teal-500 bg-secondary-tint text-primary"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
@@ -393,7 +393,7 @@ function AddGeotagForm() {
                       onClick={() => setEntryType("custom")}
                       className={`py-2.5 px-3 rounded-xl border text-center font-bold transition cursor-pointer text-[11px] ${
                         entryType === "custom"
-                          ? "border-rose-500 bg-rose-50/50 text-rose-700"
+                          ? "border-teal-500 bg-secondary-tint text-primary"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
@@ -410,7 +410,7 @@ function AddGeotagForm() {
                     <select
                       value={selectedHospitalId}
                       onChange={(e) => setSelectedHospitalId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold text-slate-800 focus:border-rose-600 focus:outline-hidden bg-white text-xs cursor-pointer"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold text-slate-800 focus:border-primary focus:outline-hidden bg-white text-xs cursor-pointer"
                     >
                       <option value="">-- Pilih Instansi RS --</option>
                       {hospitalAccounts.map((a) => {
@@ -439,7 +439,7 @@ function AddGeotagForm() {
                         value={customName}
                         onChange={(e) => setCustomName(e.target.value)}
                         placeholder="Contoh: Klinik Pratama Medika Baru"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-primary focus:outline-hidden text-xs"
                       />
                     </div>
                     <div className="space-y-1.5 text-xs">
@@ -451,7 +451,7 @@ function AddGeotagForm() {
                         value={customAddress}
                         onChange={(e) => setCustomAddress(e.target.value)}
                         placeholder="Jalan, nomor, RT/RW, kelurahan, kecamatan, kota..."
-                        className="w-full rounded-xl border border-slate-200 p-3 focus:border-rose-600 focus:outline-hidden text-xs"
+                        className="w-full rounded-xl border border-slate-200 p-3 focus:border-primary focus:outline-hidden text-xs"
                       />
                     </div>
 
@@ -463,7 +463,7 @@ function AddGeotagForm() {
                             type="checkbox"
                             checked={createAccount}
                             onChange={(e) => setCreateAccount(e.target.checked)}
-                            className="rounded border-slate-300 text-rose-800 focus:ring-rose-500 h-4 w-4"
+                            className="rounded border-slate-300 text-primary focus:ring-teal-500 h-4 w-4"
                           />
                           <span className="text-xs font-bold text-slate-700">
                             Sekaligus Buatkan Akun Faskes
@@ -471,7 +471,7 @@ function AddGeotagForm() {
                         </label>
 
                         {createAccount && (
-                          <div className="space-y-3.5 pl-4 border-l-2 border-rose-200/60 animate-in fade-in duration-200">
+                          <div className="space-y-3.5 pl-4 border-l-2 border-teal-200 animate-in fade-in duration-200">
                             <div className="space-y-1.5 text-xs">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                                 Email Akun Faskes *
@@ -481,7 +481,7 @@ function AddGeotagForm() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="contoh: admin@klinikmedika.com"
-                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-primary focus:outline-hidden text-xs"
                                 required={createAccount}
                               />
                             </div>
@@ -494,7 +494,7 @@ function AddGeotagForm() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Minimal 6 karakter..."
-                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-primary focus:outline-hidden text-xs"
                                 required={createAccount}
                               />
                             </div>
@@ -507,7 +507,7 @@ function AddGeotagForm() {
                                 value={medicalLicense}
                                 onChange={(e) => setMedicalLicense(e.target.value)}
                                 placeholder="Contoh: 503/SIP-RS/2026"
-                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-rose-600 focus:outline-hidden text-xs"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 focus:border-primary focus:outline-hidden text-xs"
                               />
                             </div>
                           </div>
@@ -529,7 +529,7 @@ function AddGeotagForm() {
                       value={latitude}
                       onChange={(e) => setLatitude(e.target.value)}
                       placeholder="-6.2088"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-rose-600 focus:outline-hidden text-xs"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-primary focus:outline-hidden text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -542,7 +542,7 @@ function AddGeotagForm() {
                       value={longitude}
                       onChange={(e) => setLongitude(e.target.value)}
                       placeholder="106.8456"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-rose-600 focus:outline-hidden text-xs"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-mono focus:border-primary focus:outline-hidden text-xs"
                     />
                   </div>
                 </div>
@@ -553,7 +553,7 @@ function AddGeotagForm() {
                   onClick={handleGetCurrentLocation}
                   className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold text-[10px] text-slate-700 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Navigation className="h-3.5 w-3.5 text-rose-600" />
+                  <Navigation className="h-3.5 w-3.5 text-primary" />
                   Gunakan Lokasi Browser Saat Ini (GPS)
                 </button>
 
@@ -567,7 +567,7 @@ function AddGeotagForm() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-800 text-white font-bold text-xs hover:bg-rose-900 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {submitting ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
@@ -585,7 +585,7 @@ function AddGeotagForm() {
                     <span className="text-xs font-extrabold uppercase tracking-wider text-slate-800 block">
                       Visualisasi Peta & Pin Marker
                     </span>
-                    <span className="text-[10px] text-rose-800 font-extrabold animate-pulse">
+                    <span className="text-[10px] text-primary font-extrabold animate-pulse">
                       *Klik / Geser Pin untuk Set Lokasi
                     </span>
                   </div>
@@ -617,7 +617,7 @@ function AddGeotagForm() {
           <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${
             toast.type === "success" 
               ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-              : "bg-rose-50 text-rose-600 border border-rose-100"
+              : "bg-secondary-tint text-primary border border-teal-200"
           }`}>
             {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           </div>
@@ -644,7 +644,7 @@ export default function AddGeotagPage() {
   return (
     <Suspense fallback={
       <div className="flex h-screen items-center justify-center bg-slate-50 text-xs font-bold text-slate-500 gap-2">
-        <RefreshCw className="h-4 w-4 animate-spin text-rose-600" />
+        <RefreshCw className="h-4 w-4 animate-spin text-primary" />
         Memuat...
       </div>
     }>
