@@ -7,9 +7,11 @@ import Image from "next/image";
 import Script from "next/script";
 import { User, Lock, LogIn, AlertCircle, Loader, ArrowRight, ArrowLeft, Home, Mail, CheckCircle, Eye, EyeOff, Building2 } from "lucide-react";
 import { apiPost, setTokens, setUser } from "@/lib/api";
+import { useToast } from "@/components/shared/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const toast = useToast();
   const [role, setRole] = useState("pasien"); // "pasien", "rumah_sakit"
   const [loginStep, setLoginStep] = useState("select"); // "select", "form"
   const [identifier, setIdentifier] = useState("");
@@ -25,17 +27,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: response.credential, role: role })
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Login Google gagal");
+      const result = await apiPost("/api/auth/google-login", { idToken: response.credential });
 
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
+        toast.success("Login Google berhasil!");
 
         // Redirect berdasarkan role
         const userRole = result.data.user.role;
@@ -48,7 +45,9 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError(err.message || "Gagal masuk menggunakan Google");
+      const errMsg = err.message || "Gagal masuk menggunakan Google";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -62,23 +61,29 @@ export default function LoginPage() {
         callback: handleGoogleLoginSuccess,
       });
       
-      const container = document.getElementById("google-signin-btn-form");
-      if (container) {
+      const containerForm = document.getElementById("google-signin-btn-form");
+      if (containerForm) {
         window.google.accounts.id.renderButton(
-          container,
-          { theme: "outline", size: "large", width: "320", text: "signin_with" }
+          containerForm,
+          { theme: "outline", size: "large", width: "320", text: "continue_with" }
+        );
+      }
+
+      const containerSelect = document.getElementById("google-signin-btn-select");
+      if (containerSelect) {
+        window.google.accounts.id.renderButton(
+          containerSelect,
+          { theme: "outline", size: "large", width: "320", text: "continue_with" }
         );
       }
     }
   };
 
   useEffect(() => {
-    if (loginStep === "form") {
-      const timer = setTimeout(() => {
-        handleScriptLoad();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      handleScriptLoad();
+    }, 150);
+    return () => clearTimeout(timer);
   }, [loginStep, role]);
 
   const handleSubmit = async (e) => {
@@ -94,6 +99,7 @@ export default function LoginPage() {
       if (result.success && result.data) {
         setTokens(result.data.accessToken, result.data.refreshToken);
         setUser(result.data.user);
+        toast.success("Berhasil masuk!");
 
         // Redirect berdasarkan role user
         const userRole = result.data.user.role;
@@ -108,6 +114,7 @@ export default function LoginPage() {
     } catch (err) {
       const msg = err.message || "Login gagal, silakan periksa kredensial Anda.";
       setError(msg);
+      toast.error(msg);
       if (err.status === 403 || msg.toLowerCase().includes("aktif")) {
         setIsInactive(true);
       }
@@ -118,16 +125,22 @@ export default function LoginPage() {
 
   const handleResendActivation = async () => {
     if (!identifier) {
-      setError("Masukkan alamat email Anda terlebih dahulu.");
+      const msg = "Masukkan alamat email Anda terlebih dahulu.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setResendLoading(true);
     setResendMsg("");
     try {
       const result = await apiPost("/api/auth/resend-activation", { email: identifier });
-      setResendMsg(result.message || "Email aktivasi berhasil dikirim ulang.");
+      const msg = result.message || "Email aktivasi berhasil dikirim ulang.";
+      setResendMsg(msg);
+      toast.success(msg);
     } catch (err) {
-      setError(err.message || "Gagal mengirim ulang email aktivasi.");
+      const msg = err.message || "Gagal mengirim ulang email aktivasi.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setResendLoading(false);
     }
@@ -233,27 +246,27 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
-        <div className="w-full max-w-md mx-auto my-auto space-y-4 py-4 lg:py-0">
-          <div className="mb-4 flex justify-end">
-            <Link href="/" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-sm transition hover:bg-secondary-tint">
-              <Home className="h-5 w-5" />
+      {/* Right Side - Login Form (No Scrollbar on Mobile) */}
+      <div className="w-full lg:w-1/2 h-screen flex flex-col justify-center p-3 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
+        <div className="w-full max-w-md mx-auto my-auto space-y-2.5 sm:space-y-4 py-1 lg:py-0">
+          <div className="mb-2 sm:mb-4 flex justify-end">
+            <Link href="/" className="inline-flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-2xs transition hover:bg-secondary-tint">
+              <Home className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </Link>
           </div>
 
-          <div className="bg-primary rounded-t-3xl px-8 py-8 text-white">
-            <h2 className="text-2xl font-bold">
+          <div className="bg-primary rounded-t-3xl px-5 py-4 sm:px-8 sm:py-8 text-white">
+            <h2 className="text-lg sm:text-2xl font-bold">
               {loginStep === "select" ? "Pilih Metode Masuk" : `Masuk sebagai ${role === "pasien" ? "Pasien" : "Fasilitas Kesehatan"}`}
             </h2>
-            <p className="text-teal-100 mt-2 text-sm">
+            <p className="text-teal-100 mt-1 sm:mt-2 text-xs sm:text-sm">
               {loginStep === "select" ? "Tentukan peran Anda untuk mengakses sistem" : "Silakan isi kredensial akun Anda"}
             </p>
           </div>
 
-          <div className="bg-slate-50 rounded-b-3xl px-8 py-8 border border-t-0 border-slate-200">
+          <div className="bg-slate-50 rounded-b-3xl px-5 py-5 sm:px-8 sm:py-8 border border-t-0 border-slate-200">
             {loginStep === "select" ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Option 1: Pasien */}
                 <button
                   type="button"
@@ -262,18 +275,18 @@ export default function LoginPage() {
                     setLoginStep("form");
                     setError("");
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
+                  className="w-full flex items-center justify-between p-3 sm:p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                      <User className="h-6 w-6" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                      <User className="h-5 w-5 sm:h-6 sm:w-6" />
                     </span>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900">Pasien Terdaftar</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Akses berkas EHR, kelola audit log & persetujuan medis</p>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">Pasien Terdaftar</h4>
+                      <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Akses berkas EHR, kelola audit log & persetujuan medis</p>
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
                 </button>
 
                 {/* Option 2: Faskes */}
@@ -284,22 +297,37 @@ export default function LoginPage() {
                     setLoginStep("form");
                     setError("");
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
+                  className="w-full flex items-center justify-between p-3 sm:p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                      <Building2 className="h-6 w-6" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                      <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
                     </span>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Kelola data medis pasien, ajukan izin akses blockchain</p>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                      <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Kelola data medis pasien, ajukan izin akses blockchain</p>
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
                 </button>
 
-                <div className="pt-4 border-t border-slate-200 mt-6 text-center">
-                  <p className="text-sm text-slate-600">
+                {/* Divider Line & Google Sign-In */}
+                <div className="relative my-2.5 sm:my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-slate-50 text-slate-400 uppercase tracking-wider font-semibold">atau</span>
+                  </div>
+                </div>
+
+                {/* Google Sign-in Button Inline */}
+                <div className="w-full flex flex-col items-center justify-center pt-0.5">
+                  <div id="google-signin-btn-select" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
+                </div>
+
+                <div className="pt-3 sm:pt-4 border-t border-slate-200 mt-3 sm:mt-4 text-center">
+                  <p className="text-xs sm:text-sm text-slate-600">
                     Belum punya akun?{" "}
                     <Link href="/auth/register" className="text-primary hover:text-primary-hover font-semibold transition">
                       Daftar di sini
@@ -309,7 +337,7 @@ export default function LoginPage() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+              <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-6 animate-fade-in">
                 {/* Back Link */}
                 <button
                   type="button"
@@ -317,14 +345,14 @@ export default function LoginPage() {
                     setLoginStep("select");
                     setError("");
                   }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition cursor-pointer mb-2"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition cursor-pointer mb-1 sm:mb-2"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>Kembali ke pilihan metode</span>
                 </button>
 
                 {error && (
-                  <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 space-y-2">
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-3 sm:p-4 text-xs sm:text-sm text-red-700 space-y-2">
                     <div className="flex items-center gap-2 font-semibold">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <span>{error}</span>
@@ -347,21 +375,21 @@ export default function LoginPage() {
                 )}
 
                 {resendMsg && (
-                  <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700 font-semibold">
+                  <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 sm:p-3 text-xs text-emerald-700 font-semibold">
                     <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
                     <span>{resendMsg}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
                     {role === "pasien" ? "Email Pasien / NIK *" : "Email Fasilitas Kesehatan (Faskes) *"}
                   </label>
                   <div className="relative">
                     {role === "pasien" ? (
-                      <User className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                      <User className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
                     ) : (
-                      <Building2 className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                      <Building2 className="absolute left-3 top-2.5 sm:top-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
                     )}
                     <input
                       type="text"
@@ -374,7 +402,7 @@ export default function LoginPage() {
                       autoCorrect="off"
                       spellCheck="false"
                       placeholder={role === "pasien" ? "contoh: pasien@email.com atau NIK 16 digit" : "contoh: admin@rumahsakit.com"}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-sm lowercase"
+                      className="w-full pl-9 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm lowercase"
                       required
                       disabled={loading}
                     />
@@ -382,8 +410,8 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-slate-700">
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <label className="block text-xs sm:text-sm font-semibold text-slate-700">
                       Password
                     </label>
                     <Link
@@ -394,26 +422,26 @@ export default function LoginPage() {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Lock className="absolute left-3 top-2.5 sm:top-3.5 h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-11 py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-sm"
+                      className="w-full pl-9 pr-11 py-2.5 sm:py-3 rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs sm:text-sm"
                       required
                       disabled={loading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                      className="absolute right-3 top-2.5 sm:top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
                       aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
+                        <EyeOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                       ) : (
-                        <Eye className="h-5 w-5" />
+                        <Eye className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                       )}
                     </button>
                   </div>
@@ -422,22 +450,22 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold py-2.5 sm:py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                 >
                   {loading ? (
                     <>
-                      <Loader className="h-5 w-5 animate-spin" />
+                      <Loader className="h-4.5 w-4.5 sm:h-5 sm:w-5 animate-spin" />
                       Sedang memproses...
                     </>
                   ) : (
                     <>
-                      <LogIn className="h-5 w-5" />
+                      <LogIn className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                       Masuk Sekarang
                     </>
                   )}
                 </button>
 
-                <div className="relative my-4">
+                <div className="relative my-2.5 sm:my-4">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-300"></div>
                   </div>
@@ -447,11 +475,11 @@ export default function LoginPage() {
                 </div>
 
                 {/* Google Sign-in Button Inline */}
-                <div className="w-full flex flex-col items-center justify-center pt-1">
+                <div className="w-full flex flex-col items-center justify-center pt-0.5">
                   <div id="google-signin-btn-form" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
                 </div>
 
-                <p className="text-center text-sm text-slate-600 pt-4">
+                <p className="text-center text-xs sm:text-sm text-slate-600 pt-2 sm:pt-4">
                   Belum punya akun?{" "}
                   <Link href="/auth/register" className="text-primary hover:text-primary-hover font-semibold transition">
                     Daftar di sini

@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SessionTimeout from "@/components/shared/SessionTimeout";
+import { ToastProvider } from "@/components/shared/Toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +27,10 @@ export default function RootLayout({ children }) {
       data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-950 font-sans">
-        {children}
-        <SessionTimeout />
+        <ToastProvider>
+          {children}
+          <SessionTimeout />
+        </ToastProvider>
       </body>
     </html>
   );

@@ -24,9 +24,11 @@ import {
   Sparkles
 } from "lucide-react";
 import { apiPost } from "@/lib/api";
+import { useToast } from "@/components/shared/Toast";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const toast = useToast();
   const [step, setStep] = useState(1); // 1: Choose Role, 2: Form Input
   const [role, setRole] = useState("pasien");
   const [showPassword, setShowPassword] = useState(false);
@@ -61,24 +63,34 @@ export default function RegisterPage() {
     setError("");
     if (role === "pasien") {
       if (!nik || nik.length !== 16) {
-        setError("NIK harus berupa 16 digit angka.");
+        const msg = "NIK harus berupa 16 digit angka.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
       if (!name.trim()) {
-        setError("Nama lengkap pasien harus diisi.");
+        const msg = "Nama lengkap pasien harus diisi.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
       if (!email || !email.includes("@")) {
-        setError("Masukkan alamat email yang valid.");
+        const msg = "Masukkan alamat email yang valid.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
     } else if (role === "rumah_sakit") {
       if (!name.trim()) {
-        setError("Nama fasilitas kesehatan / RS harus diisi.");
+        const msg = "Nama fasilitas kesehatan / RS harus diisi.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
       if (!email || !email.includes("@")) {
-        setError("Masukkan alamat email yang valid.");
+        const msg = "Masukkan alamat email yang valid.";
+        setError(msg);
+        toast.error(msg);
         return;
       }
     }
@@ -103,17 +115,23 @@ export default function RegisterPage() {
     setSuccess("");
 
     if (!password || password.length < 8) {
-      setError("Password minimal harus 8 karakter.");
+      const msg = "Password minimal harus 8 karakter.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Konfirmasi password tidak cocok dengan password.");
+      const msg = "Konfirmasi password tidak cocok dengan password.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
     if (!isContractAccepted) {
-      setError("Anda harus menyetujui Kontrak Digital SatuData sebelum mendaftar.");
+      const msg = "Anda harus menyetujui Kontrak Digital SatuData sebelum mendaftar.";
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -137,10 +155,13 @@ export default function RegisterPage() {
       const result = await apiPost("/api/auth/register", payload);
 
       if (result.success) {
+        toast.success("Registrasi akun berhasil!");
         setShowSuccessModal(true);
       }
     } catch (err) {
-      setError(err.message || "Registrasi gagal, periksa kembali kelengkapan data Anda.");
+      const msg = err.message || "Registrasi gagal, periksa kembali kelengkapan data Anda.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -239,68 +260,64 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Form Container */}
-      <div className="w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col justify-between p-4 sm:p-6 lg:p-10 overflow-y-auto lg:overflow-hidden bg-slate-50">
-        <div className="w-full max-w-xl mx-auto flex flex-col flex-1 lg:h-full justify-center space-y-4 py-4 lg:py-0">
+      <div className="w-full lg:w-1/2 h-screen flex flex-col justify-between p-3 sm:p-6 lg:p-10 overflow-y-auto lg:overflow-hidden bg-slate-50">
+        <div className="w-full max-w-xl mx-auto flex flex-col flex-1 lg:h-full justify-center space-y-2.5 sm:space-y-4 py-1 lg:py-0">
           
-          {/* Fixed Top Header & Navigation */}
-          <div className="shrink-0 flex items-center justify-between">
-            <Link 
-              href="/" 
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold transition shadow-2xs"
-            >
-              <Home className="h-4 w-4 text-primary" />
-              <span>Beranda</span>
+          {/* Fixed Top Header & Navigation (Right Aligned Icon Only) */}
+          <div className="mb-2 sm:mb-4 flex justify-end">
+            <Link href="/" className="inline-flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-2xs transition hover:bg-secondary-tint">
+              <Home className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </Link>
           </div>
 
-          {/* STEP 1: ROLE SELECTION SCREEN */}
+          {/* STEP 1: ROLE SELECTION SCREEN (Compact & Snug) */}
           {step === 1 && (
-            <div className="flex-1 lg:min-h-0 flex flex-col justify-between rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 bg-white">
-              <div className="bg-primary px-8 py-8 text-white">
-                <h2 className="text-2xl font-bold">Pilih Kategori Pendaftaran</h2>
-                <p className="text-teal-100 mt-2 text-sm font-medium">Tentukan peran pendaftaran akun SatuData Anda</p>
+            <div className="w-full rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 bg-white">
+              <div className="bg-primary px-5 py-4 sm:px-8 sm:py-6 text-white">
+                <h2 className="text-lg sm:text-2xl font-bold">Pilih Kategori Pendaftaran</h2>
+                <p className="text-teal-100 mt-1 text-xs sm:text-sm font-medium">Tentukan peran pendaftaran akun SatuData Anda</p>
               </div>
 
-              <div className="bg-slate-50 px-8 py-8 border-t border-slate-200 flex flex-col flex-1 justify-between space-y-6">
-                <div className="space-y-4">
+              <div className="bg-slate-50 px-5 py-5 sm:px-8 sm:py-8 border-t border-slate-200 space-y-4 sm:space-y-6">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Option 1: Pasien Baru */}
                   <button
                     type="button"
                     onClick={() => handleSelectRole("pasien")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                    className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                        <User className="h-6 w-6" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                        <User className="h-5 w-5 sm:h-6 sm:w-6" />
                       </span>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-900">Pasien Baru</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Dapatkan kontrol penuh & kedaulatan data rekam medis terenkripsi</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">Pasien Baru</h4>
+                        <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Dapatkan kontrol penuh & kedaulatan data rekam medis terenkripsi</p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
                   </button>
 
                   {/* Option 2: Faskes */}
                   <button
                     type="button"
                     onClick={() => handleSelectRole("rumah_sakit")}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
+                    className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-slate-200 hover:border-primary hover:bg-secondary-tint bg-white text-left transition duration-200 group cursor-pointer shadow-2xs animate-fade-in"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                        <Building2 className="h-6 w-6" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-slate-100 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                        <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
                       </span>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">Daftarkan instansi untuk terintegrasi dengan SATUSEHAT API & Blockchain</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">Fasilitas Kesehatan / RS</h4>
+                        <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Daftarkan instansi untuk terintegrasi dengan SATUSEHAT API & Blockchain</p>
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
                   </button>
                 </div>
 
-                <div className="text-center text-xs text-slate-500 font-medium pt-4 border-t border-slate-200">
+                <div className="text-center text-xs text-slate-500 font-medium pt-3 sm:pt-4 border-t border-slate-200">
                   Sudah memiliki akun?{" "}
                   <Link 
                     href="/auth/login" 
@@ -318,28 +335,28 @@ export default function RegisterPage() {
             <div className="flex-1 lg:min-h-0 flex flex-col bg-white rounded-3xl border border-slate-200/90 shadow-xl lg:overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               
               {/* Form Title Header (Fixed) */}
-              <div className="shrink-0 p-5 sm:px-7 sm:pt-6 sm:pb-4 border-b border-slate-100 bg-white">
-                <div className="flex items-center justify-between mb-2">
+              <div className="shrink-0 p-3.5 sm:px-7 sm:pt-6 sm:pb-4 border-b border-slate-100 bg-white">
+                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                   <button
                     type="button"
                     onClick={() => setStep(step - 1)}
-                    className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-500 hover:text-primary cursor-pointer transition"
+                    className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-500 hover:text-primary cursor-pointer transition"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <ArrowLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     <span>{step === 2 ? "Ubah Peran Pendaftaran" : "Ubah Informasi Utama"}</span>
                   </button>
 
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
                     Langkah {step} dari 3
                   </span>
                 </div>
 
-                <h2 className="text-xl font-extrabold text-slate-900">
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug">
                   {step === 2 
                     ? (role === "pasien" ? "Formulir Pendaftaran Pasien" : "Formulir Registrasi Faskes / RS")
                     : (role === "pasien" ? "Buat Kata Sandi Pasien" : "Buat Kata Sandi Faskes")}
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-medium leading-tight">
                   {step === 2 
                     ? (role === "pasien" 
                       ? "Isi data utama Anda di bawah ini. Data pendukung lainnya dapat dilengkapi nanti di Pengaturan." 
@@ -349,27 +366,27 @@ export default function RegisterPage() {
               </div>
 
               {/* Inner Scrollable Form Body */}
-              <form onSubmit={handleSubmit} className="flex-1 lg:overflow-y-auto p-5 sm:px-7 space-y-4 lg:min-h-0">
+              <form onSubmit={handleSubmit} className="flex-1 lg:overflow-y-auto p-3.5 sm:px-7 space-y-3 sm:space-y-4 lg:min-h-0">
                 {error && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3.5 text-xs text-red-700 font-semibold animate-in fade-in duration-150">
+                  <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-2.5 sm:p-3.5 text-xs text-red-700 font-semibold animate-in fade-in duration-150">
                     <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
                     <span>{error}</span>
                   </div>
                 )}
 
                 {success && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-800 font-bold animate-in fade-in duration-150">
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 sm:p-4 text-xs text-emerald-800 font-bold animate-in fade-in duration-150">
+                    <CheckCircle2 className="h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 text-emerald-600" />
                     <span>{success}</span>
                   </div>
                 )}
 
                 {/* PASIEN STREAMLINED FORM FIELDS (STEP 2) */}
                 {role === "pasien" && step === 2 && (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* 1. NIK Pasien */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         1. NIK Pasien (16 Digit) *
                       </label>
                       <input
@@ -378,24 +395,24 @@ export default function RegisterPage() {
                         onChange={(e) => setNik(e.target.value.replace(/\D/g, ""))}
                         placeholder="Masukkan 16 digit NIK Anda"
                         maxLength={16}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-mono font-medium"
+                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-mono font-medium"
                         required
                       />
                     </div>
 
                     {/* 2. Nama Lengkap Pasien */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         2. Nama Lengkap Pasien *
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <User className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s.,']/g, ""))}
                           placeholder="Masukkan nama lengkap Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-9 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
                           required
                         />
                       </div>
@@ -403,11 +420,11 @@ export default function RegisterPage() {
 
                     {/* 3. Email Aktif */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         3. Email Aktif *
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <Mail className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type="email"
                           value={email}
@@ -416,7 +433,7 @@ export default function RegisterPage() {
                           autoCorrect="off"
                           spellCheck="false"
                           placeholder="Masukkan alamat email aktif Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium lowercase"
+                          className="w-full pl-9 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium lowercase"
                           required
                         />
                       </div>
@@ -426,20 +443,20 @@ export default function RegisterPage() {
 
                 {/* RUMAH SAKIT STREAMLINED FORM FIELDS (STEP 2) */}
                 {role === "rumah_sakit" && step === 2 && (
-                  <div className="space-y-4">
+                  <div className="space-y-2.5 sm:space-y-4">
                     {/* 1. Nama Fasilitas Kesehatan */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         1. Nama Fasilitas Kesehatan / RS *
                       </label>
                       <div className="relative">
-                        <Building2 className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <Building2 className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9\s.,'()\-]/g, ""))}
                           placeholder="Masukkan nama fasilitas kesehatan / RS Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-9 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
                           required
                         />
                       </div>
@@ -447,13 +464,13 @@ export default function RegisterPage() {
 
                     {/* 2. Tipe Fasilitas Kesehatan */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         2. Tipe Fasilitas Kesehatan *
                       </label>
                       <select
                         value={hospitalType}
                         onChange={(e) => setHospitalType(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium cursor-pointer"
+                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium cursor-pointer"
                       >
                         <option value="umum">Rumah Sakit Umum</option>
                         <option value="khusus">Rumah Sakit Khusus</option>
@@ -463,11 +480,11 @@ export default function RegisterPage() {
 
                     {/* 3. Email Aktif */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         3. Email Aktif *
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <Mail className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type="email"
                           value={email}
@@ -475,8 +492,8 @@ export default function RegisterPage() {
                           autoCapitalize="none"
                           autoCorrect="off"
                           spellCheck="false"
-                          placeholder="Masukkan alamat email aktif instansi Anda"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium lowercase"
+                          placeholder="masukkan alamat email aktif instansi anda"
+                          className="w-full pl-9 pr-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium lowercase"
                           required
                         />
                       </div>
@@ -484,13 +501,13 @@ export default function RegisterPage() {
 
                     {/* 4. Kepemilikan */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         4. Kepemilikan Faskes *
                       </label>
                       <select
                         value={ownership}
                         onChange={(e) => setOwnership(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium cursor-pointer"
+                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium cursor-pointer"
                       >
                         <option value="swasta">Swasta</option>
                         <option value="pemerintah">Pemerintah</option>
@@ -502,26 +519,26 @@ export default function RegisterPage() {
 
                 {/* PASSWORD & CONFIRM PASSWORD (STEP 3) */}
                 {step === 3 && (
-                  <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="space-y-3 sm:space-y-4 animate-in fade-in duration-200">
                     {/* Password */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Kata Sandi Akun *
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <Lock className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Masukkan kata sandi (minimal 8 karakter)"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-9 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                          className="absolute right-3 top-2.5 sm:top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
                           aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                         >
                           {showPassword ? (
@@ -535,23 +552,23 @@ export default function RegisterPage() {
 
                     {/* Confirm Password */}
                     <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                         Konfirmasi Kata Sandi *
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                        <Lock className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-slate-400" />
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Ulangi kata sandi Anda"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
+                          className="w-full pl-9 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition text-xs font-medium"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
+                          className="absolute right-3 top-2.5 sm:top-3 text-slate-400 hover:text-slate-600 focus:outline-none transition cursor-pointer"
                           aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
                         >
                           {showConfirmPassword ? (
@@ -564,7 +581,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Digital Contract Checkbox */}
-                    <div className="flex items-start gap-2.5 pt-2">
+                    <div className="flex items-start gap-2.5 pt-1 sm:pt-2">
                       <input
                         type="checkbox"
                         id="contract-checkbox"
@@ -576,9 +593,9 @@ export default function RegisterPage() {
                             setIsContractAccepted(false);
                           }
                         }}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
+                        className="mt-0.5 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded border-slate-300 text-primary focus:ring-primary/20 cursor-pointer"
                       />
-                      <label htmlFor="contract-checkbox" className="text-xs text-slate-600 font-medium leading-relaxed select-none">
+                      <label htmlFor="contract-checkbox" className="text-[11px] sm:text-xs text-slate-600 font-medium leading-tight sm:leading-relaxed select-none">
                         Saya menyetujui ketentuan{" "}
                         <button
                           type="button"
@@ -595,40 +612,40 @@ export default function RegisterPage() {
 
                 {/* Optional Info Banner */}
                 {step === 2 && (
-                  <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-3.5 text-xs text-amber-800 flex items-start gap-2.5 mt-4">
-                    <Sparkles className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-                    <p className="leading-relaxed text-[11px] font-semibold">
+                  <div className="rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/80 p-2.5 sm:p-3.5 text-xs text-amber-800 flex items-start gap-2 mt-2.5 sm:mt-4">
+                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-amber-600 mt-0.5" />
+                    <p className="leading-normal sm:leading-relaxed text-[10px] sm:text-[11px] font-semibold">
                       <strong>Catatan:</strong> Data pendukung lainnya (seperti Tempat/Tanggal Lahir, Alamat, No. Telepon, Lisensi Medis, Website, dll) bersifat <em>opsional</em> dan dapat Anda lengkapi kapan saja pada fitur <strong>Setting Akun</strong> setelah masuk.
                     </p>
                   </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="pt-2">
+                <div className="pt-1.5 sm:pt-2">
                   {step === 2 ? (
                     <button
                       type="button"
                       onClick={handleNextStep2}
-                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-extrabold py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl transition cursor-pointer shadow-md hover:shadow-lg text-xs sm:text-sm"
                     >
                       <span>Lanjut</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   ) : (
                     <button
                       type="submit"
                       disabled={loading || !isContractAccepted}
-                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white font-extrabold py-3.5 rounded-2xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white font-extrabold py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg text-xs sm:text-sm"
                     >
                       {loading ? (
                         <>
-                          <Loader className="h-4 w-4 animate-spin" />
+                          <Loader className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                           Sedang Mendaftarkan Akun...
                         </>
                       ) : (
                         <>
                           <span>Daftar Akun</span>
-                          <Check className="h-4 w-4" />
+                          <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </>
                       )}
                     </button>
@@ -637,7 +654,7 @@ export default function RegisterPage() {
               </form>
 
               {/* Form Footer */}
-              <div className="shrink-0 p-3 sm:px-7 border-t border-slate-100 bg-slate-50/60 text-center text-xs text-slate-500 font-medium">
+              <div className="shrink-0 p-2.5 sm:p-3 sm:px-7 border-t border-slate-100 bg-slate-50/60 text-center text-[11px] sm:text-xs text-slate-500 font-medium">
                 Sudah memiliki akun terdaftar?{" "}
                 <Link href="/auth/login" className="text-primary hover:underline font-bold">
                   Masuk di sini
