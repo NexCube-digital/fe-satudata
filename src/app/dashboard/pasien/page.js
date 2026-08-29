@@ -259,380 +259,319 @@ export default function PasienDashboard() {
       <div className="flex flex-1">
         <Sidebar role="pasien" />
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <main className="flex-1 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-4 w-full">
           {/* Header & Patient Identity Banner */}
-          <div className="relative overflow-hidden rounded-3xl border border-teal-800/40 bg-gradient-to-r from-teal-950 via-teal-900 to-emerald-950 p-6 sm:p-8 text-white shadow-xl mb-8">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-teal-500/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-[#0D9488] via-[#0F766E] to-[#115E59] p-3 sm:px-5 sm:py-4 text-white shadow-md mb-3">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-400/20 blur-2xl" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-200 mb-3">
-                  <ShieldCheck className="h-3.5 w-3.5 text-teal-300" />
-                  Identitas Digital SATUSEHAT & Web3 Active
+            <div className="relative z-10 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-teal-100 backdrop-blur-md mb-1">
+                  <ShieldCheck className="h-3 w-3 text-teal-200 shrink-0" />
+                  <span>Identitas Digital SATUSEHAT & Web3 Active</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                <h1 className="text-sm sm:text-2xl font-extrabold text-white tracking-tight truncate">
                   Selamat Datang, {user.name}!
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                <p className="hidden sm:block text-xs text-teal-100/90 mt-0.5 max-w-xl">
                   Portal Pasien Terdesentralisasi SatuData. Kedaulatan rekam medis Anda 100% berada di bawah kendali persetujuan digital Anda.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">NIK Pasien</p>
-                  <p className="font-bold text-teal-200 mt-0.5">{user.nik || "Belum Dilengkapi"}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md text-xs font-mono">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Wallet Address</p>
-                  <p className="font-bold text-emerald-400 mt-0.5">
-                    {user.wallet_address && typeof user.wallet_address === "string" && user.wallet_address.length >= 10
-                      ? `${user.wallet_address.substring(0, 6)}...${user.wallet_address.substring(user.wallet_address.length - 4)}`
-                      : "Belum Ditautkan"}
-                  </p>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="rounded-xl border border-white/20 bg-white/10 px-2 py-1 sm:px-3 sm:py-1.5 backdrop-blur-md font-mono text-right">
+                  <p className="text-[7px] sm:text-[9px] text-teal-200 uppercase font-bold">NIK Pasien</p>
+                  <p className="font-bold text-white text-[10px] sm:text-sm">{user.nik || "Belum Set"}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {!user.nik && (
-            <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 shadow-2xs">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-amber-50 border border-amber-200 p-2.5 text-[11px] sm:text-xs text-amber-800 shadow-2xs">
+              <div className="flex items-center gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                 <span className="font-medium">
-                  <strong>Profil Belum Lengkap!</strong> Silakan lengkapi NIK Anda di menu Pengaturan agar Rumah Sakit dapat mencocokkan rekam medis Anda.
+                  <strong>Profil Belum Lengkap!</strong> Lengkapi NIK Anda di Pengaturan.
                 </span>
               </div>
               <Link
                 href="/dashboard/pasien/settings"
-                className="rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white transition shrink-0 shadow-2xs"
+                className="rounded-lg bg-amber-600 hover:bg-amber-700 px-2.5 py-1 text-[10px] sm:text-xs font-bold text-white transition shrink-0 shadow-2xs"
               >
                 Lengkapi Profil
               </Link>
             </div>
           )}
 
-          {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+          {/* Key Metrics Grid - 3 Columns Side-by-Side on Mobile */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3.5 mb-3">
+            <div className="rounded-2xl bg-white p-2.5 sm:p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Faskes Terkoneksi</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <Building2 className="h-4 w-4" />
+                <span className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Faskes</span>
+                <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+                  <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {hospitals.filter((h) => h.status === "approved").length} <span className="text-xs font-normal text-slate-500">Rumah Sakit</span>
+              <p className="text-base sm:text-xl font-extrabold text-slate-900 mt-1">
+                {hospitals.filter((h) => h.status === "approved").length} <span className="text-[9px] sm:text-xs font-normal text-slate-500 hidden sm:inline">Rumah Sakit</span>
               </p>
-              <p className="text-[10px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Hak Akses Real-time Aktif
+              <p className="text-[8px] sm:text-[9px] font-medium text-emerald-600 mt-0.5 flex items-center gap-0.5 truncate">
+                <CheckCircle className="h-2.5 w-2.5 shrink-0" /> <span className="truncate">Hak Akses Aktif</span>
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+            <div className="rounded-2xl bg-white p-2.5 sm:p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Berkas Medis EHR</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary-tint text-primary">
-                  <FileText className="h-4 w-4" />
+                <span className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Berkas EHR</span>
+                <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-secondary-tint text-primary shrink-0">
+                  <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {medicalRecords.length} <span className="text-xs font-normal text-slate-500">Dokumen</span>
+              <p className="text-base sm:text-xl font-extrabold text-slate-900 mt-1">
+                {medicalRecords.length} <span className="text-[9px] sm:text-xs font-normal text-slate-500 hidden sm:inline">Dokumen</span>
               </p>
-              <p className="text-[10px] font-medium text-primary mt-1 flex items-center gap-1">
-                <Lock className="h-3 w-3" /> Terenkripsi Off-chain AES-256
+              <p className="text-[8px] sm:text-[9px] font-medium text-primary mt-0.5 flex items-center gap-0.5 truncate">
+                <Lock className="h-2.5 w-2.5 shrink-0" /> <span className="truncate">AES-256</span>
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
+            <div className="rounded-2xl bg-white p-2.5 sm:p-3.5 border border-slate-200/80 shadow-2xs hover:shadow-sm transition">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Permintaan Pending</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                  <Clock className="h-4 w-4" />
+                <span className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 truncate">Pending</span>
+                <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
+                  <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                {hospitals.filter((h) => h.status === "pending").length} <span className="text-xs font-normal text-slate-500">Permintaan</span>
+              <p className="text-base sm:text-xl font-extrabold text-slate-900 mt-1">
+                {hospitals.filter((h) => h.status === "pending").length} <span className="text-[9px] sm:text-xs font-normal text-slate-500 hidden sm:inline">Req</span>
               </p>
-              <p className="text-[10px] font-medium text-amber-600 mt-1 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" /> Memerlukan Tindakan Pasien
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs hover:shadow-md transition">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Status Gas Fee</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-                  <Key className="h-4 w-4" />
-                </span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-3">
-                0 ETH <span className="text-xs font-normal text-slate-500">Gratis</span>
-              </p>
-              <p className="text-[10px] font-medium text-teal-700 mt-1 flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3" /> Meta-Transaction EIP-2771
+              <p className="text-[8px] sm:text-[9px] font-medium text-amber-600 mt-0.5 flex items-center gap-0.5 truncate">
+                <AlertCircle className="h-2.5 w-2.5 shrink-0" /> <span className="truncate">Butuh Tindakan</span>
               </p>
             </div>
           </div>
 
-          {/* Main Layout Grid */}
-          <div className="grid gap-8 lg:grid-cols-3 items-start">
-            {/* Left Column (2 Cols): Live Consent Manager & Medical Timeline */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* WIDGET 1: LIVE GRANULAR CONSENT MANAGER */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <ShieldCheck className="h-5 w-5 text-primary" />
-                      Manajemen Persetujuan Akses Faskes (Consent Control)
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Berikan, tolak, atau cabut hak baca rekam medis Anda ke rumah sakit secara real-time.
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-secondary-tint border border-teal-200 px-3 py-1 text-[10px] font-bold text-primary">
-                    Sovereignty Live
-                  </span>
+          {/* Main 2-Column Side-by-Side Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-start mb-3">
+            {/* WIDGET 1: LIVE GRANULAR CONSENT MANAGER */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 p-3.5 sm:p-5 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                <div>
+                  <h3 className="text-xs sm:text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                    Persetujuan Akses Faskes (Consent Control)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Berikan, tolak, atau cabut hak baca rekam medis Anda ke rumah sakit.
+                  </p>
                 </div>
-
-                {/* List of Hospitals */}
-                <div className="space-y-4">
-                  {hospitals.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada permintaan akses faskes terdaftar.</p>
-                  ) : (
-                    hospitals.map((h) => (
-                      <div
-                        key={h.id}
-                        className="rounded-2xl border border-slate-200/90 p-4 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-slate-50/40"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                          <div className="flex items-start gap-3">
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
-                              {h.name && typeof h.name === "string" ? `${h.name.charAt(0)}${h.name.substring(3, 4) || ""}` : "RS"}
-                            </span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold text-slate-900">{h.name}</h4>
-                                <span className="text-[10px] font-mono text-slate-400">({h.code})</span>
-                              </div>
-                              <p className="text-xs text-slate-500">{h.dept}</p>
-                            </div>
-                          </div>
-
-                          {/* Status Badges */}
-                          <div>
-                            {h.status === "approved" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                                Akses Disetujui
-                              </span>
-                            )}
-                            {h.status === "pending" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 animate-pulse">
-                                <Clock className="h-3 w-3" />
-                                Permintaan Baru
-                              </span>
-                            )}
-                            {h.status === "rejected" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-bold text-slate-500">
-                                <XCircle className="h-3 w-3" />
-                                Akses Ditolak
-                              </span>
-                            )}
-                            {h.status === "revoked" && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary-tint border border-teal-200 px-3 py-1 text-[11px] font-bold text-primary">
-                                <Lock className="h-3 w-3" />
-                                Akses Dicabut
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Details & Actions */}
-                        <div className="border-t border-slate-200/60 pt-3 mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                          <div className="space-y-1 font-mono text-[10px] text-slate-500">
-                            <p>Tipe Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
-                            <p>Tx Hash: <TxHashLink txHash={h.txHash} className="text-primary font-semibold inline-flex items-center gap-1" title={h.txHash}><span>{h.txHash}</span></TxHashLink></p>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-2">
-                            {h.status === "pending" && (
-                              <>
-                                <button
-                                  onClick={() => handleToggleConsent(h.id, "approved", h.status)}
-                                  disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition shadow-xs ${actionInProgress === h.id ? "bg-emerald-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"}`}
-                                >
-                                  {actionInProgress === h.id ? (
-                                    <span className="inline-flex items-center gap-2">
-                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                      Menunggu konfirmasi...
-                                    </span>
-                                  ) : (
-                                    "Setujui Akses (Approve)"
-                                  )}
-                                </button>
-                                <button
-                                  onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
-                                  disabled={actionInProgress === h.id}
-                                  className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
-                                >
-                                  {actionInProgress === h.id ? (
-                                    <span className="inline-flex items-center gap-2">
-                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                      Sedang diproses...
-                                    </span>
-                                  ) : (
-                                    "Tolak"
-                                  )}
-                                </button>
-                              </>
-                            )}
-
-                            {h.status === "approved" && (
-                              <button
-                                onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
-                                className="rounded-xl bg-secondary-tint border border-teal-200 text-primary-hover hover:bg-teal-100 px-4 py-2 text-xs font-bold transition cursor-pointer"
-                              >
-                                Cabut Izin Akses (revokeAccess)
-                              </button>
-                            )}
-
-                            {(h.status === "revoked" || h.status === "rejected") && (
-                              <div className="rounded-xl bg-slate-100 px-4 py-2 text-xs text-slate-600 border border-slate-200">
-                                Permintaan harus diajukan ulang oleh faskes untuk mendapatkan izin kembali.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <span className="rounded-full bg-secondary-tint border border-teal-200 px-2 py-0.5 text-[8px] sm:text-[9px] font-bold text-primary shrink-0 hidden sm:inline-block">
+                  Sovereignty Live
+                </span>
               </div>
 
-              {/* WIDGET 2: ENCRYPTED EHR TIMELINE */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      Linimasa Medis Terpadu (Encrypted EHR Timeline)
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Seluruh riwayat diagnosa dan resep obat antar-rumah sakit tersimpan dalam enkripsi off-chain.
-                    </p>
-                  </div>
-                  <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-hover cursor-pointer">
-                    <Download className="h-3.5 w-3.5" /> Unduh Resume PDF
-                  </button>
-                </div>
-
-                <div className="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6">
-                  {medicalRecords.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada riwayat rekam medis terdaftar.</p>
-                  ) : (
-                    medicalRecords.map((rec) => (
-                      <div key={rec.id} className="relative group">
-                        <span className="absolute -left-[31px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary ring-4 ring-white" />
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-xs">
-                          <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                            <span className="font-bold text-primary-hover">{rec.hospitalName} ({rec.category})</span>
-                            <span className="font-mono text-[10px]">{rec.date}</span>
-                          </div>
-
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900">Diagnosa: {rec.diagnosis}</h4>
-                              <p className="text-xs text-slate-500 mt-0.5">Dokter Penanggung Jawab: {rec.doctorName}</p>
+              {/* List of Hospitals */}
+              <div className="space-y-2.5">
+                {hospitals.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-3 italic text-center">Belum ada permintaan akses faskes terdaftar.</p>
+                ) : (
+                  hospitals.map((h) => (
+                    <div
+                      key={h.id}
+                      className="rounded-xl border border-slate-200/90 p-3 transition-all duration-200 hover:border-teal-300 hover:shadow-xs bg-slate-50/40"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 shadow-2xs font-bold text-slate-800 text-xs">
+                            {h.name && typeof h.name === "string" ? `${h.name.charAt(0)}${h.name.substring(3, 4) || ""}` : "RS"}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-xs font-bold text-slate-900 truncate max-w-[150px] sm:max-w-none">{h.name}</h4>
+                              <span className="text-[9px] font-mono text-slate-400 hidden sm:inline">({h.code})</span>
                             </div>
+                            <p className="text-[10px] text-slate-500">{h.dept}</p>
+                          </div>
+                        </div>
+
+                        {/* Status Badges */}
+                        <div className="shrink-0">
+                          {h.status === "approved" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                              Disetujui
+                            </span>
+                          )}
+                          {h.status === "pending" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700 animate-pulse">
+                              <Clock className="h-2.5 w-2.5" />
+                              Baru
+                            </span>
+                          )}
+                          {h.status === "rejected" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[9px] font-bold text-slate-500">
+                              <XCircle className="h-2.5 w-2.5" />
+                              Ditolak
+                            </span>
+                          )}
+                          {h.status === "revoked" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-secondary-tint border border-teal-200 px-2 py-0.5 text-[9px] font-bold text-primary">
+                              <Lock className="h-2.5 w-2.5" />
+                              Dicabut
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Details & Actions */}
+                      <div className="border-t border-slate-200/60 pt-2 mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div className="space-y-0.5 font-mono text-[9px] sm:text-[10px] text-slate-500">
+                          <p>Izin: <span className="font-semibold text-slate-700">{h.accessTypes.join(", ")}</span></p>
+                          <p className="truncate max-w-[180px] sm:max-w-none">Tx Hash: <TxHashLink txHash={h.txHash} className="text-primary font-semibold inline-flex items-center gap-0.5" title={h.txHash}><span>{h.txHash}</span></TxHashLink></p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1.5">
+                          {h.status === "pending" && (
+                            <>
+                              <button
+                                onClick={() => handleToggleConsent(h.id, "approved", h.status)}
+                                disabled={actionInProgress === h.id}
+                                className={`rounded-lg px-2.5 py-1 text-xs font-bold text-white transition shadow-2xs ${actionInProgress === h.id ? "bg-emerald-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"}`}
+                              >
+                                {actionInProgress === h.id ? (
+                                  <span className="inline-flex items-center gap-1">
+                                    <RefreshCw className="h-3 w-3 animate-spin" />
+                                    ...
+                                  </span>
+                                ) : (
+                                  "Setujui"
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleToggleConsent(h.id, "rejected", h.status)}
+                                disabled={actionInProgress === h.id}
+                                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${actionInProgress === h.id ? "bg-slate-100 cursor-not-allowed text-slate-500" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
+                              >
+                                {actionInProgress === h.id ? "..." : "Tolak"}
+                              </button>
+                            </>
+                          )}
+
+                          {h.status === "approved" && (
                             <button
-                              onClick={() => toggleDecrypt(rec.id)}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer shrink-0"
+                              onClick={() => handleToggleConsent(h.id, "revoked", h.status)}
+                              className="rounded-lg bg-secondary-tint border border-teal-200 text-primary-hover hover:bg-teal-100 px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
                             >
-                              {decryptedRecords[rec.id] ? <EyeOff className="h-3.5 w-3.5 text-primary" /> : <Eye className="h-3.5 w-3.5 text-emerald-600" />}
-                              {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi Data"}
+                              Cabut Izin Akses
                             </button>
-                          </div>
+                          )}
 
-                          {/* Decrypted / Encrypted Content Preview */}
-                          {decryptedRecords[rec.id] ? (
-                            <div className="mt-3 rounded-xl bg-gradient-to-br from-teal-50/70 via-emerald-50/40 to-slate-50 border border-teal-100/80 p-3 text-[11px] text-slate-700 shadow-2xs animate-fade-in">
-                              <p className="font-bold text-primary-hover mb-1">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
-                              <p className="leading-relaxed">{rec.details}</p>
-                            </div>
-                          ) : (
-                            <div className="mt-3 rounded-xl bg-slate-50/80 p-3 text-[10px] font-mono text-slate-500 border border-slate-200/60 truncate">
-                              <span className="text-primary font-extrabold mr-2">[CIPHERTEXT AES-256]:</span>
-                              U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash && typeof rec.txHash === "string" ? `${rec.txHash.substring(0, 10)}...` : "[tidak tersedia]"}
+                          {(h.status === "revoked" || h.status === "rejected") && (
+                            <div className="rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 border border-slate-200">
+                              Harus diajukan ulang oleh faskes.
                             </div>
                           )}
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
-            {/* Right Column (1 Col): Real-time Audit Trail & Quick Actions */}
-            <div className="space-y-8">
-              {/* Audit Trail Stream Widget */}
-              <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
-                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Database className="h-4 w-4 text-primary" />
-                  Audit Trail Blockchain Log
-                </h3>
+            {/* WIDGET 2: ENCRYPTED EHR TIMELINE */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 p-3.5 sm:p-5 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                <div>
+                  <h3 className="text-xs sm:text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-primary shrink-0" />
+                    Linimasa Medis Terpadu (Encrypted EHR)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Seluruh riwayat diagnosa dan resep obat tersimpan aman secara terenkripsi.
+                  </p>
+                </div>
+                <button onClick={() => window.print()} className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary-hover cursor-pointer shrink-0 no-print">
+                  <Download className="h-3 w-3" /> Unduh PDF
+                </button>
+              </div>
 
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                  {auditLogs.length === 0 ? (
-                    <p className="text-xs text-slate-500 py-4 italic text-center">Belum ada log aktivitas blockchain.</p>
-                  ) : (
-                    auditLogs.map((log) => (
-                      <div key={log.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-bold ${log.type === "success" ? "text-emerald-700" : "text-primary"}`}>
-                            {log.action}
-                          </span>
-                          <span className="text-[9px] font-mono text-slate-400">{log.time}</span>
+              <div className="relative border-l-2 border-slate-200 ml-2.5 space-y-3 pl-4">
+                {medicalRecords.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-3 italic text-center">Belum ada riwayat rekam medis terdaftar.</p>
+                ) : (
+                  medicalRecords.map((rec) => (
+                    <div key={rec.id} className="relative group">
+                      <span className="absolute -left-[23px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary ring-4 ring-white" />
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 transition-all hover:bg-white hover:shadow-xs">
+                        <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                          <span className="font-bold text-primary-hover text-[11px] truncate max-w-[170px]">{rec.hospitalName}</span>
+                          <span className="font-mono text-[9px]">{rec.date}</span>
                         </div>
-                        <p className="text-slate-600 font-medium text-[11px]">{log.hospital}</p>
-                        <p className="text-[9px] font-mono text-primary mt-1">Tx: <TxHashLink txHash={log.hash} className="inline-flex items-center gap-1" title={log.hash}><span>{log.hash}</span></TxHashLink></p>
+
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-900">Diagnosa: {rec.diagnosis}</h4>
+                            <p className="text-[10px] text-slate-500 mt-0.5">Dokter: {rec.doctorName}</p>
+                          </div>
+                          <button
+                            onClick={() => toggleDecrypt(rec.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer shrink-0"
+                          >
+                            {decryptedRecords[rec.id] ? <EyeOff className="h-3 w-3 text-primary" /> : <Eye className="h-3 w-3 text-emerald-600" />}
+                            {decryptedRecords[rec.id] ? "Sembunyikan" : "Dekripsi"}
+                          </button>
+                        </div>
+
+                        {/* Decrypted / Encrypted Content Preview */}
+                        {decryptedRecords[rec.id] ? (
+                          <div className="mt-2 rounded-lg bg-gradient-to-br from-teal-50/70 via-emerald-50/40 to-slate-50 border border-teal-100/80 p-2 text-[10px] sm:text-[11px] text-slate-700 shadow-2xs animate-fade-in">
+                            <p className="font-bold text-primary-hover mb-0.5">✔ TERDEKRIPSI SECARA LOKAL (AES-256):</p>
+                            <p className="leading-relaxed">{rec.details}</p>
+                          </div>
+                        ) : (
+                          <div className="mt-2 rounded-lg bg-slate-50/80 p-1.5 text-[9px] font-mono text-slate-500 border border-slate-200/60 truncate">
+                            <span className="text-primary font-extrabold mr-1">[AES-256]:</span>
+                            U2FsdGVkX1+9M2Y5NzhkYTUxNmFkOTY5Y2QwMzgxM2I5Mzg5YTI0ZjM0MmQwNm{rec.txHash && typeof rec.txHash === "string" ? `${rec.txHash.substring(0, 8)}...` : ""}
+                          </div>
+                        )}
                       </div>
-                    ))
-                  )}
-                </div>
+                    </div>
+                  ))
+                )}
               </div>
+            </div>
+          </div>
 
-              {/* Quick Actions Panel */}
-              <div className="rounded-3xl bg-gradient-to-br from-teal-950 via-teal-900 to-emerald-950 p-6 text-white shadow-xl">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider mb-2 text-teal-200">
-                  Bantuan & Simulator
-                </h3>
-                <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-                  Ingin mensimulasikan persetujuan transaksi dari sudut pandang dokter? Buka Live Consent Simulator.
-                </p>
+          {/* Quick Actions / Bantuan Banner */}
+          <div className="rounded-2xl bg-gradient-to-r from-[#0D9488] via-[#0F766E] to-[#115E59] p-3.5 sm:p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border border-teal-500/30 mb-2">
+            <div>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-teal-100">
+                Bantuan & Consent Simulator
+              </h3>
+              <p className="text-[10px] sm:text-[11px] text-teal-100/90 mt-0.5 max-w-xl leading-snug">
+                Ingin mensimulasikan persetujuan transaksi dari sudut pandang faskes atau mengelola profil?
+              </p>
+            </div>
 
-                <div className="space-y-2.5">
-                  <Link
-                    href="/#simulator"
-                    className="flex items-center justify-between rounded-2xl bg-primary hover:bg-primary-hover px-4 py-3 text-xs font-bold text-white transition shadow-md"
-                  >
-                    <span>Buka Consent Simulator</span>
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
+              <Link
+                href="/#simulator"
+                className="inline-flex items-center justify-center gap-1 rounded-xl bg-primary hover:bg-primary-hover px-3 py-1.5 text-xs font-bold text-white transition shadow-2xs"
+              >
+                <span>Simulator</span>
+                <ArrowUpRight className="h-3 w-3" />
+              </Link>
 
-                  <Link
-                    href="/dashboard/pasien/settings"
-                    className="flex items-center justify-between rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-3 text-xs font-bold text-slate-200 transition"
-                  >
-                    <span>Pengaturan Akun & Wallet</span>
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
+              <Link
+                href="/dashboard/pasien/settings"
+                className="inline-flex items-center justify-center gap-1 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-200 transition"
+              >
+                <span>Pengaturan</span>
+                <ArrowUpRight className="h-3 w-3" />
+              </Link>
             </div>
           </div>
         </main>

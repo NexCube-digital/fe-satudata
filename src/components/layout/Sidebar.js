@@ -17,13 +17,18 @@ import {
   History,
   MapPin,
   Building2,
-  Clock
+  Clock,
+  Settings,
+  LogOut,
+  ChevronRight,
+  X
 } from "lucide-react";
 import { apiGet, getAvatarUrl } from "@/lib/api";
 
 export default function Sidebar({ role }) {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [badgeCounts, setBadgeCounts] = useState({
     users: null,
     logs: null,
@@ -33,6 +38,13 @@ export default function Sidebar({ role }) {
     records: null,
     consent: null
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    window.location.href = "/auth/login";
+  };
 
   useEffect(() => {
     const loadUserData = () => {
@@ -100,6 +112,14 @@ export default function Sidebar({ role }) {
     };
 
     fetchBadgeData();
+    window.addEventListener("userUpdated", fetchBadgeData);
+    window.addEventListener("storage", fetchBadgeData);
+    window.addEventListener("focus", fetchBadgeData);
+    return () => {
+      window.removeEventListener("userUpdated", fetchBadgeData);
+      window.removeEventListener("storage", fetchBadgeData);
+      window.removeEventListener("focus", fetchBadgeData);
+    };
   }, [role]);
 
   // Define categorized menu sections based on role
@@ -221,6 +241,29 @@ export default function Sidebar({ role }) {
   const accountStatus = getAccountStatus();
   const allMenuItems = menuSections.flatMap((section) => section.items);
 
+  const getProfileHref = () => {
+    switch (role) {
+      case "admin": return "/dashboard/admin/settings";
+      case "faskes":
+      case "rumah_sakit": return "/dashboard/faskes/settings";
+      case "pasien":
+      default: return "/dashboard/pasien/settings";
+    }
+  };
+
+  const filteredMenuItems = allMenuItems.filter(item => !item.href.includes("/history"));
+
+  const mobileNavItems = [
+    ...filteredMenuItems.slice(0, 3),
+    { href: getProfileHref(), label: "PROFIL", icon: User, isProfile: true }
+  ];
+
+  const isSettingsSubpage = 
+    pathname?.includes("/settings/profile") || 
+    pathname?.includes("/settings/privacy-security") || 
+    pathname?.includes("/settings/wallet") || 
+    pathname === "/dashboard/pasien/profile";
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -324,28 +367,53 @@ export default function Sidebar({ role }) {
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] py-2 px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
-        {allMenuItems.slice(0, 5).map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex flex-col items-center gap-1 text-[9px] font-bold transition-all ${
-                isActive ? "text-[#0D9488] scale-105" : "text-[#64748B] hover:text-slate-800"
-              }`}
-            >
-              <div className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
-                isActive ? "bg-[#E6F4F1] text-[#0D9488]" : "text-slate-400"
-              }`}>
-                <Icon className="h-4.5 w-4.5" />
-              </div>
-              <span className="uppercase tracking-wide">{item.label.split(" ")[0]}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {!isSettingsSubpage && (
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] py-2 px-2 sm:px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex flex-col items-center gap-0.5 text-[9px] font-bold transition-all ${
+                  isActive ? "text-[#0D9488] scale-105" : "text-[#64748B] hover:text-slate-800"
+                }`}
+              >
+                <div className={`relative h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
+                  isActive ? "bg-[#E6F4F1] text-[#0D9488]" : "text-slate-400"
+                }`}>
+                  {item.badge && (
+                    <span className="absolute -top-1 -right-1.5 z-10 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[9px] font-extrabold shadow-sm ring-2 ring-white animate-pulse">
+                      {item.badge.replace(/[^0-9]/g, "") || "!"}
+                    </span>
+                  )}
+                  {item.isProfile ? (
+                    <div className="relative h-6 w-6 overflow-hidden rounded-full bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/30 shrink-0">
+                      {getAvatarUrl(currentUser) ? (
+                        <img
+                          src={getAvatarUrl(currentUser)}
+                          alt={currentUser?.name || "Foto Profil"}
+                          className="h-full w-full object-cover"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[9px] font-extrabold text-white">
+                          {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3 w-3" />}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Icon className="h-4.5 w-4.5" />
+                  )}
+                </div>
+                <span className="uppercase tracking-wide text-[8px] sm:text-[9px]">{item.label.split(" ")[0]}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </>
   );
 }

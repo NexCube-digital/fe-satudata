@@ -27,7 +27,7 @@ export default function Hero({ walletConnected, setWalletConnected }) {
       {/* 1 Frame Container */}
       <div className="glass-panel w-full rounded-3xl border border-teal-100/80 bg-white p-6 sm:p-10 lg:p-12 shadow-xl relative overflow-hidden flex flex-col justify-center min-h-[calc(100vh-6.5rem)] lg:min-h-0">
         {/* Brand Partnership Logos (Separate frames per logo, responsive layout) */}
-        <div className="flex lg:absolute top-0 lg:top-8 left-0 lg:left-12 items-center justify-center lg:justify-start gap-2.5 sm:gap-3 z-10 pt-1 lg:pt-0 mb-4 lg:mb-0 w-full lg:w-auto overflow-x-auto">
+        <div className="flex lg:absolute top-0 lg:top-8 left-0 lg:left-12 items-center justify-center lg:justify-start gap-2.5 sm:gap-3 z-10 pt-1 lg:pt-0 mb-4 lg:mb-0 w-full lg:w-auto overflow-x-auto overflow-y-hidden scrollbar-none py-1">
           <div className="bg-white/95 backdrop-blur-md h-[48px] sm:h-[60px] lg:h-[72px] px-3 sm:px-4 rounded-xl sm:rounded-2xl shadow-2xs flex items-center justify-center shrink-0 border border-slate-100">
             <img src="/images/logo.png" alt="SatuData" className="h-12 sm:h-16 lg:h-22 w-auto object-contain" />
           </div>

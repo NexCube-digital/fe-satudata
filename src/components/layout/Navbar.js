@@ -279,19 +279,19 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <Link href="/" className="group flex items-center gap-3 transition-all duration-200">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0D9488] to-[#0F766E] shadow-md shadow-teal-900/20 ring-1 ring-teal-700/30 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shrink-0 shadow-2xs">
               <Image
                 src="/images/logo.png"
                 alt="Satu Data logo"
-                width={28}
-                height={28}
-                className="relative z-10 h-7 w-7 object-contain brightness-0 invert"
+                width={40}
+                height={40}
+                priority
+                className="h-full w-full object-contain"
               />
             </div>
             <div>
               <div className="text-base font-extrabold tracking-tight text-[#334155] group-hover:text-[#0D9488] transition-colors">Satu Data</div>
-              <div className="text-[10px] font-semibold text-[#0D9488] tracking-wide uppercase">{roleLabel || "Dashboard"}</div>
+              <div className="text-[10px] font-semibold text-[#0D9488] tracking-wide uppercase">{displayRoleLabel}</div>
             </div>
           </Link>
         </div>
@@ -438,8 +438,8 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
             )}
           </div>
 
-          {/* Profil & Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Profil & Dropdown (Desktop Only) */}
+          <div className="relative hidden sm:block" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`flex cursor-pointer items-center gap-2.5 rounded-2xl border px-2.5 py-1.5 transition-all duration-200 ${

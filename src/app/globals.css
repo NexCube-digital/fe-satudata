@@ -60,6 +60,14 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility animate-pulse-glow {
   animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -166,5 +174,86 @@ body {
 .hover-premium-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(13, 148, 136, 0.12);
+}
+
+/* Print Optimization for Official Medical Documents */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide navigation, sidebar, headers, footers, and all elements marked no-print */
+  nav,
+  aside,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide all siblings of printable modal backdrop inside main */
+  main > *:not(.print-modal-backdrop) {
+    display: none !important;
+  }
+
+  .print-modal-backdrop {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    z-index: 99999 !important;
+  }
+
+  .print-modal-card {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Prevent page-break cutting inside tables, cards, rows, and blocks */
+  .print-modal-card > div > div,
+  .print-modal-card table,
+  .print-modal-card tr,
+  .print-modal-card .rounded-xl,
+  .print-modal-card .rounded-2xl {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    break-inside: avoid-page !important;
+  }
+
+  .print-modal-card .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.6rem !important;
+  }
+
+  .print-modal-card img {
+    max-width: 110px !important;
+    max-height: 110px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 6mm 8mm;
+  }
 }
 
