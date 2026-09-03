@@ -1,24 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
-import TxHashLink from "@/components/ui/TxHashLink";
-import { getDoctors } from "@/services/doctorService";
-import ModernDoctorSelect from "@/components/features/faskes/ModernDoctorSelect";
+import { useToast } from "@/components/shared/Toast";
 import {
   Activity,
   Building2,
   Send,
   RefreshCw,
-  Search,
   CheckCircle,
-  Clock,
   AlertCircle,
-  Plus,
-  ShieldCheck,
   UserPlus,
   Info,
   Key,
@@ -28,17 +21,26 @@ import {
 
 export default function FaskesRequests() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [doctors, setDoctors] = useState([]);
+  const toast = useToast();
+  const [user, setUser] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const userData = localStorage.getItem("user");
+    if (!userData) return null;
+    try {
+      return JSON.parse(userData);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  });
 
   // Form states
   const [nikInput, setNikInput] = useState("");
-  const [poliInput, setPoliInput] = useState("");
   const [purposeInput, setPurposeInput] = useState("");
+  const [customPurposeInput, setCustomPurposeInput] = useState("");
   const [submittingRequest, setSubmittingRequest] = useState(false);
 
-  // Search status: "idle", "searching", "found", "not_found", "error"
+  // Search status: "idle", "searching", "found", "approved", "not_found", "error"
   const [searchStatus, setSearchStatus] = useState("idle");
   const [patientData, setPatientData] = useState(null);
 
@@ -59,30 +61,6 @@ export default function FaskesRequests() {
   const [generatedCredentials, setGeneratedCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchDoctorsList();
-    setLoading(false);
-  }, []);
-
-  const fetchDoctorsList = async () => {
-    try {
-      const res = await getDoctors();
-      if (res.success && res.data) {
-        setDoctors(res.data);
-      }
-    } catch (err) {
-      console.error("Error fetching doctors:", err);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -92,7 +70,7 @@ export default function FaskesRequests() {
 
   const handleCheckNik = async () => {
     if (!nikInput || !/^\d{16}$/.test(nikInput)) {
-      alert("NIK harus berupa 16 digit angka");
+      toast.error("NIK harus berupa 16 digit angka");
       return;
     }
 
@@ -103,15 +81,29 @@ export default function FaskesRequests() {
     const token = localStorage.getItem("accessToken");
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/patient?nik=${nikInput}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+      const [patientRes, requestsRes] = await Promise.all([
+        fetch(`${apiBaseUrl}/api/hospital/patient?nik=${nikInput}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${apiBaseUrl}/api/hospital/access-requests`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      const res = patientRes;
       const result = await res.json();
+      const requestsResult = await requestsRes.json();
+      const approvedRequest = requestsRes.ok && Array.isArray(requestsResult.data)
+        ? requestsResult.data.find((request) => (
+          request.status === "approved" &&
+          String(request.patient_nik || request.Patient?.profil?.nik || request.patient?.profil?.nik) === nikInput
+        ))
+        : null;
       
       if (res.ok && result.success) {
         if (result.data?.found) {
-          setSearchStatus("found");
           setPatientData(result.data.patient);
+          setSearchStatus(approvedRequest ? "approved" : "found");
         } else {
           setSearchStatus("not_found");
           setPatientData(null);
@@ -126,15 +118,16 @@ export default function FaskesRequests() {
           setRegisterBloodType("");
           setRegisterEmergencyName("");
           setRegisterEmergencyPhone("");
+          setCustomPurposeInput("");
         }
       } else {
         setSearchStatus("error");
-        alert(result.message || "Gagal memeriksa status NIK");
+        toast.error(result.message || "Gagal memeriksa status NIK");
       }
     } catch (err) {
       console.error(err);
       setSearchStatus("error");
-      alert("Terjadi kesalahan koneksi saat memeriksa NIK");
+      toast.error("Terjadi kesalahan koneksi saat memeriksa NIK");
     }
   };
 
@@ -160,7 +153,7 @@ export default function FaskesRequests() {
     if (!nikInput) return;
 
     if (searchStatus === "idle" || searchStatus === "searching") {
-      alert("Silakan periksa NIK terlebih dahulu");
+      toast.info("Silakan periksa NIK terlebih dahulu");
       return;
     }
 
@@ -179,21 +172,21 @@ export default function FaskesRequests() {
           },
           body: JSON.stringify({
             patientNik: nikInput,
-            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            jenisDataDiminta: purposeInput === "Lainnya" ? customPurposeInput : purposeInput,
             txHash
           })
         });
         const result = await res.json();
         
         if (res.ok && result.success) {
-          alert("Permintaan akses rekam medis berhasil dikirim ke portal pasien!");
+          toast.success("Permintaan akses rekam medis berhasil dikirim ke portal pasien!");
           setNikInput("");
-          setPoliInput("");
           setPurposeInput("");
+          setCustomPurposeInput("");
           setSearchStatus("idle");
           setPatientData(null);
         } else {
-          alert(result.message || "Gagal membuat permohonan akses");
+          toast.error(result.message || "Gagal membuat permohonan akses");
         }
       } else if (searchStatus === "not_found") {
         // Option B: Patient doesn't exist, register them first, then request access
@@ -224,7 +217,7 @@ export default function FaskesRequests() {
         const regResult = await regRes.json();
 
         if (!regRes.ok || !regResult.success) {
-          alert(regResult.message || "Gagal mendaftarkan pasien baru");
+          toast.error(regResult.message || "Gagal mendaftarkan pasien baru");
           setSubmittingRequest(false);
           return;
         }
@@ -238,7 +231,7 @@ export default function FaskesRequests() {
           },
           body: JSON.stringify({
             patientNik: nikInput,
-            jenisDataDiminta: `${poliInput} - ${purposeInput}`,
+            jenisDataDiminta: purposeInput === "Lainnya" ? customPurposeInput : purposeInput,
             txHash
           })
         });
@@ -253,11 +246,11 @@ export default function FaskesRequests() {
           });
           setShowCredentialsBanner(true);
 
-          alert("Pasien baru berhasil didaftarkan dan permintaan akses rekam medis telah dikirim!");
+          toast.success("Pasien baru berhasil didaftarkan dan permintaan akses rekam medis telah dikirim!");
           
           // Clear inputs
-          setPoliInput("");
           setPurposeInput("");
+          setCustomPurposeInput("");
           setRegisterName("");
           setRegisterEmail("");
           setRegisterPhone("");
@@ -271,24 +264,16 @@ export default function FaskesRequests() {
           setSearchStatus("idle");
           setPatientData(null);
         } else {
-          alert(reqResult.message || "Registrasi berhasil, tetapi gagal mengirim permintaan akses.");
+          toast.error(reqResult.message || "Registrasi berhasil, tetapi gagal mengirim permintaan akses.");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem dalam mengirimkan permohonan");
+      toast.error("Terjadi kesalahan sistem dalam mengirimkan permohonan");
     } finally {
       setSubmittingRequest(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   if (!user) {
     return (
@@ -418,13 +403,18 @@ export default function FaskesRequests() {
                 </div>
 
                 {/* Notifications & Result banners */}
-                {searchStatus === "found" && patientData && (
+                {(searchStatus === "found" || searchStatus === "approved") && patientData && (
                   <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-500/20 p-4 text-xs text-emerald-800 space-y-2 animate-fade-in shadow-2xs">
                     <p className="font-bold flex items-center gap-1.5 text-[13px]">
                       <CheckCircle className="h-4.5 w-4.5 text-emerald-600" />
                       Pasien Terdaftar Ditemukan
                     </p>
-                    <p className="text-slate-650">Pasien atas nama <strong className="text-slate-800">{patientData.name}</strong> dengan NIK {nikInput} terdaftar aktif di SatuData. Silakan isi form di bawah untuk meminta akses rekam medis.</p>
+                    <p className="text-slate-650">
+                      Pasien atas nama <strong className="text-slate-800">{patientData.name}</strong> dengan NIK {nikInput} terdaftar aktif di SatuData.
+                      {searchStatus === "approved"
+                        ? <strong className="text-slate-800"> Request akses data medis sudah disetujui oleh pasien.</strong>
+                        : " Silakan isi form di bawah untuk meminta akses rekam medis."}
+                    </p>
                   </div>
                 )}
 
@@ -448,7 +438,7 @@ export default function FaskesRequests() {
             </div>
 
             {/* Form details input */}
-            {searchStatus !== "idle" && searchStatus !== "searching" && (
+            {(searchStatus === "found" || searchStatus === "not_found") && (
               <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-xs animate-fade-in">
                 <div className="border-b border-slate-100 pb-4 mb-5">
                   <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -603,32 +593,48 @@ export default function FaskesRequests() {
                     </div>
                   )}
 
-                  {/* Option B: Standard Request Fields */}
+                  {/* Request details */}
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                        Pilih Dokter Penanggung Jawab / Poli
-                      </label>
-                      <ModernDoctorSelect
-                        doctors={doctors}
-                        value={poliInput}
-                        onChange={(val) => setPoliInput(val)}
-                        required
-                      />
-                    </div>
-
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                         Tujuan Pemeriksaan Medis
                       </label>
-                      <input
-                        type="text"
+                      <select
                         required
                         value={purposeInput}
                         onChange={(e) => setPurposeInput(e.target.value)}
-                        placeholder="Contoh: Pemeriksaan Jantung Rutin / Rujukan Rawat Inap"
                         className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-slate-50 focus:bg-white transition"
-                      />
+                      >
+                        <option value="" disabled>Pilih tujuan pemeriksaan</option>
+                        <option value="Pemeriksaan umum">Pemeriksaan umum</option>
+                        <option value="Kontrol rutin">Kontrol rutin</option>
+                        <option value="Rujukan medis">Rujukan medis</option>
+                        <option value="Rawat inap">Rawat inap</option>
+                        <option value="Pemeriksaan laboratorium">Pemeriksaan laboratorium</option>
+                        <option value="Pemeriksaan radiologi">Pemeriksaan radiologi</option>
+                        <option value="Pengambilan obat">Pengambilan obat</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                    </div>
+
+                    {purposeInput === "Lainnya" && (
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                          Tulis Tujuan Pemeriksaan
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={customPurposeInput}
+                          onChange={(e) => setCustomPurposeInput(e.target.value)}
+                          placeholder="Tulis tujuan pemeriksaan"
+                          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:border-primary focus:outline-hidden bg-slate-50 focus:bg-white transition"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-[10px] text-slate-400">Pilih tujuan yang tersedia atau pilih Lainnya untuk menulis tujuan sendiri.</p>
                     </div>
 
                     <button

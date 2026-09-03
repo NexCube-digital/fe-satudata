@@ -137,11 +137,17 @@ export default function PatientConsentHistoryPage() {
           department: "Unit Pelayanan Medis",
           doctorName: "Dokter Penanggung Jawab",
           accessScope: item.requested_data ? item.requested_data.split(",") : ["Riwayat Rekam Medis Terenkripsi"],
-          duration: "30 Hari",
+          duration: item.status === "approved"
+            ? "Selamanya (sampai dicabut)"
+            : item.status === "revoked" || item.status === "rejected"
+              ? "Kadaluarsa"
+              : "Menunggu persetujuan",
           status: item.status || "pending",
-          txHash: null,
+          txHash: item.tx_hash || item.txHash || "",
           grantedAt: new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID"),
-          expiresAt: item.expire_time ? new Date(item.expire_time).toLocaleDateString("id-ID") : "-"
+          expiresAt: item.status === "approved"
+            ? "Selama akses aktif"
+            : new Date(item.updated_at || item.created_at).toLocaleDateString("id-ID")
         }));
 
         setRequests(beRequests);
@@ -232,7 +238,7 @@ export default function PatientConsentHistoryPage() {
     const matchesSearch =
       req.hospitalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       req.hospitalCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.txHash.toLowerCase().includes(searchTerm.toLowerCase());
+      (req.txHash || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
 
@@ -419,7 +425,7 @@ export default function PatientConsentHistoryPage() {
                       {/* Dates */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] font-mono text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-3">
                         <div>
-                          <span className="text-slate-400 block">Masa Berlaku:</span>
+                          <span className="text-slate-400 block">Masa Berlaku :</span>
                           <span className="font-bold text-slate-700">{req.duration}</span>
                         </div>
                         <div>
@@ -450,16 +456,6 @@ export default function PatientConsentHistoryPage() {
                             </button>
                           )}
 
-                          {req.status === "revoked" && (
-                            <button
-                              onClick={() => handleAction(req.id, "approved")}
-                              disabled={submittingId === req.id}
-                              className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-4 py-2 font-bold transition cursor-pointer flex items-center gap-1.5"
-                            >
-                              {submittingId === req.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Unlock className="h-3.5 w-3.5" />}
-                              Izinkan Kembali
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>

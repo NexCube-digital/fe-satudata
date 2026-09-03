@@ -13,7 +13,7 @@ import SecuritySettingsTab from "./settings/SecuritySettingsTab";
 import WalletSettingsTab from "./settings/WalletSettingsTab";
 import PhotoUploadModal from "./settings/PhotoUploadModal";
 
-export default function SettingPage({ initialTab = "overview" }) {
+export default function SettingPage({ initialTab = "profile" }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -791,10 +791,10 @@ export default function SettingPage({ initialTab = "overview" }) {
     <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
       {/* Top Navbar: Always visible on desktop */}
       <div className="hidden md:block">
-        <Navbar user={user} roleLabel={roleLabelMap[user?.role] || "Dashboard"} onLogout={handleLogout} />
+        <Navbar user={user} roleLabel={roleLabelMap[user?.role] || "Dashboard"} onLogout={handleLogout} fixed />
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 md:pt-16">
         <Sidebar role={user?.role} />
 
         <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 w-full">

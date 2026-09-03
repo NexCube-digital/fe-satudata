@@ -315,7 +315,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 h-screen flex flex-col justify-center p-3 sm:p-6 lg:p-12 overflow-y-auto lg:overflow-hidden bg-slate-50 lg:bg-white">
+      <div className="w-full lg:w-1/2 h-screen flex flex-col justify-center p-3 sm:p-6 lg:p-12 overflow-y-auto bg-slate-50 lg:bg-white">
         <div className="w-full max-w-md mx-auto my-auto space-y-2.5 sm:space-y-4 py-1 lg:py-0">
           <div className="mb-2 sm:mb-4 flex justify-end">
             <Link href="/" className="inline-flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-2xs transition hover:bg-secondary-tint">

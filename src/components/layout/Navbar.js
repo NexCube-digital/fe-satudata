@@ -24,13 +24,15 @@ import {
 } from "lucide-react";
 import { apiGet, apiPut, apiDelete, getAvatarUrl } from "@/lib/api";
 
-export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
+export default function Navbar({ user: initialUser, roleLabel, onLogout, fixed = false }) {
   const [currentUser, setCurrentUser] = useState(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifFilter, setNotifFilter] = useState("all");
+  const [isNotifLoading, setIsNotifLoading] = useState(false);
+  const [notifError, setNotifError] = useState("");
   const [tokenBalance, setTokenBalance] = useState(null);
 
   const dropdownRef = useRef(null);
@@ -61,9 +63,17 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const user = currentUser;
 
   const fetchNotifications = async () => {
+    if (!currentUser) return;
+    setIsNotifLoading(true);
+    setNotifError("");
+
     try {
       const result = await apiGet("/api/notifications?limit=20");
-      const items = Array.isArray(result?.data?.items) ? result.data.items : [];
+      const items = Array.isArray(result?.data?.items)
+        ? result.data.items
+        : Array.isArray(result?.data)
+          ? result.data
+          : [];
       const mapped = items.map((item) => {
         let title = "Notifikasi";
         let category = "security";
@@ -113,7 +123,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
         else if (diffHrs > 0) timestamp = `${diffHrs} jam yang lalu`;
         else if (diffMins > 0) timestamp = `${diffMins} menit yang lalu`;
 
-        const reqObj = item.access_request || item.AccessRequest;
+        const reqObj = item.access_request || item.AccessRequest || item.request;
         let actorName = currentUser?.role === "pasien" ? "Fasilitas Kesehatan" : "Pasien";
         if (reqObj) {
           if (currentUser?.role === "pasien") {
@@ -139,23 +149,24 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
           timestamp,
           category,
           link,
-          read: item.reading,
+          read: Boolean(item.reading),
           icon,
         };
       });
       setNotifications(mapped);
     } catch (err) {
       console.warn("Gagal memuat notifikasi:", err.message);
-      setNotifications([]);
+      setNotifError(err.message || "Notifikasi tidak dapat dimuat");
     }
 
     try {
       const resCountJson = await apiGet("/api/notifications/unread-count");
-      if (resCountJson && resCountJson.success && resCountJson.data) {
-        setUnreadCount(resCountJson.data.unread_count || 0);
-      }
+      const count = Number(resCountJson?.data?.unread_count ?? 0);
+      setUnreadCount(Number.isFinite(count) ? Math.max(0, count) : 0);
     } catch (err) {
       console.warn("Gagal memuat jumlah notifikasi:", err.message);
+    } finally {
+      setIsNotifLoading(false);
     }
   };
 
@@ -227,7 +238,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   const markAllRead = async () => {
     try {
       const res = await apiPut("/api/notifications/read-all");
-      if (res.success) {
+      if (res?.success !== false) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
         setUnreadCount(0);
       }
@@ -237,13 +248,16 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   };
 
   const handleNotifClick = async (id) => {
+    const notification = notifications.find((item) => item.id === id);
+    if (!notification) return;
+
     try {
       const res = await apiPut(`/api/notifications/${id}/read`, { read: true });
-      if (res && res.success) {
+      if (res?.success !== false) {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         );
-        setUnreadCount((count) => Math.max(0, count - 1));
+        if (!notification.read) setUnreadCount((count) => Math.max(0, count - 1));
       }
     } catch (err) {
       console.error("Gagal menandai dibaca:", err);
@@ -256,9 +270,12 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
     e.preventDefault();
     try {
       const res = await apiDelete(`/api/notifications/${id}`);
-      if (res && res.success) {
+      if (res?.success !== false) {
+        const notification = notifications.find((item) => item.id === id);
         setNotifications((prev) => prev.filter((n) => n.id !== id));
-        fetchNotifications();
+        if (notification && !notification.read) {
+          setUnreadCount((count) => Math.max(0, count - 1));
+        }
       }
     } catch (err) {
       console.error("Gagal menghapus notifikasi:", err);
@@ -273,7 +290,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
   });
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-xl shadow-sm" style={{boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06), 0 4px 20px -4px rgb(0 0 0 / 0.05)"}}>
+    <nav className={`${fixed ? "fixed inset-x-0 top-0" : "sticky top-0"} z-40 border-b border-slate-100 bg-white/80 backdrop-blur-xl shadow-sm`} style={{boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06), 0 4px 20px -4px rgb(0 0 0 / 0.05)"}}>
       <div className="mx-auto flex items-center justify-between px-5 py-2.5">
         
         {/* Brand / Logo */}
@@ -378,42 +395,50 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout }) {
                   {filteredNotifs.length === 0 && (
                     <div className="py-8 text-center">
                       <Bell className="h-8 w-8 text-slate-200 mx-auto mb-2" />
-                      <p className="text-xs text-slate-400 font-medium">Tidak ada notifikasi</p>
+                      <p className="text-xs text-slate-400 font-medium">
+                        {isNotifLoading ? "Memuat notifikasi..." : notifError || "Tidak ada notifikasi"}
+                      </p>
                     </div>
                   )}
                   {filteredNotifs.map((n) => {
                     const IconComponent = n.icon;
                     return (
-                      <Link
+                      <div
                         key={n.id}
-                        href={n.link}
-                        onClick={() => handleNotifClick(n.id)}
                         className={`group flex items-start gap-3 rounded-2xl p-3 transition-all duration-150 border ${
                           n.read
                             ? "bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200"
                             : "bg-[#E6F4F1]/60 border-teal-200/60 hover:bg-[#E6F4F1] hover:border-teal-300/50"
                         }`}
                       >
-                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
-                          n.read
-                            ? "bg-slate-100 border-slate-200 text-slate-500"
-                            : "bg-gradient-to-br from-[#0D9488] to-[#0F766E] border-teal-600 text-white shadow-sm"
-                        }`}>
-                          <IconComponent className="h-4 w-4" />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-xs leading-snug ${n.read ? "text-slate-600 font-medium" : "text-slate-900 font-bold"}`}>
-                            {n.message}
-                          </p>
-                          <span className="text-[10px] text-slate-400 mt-1 block font-mono">{n.time}</span>
-                        </div>
+                        <Link
+                          href={n.link}
+                          onClick={() => handleNotifClick(n.id)}
+                          className="flex items-start gap-3 flex-1 min-w-0"
+                        >
+                          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
+                            n.read
+                              ? "bg-slate-100 border-slate-200 text-slate-500"
+                              : "bg-gradient-to-br from-[#0D9488] to-[#0F766E] border-teal-600 text-white shadow-sm"
+                          }`}>
+                            <IconComponent className="h-4 w-4" />
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs leading-snug ${n.read ? "text-slate-600 font-medium" : "text-slate-900 font-bold"}`}>
+                              {n.description || "Tidak ada informasi notifikasi"}
+                            </p>
+                            <span className="text-[10px] text-slate-400 mt-1 block font-mono">{n.timestamp}</span>
+                          </div>
+                        </Link>
                         <button
+                          type="button"
                           onClick={(e) => handleDeleteNotif(e, n.id)}
                           className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 transition"
+                          aria-label="Hapus notifikasi"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>

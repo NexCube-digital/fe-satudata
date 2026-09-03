@@ -165,10 +165,14 @@ export default function FaskesDashboard() {
 
   const handleSendRequest = async (e) => {
     e.preventDefault();
-    if (!nikInput) return;
+    if (!nikInput || !/^\d{16}$/.test(nikInput)) {
+      showToast("NIK harus berupa 16 digit angka", "error", "Data tidak valid");
+      return;
+    }
     setSubmittingRequest(true);
 
     const token = localStorage.getItem("accessToken");
+    const txHash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/hospital/access-requests`, {
@@ -179,7 +183,7 @@ export default function FaskesDashboard() {
         },
         body: JSON.stringify({
           patientNik: nikInput,
-          jenisDataDiminta: poliInput || "Permintaan Akses Rekam Medis",
+          jenisDataDiminta: purposeInput || poliInput || "Permintaan Akses Rekam Medis",
           txHash
         })
       });
