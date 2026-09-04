@@ -165,7 +165,7 @@ export default function Sidebar({ role }) {
             items: [
               { href: "/dashboard/faskes/patients", label: "PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
               { href: "/dashboard/faskes/medical-records", label: "MEDICAL RECORDS", icon: FileText, badge: badgeCounts.records || "EHR" },
-              { href: "/dashboard/faskes/doctor/list", label: "DOCTOR", icon: Stethoscope },
+              //{ href: "/dashboard/faskes/doctor/list", label: "DOCTOR", icon: Stethoscope },
             ]
           },
         ];
