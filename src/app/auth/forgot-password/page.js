@@ -54,8 +54,8 @@ export default function ForgotPasswordPage() {
         {/* Header Logo */}
         <div className="flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary p-2 text-white shadow-xs">
-              <Image src="/images/logo.png" alt="Satu Data logo" width={28} height={28} className="h-full w-full object-contain" />
+            <span className="flex h-20 w-20 items-center justify-center p-2 text-white shadow-xs">
+              <Image src="/images/logo.png" alt="Satu Data logo" width={100} height={100} className="h-full w-full object-contain" />
             </span>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 tracking-wider">Satu Data</h3>
