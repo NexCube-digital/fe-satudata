@@ -163,7 +163,7 @@ export default function Sidebar({ role }) {
             items: [
               { href: "/dashboard/faskes/requests", label: "REQUEST DATA", icon: UserPlus },
               { href: "/dashboard/faskes/requests/history", label: "HISTORY", icon: History, badge: badgeCounts.requests || "Baru" },
-              { href: "/dashboard/faskes/patients", label: "DATA PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
+              { href: "/dashboard/faskes/patients", label: "PATIENT DATA", icon: Database, badge: badgeCounts.patients || "Aktif" },
               { href: "/dashboard/faskes/medical-records", label: "MEDICAL RECORDS", icon: FileText, badge: badgeCounts.records || "EHR" },
               //{ href: "/dashboard/faskes/doctor/list", label: "DOCTOR", icon: Stethoscope },
             ]
