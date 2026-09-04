@@ -520,7 +520,7 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout, fixed =
                   <div className="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center">
                     <Settings className="h-3.5 w-3.5 text-slate-500" />
                   </div>
-                  Setting Akun & Wallet
+                  Settings
                 </Link>
 
                 <div className="my-1.5 border-t border-[#E2E8F0]" />

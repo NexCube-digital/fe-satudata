@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import SidebarSetting from "@/components/layout/SidebarSetting";
 import { User, Lock, Wallet, Loader } from "lucide-react";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -13,7 +14,7 @@ import SecuritySettingsTab from "./settings/SecuritySettingsTab";
 import WalletSettingsTab from "./settings/WalletSettingsTab";
 import PhotoUploadModal from "./settings/PhotoUploadModal";
 
-export default function SettingPage({ initialTab = "profile" }) {
+export default function SettingPage({ initialTab = "overview" }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -796,54 +797,16 @@ export default function SettingPage({ initialTab = "profile" }) {
 
       <div className="flex flex-1 md:pt-16">
         <Sidebar role={user?.role} />
+        <SidebarSetting
+          user={user}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          nik={nik}
+          profilePicturePreview={profilePicturePreview}
+          handleLogout={handleLogout}
+        />
 
         <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 w-full">
-          {/* Desktop Title Header */}
-          <div className="mb-6 hidden md:block">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Pengaturan Akun</h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Kelola profil pribadi, kata sandi keamanan, dan koneksi dompet MetaMask Anda.
-            </p>
-          </div>
-
-          {/* Desktop Horizontal Tabs */}
-          <div className="hidden md:flex gap-2 border-b border-slate-200 mb-8">
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === "profile" || activeTab === "overview"
-                  ? "border-teal-700 text-teal-800"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <User className="h-4 w-4" />
-              Profil Pengguna
-            </button>
-
-            <button
-              onClick={() => setActiveTab("security")}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === "security"
-                  ? "border-teal-700 text-teal-800"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Lock className="h-4 w-4" />
-              Keamanan & Sandi
-            </button>
-
-            <button
-              onClick={() => setActiveTab("wallet")}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition cursor-pointer ${
-                activeTab === "wallet"
-                  ? "border-teal-700 text-teal-800"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <Wallet className="h-4 w-4" />
-              {user?.role === "admin" ? "Dompet Sistem" : "Web3 & MetaMask"}
-            </button>
-          </div>
 
           {/* MOBILE-ONLY OVERVIEW SETTINGS HUB */}
           {activeTab === "overview" && (
@@ -857,42 +820,44 @@ export default function SettingPage({ initialTab = "profile" }) {
           )}
 
           {/* TAB 1: PROFIL PENGGUNA */}
-          {activeTab === "profile" && (
-            <ProfileSettingsTab
-              user={user}
-              profileMsg={profileMsg}
-              handleUpdateProfile={handleUpdateProfile}
-              hasChanges={hasChanges}
-              profileLoading={profileLoading}
-              setIsPhotoModalOpen={setIsPhotoModalOpen}
-              profilePicturePreview={profilePicturePreview}
-              name={name}
-              setName={setName}
-              isFieldEditable={isFieldEditable}
-              email={email}
-              statusAccount={statusAccount}
-              handleResendVerification={handleResendVerification}
-              resendLoading={resendLoading}
-              nik={nik}
-              setNik={setNik}
-              isNikFilledOnLoad={isNikFilledOnLoad}
-              phone={phone}
-              setPhone={setPhone}
-              dateOfBirth={dateOfBirth}
-              setDateOfBirth={setDateOfBirth}
-              showDatePicker={showDatePicker}
-              setShowDatePicker={setShowDatePicker}
-              viewDate={viewDate}
-              setViewDate={setViewDate}
-              sex={sex}
-              setSex={setSex}
-              address={address}
-              setAddress={setAddress}
-              latitude={latitude}
-              setLatitude={setLatitude}
-              longitude={longitude}
-              setLongitude={setLongitude}
-            />
+          {(activeTab === "profile" || activeTab === "overview") && (
+            <div className={activeTab === "overview" ? "hidden md:block" : ""}>
+              <ProfileSettingsTab
+                user={user}
+                profileMsg={profileMsg}
+                handleUpdateProfile={handleUpdateProfile}
+                hasChanges={hasChanges}
+                profileLoading={profileLoading}
+                setIsPhotoModalOpen={setIsPhotoModalOpen}
+                profilePicturePreview={profilePicturePreview}
+                name={name}
+                setName={setName}
+                isFieldEditable={isFieldEditable}
+                email={email}
+                statusAccount={statusAccount}
+                handleResendVerification={handleResendVerification}
+                resendLoading={resendLoading}
+                nik={nik}
+                setNik={setNik}
+                isNikFilledOnLoad={isNikFilledOnLoad}
+                phone={phone}
+                setPhone={setPhone}
+                dateOfBirth={dateOfBirth}
+                setDateOfBirth={setDateOfBirth}
+                showDatePicker={showDatePicker}
+                setShowDatePicker={setShowDatePicker}
+                viewDate={viewDate}
+                setViewDate={setViewDate}
+                sex={sex}
+                setSex={setSex}
+                address={address}
+                setAddress={setAddress}
+                latitude={latitude}
+                setLatitude={setLatitude}
+                longitude={longitude}
+                setLongitude={setLongitude}
+              />
+            </div>
           )}
 
           {/* TAB 2: KEAMANAN & SANDI */}

@@ -258,162 +258,158 @@ export default function Sidebar({ role }) {
     { href: getProfileHref(), label: "PROFIL", icon: User, isProfile: true }
   ];
 
-  const isSettingsSubpage = 
-    pathname?.includes("/settings/profile") || 
-    pathname?.includes("/settings/privacy-security") || 
-    pathname?.includes("/settings/wallet") || 
-    pathname === "/dashboard/pasien/profile";
+  const isSettingsPage = pathname?.includes("/settings") || pathname === "/dashboard/pasien/profile";
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sticky top-[57px] self-start h-[calc(100vh-57px)] w-64 border-r border-[#E2E8F0] bg-white hidden md:flex flex-col shrink-0" style={{boxShadow: "inset -1px 0 0 0 rgb(0 0 0 / 0.05)"}}>
-        {/* Scrollable Nav Content */}
-        <div className="flex-1 p-4 space-y-5 overflow-y-auto min-h-0">
-          {/* Role Header */}
-          <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-r p-4 ${roleHeader.bg}`}>
-            <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
-            <div className="relative flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 border border-white/30">
-                <Zap className="h-4 w-4 text-[#0D9488]" />
-              </div>
-              <div>
-                <span className="block text-[11px] font-extrabold uppercase tracking-wider">{roleHeader.title}</span>
-                <p className="text-[9px] font-semibold opacity-70 tracking-wide uppercase mt-0.5">{roleHeader.subtitle}</p>
+      {!isSettingsPage && (
+        <aside className="sticky top-[57px] self-start h-[calc(100vh-57px)] w-64 border-r border-[#E2E8F0] bg-white hidden md:flex flex-col shrink-0" style={{boxShadow: "inset -1px 0 0 0 rgb(0 0 0 / 0.05)"}}>
+          {/* Scrollable Nav Content */}
+          <div className="flex-1 p-4 space-y-5 overflow-y-auto min-h-0">
+            {/* Role Header */}
+            <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-r p-4 ${roleHeader.bg}`}>
+              <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
+              <div className="relative flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 border border-white/30">
+                  <Zap className="h-4 w-4 text-[#0D9488]" />
+                </div>
+                <div>
+                  <span className="block text-[11px] font-extrabold uppercase tracking-wider">{roleHeader.title}</span>
+                  <p className="text-[9px] font-semibold opacity-70 tracking-wide uppercase mt-0.5">{roleHeader.subtitle}</p>
+                </div>
               </div>
             </div>
+
+            {/* Categorized Navigation */}
+            {menuSections.map((section) => (
+              <div key={section.title} className="space-y-1">
+                <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-1.5">
+                  {section.title}
+                </p>
+                <nav className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                          isActive
+                            ? "bg-gradient-to-r from-[#0D9488] to-[#0F766E] text-white shadow-sm shadow-teal-900/15"
+                            : "text-[#334155] hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors ${
+                            isActive
+                              ? "bg-white/15 border-white/20 text-teal-100"
+                              : "bg-slate-100 border-slate-200 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
+                          }`}>
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                          <span>{item.label}</span>
+                        </div>
+
+                        {item.badge && (
+                          <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                            isActive
+                              ? "bg-white/20 text-white border border-white/30"
+                              : "bg-slate-100 text-slate-500 border border-slate-200"
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            ))}
           </div>
 
-          {/* Categorized Navigation */}
-          {menuSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 px-2.5 mb-1.5">
-                {section.title}
-              </p>
-              <nav className="space-y-0.5">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                        isActive
-                          ? "bg-gradient-to-r from-[#0D9488] to-[#0F766E] text-white shadow-sm shadow-teal-900/15"
-                          : "text-[#334155] hover:bg-slate-50 hover:text-slate-900"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center border transition-colors ${
-                          isActive
-                            ? "bg-white/15 border-white/20 text-teal-100"
-                            : "bg-slate-100 border-slate-200 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
-                        }`}>
-                          <Icon className="h-3.5 w-3.5" />
-                        </div>
-                        <span>{item.label}</span>
-                      </div>
-
-                      {item.badge && (
-                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                          isActive
-                            ? "bg-white/20 text-white border border-white/30"
-                            : "bg-slate-100 text-slate-500 border border-slate-200"
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer Account Widget */}
-        <div className="p-3 border-t border-[#E2E8F0] shrink-0">
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#64748B]">Status Akun</span>
-              <span className="inline-flex items-center gap-1 text-[#0D9488] font-bold text-[9px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#0D9488] animate-pulse" />
-                {accountStatus.badge}
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/20 shrink-0">
-                {getAvatarUrl(currentUser) ? (
-                  <img
-                    src={getAvatarUrl(currentUser)}
-                    alt={currentUser?.name || "Foto Profil"}
-                    className="h-full w-full object-cover"
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-white">
-                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3.5 w-3.5 text-white" />}
-                  </div>
-                )}
+          {/* Footer Account Widget */}
+          <div className="p-3 border-t border-[#E2E8F0] shrink-0">
+            <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#64748B]">Status Akun</span>
+                <span className="inline-flex items-center gap-1 text-[#0D9488] font-bold text-[9px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#0D9488] animate-pulse" />
+                  {accountStatus.badge}
+                </span>
               </div>
-              <div className="overflow-hidden">
-                <p className="text-[11px] font-extrabold text-[#334155] truncate">{currentUser?.name || accountStatus.title}</p>
-                <p className="text-[9px] text-[#64748B] font-mono truncate">{currentUser?.email || accountStatus.subtext}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Mobile Bottom Navigation */}
-      {!isSettingsSubpage && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] py-2 px-2 sm:px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
-          {mobileNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex flex-col items-center gap-0.5 text-[9px] font-bold transition-all ${
-                  isActive ? "text-[#0D9488] scale-105" : "text-[#64748B] hover:text-slate-800"
-                }`}
-              >
-                <div className={`relative h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
-                  isActive ? "bg-[#E6F4F1] text-[#0D9488]" : "text-slate-400"
-                }`}>
-                  {item.badge && (
-                    <span className="absolute -top-1 -right-1.5 z-10 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[9px] font-extrabold shadow-sm ring-2 ring-white animate-pulse">
-                      {item.badge.replace(/[^0-9]/g, "") || "!"}
-                    </span>
-                  )}
-                  {item.isProfile ? (
-                    <div className="relative h-6 w-6 overflow-hidden rounded-full bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/30 shrink-0">
-                      {getAvatarUrl(currentUser) ? (
-                        <img
-                          src={getAvatarUrl(currentUser)}
-                          alt={currentUser?.name || "Foto Profil"}
-                          className="h-full w-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = "none"; }}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[9px] font-extrabold text-white">
-                          {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3 w-3" />}
-                        </div>
-                      )}
-                    </div>
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/20 shrink-0">
+                  {getAvatarUrl(currentUser) ? (
+                    <img
+                      src={getAvatarUrl(currentUser)}
+                      alt={currentUser?.name || "Foto Profil"}
+                      className="h-full w-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
                   ) : (
-                    <Icon className="h-4.5 w-4.5" />
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-white">
+                      {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3.5 w-3.5 text-white" />}
+                    </div>
                   )}
                 </div>
-                <span className="uppercase tracking-wide text-[8px] sm:text-[9px]">{item.label.split(" ")[0]}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                <div className="overflow-hidden">
+                  <p className="text-[11px] font-extrabold text-[#334155] truncate">{currentUser?.name || accountStatus.title}</p>
+                  <p className="text-[9px] text-[#64748B] font-mono truncate">{currentUser?.email || accountStatus.subtext}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       )}
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] py-2 px-2 sm:px-4 flex items-center justify-around md:hidden" style={{boxShadow: "0 -1px 0 0 rgb(0 0 0 / 0.05), 0 -4px 16px -4px rgb(0 0 0 / 0.06)"}}>
+        {mobileNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href || (item.isProfile && pathname?.includes("/settings"));
+          
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex flex-col items-center gap-0.5 text-[9px] font-bold transition-all ${
+                isActive ? "text-[#0D9488] scale-105" : "text-[#64748B] hover:text-slate-800"
+              }`}
+            >
+              <div className={`relative h-8 w-8 rounded-xl flex items-center justify-center transition-all ${
+                isActive ? "bg-[#E6F4F1] text-[#0D9488]" : "text-slate-400"
+              }`}>
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1.5 z-10 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[9px] font-extrabold shadow-sm ring-2 ring-white animate-pulse">
+                    {item.badge.replace(/[^0-9]/g, "") || "!"}
+                  </span>
+                )}
+                {item.isProfile ? (
+                  <div className="relative h-6 w-6 overflow-hidden rounded-full bg-gradient-to-br from-[#0D9488] to-[#0F766E] ring-2 ring-teal-500/30 shrink-0">
+                    {getAvatarUrl(currentUser) ? (
+                      <img
+                        src={getAvatarUrl(currentUser)}
+                        alt={currentUser?.name || "Foto Profil"}
+                        className="h-full w-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[9px] font-extrabold text-white">
+                        {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : <User className="h-3 w-3" />}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Icon className="h-4.5 w-4.5" />
+                )}
+              </div>
+              <span className="uppercase tracking-wide text-[8px] sm:text-[9px]">{item.label.split(" ")[0]}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 }

@@ -26,6 +26,7 @@ import {
   Calendar,
   User,
   Heart,
+  ChevronLeft,
   ChevronRight,
   Sparkles,
   UserPlus
@@ -37,6 +38,8 @@ export default function FaskesPatients() {
   const [loading, setLoading] = useState(true);
   const [activePatients, setActivePatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [doctorsList, setDoctorsList] = useState([]);
 
   // Medical records drawer / view state
@@ -257,11 +260,20 @@ export default function FaskesPatients() {
     return cleaned.slice(0, 10) + "..." + cleaned.slice(-8);
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
   const filteredPatients = activePatients.filter(
     (p) =>
       p.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.walletAddress.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedPatients = filteredPatients.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
     return (
@@ -287,19 +299,19 @@ export default function FaskesPatients() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-24 md:pb-0">
       <Navbar user={user} roleLabel="Fasilitas Kesehatan" onLogout={handleLogout} />
 
       <div className="flex flex-1">
         <Sidebar role="faskes" />
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full min-w-0">
           {/* Header Banner */}
-          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-5 py-4 text-white shadow-md mb-6">
+          <div className="relative overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 px-4 sm:px-5 py-4 text-white shadow-md mb-4 sm:mb-6">
             <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-2xl" />
             <div className="relative z-10">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-                <Users className="h-6 w-6 text-teal-200" />
+              <h1 className="text-lg sm:text-2xl font-extrabold text-white tracking-tight flex items-center gap-2 sm:gap-2.5">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-teal-200 shrink-0" />
                 Data & Rekam Medis Pasien
               </h1>
               <p className="text-xs text-teal-100/90 mt-1 max-w-2xl leading-relaxed">
@@ -310,12 +322,12 @@ export default function FaskesPatients() {
 
           {/* Active Patient List */}
           <div className="space-y-6">
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs">
+            <div className="rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-6 shadow-xs">
               {/* Search Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-5 mb-4 sm:mb-5">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-primary" />
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
                     Pasien Terotorisasi Aktif
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Daftar pasien yang memberikan izin akses EHR ke instansi Anda.</p>
@@ -328,59 +340,160 @@ export default function FaskesPatients() {
                     type="text"
                     placeholder="Cari pasien / wallet..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                     className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-primary transition"
                   />
                 </div>
               </div>
 
-              {/* Patient List Table */}
+              {/* Patient List Content */}
               {filteredPatients.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                  <UserPlus className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                <div className="text-center py-10 sm:py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 px-4">
+                  <UserPlus className="h-9 w-9 sm:h-10 sm:w-10 text-slate-300 mx-auto mb-3" />
                   <p className="text-sm font-bold text-slate-600">Tidak Ada Pasien Aktif</p>
                   <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Kirim permohonan akses baru ke NIK/wallet pasien terlebih dahulu di menu "Request Akses".</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                        <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
-                        <th className="py-3 px-4">Tx Hash</th>
-                        <th className="py-3 px-4">Masa Berlaku Izin</th>
-                        <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredPatients.map((patient) => (
-                        <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
-                          <td className="py-4 px-4">
-                            <p className="font-bold text-slate-900">{patient.patientName}</p>
-                            <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
-                          </td>
-                          <td className="py-4 px-4 font-mono text-[11px] text-primary font-bold">
-                            <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1" title={patient.txHash} />
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                              <Clock className="h-3.5 w-3.5 text-amber-500" />
-                              {patient.expiryTime}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-right">
-                            <button
-                              onClick={() => router.push(`/dashboard/faskes/medical-records`)}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white px-3.5 py-2 font-bold transition shadow-xs cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5" /> Lihat Riwayat
-                            </button>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                          <th className="py-3 px-4 rounded-l-xl">Identitas Pasien</th>
+                          <th className="py-3 px-4">Layanan / Poli</th>
+                          <th className="py-3 px-4">Tx Hash</th>
+                          <th className="py-3 px-4">Masa Berlaku Izin</th>
+                          <th className="py-3 px-4 text-right rounded-r-xl">Aksi Medis</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {paginatedPatients.map((patient) => (
+                          <tr key={patient.patientId} className="hover:bg-slate-50/50 transition">
+                            <td className="py-4 px-4">
+                              <p className="font-bold text-slate-900">{patient.patientName}</p>
+                              <p className="font-mono text-[10px] text-slate-450 mt-0.5">NIK: {maskNik(patient.nik)}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className="inline-flex items-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 px-2 py-0.5 text-[10px] font-bold">
+                                {patient.poli || "Klinik Umum"}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 font-mono text-[11px] text-primary font-bold">
+                              <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1" title={patient.txHash} />
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                                <Clock className="h-3.5 w-3.5 text-amber-500" />
+                                {patient.expiryTime}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <button
+                                onClick={() => router.push(`/dashboard/faskes/medical-records`)}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white px-3.5 py-2 font-bold transition shadow-xs cursor-pointer"
+                              >
+                                <Eye className="h-3.5 w-3.5" /> Lihat Riwayat
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards View */}
+                  <div className="block md:hidden space-y-3">
+                    {paginatedPatients.map((patient) => (
+                      <div
+                        key={patient.patientId}
+                        className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2 border-b border-slate-200/60 pb-3">
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm">{patient.patientName}</p>
+                            <p className="font-mono text-[11px] text-slate-500 mt-0.5">
+                              NIK: {maskNik(patient.nik)}
+                            </p>
+                          </div>
+                          <div className="shrink-0 font-mono text-[11px]">
+                            <TxHashLink txHash={patient.txHash} className="inline-flex items-center gap-1" title={patient.txHash} />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Layanan / Poli:</span>
+                            <span className="inline-flex items-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60 px-2 py-0.5 text-[10px] font-bold">
+                              {patient.poli || "Klinik Umum"}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Izin Akses:</span>
+                            <span className="inline-flex items-center gap-1 text-slate-600 text-[11px] font-semibold">
+                              <Clock className="h-3 w-3 text-amber-500" />
+                              {patient.expiryTime}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200/60">
+                          <button
+                            onClick={() => router.push(`/dashboard/faskes/medical-records`)}
+                            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white py-2.5 px-4 font-bold text-xs transition shadow-xs cursor-pointer"
+                          >
+                            <Eye className="h-4 w-4" /> Lihat Riwayat
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {filteredPatients.length > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 border-t border-slate-100 mt-5">
+                      <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
+                        Menampilkan <span className="font-bold text-slate-800">{startIndex + 1}</span> - <span className="font-bold text-slate-800">{Math.min(startIndex + itemsPerPage, filteredPatients.length)}</span> dari <span className="font-bold text-slate-800">{filteredPatients.length}</span> data pasien
+                      </p>
+                      
+                      {totalPages > 1 && (
+                        <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                          <button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                            title="Halaman Sebelumnya"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`flex items-center justify-center h-8 min-w-[32px] px-2.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                currentPage === page
+                                  ? "bg-primary text-white shadow-xs"
+                                  : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+
+                          <button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                            title="Halaman Selanjutnya"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -389,42 +502,42 @@ export default function FaskesPatients() {
 
       {/* Add EHR Modal */}
       {isAddModalOpen && modalPatient && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-6 sm:p-8">
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-4 sm:p-8">
             
             {/* Modal Header */}
-            <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="h-5.5 w-5.5 text-primary" />
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary shrink-0" />
                   Tambah Rekam Medis Baru (EHR)
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">Pasien: <span className="font-bold text-slate-700">{modalPatient.patientName}</span></p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold transition text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 font-bold transition text-xs sm:text-sm cursor-pointer p-1"
               >
                 Tutup [X]
               </button>
             </div>
 
             {successMessage ? (
-              <div className="py-12 text-center space-y-3">
-                <CheckCircle className="h-16 w-16 text-primary mx-auto animate-bounce" />
-                <h4 className="text-base font-bold text-slate-800">{successMessage}</h4>
+              <div className="py-8 sm:py-12 text-center space-y-3">
+                <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-primary mx-auto animate-bounce" />
+                <h4 className="text-sm sm:text-base font-bold text-slate-800">{successMessage}</h4>
                 <p className="text-xs text-slate-400">Data telah dienkripsi menggunakan kunci otorisasi.</p>
               </div>
             ) : (
-              <form onSubmit={handleAddEhrSubmit} className="space-y-6 flex-1">
+              <form onSubmit={handleAddEhrSubmit} className="space-y-4 sm:space-y-6 flex-1">
                 {/* Form Main Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tipe Rekam Medis</label>
                     <select
                       value={recordType}
                       onChange={(e) => setRecordType(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-primary focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-primary focus:outline-hidden"
                     >
                       <option value="umum">Umum (Pemeriksaan Dokter)</option>
                       <option value="lab">Laboratorium / Tes Darah</option>
@@ -441,7 +554,7 @@ export default function FaskesPatients() {
                       placeholder="Contoh: Konsultasi Gastritis"
                       value={recordTitle}
                       onChange={(e) => setRecordTitle(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-primary focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-primary focus:outline-hidden"
                     />
                   </div>
 
@@ -452,21 +565,21 @@ export default function FaskesPatients() {
                       required
                       value={visitDate}
                       onChange={(e) => setVisitDate(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-primary focus:outline-hidden"
+                      className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-primary focus:outline-hidden"
                     />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Dokter Penanggung Jawab</label>
                     {doctorsList.length === 0 ? (
-                      <div className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs text-primary bg-secondary-tint font-bold">
+                      <div className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs text-primary bg-secondary-tint font-bold">
                         Belum ada dokter terdaftar di RS ini!
                       </div>
                     ) : (
                       <select
                         value={selectedDoctorId}
                         onChange={(e) => setSelectedDoctorId(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-primary focus:outline-hidden"
+                        className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-primary focus:outline-hidden"
                       >
                         {doctorsList.map((d) => (
                           <option key={d.id} value={d.id}>
@@ -485,7 +598,7 @@ export default function FaskesPatients() {
                     value={ehrSummary}
                     onChange={(e) => setEhrSummary(e.target.value)}
                     placeholder="Tulis ringkasan singkat kondisi pasien..."
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs focus:border-primary focus:outline-hidden"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -499,18 +612,18 @@ export default function FaskesPatients() {
                     required
                     value={ehrSignature}
                     onChange={(e) => setEhrSignature(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs font-mono bg-slate-50 focus:bg-white focus:border-primary focus:outline-hidden text-slate-700"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-mono bg-slate-50 focus:bg-white focus:border-primary focus:outline-hidden text-slate-700"
                     placeholder="Signature digital enkripsi"
                   />
                   <p className="text-[9px] text-slate-400 mt-1">Gunakan signature MetaMask pasang-non-aktif pasien atau gunakan signature otomatis untuk simulasi.</p>
                 </div>
 
                 {/* Dynamic Details Forms based on recordType */}
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/50 space-y-4">
+                <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200/50 space-y-3 sm:space-y-4">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Detail Rekam Medis (Enkripsi AES-256)</h4>
                   
                   {recordType === "umum" && (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Keluhan Utama</label>
                         <input
@@ -555,7 +668,7 @@ export default function FaskesPatients() {
                   )}
 
                   {recordType === "lab" && (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hasil Pemeriksaan Lab</label>
                         <textarea
@@ -590,7 +703,7 @@ export default function FaskesPatients() {
                   )}
 
                   {recordType === "radiologi" && (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Temuan / Hasil Pemeriksaan Radiologi</label>
                         <textarea
@@ -615,7 +728,7 @@ export default function FaskesPatients() {
                   )}
 
                   {recordType === "resep" && (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">Daftar Obat & Dosis</label>
                         <textarea
@@ -641,18 +754,18 @@ export default function FaskesPatients() {
                 </div>
 
                 {/* Form Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 px-5 py-2.5 text-xs font-bold transition cursor-pointer"
+                    className="w-full sm:w-auto rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 px-5 py-2.5 text-xs font-bold transition cursor-pointer text-center"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submittingEhr || doctorsList.length === 0}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold px-6 py-2.5 text-xs transition disabled:opacity-50 cursor-pointer"
                   >
                     {submittingEhr ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
