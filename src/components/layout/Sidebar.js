@@ -153,17 +153,17 @@ export default function Sidebar({ role }) {
       case "rumah_sakit":
         return [
           {
-            title: "Umum",
+            title: "HOME",
             items: [
               { href: "/dashboard/faskes", label: "DASHBOARD", icon: Home, badge: badgeCounts.tokens || null },
-              { href: "/dashboard/faskes/requests", label: "REQUEST DATA", icon: UserPlus },
-              { href: "/dashboard/faskes/requests/history", label: "HISTORY", icon: History, badge: badgeCounts.requests || "Baru" }
             ]
           },
           {
-            title: "Master Data",
+            title: "FEATURE",
             items: [
-              { href: "/dashboard/faskes/patients", label: "PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
+              { href: "/dashboard/faskes/requests", label: "REQUEST DATA", icon: UserPlus },
+              { href: "/dashboard/faskes/requests/history", label: "HISTORY", icon: History, badge: badgeCounts.requests || "Baru" },
+              { href: "/dashboard/faskes/patients", label: "DATA PATIENT", icon: Database, badge: badgeCounts.patients || "Aktif" },
               { href: "/dashboard/faskes/medical-records", label: "MEDICAL RECORDS", icon: FileText, badge: badgeCounts.records || "EHR" },
               //{ href: "/dashboard/faskes/doctor/list", label: "DOCTOR", icon: Stethoscope },
             ]
