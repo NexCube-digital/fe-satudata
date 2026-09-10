@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/LandingNavbar";
 import Footer from "@/components/layout/LandingFooter";
+import AiPage from "@/components/landing/faq/AiPage";
 import { 
   Search, 
   HelpCircle, 
@@ -198,6 +199,8 @@ export default function FAQPage() {
             </div>
           )}
         </div>
+
+        <AiPage />
 
         {/* Support Options Cards */}
         <div className="pt-6 border-t border-[#E2E8F0]">
