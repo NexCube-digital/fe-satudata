@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bot, LoaderCircle, RotateCcw, Send, Sparkles, User } from "lucide-react";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 
 // Pertanyaan contoh yang bisa langsung diklik user saat chat masih kosong
 const SUGGESTED_QUESTIONS = [
@@ -33,12 +33,31 @@ function getAnswer(result) {
 	);
 }
 
+async function loadMedicalData() {
+	const historyResult = await apiGet("/api/patient/history");
+	const history = Array.isArray(historyResult?.data) ? historyResult.data : [];
+
+	const records = await Promise.all(
+		history.map(async (record) => {
+			try {
+				const detailResult = await apiGet(`/api/patient/history/${record.id}`);
+				return detailResult?.data ? { ...record, detail: detailResult.data } : record;
+			} catch {
+				return record;
+			}
+		})
+	);
+
+	return { records };
+}
+
 export default function AiPage({ mode = "system", patientId = "" }) {
 	const isMedicalChat = mode === "medical";
 	const [sessionId] = useState(createSessionId);
 	const [question, setQuestion] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [medicalData, setMedicalData] = useState(null);
 	const [error, setError] = useState("");
 	const [lastFailedQuestion, setLastFailedQuestion] = useState("");
 
@@ -50,6 +69,24 @@ export default function AiPage({ mode = "system", patientId = "" }) {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages, isLoading]);
 
+	useEffect(() => {
+		if (!isMedicalChat || !String(patientId || "").trim()) return;
+
+		let cancelled = false;
+		loadMedicalData()
+			.then((data) => {
+				if (!cancelled) setMedicalData(data);
+			})
+			.catch(() => {
+				if (!cancelled) setMedicalData(null);
+			})
+			.catch(() => {});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [isMedicalChat, patientId]);
+
 	const askQuestion = async (trimmedQuestion) => {
 		setError("");
 		const normalizedPatientId = patientId === null || patientId === undefined ? "" : String(patientId).trim();
@@ -57,6 +94,17 @@ export default function AiPage({ mode = "system", patientId = "" }) {
 			setError("Identitas pasien belum siap. Silakan tutup lalu buka kembali Tanya AI.");
 			return;
 		}
+
+		let contextData = medicalData;
+		if (isMedicalChat && !contextData) {
+			try {
+				contextData = await loadMedicalData();
+				setMedicalData(contextData);
+			} catch {
+				contextData = null;
+			}
+		}
+
 		setMessages((current) => [...current, { role: "user", content: trimmedQuestion }]);
 		setIsLoading(true);
 
@@ -64,7 +112,13 @@ export default function AiPage({ mode = "system", patientId = "" }) {
 			const result = await apiPost(
 				isMedicalChat ? "/api/ai/chat" : "/api/ai/system-chat",
 				isMedicalChat
-					? { action: "medical", patient_id: normalizedPatientId, question: trimmedQuestion, top_k: 5 }
+					? {
+							action: "medical",
+							patient_id: normalizedPatientId,
+							question: trimmedQuestion,
+							top_k: 5,
+							medical_data: contextData || undefined,
+						}
 					: { session_id: sessionId, question: trimmedQuestion, top_k: 4 }
 			);
 			setMessages((current) => [...current, { role: "assistant", content: getAnswer(result) }]);
