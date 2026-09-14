@@ -4,15 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/LandingNavbar";
 import Footer from "@/components/layout/LandingFooter";
-import AiPage from "@/components/landing/faq/AiPage";
 import { 
   Search, 
   HelpCircle, 
   ChevronDown, 
   ShieldCheck, 
-  Lock, 
   Database, 
-  Wallet, 
   Building2, 
   User, 
   Mail, 
@@ -20,7 +17,8 @@ import {
   ExternalLink,
   CheckCircle2,
   FileText,
-  Sparkles
+  Sparkles,
+  Stethoscope
 } from "lucide-react";
 import { faqQuestions } from "@/components/landing/landing-data";
 
@@ -50,6 +48,10 @@ export default function FAQPage() {
     setOpenId(openId === id ? null : id);
   };
 
+  const openSadaAi = () => {
+    window.dispatchEvent(new CustomEvent("openSadaChat"));
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col pt-16 sm:pt-20">
       <Navbar walletConnected={walletConnected} setWalletConnected={setWalletConnected} />
@@ -73,6 +75,21 @@ export default function FAQPage() {
             <p className="text-xs sm:text-sm text-teal-100/90 max-w-xl mx-auto leading-relaxed">
               Cari jawaban seputar enkripsi rekam medis AES-256, kedaulatan hak akses pasien, integrasi SATUSEHAT, dan dompet MetaMask Web3.
             </p>
+
+            {/* Quick Action Button to Open Halodoc-Style AI Assistant */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={openSadaAi}
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2 text-xs font-extrabold text-[#0D9488] shadow-md hover:bg-teal-50 hover:shadow-lg transition-all cursor-pointer"
+              >
+                <Stethoscope className="h-4 w-4 text-[#0D9488]" />
+                <span>Tanya Asisten AI (SADA)</span>
+                <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[9px] font-extrabold uppercase">
+                  24/7 AI
+                </span>
+              </button>
+            </div>
 
             {/* Search Input Bar */}
             <div className="relative max-w-xl mx-auto pt-2">
@@ -199,8 +216,6 @@ export default function FAQPage() {
             </div>
           )}
         </div>
-
-        <AiPage />
 
         {/* Support Options Cards */}
         <div className="pt-6 border-t border-[#E2E8F0]">

@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SessionTimeout from "@/components/shared/SessionTimeout";
 import { ToastProvider } from "@/components/shared/Toast";
+import FloatingSadaWidget from "@/components/shared/FloatingSadaWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
         <ToastProvider>
           {children}
           <SessionTimeout />
+          <FloatingSadaWidget />
         </ToastProvider>
       </body>
     </html>

@@ -572,51 +572,6 @@ export default function Navbar({ user: initialUser, roleLabel, onLogout, fixed =
         </div>
       </div>
     </nav>
-
-    {/* Floating Action Button Tanya AI  */}
-    <button
-      type="button"
-      onClick={() => setIsAiModalOpen(true)}
-      className="fixed bottom-20 right-4 z-50 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-[#0D9488] px-4 py-3 text-xs font-extrabold text-white shadow-lg shadow-teal-900/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0F766E] hover:shadow-xl hover:shadow-teal-900/30 active:translate-y-0 md:bottom-6 md:right-6"
-      title="Tanya AI"
-      aria-label="Tanya AI"
-    >
-      <Bot className="h-4 w-4" />
-      <span>Tanya AI</span>
-    </button>
-
-    {isAiModalOpen && (
-      <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="ai-modal-title"
-          className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
-        >
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-[#0D9488]">SatuData AI</p>
-              <h2 id="ai-modal-title" className="text-lg font-extrabold text-[#334155]">Tanya AI</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsAiModalOpen(false)}
-              className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-              title="Tutup Tanya AI"
-              aria-label="Tutup Tanya AI"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="overflow-y-auto p-4 sm:p-6">
-            <AiPage
-              mode="medical"
-              patientId={user?.patient_id || user?.patientId || user?.patient?.id || user?.id || ""}
-            />
-          </div>
-        </div>
-      </div>
-    )}
   </>
   );
-}
+}
