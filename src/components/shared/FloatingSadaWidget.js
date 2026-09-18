@@ -54,8 +54,10 @@ export default function FloatingSadaWidget() {
 
   if (isExcluded) return null;
 
-  const isDashboard = pathname.startsWith("/dashboard");
-  const isPatient = user?.role === "pasien";
+  const normalizedRole = String(user?.role || "").trim().toLowerCase();
+  const isPatient = ["pasien", "patient"].includes(normalizedRole);
+  const userRole = isPatient ? "pasien" : "";
+  const userId = user?.user_id || user?.userId || user?.id || "";
   const patientId = user?.patient_id || user?.patientId || user?.patient?.id || user?.id || "";
 
   return (
@@ -88,8 +90,11 @@ export default function FloatingSadaWidget() {
         /* FLOATING CHAT POPOVER WINDOW (HALODOC HILDA STYLE) */
         <div className="w-[92vw] sm:w-[410px] h-[580px] max-h-[85vh] rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 fade-in duration-200">
           <AiPage
-            mode={isDashboard && isPatient ? "medical" : "system"}
+            mode={isPatient ? "medical" : "system"}
             patientId={patientId}
+            enableClassification={isPatient}
+            userRole={userRole}
+            userId={userId}
             isFloating={true}
             onClose={() => setIsChatOpen(false)}
           />

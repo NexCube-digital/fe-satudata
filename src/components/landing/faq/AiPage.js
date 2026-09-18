@@ -65,12 +65,22 @@ function createSessionId() {
 }
 
 function getAnswer(result) {
+  const response = result?.data?.data || result?.data || result;
+
+  if (Array.isArray(response?.predictions)) {
+    const predictions = response.predictions
+      .map((prediction, index) => {
+        const confidence = Math.round(Number(prediction.confidence || 0) * 100);
+        return `${index + 1}. ${prediction.nama} (${confidence}%)\n${prediction.alasan}`;
+      })
+      .join("\n\n");
+    return `${predictions}\n\n${response.disclaimer || "Hasil ini hanya klasifikasi awal, bukan diagnosis. Periksakan diri ke dokter."}`;
+  }
+
   return (
-    result?.answer ||
-    result?.response ||
-    result?.message ||
-    result?.data?.answer ||
-    result?.data?.response ||
+    response?.answer ||
+    response?.response ||
+    response?.message ||
     "Maaf, saya belum menerima jawaban dari layanan AI."
   );
 }
@@ -95,11 +105,18 @@ async function loadMedicalData() {
 
 export default function AiPage({ 
   mode = "system", 
+  enableClassification = false,
   patientId = "", 
   onClose = null,
+  userRole = "",
+  userId = "",
   isFloating = false
 }) {
   const isMedicalChat = mode === "medical";
+  const isPatientChat = ["pasien", "patient"].includes(String(userRole || "").trim().toLowerCase());
+  const classificationKeywords = /\b(demam|batuk|pilek|sesak|nyeri|sakit|mual|muntah|diare|pusing|gejala|penyakit)\b/i;
+  const normalizedUserRole = String(userRole || "").trim().toLowerCase();
+  const normalizedUserId = String(userId || "").trim();
   const [sessionId] = useState(createSessionId);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
@@ -158,12 +175,17 @@ export default function AiPage({
     setIsLoading(true);
 
     try {
+      const isClassificationQuestion = isPatientChat
+        && enableClassification
+        && classificationKeywords.test(trimmedQuestion);
       const result = await apiPost(
         isMedicalChat ? "/api/ai/chat" : "/api/ai/system-chat",
         isMedicalChat
           ? {
-              action: "medical",
+              action: isClassificationQuestion ? "classify" : "medical",
               patient_id: normalizedPatientId,
+              user_role: normalizedUserRole,
+              user_id: normalizedUserId,
               question: trimmedQuestion,
               top_k: 5,
               medical_data: contextData || undefined,
